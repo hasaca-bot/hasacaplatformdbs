@@ -1,0 +1,847 @@
+======================================================================
+HASACA PLATFORM — AI CONTINUATION CONTEXT
+(Overwrite this file at the END of every phase. Written for an AI that has
+never seen this project. Companion to development-status.md + phase-XX.md.)
+Last updated: 2026-07-26 (after Phase 32)
+======================================================================
+
+# PROJECT SUMMARY
+HASACA is a production-grade, white-label, MULTI-TENANT SaaS restaurant platform. One codebase
+serves many restaurants ("tenants"); each gets a public website, a tenant admin panel, QR table
+ordering, delivery/dine-in ordering, reservations, and push notifications. A Root (super-admin)
+Panel manages all tenants. As of Phase 22 there is ALSO a public marketing site for HASACA itself.
+
+- Tech stack: Node.js + Express (no framework beyond Express). Dual DB layer: SQLite (dev, via
+  Node built-in `node:sqlite`) OR PostgreSQL (prod, `pg`) chosen by `DATABASE_URL`. Frontend = FOUR
+  static HTML pages, NO bundler, NO React — each page has its own embedded `<style>` and `<script>`
+  and an inline `i18nData` object. `web-push` for notifications, `qrcode` for QR.
+- Folder structure (working copy = `C:\Users\hasan_y4hfwna\Desktop\hasaca-platform`):
+    index.html        → a tenant's restaurant website. Served at `/` ONLY on a real tenant subdomain
+                        (restaurant1.hasaca.com, restaurant1.localhost:PORT). On the bare host (plain
+                        localhost, an IP, the platform apex domain) `/` now serves landing.html instead
+                        (Phase 31) — reach a specific tenant (incl. `default`) via `/tenant/<slug>`.
+    admin.html        → tenant admin panel (standalone; overlays the customer page)
+    root.html         → Root/super-admin panel, served at `/root`
+    landing.html      → HASACA MARKETING HOME, served at `/landing` (+ alias `/hasaca`)  [Phase 22]
+    marketing.html    → SHARED SHELL rendering all 45 marketing sub-pages                [Phase 23]
+    marketing-data.js → UMD content registry for those 45 pages (Node + browser)         [Phase 23]
+    login.html        → dedicated login page: /giris /yonetici-girisi /restoran-girisi
+                        /root-girisi                                                     [Phase 23]
+    panel.css         → SHARED design-token system + Black/White/System themes + desktop
+                        shell/components; linked by root.html (admin.html next)          [Phase 24]
+    fonts/            → SamsungSharpSans-Bold.ttf (global app font, Phase 19)
+    icons/            → placeholder-logo.svg, placeholder-dish-1..4.svg, favicons
+    uploads/          → user-uploaded images (served at /uploads/<file>)
+    backend/
+      server.js       → Express app, all customer + tenant-admin APIs, static serving, VAPID init
+      db.js           → schema/migrations, seeds, dual-driver helpers, logActivity, regenerateDefaultTenant
+      seedData.js     → i18nData (TR/EN UI strings) used to seed the translations table
+      masterTemplate.js → the "My Restaurant" demo dataset cloned for new tenants
+      routes/root.js  → all /api/root/* endpoints (tenants, branding, health, activity, analytics,
+                        notifications, landing-messages)
+      lib/            → auth.js (scrypt+HMAC), tenant.js (resolver), events.js (SSE)
+      dayikatik.db    → the SQLite database file (dev)
+      data/           → vapid.json, root_credentials.json, secret.json
+    development-logs/  → development-status.md, phase-00..22.md, THIS FILE
+
+# CURRENT STATUS
+- Overall: ~89% of the multi-wave scope. The platform is stable and runnable.
+- Working copy runs on http://localhost:17888 (fork of the original `C:\...\saas proje`, which is a
+  frozen rollback). Start it: `cd backend && node server.js` (backend/.env now correctly carries
+  `PORT=17888` — P27 found it stale at 12999, a leftover from the original folder, and fixed it; if the
+  server ever comes up on the wrong port again, check this file FIRST before assuming a code bug).
+- Last completed phase: Phase 31 (root routing — `/` now serves the HASACA landing page on the bare
+  host instead of the `default` demo tenant). Phase 30 (tenant-targeted Root AI), Phase 29 (QR
+  Designer), Phase 28 (Widget Management) done just before it — see phase-30.md / phase-29.md /
+  phase-28.md.
+- Phase 31: `app.get('/', ...)` (server.js) now branches on the RAW HOST via `slugFromHost()` (imported
+  from `lib/tenant.js`) instead of `req.tenantId` — a real tenant subdomain still serves `index.html`
+  unchanged; the bare-host fallback (localhost, an IP, the platform apex domain, *.onrender.com/
+  *.netlify.app) now serves `landing.html`. The dev-only `?tenant=` override is honored at this same
+  route (an explicit `?tenant=default` still shows the demo tenant, never the landing page). New
+  `GET /tenant/:slug` redirects into that same override (`/?tenant=<slug>`) — a path-based way to reach
+  ANY tenant, including `default`, without subdomain DNS; reuses the existing override + front-end
+  fetch interceptor, zero new tenant-resolution logic. New `/admin` and `/login` aliases (existing
+  `/admin.html`, `/giris` etc. all kept). `admin.html`'s "Siteyi Görüntüle" link, previously a bare
+  `href="/"`, now points at `/tenant/<current tenant id>` (set once `/api/site-config` resolves) so it
+  keeps opening the right tenant's site instead of now-landing `/`.
+  A bug was caught DURING verification, not before: the first cut of the `/` handler checked only the
+  host, so `/tenant/default`'s own redirect still hit the landing-page branch — the override wasn't
+  being read at the one route required to honor it. Fixed by checking `req.query.tenant` (same
+  dev-only gate) before the host check.
+  `/register` decision still pending user input (see NEXT PHASE).
+- Last completed phase: Phase 32 (zero legacy orange, platform-wide — finished what P31 interrupted,
+  under an explicit "ZERO...anywhere" bar). See phase-32.md.
+- Phase 32: `index.html`'s `theme-mono` (the REAL B&W theme — see the naming-trap note in KNOWN ISSUES)
+  is now genuinely orange-free: added `--fire-rgb`/`--ember-rgb`/`--amber-rgb`/`--bad`/`--bad-rgb`
+  companions to `:root` (RGBA needs a comma-triplet, can't interpolate a hex custom property directly),
+  rewrote ~58 hardcoded literals to `var()` form, added matching grey triplets to `theme-mono`.
+  DISCOVERED MID-PHASE: `admin.html` has the SAME ~50 hardcoded literals (it embeds an identical copy
+  of the customer `:root`/markup) — Phase 25.2 never touched this because it only re-themed the visible
+  overlay. Verified LIVE that this embedded content is unconditionally `display:none` on admin.html
+  (checked `#hero` and `SECTION#rezervasyon` via getComputedStyle — both `none`), so tokenising it there
+  was a pure de-hardcoding refactor with zero visual outcome — still done, because "zero orange
+  ANYWHERE" means zero orange TEXT in the source too, not just zero orange PIXELS in reachable UI.
+  `root.html` had 2 dead lines (an old pre-P24 `:root` fallback fully overridden by panel.css, which
+  loads last in `<head>` and redeclares the same var names — verified by reading panel.css directly,
+  not assumed) — updated to gold values anyway so the fallback is orange-free too, in case panel.css
+  ever fails to load. `backend/db.js`'s seeded default-tenant admin `display_name` was literally
+  `'Dayı Katık Yönetici'` — genericised to `'Yönetici'`. The `White-label: ZERO Dayı Katık...` claim
+  elsewhere in this file (IMPLEMENTED FEATURES) needed this one correction — everything else matching
+  that string in db.js is the migration CODE that scrubs it from the DB, not a leak.
+  THREE BUGS CAUGHT DURING VERIFICATION (not before — this is why "verify, don't assume" matters even
+  for "trivial" find-replace work): (1) a bulk literal→var() script matched its OWN freshly-added token
+  DECLARATIONS twice (`--bad:#FF7043;` → `--bad:var(--bad);`, circular) — once in index.html, then the
+  identical mistake again in admin.html before the lesson fully stuck; fixed by hand each time, later
+  replacements anchored to `rgba\(` context so a declaration line can never match again. (2) `--ember`'s
+  RGB-decimal form (`255,87,34`) was missing from the ORIGINAL discovery grep entirely — found only
+  because the first B&W re-verification came back at 35 hits instead of 0. (3) A test-methodology false
+  alarm: switching themes at RUNTIME (`applyTheme('bw')`, no reload) showed 8 stale-orange elements even
+  though the CSS source/CSSOM/custom-property value were all independently confirmed correct — root-
+  caused to the SAME documented environment limit as the CSS-transition-freeze issue (this preview pane
+  doesn't composite when `document.visibilityState==='hidden'`, so certain derived "used values" don't
+  get recomputed after a runtime class change). Proved it with `localStorage.theme='bw'` + a FRESH
+  navigation (B&W as the very first paint, no runtime switch) — same elements then correctly read grey.
+  All verification after that used fresh-navigation-per-theme, never runtime switching.
+  `/register` was requested but NOT built — no self-service tenant signup exists anywhere in this
+  codebase (tenants are Root-created only, via `POST /api/root/tenants`). Flagged for the user rather
+  than fabricated; the closest existing equivalent is the landing page's `/demo-talep` lead form.
+- Phase 30: `POST /api/root/ai-assistant/plan` takes an optional `targetTenant`. Empty → platform scope
+  (unchanged P27 behavior, ALLOWED_PLATFORM_KEYS). A tenant id → verifies the tenant exists (404
+  `tenant_not_found`), loads THAT tenant's products+categories, and uses the same menu whitelist the
+  tenant-side assistant enforces. Both branches share one `resolveActions()` closure so the Gemini
+  call/caching/response shape is not forked. The cache entry stores its `scope`; execute branches on
+  it — platform → `savePlatform()`, tenant → re-verify row ownership then the same
+  `UPDATE ... WHERE id=? AND tenant_id=?` statement. root.html got a "Hedef" select (populated from the
+  `tenants` global) + a scope-specific hint; switching target CLEARS any pending plan preview, because
+  a cached plan belongs to the scope it was built for.
+- **GEMINI QUOTA (read this before debugging any AI feature):** the stored key is REAL and reaches
+  Google's API, but its project has `limit: 0` on the free tier — every generateContent call returns a
+  quota error. So AI plan requests legitimately come back with `{planId:null, error:'...quota...'}`.
+  That is NOT a code bug. Phases 27/29 logs called this a "fake key"; that was an assumption and it was
+  wrong (corrected in P30). Nothing downstream of a successful Gemini response has ever run.
+- Phase 29: `settings.qr_style: {fg, bg, margin, ecc}` inside the EXISTING `tenants.settings` blob (same
+  pattern as P28's `widgets` key) — missing key defaults to the pre-P29 hardcoded values (black-on-
+  white, margin 1, ECC M), so untouched tenants generate byte-identical QR codes. Both QR-generating
+  routes in `backend/routes/tables.js` (`GET /tables/:id/qr`, `GET /tables-qr`) now read+merge this via
+  a small `getQrOptions()` helper before calling `QRCode.toDataURL`/`toString` — the `qrcode` package
+  already supports `color.dark`/`color.light` natively, no new dependency. New `PUT
+  /api/admin/qr-style` (server.js) mirrors P28's `site-widgets` endpoint exactly (tenant-scoped,
+  validates hex/margin-range/ecc-letter, 400s on bad input, nested-merges so a partial update never
+  wipes other fields). New "QR Stili" panel at the top of admin.html's existing Tables view — color
+  pickers, margin, ECC select, Save, and a live preview that re-fetches the first table's QR after
+  saving. Root/root.html NOT touched — this is scoped tenant-only (unlike Widget Management, the
+  backlog's own wording for QR Designer never mentioned a Root-gating layer).
+- Phase 28: added `settings.widgets: {whatsapp,instagram,facebook,twitter,tiktok,youtube,website,maps}`
+  (booleans) inside the EXISTING `tenants.settings` JSON blob — no new column/migration, missing
+  key/entry defaults to enabled so untouched tenants render exactly as before. `index.html`'s
+  `applySiteConfig()` gates each row/icon/map-box on `widgets.<x> !== false` alongside its existing
+  presence check. Root can toggle via a new checkbox group in the existing Branding modal
+  (`root.html`); tenants can now ALSO toggle their own via a brand-new `PUT /api/admin/site-widgets`
+  (server.js) + a new "Widget Ayarları" view in admin.html — this is the first tenant-facing settings
+  endpoint the app has ever had (previously only Root could edit any part of `tenants.settings`), kept
+  deliberately narrow: it only ever touches `settings.widgets`, nothing else. Both write paths merge
+  the nested `widgets` object key-by-key (never overwrite) so a partial toggle can't wipe other flags
+  or unrelated settings fields — `routes/root.js`'s branding PUT handler coerces every OTHER field to a
+  trimmed string, so `widgets` needed its own merge branch, not the same-loop treatment.
+- Phase 27 Part A: `#adminCategoryFormPanel`/`#adminFormPanel` used to be full-viewport fixed overlays
+  that hid the sidebar/topbar. Relocated (via a one-time JS IIFE, not a manual HTML cut/paste) into
+  `#adminPanelOverlay .app-content` as two more `.view` panes, switched by the existing
+  `showAdminView()` exactly like every other section. Save/cancel/triggers unchanged.
+- Phase 27 Part B: added a natural-language "AI Assistant" view to BOTH panels. Backend:
+  `POST /api/admin/ai-assistant/plan|execute` (server.js, tenant-scoped, whitelisted to
+  products.{name_tr,name_en,description_tr,description_en,price,category} + categories.{name_tr,
+  name_en}) and `POST /api/root/ai-assistant/plan|execute` (routes/root.js, scoped to Root's own
+  ALLOWED_PLATFORM_KEYS only — NOT a specific tenant's menu/branding, that's a noted fast-follow).
+  Both: Gemini proposes a plan (JSON-schema response), server validates every field against a
+  whitelist + real row ownership, caches it in-memory (single-use, 10-min TTL, keyed by a random
+  planId), returns it for preview — WRITES NOTHING. Execute takes {planId}, re-checks it belongs to
+  the caller (tenant_id match for tenant; a separate in-memory Map for root), re-verifies ownership
+  immediately before writing, then applies through the SAME update statement the manual REST handlers
+  already use (`UPDATE products/categories ... WHERE id=? AND tenant_id=?`, or `savePlatform()` for
+  root). Frontend: new "Yapay Zeka" sidebar group + view in both admin.html and root.html — textarea +
+  send, a plan-preview card (field: oldValue → newValue per action + an "unsupported" list), Confirm/
+  Cancel. Nothing is written before Confirm.
+- Current unfinished task: none in-flight. Backlog is now fast-follows only (see REMAINING FEATURES).
+- Development stopped cleanly after verifying (Phase 30): the target select lists Platform + both real
+  tenants and its hint swaps per selection; a bogus `targetTenant` → 404 `tenant_not_found` (new guard,
+  hit before any Gemini call); both scopes reach Gemini and degrade gracefully on its quota error;
+  tenant-scoped preview shows the human-readable `label` and switching target clears the stale plan.
+  **The tenant-scoped execute SQL was finally run for real** (throwaway script against the dev DB):
+  ownership SELECT finds the row for the right tenant, UPDATE writes, the SAME statement with a
+  DIFFERENT tenant id yields 0 changes and leaves the value untouched, test data reverted. This write
+  path had never actually executed before — P27 shipped the equivalent tenant-side branch unrun.
+- Previously verified (Phase 29): baseline (no `qr_style`) QR PNG = 4238 bytes;
+  saving `{fg:'#cc0000',bg:'#ffffff',margin:4,ecc:'H'}` changed it to 5710 bytes and the SVG literally
+  contains `#cc0000`, while the encoded URL/token stayed identical (scan behavior unaffected); a
+  SEPARATE `{margin:2}`-only update preserved the earlier fg/bg/ecc (nested-merge); bad hex/margin/ecc
+  each correctly 400 with a specific error code; the real UI `saveQrStyle()` round-trip (reset to
+  defaults) produced a preview PNG of exactly 4238 bytes again — matching the first baseline byte count;
+  Phase 27/28 features (in-shell forms, AI Assistant, Widget Ayarları) all re-verified still working.
+  Noted, NOT a regression: a pre-existing 15s order-polling setInterval (admin.html ~6484) occasionally
+  logs a transient "Failed to fetch" during rapid reload-testing — unrelated to this phase's code.
+- Previously verified (Phase 28): baseline (no `widgets` key) renders exactly
+  as before every widget's default-true fallback; toggling whatsapp/instagram/maps off via the new
+  tenant endpoint hides the right rows/box on reload; toggling facebook off in a SEPARATE request left
+  the earlier flags untouched (nested-merge, not overwrite) and the social-icon count dropped 5→4;
+  Root's Branding-modal save of a widgets-only change left every OTHER settings field byte-for-byte
+  unchanged; the tenant-side "Widget Ayarları" view saves + shows a status message + `GET
+  /api/site-config` reflects it immediately (a missing `invalidateTenantCache()` call was caught and
+  fixed here — see KNOWN ISSUES/bug list below); Phase 27's Category/Product in-shell forms and AI
+  Assistant view both re-verified still working; 0 console errors on customer site + both panels.
+  Not re-tested live: cross-tenant isolation on the new endpoint (same `WHERE id=req.tenantId` scoping
+  as every other tenant route, already proven elsewhere — code-pattern equivalence, not re-tested).
+
+# IMPLEMENTED FEATURES
+- Multi-tenancy w/ subdomain (or ?tenant= in dev) resolution; per-tenant data isolation.
+- Auth: username + scrypt-hashed password + HMAC-signed token (lib/auth.js). Roles: root, tenant_admin.
+- Root Panel: tenant list/create/edit/disable/delete, IMPERSONATE, reset tenant password, per-tenant
+  BRANDING modal (logo/hero/SEO + Contact&Social + Theme), platform branding, AI settings modal
+  (Gemini; backend NOT wired), Health Dashboard, Activity Log, Analytics, Notification Center,
+  LANDING MESSAGES inbox. All upload-only (no manual image URLs), TR/EN.
+- Tenant Admin: product/menu CRUD w/ image UPLOAD (file → /uploads, not base64), categories,
+  reservations, orders, QR table management, table-order control, notification send.
+- Customer site: hero, menu (DB-driven), cart + delivery checkout, QR dine-in ordering + live SSE
+  tracking, reservations, dynamic Contact & Social, theme switch (warm/light/B&W), TR/EN, full SEO.
+- MARKETING LANDING PAGE (Phase 22): premium dark-luxury SaaS site selling HASACA to restaurant
+  owners — hero w/ CSS device cluster, animated counters, 3 platform showcases, 16-card feature grid,
+  6-step timeline, HASACA-vs-marketplace comparison, stats, testimonial carousel, pricing, FAQ,
+  contact form, enterprise footer. TR/EN. Zero external assets (all CSS + inline SVG).
+- Landing lead inbox (Phase 22): public contact form → `landing_messages` → Root modal with status
+  filter, search, unread badge, detail view (auto-marks read), archive, delete, CSV export.
+- FULL MARKETING WEBSITE (Phase 23): 45 sub-pages (products, solutions, pricing, company, resources,
+  support, forms, legal) + a dedicated login page. Every nav item, footer link and CTA points at a
+  real page — zero `href="#"` anywhere. 8-column enterprise footer generated from the registry.
+- ROOT PANEL DESKTOP REDESIGN (Phase 24): fixed sidebar + scrolling workspace, sticky topbar,
+  dashboard (stat cards + recent activity + quick actions), and a CENTRALIZED design-token system
+  (`panel.css`) with Black / White / System themes (instant, persisted). Same near-monochrome + gold
+  palette as the public pages. Presentation only — reuses all existing modals/JS/i18n.
+- TENANT ADMIN PANEL REDESIGN (Phase 25 REVISED): the #adminPanelOverlay NOW USES A SIDEBAR SHELL —
+  same class names/structure as root.html (.app-shell/.app-sidebar/.nav-group/.nav-item/.app-topbar/
+  .app-content), scoped inside the overlay via `#adminPanelOverlay …` selectors on --ap-* tokens.
+  The old horizontal .admin-panel-tabs / .admin-tab-btn / .admin-tab-indicator / .admin-tab-content-
+  slider are DELETED (verified: 0 in the DOM). The 6 tab-content divs were reparented into 8 total
+  .view panes (adding a Dashboard + an Analytics view wired to the existing tenant-scoped
+  /api/admin/analytics + /api/admin/activity — both had been implemented but unwired before). Real
+  logout added via adminLogout()→setAdminToken('')→redirect (the old "Kapat" never cleared the token).
+  Customer restaurant site + body.theme-bw engine still completely untouched.
+- IN-SHELL MANAGEMENT FORMS (Phase 27 Part A): Category/Product forms no longer break out to a
+  full-viewport overlay — they're two more `.view` panes inside the same shell, switched by the
+  existing `showAdminView()`. Sidebar/topbar stay visible+interactive while either is open.
+- AI ASSISTANT (Phase 27 Part B): both Root and Tenant panels have a natural-language assistant that
+  proposes edits to data already editable today (Tenant: product/category name/description/price/
+  category; Root: its own platform branding fields) via the Phase 26 Gemini key, previews the plan,
+  and only applies it on explicit Confirm — through the exact same update code the manual forms use.
+- WIDGET MANAGEMENT (Phase 28): per-tenant on/off flags for the customer-site WhatsApp button, social
+  icons (facebook/twitter/tiktok/youtube/website), and Google Maps — stored at `settings.widgets`,
+  default-enabled. Root toggles via a checkbox group in the Branding modal; tenants can now ALSO
+  toggle their own via a brand-new "Widget Ayarları" panel + `PUT /api/admin/site-widgets` — the
+  FIRST-EVER tenant self-service settings control (previously only Root could touch `tenants.settings`
+  at all). Both write paths merge the nested widgets object, never overwrite.
+- White-label: ZERO Dayı Katık/Tantuni/Safranbolu/Getir branding in any HTML/CSS or in the live DB
+  (the P32 exception was a seeded ADMIN DISPLAY NAME, `'Dayı Katık Yönetici'` — fixed to `'Yönetici'`;
+  everything else matching those strings in `backend/*.js` is either a stale comment or the migration
+  code that scrubs old text FROM the DB, not a leak — see phase-32.md for the full audit).
+- Master-template model: `default` tenant = "My Restaurant" demo; cloned for every new tenant.
+- Tenant deletion incl. `default`, with auto-regeneration (platform never empty).
+- Image upload system (tenant + root), favicon-follows-logo, PWA install off (ENABLE_PWA flag).
+- Floating-button/z-index system, responsive (0 horizontal overflow), custom scrollbar.
+- Platform Health Dashboard, Activity Log (audit), Restaurant Analytics (tenant + platform).
+- Tenant-isolated PUSH + Root Notification Center + push-only service worker (Phase 20).
+- SEO Management Center: per-tenant meta/OG/Twitter/canonical/JSON-LD + dynamic host-derived
+  robots.txt & sitemap.xml (Phase 21).
+- Emoji-free UI (pictographic emojis → SVG icons/plain text).
+- Global custom font: Samsung Sharp Sans across every page/element (Phase 19), landing included.
+
+# REMAINING FEATURES (prioritized checklist)
+[x] ROOT PANEL redesign — sidebar shell + dashboard + centralized `panel.css` tokens + Black/White/
+    System themes. DONE Phase 24 (presentation only).
+[x] TENANT ADMIN PANEL redesign — sidebar shell replacing the horizontal tab bar (same structure as
+    root.html, scoped inside #adminPanelOverlay). Overlay-scoped `--ap-*` tokens + Black/White/System
+    switch. Dashboard + Analytics views wired to existing /api/admin/analytics + /api/admin/activity.
+    Real logout via adminLogout(). Customer site + body.theme-bw untouched. DONE Phase 25 REVISED
+    (presentation only). NOTE: NOT linked to panel.css (would repaint the customer site via shared
+    :root var names) — self-contained overlay-scoped token block used instead.
+[x] GEMINI AI SETUP ASSISTANT BACKEND — DONE Phase 26. GET/PUT /api/root/ai-settings +
+    POST /api/root/ai-settings/test in routes/root.js; root.html's AI modal now fully functional.
+[x] IN-SHELL CATEGORY/PRODUCT FORMS — DONE Phase 27 Part A (admin.html). See above.
+[x] AI ASSISTANT (plan/execute, Root + Tenant) — DONE Phase 27 Part B. See above. Remaining fast-follow
+    (not built, out of scope for this pass): a Root assistant that can target a SPECIFIC tenant's own
+    branding/menu (would need a tenant-selector UI on top of the existing impersonation token); a
+    guided per-tenant menu-generation wizard (bulk-create products from a description, not just edit
+    existing ones).
+[ ] TENANT ADMIN follow-ups (future, all require new business logic — out of scope for a UI phase):
+    Kategoriler CRUD list/edit/delete UI (backend DELETE /api/categories/:id exists, no caller today);
+    Müşteriler / CRM (no table, no endpoint); Raporlar export (adminAuth export route doesn't exist);
+    Restoran Ayarları self-service, Kullanıcılar, Profil (no tables/endpoints).
+[x] Widget Management — DONE Phase 28. See above. Deliberately NOT built: a hard two-tier permission
+    gate (Root force-disables, tenant can't re-enable) — both write the same flags today, last save
+    wins, same trust model as every other tenant-editable field (no plan/subscription-tier concept
+    exists anywhere in this codebase; adding one would be sizeable new architecture for what the
+    backlog described as simple on/off flags).
+[x] QR Designer — DONE Phase 29 (color/margin/ECC via settings.qr_style, tenant self-service). Logos/
+    frames on top of the QR still NOT built: they need a real image-compositing library (sharp/canvas),
+    which is a dependency decision, not a config tweak — explicit fast-follow, same boundary the
+    original backlog line drew.
+[ ] Tenant-admin UIs for: Website Content CMS editor, Contact&Social (read-only), Analytics,
+    Activity Log, self-service SEO tab (endpoints already exist & are isolation-safe).
+[ ] Full theme engine polish: tokenise the ~28 hardcoded rgba(217,59,10) values so the B&W theme is
+    pixel-perfect (a few reservation .pax-btn keep warm accents); add the other 8 restaurant themes.
+[ ] CSV/PDF export + retention policy for Activity Log & Analytics (landing CSV already done).
+[ ] Landing follow-ups: real stats/testimonials/pricing (currently placeholder marketing copy),
+    serve the landing at the apex domain, multi-URL sitemap, reply-from-panel for leads.
+
+# MODIFIED FILES (why)
+- index.html      → white-label cleanup; z-index tokens; custom scrollbar; favicon→logo; dynamic
+                    Contact&Social in applySiteConfig(); theme engine; emoji→SVG; GLOBAL FONT block;
+                    full SEO meta + JSON-LD rendering (P21). P28: `widgets.<x> !== false` guard added
+                    to each contact row/social icon/Maps box in applySiteConfig(); new
+                    id="gmapWidgetBox" wrapper div around the Maps iframe+link for clean show/hide.
+- admin.html      → white-label cleanup; upload-only product image picker; auth-gate fix
+                    (openAdminLogin on standalone load) so the panel never renders blank; loaders skip
+                    when unauthenticated; custom scrollbar; emoji→SVG; GLOBAL FONT block; sessionStorage
+                    token fallback (P23). P25 RESKIN: overlay-scoped --ap-* token block + light variant
+                    for #adminPanelOverlay; restyled .admin-* components; segmented theme switch in the
+                    panel header; apSetTheme/apInitTheme JS; data-i18n-title support + admin_theme_* keys.
+                    Customer :root tokens + body.theme-bw NOT touched. P25.2: html.admin-page token
+                    neutralization block + light/bw variants; fixed 6+ hardcoded orange hex leaks;
+                    notification preview now reads live tenant brand via restaurantBrand(). P27 Part A:
+                    relocateFormsIntoShell() IIFE moves Category/Product forms into .app-content as
+                    .view panes; AP_VIEW_MAP + open/close*Form() updated; .admin-form-panel CSS override
+                    once nested. P27 Part B: new "Yapay Zeka" nav-group + view-ai-assistant view +
+                    aiAssistantSend/RenderPlan/Confirm/Cancel() JS calling /api/admin/ai-assistant/*.
+                    P28: new "Widget Ayarları" nav-item (Ayarlar group) + view-widgets view (8
+                    checkboxes) + loadTenantWidgets/saveTenantWidgets() JS calling the new
+                    PUT /api/admin/site-widgets; new .ap-chk-lbl CSS for the checkbox rows.
+                    P29: "QR Stili" panel-card at the top of the existing Tables view (color pickers,
+                    margin, ECC select, Save, live preview) + loadQrStyle/saveQrStyle() JS.
+- root.html       → upload-only branding assets w/ preview; Contact&Social; Theme selector; SEO block
+                    (counters/OG upload/preview); Health/Activity/Analytics/Notify modals; LANDING
+                    MESSAGES button + badge + modal + JS (P22); custom scrollbar; GLOBAL FONT; TR/EN.
+                    P24 REDESIGN: links /panel.css; sidebar+topbar+dashboard shell; setTheme/showView/
+                    loadDashboard/toggleSidebar JS (additive); nav items call existing modal openers.
+                    P27: new "Yapay Zeka" nav-group + view-ai-assistant (3rd .view alongside Dashboard/
+                    Restaurants); rootAiSend/RenderPlan/Confirm/Cancel() JS calling
+                    /api/root/ai-assistant/*, reusing rootFetch()/T()/toast(). P28: "Widget'lar"
+                    checkbox group added to the Branding modal's Contact&Social section;
+                    openBrandModal()/saveBranding() read/write settings.widgets. P30: "Hedef" select
+                    (#rAiTarget) + rootAiPopulateTargets/rootAiTargetChanged() in the AI view.
+- panel.css       → NEW (P24). SHARED design tokens + Black/White/System themes + desktop shell
+                    (.app-shell/.app-sidebar/.app-topbar/.app-content) + unified components. Linked
+                    last in root.html's <head>; admin.html will link it in P25.
+- landing.html    → NEW (P22). The HASACA marketing site. Self-contained: embedded style/script,
+                    TR/EN i18nData, CSS+SVG mockups, IntersectionObserver reveals, contact form.
+- backend/server.js → /api/admin/upload-image; /api/admin/activity; /api/admin/analytics; login logs
+                    activity; dynamic /robots.txt + /sitemap.xml (P21); GET /landing + /hasaca and
+                    POST /api/landing/contact (P22); PORT default 17888 (fork) + CORS. P27:
+                    POST /api/admin/ai-assistant/plan|execute (tenant-scoped, in-memory plan cache,
+                    AI_FIELD_WHITELIST for products/categories, reuses getAiConfig→platform_settings).
+                    P28: PUT /api/admin/site-widgets (tenant-scoped, first tenant self-service settings
+                    endpoint — merges ONLY settings.widgets, calls invalidateTenantCache() after write).
+                    P29: PUT /api/admin/qr-style (same shape, merges ONLY settings.qr_style, validates
+                    hex/margin/ecc with 400s on bad input).
+- backend/db.js   → platform_settings; seedTemplateMenu tenant-suffixing; self-heal default name;
+                    activity_log + logActivity(); regenerateDefaultTenant(); landing_messages (P22).
+- backend/seedData.js → genericized all branded i18n (only i18nData exported).
+- backend/masterTemplate.js → generic "My Restaurant" demo dataset.
+- backend/routes/root.js → branding endpoint extended (Contact&Social + theme + SEO + validation +
+                    column sync); delete allows default + auto-regenerates; /health; /activity;
+                    /analytics; POST+GET /notifications; landingFilter() + 4 /landing-messages
+                    endpoints incl. export.csv (P22); logActivity hooks; clientIp helper. P26:
+                    GET/PUT /ai-settings + POST /ai-settings/test. P27: POST /ai-assistant/plan|execute
+                    (root-scoped, in-memory plan cache; P30 added a `targetTenant` scope so it can also
+                    edit ONE named tenant's products/categories via the tenant_id-guarded UPDATE).
+                    P28: branding
+                    PUT handler's ALLOWED-key loop got a separate merge branch for the nested `widgets`
+                    key (WIDGET_KEYS whitelist) since every other field there is coerced to a string.
+- .claude/launch.json → added a `hasaca-fork` dev-server entry (port 17888).
+- backend/.env    → P27: fixed PORT from a stale `12999` (leftover from the original saas-proje copy)
+                    to this fork's correct `17888`.
+
+# DATABASE
+Driver picked by DATABASE_URL (SQLite dev / Postgres prod). `db.js` uses `isPg` and `$1`/`?` param
+duality. Migrations auto-run on boot (`runMigrations`), then `runSeeds`, then `seedPlatform`.
+Key tables (all tenant-scoped tables carry `tenant_id`):
+- tenants(id PK, name, display_name, status, contact_phone, contact_email, address, settings JSON, …)
+  → `settings` JSON holds branding + Contact&Social + theme + SEO (single source of truth).
+- admin_users(id PK, tenant_id, username, password_hash, role, display_name, …) UNIQUE(tenant_id,username).
+- categories(id PK, tenant_id, …)  ← category id is GLOBAL PK, so ALWAYS tenant-suffixed (starters-<slug>).
+- products(id PK, tenant_id, category, price, image, besin_degerleri…).
+- translations(id PK, tenant_id, key, tr, en) UNIQUE(tenant_id,key)  ← per-tenant UI text; OVERRIDES
+  the static i18nData in the HTML at runtime (critical: fixing visible text means fixing THIS table too).
+- orders(id PK, tenant_id, total, order_type[delivery|dinein], status, archived, created_at BIGINT …).
+- order_items(id PK, order_id FK, tenant_id, product_name, unit_price, quantity …).
+- reservations, subscriptions(push), notifications, tables(QR), service_requests — all tenant-scoped.
+- platform_settings(id='platform', settings JSON) — global HASACA branding + AI config.
+- activity_log(id PK, tenant_id, actor, role, action, target, details, ip, created_at) — Phase 17.
+- landing_messages(id PK, name, restaurant, email, phone, country, message, status['unread'|'read'|
+  'archived'], ip, created_at) + idx_landing_status, idx_landing_created — Phase 22. NOT tenant-scoped
+  on purpose: these are platform-level sales leads for HASACA itself, visible ONLY to Root.
+Pending migrations: none. Any future schema change MUST be an auto-migration (never manual SQL);
+never drop/rename existing columns without a compatibility path.
+
+# API STATUS
+Customer (public): GET /api/site-config, /api/platform-config, /api/menu, order/reservation/table
+endpoints, SSE /api/events/*, GET /robots.txt + /sitemap.xml (dynamic, host-derived, per-tenant, P21).
+Landing (public, P22): GET /landing, GET /hasaca (pages); POST /api/landing/contact (lead capture —
+requires name + valid email + message, length-caps fields, records IP, logs activity, 400 on invalid).
+Marketing (public, P23): GET /<slug> for all 45 slugs in marketing-data.js (shared shell + server-side
+meta injection); GET /login, /giris, /yonetici-girisi, /restoran-girisi, /root-girisi → login.html.
+sitemap.xml now lists / + /landing + all 45 marketing URLs (host-derived).
+Routing (P31): GET / is host-aware — landing.html on the bare host (or with no ?tenant= override),
+index.html on a real tenant subdomain or with ?tenant=<slug> set (dev-only override). GET
+/tenant/:slug redirects to /?tenant=<slug>. GET /admin → admin.html (alongside /admin.html). GET /root
+→ root.html (unchanged, pre-existing).
+Auth: POST /api/auth/login (logs activity), GET /api/auth/me.
+Tenant admin (adminAuth, tenant-scoped by req.tenantId): products/categories/reservations/orders,
+POST /api/admin/upload-image, GET /api/admin/activity, GET /api/admin/analytics, notifications/*,
+POST /api/admin/ai-assistant/plan|execute (P27, tenant-isolated, in-memory plan cache),
+PUT /api/admin/site-widgets (P28, the only tenant-editable slice of settings today).
+Root (rootAuth, mounted /api/root): tenants CRUD, /tenants/:id/branding, /tenants/:id/impersonate,
+/tenants/:id/reset-admin-password, /platform-settings, /upload-asset, /health, /activity, /analytics,
+POST+GET /notifications, and (P22) GET /landing-messages, POST /landing-messages/:id/status,
+DELETE /landing-messages/:id, GET /landing-messages/export.csv, (P26) GET/PUT /ai-settings,
+POST /ai-settings/test, (P27) POST /ai-assistant/plan|execute.
+Pending: none blocking. Fast-follow: a Root ai-assistant variant that can target one specific tenant's
+own data (would reuse the impersonation token) — not built, out of scope for P27.
+
+# IMAGE SYSTEM
+No manual image URLs anywhere. Flow: file picker → base64 data-URL → POST to upload endpoint
+(/api/admin/upload-image for tenant, /api/root/upload-asset for root) → validated (png/jpg/webp/gif/svg,
+≤5MB) → written to /uploads/<tenantId or platform>-<time>-<rand>.<ext> → returns a same-origin
+relative URL stored in DB (NOT base64 in DB). Served by express.static(rootDir). Root branding fields
+are readonly + preview thumbnail + Upload button (uploadPlatformAsset). Reusable client helpers:
+handleAdminImageUpload/setAdminProductImagePreview (admin.html), uploadPlatformAsset/refreshAssetThumb
+(root.html). NOTE: landing.html deliberately uses NO images — all visuals are CSS + inline SVG.
+
+# AUTHENTICATION
+Username+password → scrypt hash compare (lib/auth.js verifyPassword) → signToken (HMAC-SHA256).
+Token stored client-side in localStorage: 'hasaca_admin_token' (tenant), 'hasaca_root_token' (root).
+Tenant login resolves tenant from host (or ?tenant= in dev) → `WHERE username=? AND (role='root' OR
+tenant_id=?)`. Root logs in from any host (role='root'). Impersonation: Root POST
+/tenants/:id/impersonate → support token → admin.html#imp=<token> → stored + hash cleared →
+openAdminLogin validates via /api/auth/me. Dev creds: root `root`/`bunudabullan12A`; tenant
+`dayikatik`/`dayikatik123`. UNCHANGED by Phase 22.
+
+# TENANT ISOLATION
+Every tenant-scoped query filters by req.tenantId (set by lib/tenant.js resolveTenant middleware from
+subdomain/?tenant=). Root sees all; tenant endpoints NEVER return other tenants' rows. Category ids are
+a global PK so they are tenant-suffixed. `settings` JSON + translations are per-tenant. Deleting a
+tenant wipes only its rows. Phase 22 does NOT affect isolation: `landing_messages` is platform-level
+(HASACA's own sales leads), write-only to the public and readable ONLY behind rootAuth.
+
+# ROOT PANEL (root.html)
+Tenant table (list/create/edit/disable/delete/impersonate/reset-pwd/branding/detail). Topbar buttons:
+Marka, AI Ayarları, Sistem Durumu (Health), Aktivite (Activity), Analitik (Analytics), Bildirim
+(Notification Center), LANDING MESAJLARI (lead inbox + unread badge), +Yeni Restoran, Çıkış. Branding
+modal edits per-tenant logo/hero/SEO + Contact&Social + Theme. All modals TR/EN. Delete of `default`
+requires type-to-confirm and auto-regenerates.
+
+# TENANT PANEL (admin.html)
+Standalone page; on load goes through openAdminLogin (auth gate) → panel overlay w/ tabs: Ürün
+Yönetimi, Rezervasyonlar, Siparişler, Bildirim Gönder, Masa Yönetimi, Masa Sipariş Kontrolü. Product
+form uses upload-only image picker. Loaders skip when unauthenticated (no 401 noise / no blank panel).
+
+# CUSTOMER WEBSITE (index.html)
+Hero, menu (DB), cart+checkout (delivery), QR dine-in ordering + live tracking (SSE), reservations,
+about, contact (dynamic phone/whatsapp/email/instagram + social buttons + Google Maps from tenant
+settings), footer. applySiteConfig() fetches /api/site-config and applies branding + contact/social +
+per-tenant theme + ALL SEO meta. TR/EN via i18nData + data-i18n + applyLanguage.
+ROUTING (P31): only served at `/` for a REAL tenant subdomain now — the bare host serves landing.html
+instead (see ROUTING in API STATUS). Reach any tenant, including `default`, via `/tenant/<slug>`.
+
+# LANDING / MARKETING SITE (landing.html)  [Phase 22]
+Served at `/landing` (+ `/hasaca`). Sells HASACA to restaurant owners; NOT a restaurant site.
+Design: near-monochrome dark luxury — `--bg:#0a0a0b`, charcoal surfaces, `--gold:#d8b877` accent,
+glassmorphism, large radii, ambient radial glows, metallic "shine" gradient text, Samsung Sharp Sans.
+Sections: sticky glass navbar → hero (headline + dual CTA + floating CSS laptop/phone cluster with
+fake dashboard, QR menu, floating chips) → animated counters + logo strip → 3 alternating showcases
+(Website&QR / Management&Kitchen / AI&Analytics) with CSS mockups → 16 feature cards → 6-step timeline
+→ comparison table → stat cards → testimonial carousel → 3 pricing plans → FAQ accordion → contact
+form → footer. SEO: title/description/keywords/canonical/OG/Twitter/JSON-LD (SoftwareApplication +
+Organization). Data is defined as JS arrays (FEATURES/STEPS/CMP/PLANS/FAQS/TESTI) + ICONS map and
+rendered by render*() functions, then translated by applyI18n() — to add a card, add to the array AND
+add its tr+en i18n keys.
+GOTCHA: reveal animations are gated behind an `.js-anim` class set by an inline <head> script, so the
+page stays fully visible without JS; there is also a 3s `revealAll()` safety net. The hero laptop uses
+dedicated `floaty-center` keyframes because a plain translateY animation would override its centring
+transform and push it off-screen (this caused a real overflow bug — do not "simplify" it back).
+
+# QR SYSTEM
+Per-table permanent 10-char base62 token (routes/root.js generateTableToken). Tenant admin manages
+tables; customer scans → dine-in mode (waiter call / bill / continue) → orders tracked live via SSE.
+QR STYLING (P29): per-tenant `settings.qr_style {fg,bg,margin,ecc}` merged into both QR-generating
+routes via `getQrOptions()` in routes/tables.js; edited from the "QR Stili" panel in admin.html's
+Tables view via PUT /api/admin/qr-style. Styling NEVER affects the encoded URL/token — verified.
+Logos/frames on the QR are still TODO (need an image-compositing lib).
+
+# AI FEATURES
+Google GEMINI, ONE shared platform key managed ONLY in the Root AI Settings page (stored in
+platform_settings.ai_key, never sent to frontend — GET endpoints return `key_set:boolean` only).
+Restaurant owners never enter keys. STATUS: DONE (P26 backend + P27 assistant).
+- P26: GET/PUT /api/root/ai-settings + POST /api/root/ai-settings/test (validates a key via a
+  lightweight Gemini models.get call, no content generation/quota spent). root.html's pre-existing
+  modal (openAiSettingsModal/saveAiSettings/testAiConnection) now fully works.
+- P27: a natural-language ASSISTANT (not just settings) in both panels. Pattern: `plan` endpoint sends
+  Gemini a compact snapshot of the caller's own editable data + a JSON-schema prompt, validates the
+  response against a field whitelist + real row ownership, caches the plan server-side (in-memory,
+  single-use, 10-min TTL) and returns it for preview — nothing written yet. `execute` endpoint takes
+  the returned planId, re-checks ownership, applies through the SAME update code the manual forms use.
+  Tenant scope: products.{name_tr,name_en,description_tr,description_en,price,category} +
+  categories.{name_tr,name_en}. Root scope: ALLOWED_PLATFORM_KEYS only (not a specific tenant's data).
+  Anything without a real backing field (e.g. "opening hours" — no such column exists) is declined via
+  an `unsupported` array, never fabricated.
+- P30: Root's assistant gained a TARGET selector — platform branding (as before) OR one specific
+  tenant's menu (products/categories), the latter using the tenant-side whitelist and the same
+  tenant_id-guarded UPDATE. Tenant *branding* by AI is still not covered: those fields carry URL/email
+  validation in the branding PUT handler that an AI path would have to replicate, and replicating
+  validation is exactly the "parallel path" risk this design avoids.
+- NOT built (fast-follow, noted not forgotten): a guided menu-generation wizard that bulk-CREATES
+  products from a description (today's assistants only EDIT existing rows, per the "AI may only touch
+  what's already editable" rule — creation is a different, larger feature).
+
+# PUSH NOTIFICATIONS  (Phase 20 — tenant-isolated, both root + tenant send)
+Tables `subscriptions` + `notifications` (both tenant-scoped); VAPID keys (data/vapid.json, web-push).
+- TENANT send: POST /api/notifications/send (adminAuth) writes notification tenant_id=req.tenantId;
+  sendPushNotificationInternal selects subscriptions WHERE tenant_id=<notif.tenant_id> → a tenant
+  reaches ONLY its own subscribers. Subscribe POST /api/subscriptions stores req.tenantId.
+- ROOT broadcast: POST /api/root/notifications { target:'all'|[slugs] } creates one notification per
+  tenant (scoped) + sends; GET /api/root/notifications = cross-tenant history.
+- SERVICE WORKER: service-worker.js is PUSH-ONLY (no page caching → no stale-cache bug); registered
+  when window.ENABLE_PUSH=true. INSTALL stays OFF (window.ENABLE_PWA=false).
+- VERIFIED (synthetic subs): tenant send targets only own subs; root scoping correct; histories
+  isolated. Real device delivery not verifiable headless.
+
+# LOCALIZATION
+Turkish + English everywhere via per-page inline `i18nData = { tr:{}, en:{} }` + `data-i18n`
+attributes + applyLanguage(). landing.html uses the same idea with `I18N` + `T()` + `setLang()` and
+also supports `data-i18n-ph` for placeholders. root.html/admin.html use `data-i18n-placeholder`
+(NOTE: different attribute name — check which page you are editing). Tenant-visible restaurant text
+ALSO lives in the DB translations table (overrides static defaults). Any new text MUST add both tr+en.
+
+# KNOWN ISSUES
+- NAMING TRAP in index.html's theme classes: `body.theme-bw` is the LIGHT theme (warm accents
+  intentional); `body.theme-mono` is the actual black & white theme. Several older notes in this file
+  called `theme-bw` the B&W theme — wrong, corrected during P31's research. Read the class, not the name.
+- RESOLVED (P32): B&W theme (`theme-mono`) is now verified genuinely orange-free — 0 warm computed-
+  style hits (was 106), confirmed via fresh-navigation-per-theme scans (not runtime `applyTheme()`
+  switches — see the next bullet for why that distinction matters). The ".pax-btn keeps warm accents"
+  claim that used to live here was already stale before P32 even started (fixed back in P25.2).
+- CSS custom-property "used value" staleness after a RUNTIME class change, in THIS preview pane
+  specifically, when `document.visibilityState==='hidden'` (i.e. the pane isn't composited/visible).
+  Extends the already-known "CSS transitions freeze when hidden" limitation: some derived styles
+  (box-shadow and other `var()`-driven properties) don't get recomputed after `classList` changes made
+  after the tab's initial paint, even though simpler custom-property lookups DO update correctly. Not a
+  code bug — proven during P32 by comparing `applyTheme('bw')` (stale, wrong) against
+  `localStorage.theme='bw'` + a fresh navigation (correct) on the exact same elements. WORKAROUND: when
+  verifying theme-dependent styles in this environment, always set the theme via `localStorage` BEFORE
+  navigating, never switch themes at runtime and read computed styles in the same session afterward.
+- admin.html "Bildirim Gönder" tab label is TR-only (no EN i18n).
+- Preview-tab CSS transitions freeze when `document.visibilityState === 'hidden'`, so reveal/float
+  animations cannot be screenshotted in this environment — verify them via DOM assertions instead.
+- Landing stats/testimonials/pricing are placeholder marketing content, not real figures.
+- A leftover second tenant (from tests) may exist in the dev DB; harmless.
+
+# IMPORTANT DESIGN DECISIONS  (+ WHY)
+- Static HTML pages, no bundler/React → WHY: pre-existing architecture; keep zero build step,
+  deployable as static + one Express server. Do NOT introduce a frontend framework.
+- Dual SQLite/Postgres via isPg + param duality → WHY: cheap local dev + prod with one codebase.
+  Always write portable SQL or aggregate in JS.
+- Master-template CLONE model (`default` = "My Restaurant") → WHY: new tenants are never empty.
+- Tenant text stored in DB `translations` (overrides static i18nData) → WHY: per-tenant customization
+  without code changes. Lesson: to change visible text you must update the DB rows, not only the HTML.
+- Uploads stored as FILES + URL in DB (never base64) → WHY: keeps DB/pages small; images cacheable.
+- Same-origin RELATIVE upload URLs → WHY: work across custom domains/subdomains without hardcoding host.
+- Delete-then-regenerate `default` → WHY: platform must never be tenant-less.
+- Health/Activity/Analytics read ONLY app-available info → WHY: must run on any cloud host with no
+  provider APIs.
+- robots.txt / sitemap.xml generated per-request from `req.headers.host` → WHY: one deployment serves
+  many tenant subdomains/custom domains; a static file would hardcode one domain (it previously leaked
+  `dayikatik.netlify.app`).
+- Global font via ONE universal `*{font-family:var(--font-primary)!important}` rule per page → WHY:
+  user required the font on EVERY element and forbade per-component assignment.
+- PWA install disabled behind ENABLE_PWA → WHY: behave as a normal responsive site now; one-flag re-enable.
+- [P22] Landing served at `/landing`, NOT `/` → WHY: `/` must keep serving the tenant restaurant site;
+  tenant resolution and every existing route stay untouched. Apex-domain routing is a deploy concern.
+- [P22] Landing visuals are CSS + inline SVG, zero external assets → WHY: no CDN/CSP risk, no image
+  payload, instantly themeable, and it renders identically offline — the Stripe/Linear approach of
+  crafting UI rather than shipping screenshots.
+- [P22] `landing_messages` is platform-level (no tenant_id) → WHY: these are HASACA's own sales leads,
+  not a tenant's data; making them tenant-scoped would be semantically wrong and leak-prone.
+- [P22] Reveal animations gated behind `.js-anim` + safety timeout → WHY: content must never be
+  permanently invisible if JS fails; a marketing page that renders blank is worse than an unanimated one.
+- [P23] ONE registry (`marketing-data.js`) + ONE shell (`marketing.html`) instead of 45 HTML files →
+  WHY: 45 copies would fork the design system 45 ways and make any change a 45-file edit. Adding a
+  page is now a single registry entry that automatically gains a route, footer slot, sitemap entry
+  and SEO meta. NEVER hardcode a marketing link list — read it from MARKETING.pages.
+- [P23] Marketing meta injected SERVER-side into `<!--HEAD-->` → WHY: client-rendered titles are not
+  reliably crawlable; each URL must ship its own real title/description/canonical/OG.
+- [P23] The 4 marketing forms reuse `POST /api/landing/contact` and tag the lead in its message
+  (`[Demo Talebi]` etc.) → WHY: keeps every lead in ONE Root inbox with zero schema change.
+- [P23] Login page writes to `sessionStorage` when "Beni hatırla" is off → the panels' token getters
+  were extended to fall back to sessionStorage. This is SESSION PERSISTENCE, not auth logic: token
+  issuing/validation is untouched. Do not "simplify" the getters back to localStorage-only — that
+  silently breaks login whenever Remember Me is unchecked.
+- [P24] ONE shared `panel.css` (not per-page inline) for the panel design system → WHY: it is the
+  "centralized design tokens" the spec asked for and lets admin.html reuse the exact same themes next
+  phase. Linked LAST in <head> so it overrides inline rules; keeps existing var names so legacy CSS
+  re-themes automatically. No hardcoded colors outside the token `:root`/`[data-theme]` blocks.
+- [P24] Sidebar items reuse the EXISTING modal openers instead of converting modals to routed views →
+  WHY: the spec says "reuse existing JS, do not rewrite." Only Dashboard + Restaurants are inline
+  views; Health/Activity/Analytics/Notify/Landing/Brand/AI stay as (restyled) modals. Zero logic risk.
+- [P24] Theme persisted in localStorage['hasaca_panel_theme'] and applied as `data-theme` on <html> →
+  WHY: shared across root.html, admin.html and login.html for one consistent panel theme.
+- [P25] admin.html did NOT link panel.css and does NOT reuse :root token names → WHY: admin.html IS the
+  customer restaurant page + an overlay; its :root defines --fire/--card/--dark/etc for the CUSTOMER
+  hero/menu, and panel.css reuses those names → linking it would repaint the live customer site on load.
+  Instead the overlay gets a self-contained, uniquely-named `--ap-*` token block scoped to
+  `#adminPanelOverlay` (+ `html[data-theme=light] #adminPanelOverlay` for light). The per-tab --ord-*/
+  --tbl-* families (normally gated by body.theme-bw) are remapped to --ap-* so the panel follows the
+  panel theme, not the customer theme. NEVER touch the customer :root tokens or body.theme-bw here.
+- [P25 revised] The sidebar shell CSS is a LOCAL port of panel.css's shell rules, every selector
+  prefixed with `#adminPanelOverlay` and reading --ap-* — for the same reason. Root.html's shell
+  DOM/class names (`.app-shell/.app-sidebar/.nav-group/.nav-item/.app-topbar/.app-content/.dash-grid/
+  .stat-card/.panel-card/.act-row/.profile*`) are reused so both panels stay visually identical.
+- [P25 revised] The sidebar deliberately SHIPS ONLY items with backing functionality → no dead links.
+  Anything requiring new tables/endpoints (Müşteriler, Raporlar, AI, Kullanıcılar, Profil, tenant
+  Restoran Ayarları, tenant İletişim Mesajları) is OMITTED not faked, since a UI-only phase can't add
+  business logic without violating the "do not touch" rule. Documented as backlog above.
+- [P27 Part A] Relocated the two forms via a JS IIFE (`appendChild` + add `.view` + `hidden=true`) at
+  page-load instead of physically cutting/pasting ~240 lines of HTML → WHY: produces an IDENTICAL
+  live-DOM result with a far smaller, safer diff — the explicit ask that phase was to minimize edits.
+- [P27 Part B] "Plan then execute", never direct-write → WHY: the AI must never silently mutate data;
+  the admin previews every field-level change and must Confirm before anything is written. Plans are
+  cached IN-MEMORY only (a plain Map, never a DB table) and are single-use + short-TTL + scoped to the
+  exact caller (tenant_id match, or a root-only cache) — this cache IS the tenant-isolation boundary
+  for this feature, enforced the same way every other route enforces it.
+- [P27 Part B] AI writes ONLY through a per-caller FIELD WHITELIST, reusing the exact update statement
+  the manual REST handler already uses (never a new/parallel mutation path) → WHY: your explicit rule
+  was "the AI must only modify values that are already editable" and "do not create a new backend
+  architecture." Anything outside the whitelist is returned in `unsupported`, never faked.
+- [P27 Part B] Root's assistant is scoped to ALLOWED_PLATFORM_KEYS only, NOT a specific tenant's
+  menu/branding → WHY: editing another tenant's data would need a tenant-selector UI and meaningfully
+  widens blast radius; deliberately deferred as a fast-follow rather than built into this pass.
+- [P28] Widget flags live INSIDE the existing `settings` JSON blob (`settings.widgets`), not a new
+  column → WHY: zero migration, and `GET /api/site-config` already passes `settings` through as-is, so
+  the new key needed ZERO server changes to reach the frontend — only the write side needed work.
+- [P28] The new tenant endpoint (`PUT /api/admin/site-widgets`) touches ONLY `settings.widgets`, never
+  any other field → WHY: preserves the existing "tenant admins don't edit branding/SEO" boundary while
+  still giving them real self-service control over the one thing this phase was asked to add — a
+  general tenant-settings endpoint was explicitly out of scope.
+- [P28] No hard Root-overrides-tenant permission tier (both write the same flags, last save wins) →
+  WHY: no subscription/plan-tier concept exists anywhere in this codebase; inventing one for this
+  feature would be disproportionate new architecture for what the backlog described as simple toggles.
+- [P28] Missing `widgets` key/entry defaults to `true` (enabled) everywhere it's read → WHY: every
+  existing tenant that never touches this must keep rendering EXACTLY as before — an opt-out model
+  (default-visible) rather than opt-in (default-hidden), matching the pre-P28 presence-only behavior.
+- [P29] QR styling reuses the `qrcode` package's OWN `color.dark`/`color.light`/`margin`/
+  `errorCorrectionLevel` options rather than post-processing the generated image → WHY: zero new
+  dependency, and the library regenerates the symbol correctly for the chosen ECC instead of us
+  recoloring pixels after the fact. Logos/frames are a genuinely different problem (image compositing)
+  and were left out rather than half-implemented.
+- [P29] QR Designer is tenant-only; Root was NOT given a mirror control → WHY: unlike Widget Management
+  (whose backlog line explicitly said "Root-gated availability"), the QR Designer line never mentioned
+  Root; a tenant's QR colors are their own operational/branding choice with no platform-level concern.
+- [P29] `settings.qr_style` follows P28's `settings.widgets` namespacing exactly (same JSON blob, same
+  read-merge-write endpoint shape) → WHY: two consecutive phases now share one pattern for
+  "tenant-editable slice of settings" — any future third one should copy it rather than invent a new
+  shape. The pattern: validate → merge ONLY your key → invalidateTenantCache → logActivity.
+
+# CODING STYLE / CONVENTIONS (follow exactly)
+- Naming: camelCase JS; kebab-case CSS classes; snake_case DB columns; API kebab paths
+  (/api/admin/upload-image); i18n keys snake_case with area prefix (root_*, admin_*, nav_*, ct_*).
+- Folders: backend/ for server; routes/ for route factories; lib/ for shared server utils; page-level
+  HTML at project root; assets in icons/ fonts/ uploads/.
+- Components: no framework — each page has ONE embedded <style> + <script> + i18n object. New UI = a
+  modal in the <style>/HTML + open/save JS functions + TR/EN i18n keys.
+- API: use existing auth middleware (adminAuth/rootAuth); validate input; return consistent JSON
+  { ... } or { error }; never leak stack traces/paths/keys; reuse P(n)/p(n) param helpers.
+- DB: auto-migrations only (CREATE TABLE IF NOT EXISTS in runMigrations); preserve existing data;
+  tenant-scope every new tenant table with tenant_id + an index.
+- Localization: always add both tr + en for any user-facing string.
+- Uploads: reuse the existing upload endpoints + client helpers; never expose raw paths in admin UI.
+
+# ACTIVE FILES (currently in play — all SAFE to modify)
+- index.html / admin.html / root.html / landing.html — safe; large; edit within existing
+  <style>/<script>; keep i18n pairs; run the overflow probe after CSS changes.
+- backend/routes/root.js — safe; append new router.get/post inside the factory (has db,isPg,P,logActivity…).
+- backend/server.js — safe; add endpoints near similar ones; page routes must stay BEFORE express.static;
+  restart the server after edits.
+- backend/db.js — safe; add tables in runMigrations, helpers before module.exports; export new helpers.
+- development-logs/* — always update development-status.md + a new phase-XX.md + THIS file per phase.
+
+# OPEN TODOS (do not delete until done)
+(DONE and removed from this list: Admin+Root panel redesigns → P24/P25; /api/root/ai-settings + Gemini
+adapter → P26/P27; Widget Management → P28; QR Designer → P29.)
+- TODO: enable Gemini billing/quota (key is real but `limit: 0`) — blocks any end-to-end AI test.
+- TODO: fast-follows — menu-generation wizard (create, not just edit); QR logos/frames (needs an
+  image-compositing dep); Root-force-disable widget tier; Root editing tenant branding by AI.
+- TODO: tenant-admin UI panels for Website-Content CMS, Contact&Social (read-only), Analytics,
+  Activity, self-service SEO. (NOTE: tenant self-service is no longer a blanket "not allowed" — P28/P29
+  established the narrow-endpoint pattern for it; these can now follow that same shape.)
+- TODO: B&W theme tokenisation of hardcoded oranges; add remaining 8 restaurant themes.
+- TODO: CSV/PDF export + retention for Activity/Analytics.
+- TODO: EN label for admin "Bildirim Gönder" tab.
+- TODO: landing — real stats/testimonials/pricing, apex-domain serving, multi-URL sitemap,
+  reply-to-lead from the Root panel.
+
+# NEXT AI INSTRUCTIONS  (read me first)
+CONTINUE the backlog. Do NOT modify authentication, tenant isolation, the DB schema of existing
+tables, or the master-template model. Do NOT reintroduce any Dayı Katık/Tantuni/Safranbolu/Getir
+branding, manual image-URL inputs, or emojis. Work ONLY in the fork
+`C:\Users\hasan_y4hfwna\Desktop\hasaca-platform` on PORT 17888 (start: `cd backend && node server.js` —
+backend/.env now correctly carries PORT=17888). Push (P20), SEO Center (P21), the Landing site + lead
+inbox (P22), both panel redesigns (P24/P25/P25.2), the Gemini AI backend (P26), the in-shell
+Category/Product forms + AI Assistant (P27), Widget Management (P28), QR Designer (P29), the
+tenant-targeted Root AI assistant (P30), the root-routing fix (P31 — `/` is the HASACA landing page on
+the bare host now), and zero-legacy-orange platform-wide (P32 — B&W theme genuinely orange-free now,
+0 hits) are all DONE. The major backlog is now EMPTY — what remains are fast-follows only, ask the user.
+
+Both panel redesigns are DONE. Root Panel (P24) uses the shared `panel.css` (linked last in <head>,
+:root tokens, sidebar shell). Tenant Admin (P25) uses a self-contained OVERLAY-SCOPED `--ap-*` token
+block in admin.html (NOT panel.css — see design decisions for why). Both share the
+localStorage['hasaca_panel_theme'] key and the setTheme/initTheme (root) / apSetTheme/apInitTheme
+(admin) pattern (system resolved via matchMedia + live change listener). Both now also have a
+"Yapay Zeka" / AI Assistant view (P27) and a Widget Ayarları / widgets checkbox group (P28) — see AI
+FEATURES / the P28 note above before touching anything in either area. admin.html's Tables view also
+now hosts the P29 "QR Stili" panel.
+
+TENANT-EDITABLE SETTINGS PATTERN (established P28, reused P29 — copy it, don't invent a new one):
+a narrow `PUT /api/admin/<thing>` route (adminAuth) that validates its input, merges ONLY its own key
+into `tenants.settings`, then calls `invalidateTenantCache(req.tenantId)` + `logActivity(...)`. The
+cache-invalidation step is NOT optional — omitting it makes writes look successful while
+`GET /api/site-config` keeps serving the stale cached row (this exact bug happened in P28).
+
+Whenever you touch admin.html, remember the `.admin-btn{width:100%}` base-class gotcha (found twice
+now, P27 and P28): any `.admin-btn` placed inside a flex row (next to another element, not alone on
+its own line) needs an explicit `style="width:auto; flex:none;"` override or it swallows the row.
+
+NEXT PHASE = **nothing assigned — no major backlog item remains** (cleared at P30; P31/P32 were both
+scope corrections, not backlog growth). Fast-follows, none scheduled — ASK THE USER which they want,
+rather than picking unilaterally:
+  1. `/register` decision (P31 flagged, not built): alias to the landing page's existing `/demo-talep`
+     lead-capture flow, or build real self-service tenant signup as its own phase — ask which.
+  2. Guided menu-generation wizard — bulk-CREATE products from a description (both AI assistants only
+     EDIT existing rows today; creation is a meaningfully larger feature, not a whitelist tweak).
+  3. QR logos/frames — needs an image-compositing dependency (sharp/canvas); a real dependency decision.
+  4. Hard Root-can-force-disable widget permission tier (today Root and tenant share the same flags).
+  5. Root editing a tenant's BRANDING by AI (P30 covers tenant menu only; branding fields carry
+     URL/email validation the AI path would have to replicate).
+  6. Longstanding smaller items still open below in OPEN TODOS (Activity/Analytics CSV+retention,
+     landing real content, tenant-admin CMS/SEO surfaces).
+  7. NOT a feature, but the highest-value unblock: enable billing/quota on the Gemini key so the AI
+     assistants can actually be exercised end-to-end for the first time.
+PRESERVE (always): DB/auth/permissions/API-routes/business-logic/QR/orders/reservations/uploads/tenant
+isolation unless the phase's explicit goal is to extend them safely; TR+EN for all new UI; auto-migrations
+only; 0 console errors / 0 overflow; then write phase-XX.md + update development-status.md + OVERWRITE this file.
+
+# NEXT TASK (exact step)
+None assigned. Do NOT pick a fast-follow unilaterally; ask the user which direction they want (the
+numbered list above is the menu). Note #7 (Gemini quota) is not code work but currently blocks any real
+end-to-end test of the AI features — worth raising before building more AI surface on an unexercised
+path. If verifying ANY theme-dependent styling in this environment, read the new KNOWN ISSUES entry
+about `document.visibilityState==='hidden'` staleness FIRST — set the theme via `localStorage` before
+navigating, never switch themes at runtime and trust an immediate computed-style read.
+--- superseded panel-redesign notes (Phases 24-25, already done) ---
+Root: token layer (`:root` + `[data-theme]`) at the top of root.html's
+<style> and map the existing `--bg/--panel/--card/--line/--text/--muted/--fire/--gold` variables onto
+it so nothing breaks. Step 2: wrap the existing shell in a sidebar + workspace grid WITHOUT touching
+the modal/JS functions. Step 3: restyle components. Verify after each step (screenshots time out —
+use DOM/console assertions + the overflow probe at 1920/1440/1280/1024/768/390/360).
+
+# IMPORTANT RULES (never violate)
+- No broken UI, no broken images, no manual image URLs, no console errors, no duplicated code, no
+  unfinished/partial features, no emojis (use SVG icons/text). Keep production-ready after every phase.
+- Preserve architecture, existing APIs, auth, routing, QR, localization (TR+EN), tenant isolation.
+- Automatic migrations only; never break existing databases; preserve all tenant data.
+- Every new API: existing auth, tenant isolation, input validation, safe JSON, no leaked internals.
+- Explain plan before each phase; verify after; update the logs (status + phase-XX + this file).
+- Never mark a feature completed unless it was actually tested.
+
+# PROJECT STATE
+- SAFE TO CONTINUE: YES
+- Build Passing: YES (server boots clean; no build step — static pages + node server.js)
+- Database Healthy: YES (migrations run incl. landing_messages; existing data intact)
+- APIs Healthy: YES (auth, site-config, uploads, health, activity, analytics, notifications,
+  landing-contact, landing-messages all verified)
+- Upload System Healthy: YES (/api/admin/upload-image + /api/root/upload-asset → /uploads, verified)
+- Authentication Healthy: YES (root + tenant login + impersonation; unchanged through P24 — the P24
+  Root redesign reuses rootLogin/rootLogout and only restyles the login card)
+- Tenant Isolation Verified: YES (activity + analytics + push confirmed no cross-tenant leak;
+  landing_messages is platform-level by design and root-only readable)
+- Existing Site Unaffected: YES as of P24 (`/`, /admin.html, /root, /landing, /giris, all 45 marketing
+  routes, /robots.txt, /sitemap.xml, /api/* verified 200). NOTE: `/` itself was DELIBERATELY changed in
+  P31 (bare host → landing.html) — see the P31 entry below for what's actually true of `/` today.
+- Root Panel Redesign Healthy (P24): YES (sidebar shell + dashboard + 3 themes verified; auth/modals/
+  tenant actions intact; 0 console errors; 0 overflow 1920→360). KNOWN pre-existing gap: the AI
+  Ayarları modal needs the unbuilt `/api/root/ai-settings` endpoint (backlog, not a P24 regression).
+- Tenant Admin Redesign Healthy (P25 REVISED): YES (sidebar shell + 8 views working; dashboard shows
+  real tenant-scoped numbers on bfbfb: orders:1, revenue:₺425, avgOrderValue:₺425, 3 activity rows;
+  default tenant sees 0s → tenant isolation intact; analytics view populated + top 4 products;
+  adminLogout clears both localStorage+sessionStorage tokens; drawer + backdrop below 900px; 0
+  overflow at 1920/1440/1280/768/360; 0 console errors). VERIFIED old tab bar GONE
+  (document.querySelector('.admin-panel-tabs')→null, 0 .admin-tab-btn). Customer restaurant site
+  UNTOUCHED — :root still `--fire:#D93B0A/--card:#3D1A0A`, body bg `rgb(28,10,0)`, body.theme-bw
+  still flips --card `#3D1A0A↔#FFFFFF`. Auth (incl. sessionStorage fallback + 401 guard on
+  /api/admin/*) intact.
+- Phase 27 Healthy: YES. Part A — Category/Product forms verified in-shell (sidebar `display:flex`,
+  form `position:'static'`) both right after the relocation AND again at end-of-phase after further
+  admin.html edits (no regression). Part B — both `/ai-assistant/plan` routes 200 (were 404 before a
+  required dev-server restart picked up this session's route additions); both degrade gracefully on
+  a bad Gemini key (no crash, no fabricated plan); both `/ai-assistant/execute` routes 404 on an
+  unknown planId; plan-preview UI verified in both panels via a synthetic plan object (action rows +
+  unsupported list + Confirm/Cancel all correct); a `.admin-btn{width:100%}` layout bug found and
+  fixed during this verification (buttons were swallowing the textarea's flex space) — root.html's
+  `.btn` class had no equivalent issue. Customer site + both panels' pre-existing features unaffected;
+  0 console errors. NOT verified (no real Gemini key in this environment): actual NL interpretation
+  quality of the Gemini responses — flagged, not silently assumed.
+- Phase 28 Healthy: YES. Baseline (no `widgets` key) confirmed unchanged rendering; toggling
+  whatsapp/instagram/maps off via the new tenant endpoint correctly hid the right elements on reload;
+  a separate facebook-only toggle preserved earlier flags (nested-merge verified, not overwrite);
+  Root's Branding-modal save of widgets-only left every other settings field untouched; the tenant
+  "Widget Ayarları" view saves + reflects immediately after a caught-and-fixed missing
+  `invalidateTenantCache()` bug; Phase 27 features (in-shell forms, AI Assistant) re-verified intact;
+  0 console errors on customer site + both panels. NOT re-tested live (relied on code-pattern
+  equivalence with every other already-proven tenant route): cross-tenant isolation on the new
+  `PUT /api/admin/site-widgets` endpoint.
+- Phase 29 Healthy: YES. Baseline QR PNG 4238 bytes → styled (red/margin-4/ECC-H) 5710 bytes with
+  `#cc0000` present in the SVG and the encoded URL/token unchanged; partial `{margin:2}` update
+  preserved the other three fields; bad hex/margin/ecc each 400 with a specific error code; the real
+  `saveQrStyle()` UI round-trip back to defaults reproduced the exact 4238-byte baseline; Tables view
+  keeps sidebar/topbar; P27/P28 features unaffected. QR token/scan logic untouched.
+- Phase 30 Healthy: YES. Target select lists Platform + both tenants; bogus targetTenant → 404
+  `tenant_not_found`; both scopes reach Gemini and fail gracefully on its quota error; tenant-scoped
+  preview renders the readable label and switching target clears the stale plan + planId. Tenant-scoped
+  execute SQL verified directly against the dev DB incl. the cross-tenant guard (0 changes for a
+  mismatched tenant_id), data reverted. Restaurants/Dashboard/Branding modal all unaffected.
+  STILL UNVERIFIED (blocked on Gemini quota, not on code): a real natural-language request producing a
+  real plan that is then confirmed and applied. Every stage was verified independently instead.
+- Phase 31 Healthy: YES. `/` → landing.html on the bare host (confirmed by page title); a bug where
+  `/tenant/default`'s own redirect still hit the landing-page branch was CAUGHT during verification
+  (not before) and fixed — re-verified `/tenant/default` → the demo tenant's own site, `/tenant/bfbfb`
+  → that tenant's own site, confirming the override path works generically. `/admin`, `/login`, `/root`
+  all correct. admin.html's View Site link confirmed pointing at `/tenant/default` for the logged-in
+  default-tenant admin (live DOM check, not just code review). `GET /api/site-config` still returns the
+  correct tenant — `/api/*` untouched. 0 new console errors.
+- Phase 32 Healthy: YES. Identity preserved: default theme 991 hits/hash `63e8ffea`, light theme 943
+  hits/hash `38049f87` — BOTH byte-identical to the pre-edit baseline, confirmed via fresh-navigation
+  computed-style scans (not runtime theme switches, which this environment can't be trusted for — see
+  KNOWN ISSUES). B&W theme: **0 warm hits** (was 106 at phase start), re-confirmed including a
+  dynamically-triggered state (`:has(input:checked)`) the initial-load scan alone wouldn't reach.
+  Platform-wide re-grep: zero remaining matches outside documented exclusions (the backup folder that
+  used to hold the rest was DELETED same-day on explicit user instruction — see below). root.html's
+  `--fire` still resolves to `#d8b877` post-fix (panel.css cascade
+  unaffected). admin.html's visible panel chrome unaffected (only its inert embedded customer `:root`
+  was touched). `db.js` `node --check` clean. 0 console errors on customer site (both themes), admin
+  panel, Root panel. Three self-caught bugs during verification, all fixed before calling this done —
+  see phase-32.md for the full account (2× circular token self-reference, 1× a whole color's RGB form
+  missing from the original scope, 1× a test-methodology false alarm correctly distinguished from a
+  real regression).
+- Cleanup (same day, explicit user instruction "delete"): removed `backup_before_push_notifications/`
+  (old dated snapshot folder — admin.html/index.html/server.js/db.js/manifest.json/service-worker.js)
+  and `backend/seedDev.js` + `backend/seedNewMenu.js` (unused dev scripts). Pre-deletion checks: neither
+  script was ever `require()`d anywhere; the folder was already excluded from being served. Post-
+  deletion check: server restarts clean, no missing-module/file errors. NO git repo exists for this
+  project — this deletion has no version-control undo. If you're reading this and expected these files
+  to exist, they don't anymore; check with the user before assuming they can be recovered.
+======================================================================

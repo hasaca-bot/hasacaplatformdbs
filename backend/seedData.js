@@ -1,182 +1,4 @@
-const defaultCategoriesMap = {
-  'tantuni': { name: 'Tantuni Ürünleri', icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M16.5 5.5l-9 9c-.8.8-.8 2 0 2.8l2.2 2.2c.8.8 2 .8 2.8 0l9-9c.8-.8.8-2 0-2.8l-2.2-2.2c-.8-.8-2-.8-2.8 0z" /><path d="M14 6.5l3.5 3.5" fill="none" stroke="currentColor" stroke-width="1.5" /><path d="M17.5 16.5c-1-1-2.5-.5-3 1-.3.8-.2 1.8.3 2.5.5.7 1.5 1.2 2.2.8.8-.4.8-1.5.5-2.3-.3-.8 0-1.5 0-2z" /><path d="M6.5 18.5c-3-2.5-4-6.5-2.5-10.5C5.5 4 9.5 1.5 13.5 2" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>' },
-  'tavuk': { name: 'Tavuk Ürünleri', icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M10 3h2v18h-2z"/><path d="M6 6c0-.5.5-1 1-1h6c.5 0 1 .5 1 1v1c0 .5-.5 1-1 1H7c-.5 0-1-.5-1-1V6zM6.5 8c0-.5.5-1 1-1h5c.5 0 1 .5 1 1v1.5c0 .5-.5 1-1 1h-5c-.5 0-1-.5-1-1V8zM7 11.5c0-.5.5-1 1-1h4c.5 0 1 .5 1 1V13c0 .5-.5 1-1 1H8c-.5 0-1-.5-1-1v-1.5zM7.5 14.5c0-.5.5-1 1-1h3c.5 0 1 .5 1 1v1.5c0 .5-.5 1-1 1h-3c-.5 0-1-.5-1-1v-1.5zM8 17.5c0-.5.5-1 1-1h2c.5 0 1 .5 1 1v1c0 .5-.5 1-1 1H9c-.5 0-1-.5-1-1v-1z"/><path d="M15.5 13.5c0 0 .5-1.5 1.5-2 .5-.2.5-.5.5-.8 0-.5-.3-.7-.7-.7-.3 0-.6.1-.9.3-.3-1 .2-2.3.8-2.8.3-.3.8-.5 1.2-.4s.7.4.8.8c.2.8.2 1.6-.2 2.3.3.5.7.8 1 .8.5 0 1.2-.5 1.5-.8.2.5.3 1.1.2 1.7-.2.8-.7 1.3-1.3 1.5-.6.2-1.3.1-1.8-.2-.3.3-.6.7-1 .9-.3.2-.6.3-.9.3-.7 0-1.2-.6-1.2-1.4z"/><path d="M5.5 19.5c-3-2.5-4-6.5-2.5-10.5C4.5 5 8.5 2.5 12.5 3" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>' },
-  'et': { name: 'Et Ürünleri', icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M10 3h2v18h-2z"/><path d="M6 6c0-.5.5-1 1-1h6c.5 0 1 .5 1 1v1c0 .5-.5 1-1 1H7c-.5 0-1-.5-1-1V6zM6.5 8c0-.5.5-1 1-1h5c.5 0 1 .5 1 1v1.5c0 .5-.5 1-1 1h-5c-.5 0-1-.5-1-1V8zM7 11.5c0-.5.5-1 1-1h4c.5 0 1 .5 1 1V13c0 .5-.5 1-1 1H8c-.5 0-1-.5-1-1v-1.5zM7.5 14.5c0-.5.5-1 1-1h3c.5 0 1 .5 1 1v1.5c0 .5-.5 1-1 1h-3c-.5 0-1-.5-1-1v-1.5zM8 17.5c0-.5.5-1 1-1h2c.5 0 1 .5 1 1v1c0 .5-.5 1-1 1H9c-.5 0-1-.5-1-1v-1z"/><path d="M15.5 10c0 0 .5-1.5 1-2.5.2-.4.6-.7 1-.7.5 0 .8.3.9.7.1.5-.1 1-.4 1.5h1c.6 0 1 .4 1 1v2c0 1.1-.9 2-2 2h-1c-.5.8-1.3 1.3-2.3 1.3-1.5 0-2.2-.8-2.2-1.8 0-.5.2-1 .5-1.3l-1.5-1.2v-1z"/><path d="M5.5 19.5c-3-2.5-4-6.5-2.5-10.5C4.5 5 8.5 2.5 12.5 3" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>' },
-  'diger': { name: 'İçecekler ve Yan Ürünler', icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 8h1a4 4 0 1 1 0 8h-1"/><path d="M3 8h14v9a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4V8z"/><line x1="6" y1="2" x2="6" y2="4"/><line x1="10" y1="2" x2="10" y2="4"/><line x1="14" y1="2" x2="14" y2="4"/></svg>' }
-};
 
-const defaultItemTranslations = {
-  'katik-tavuk-menu-1': {
-    name: 'Katik Chicken Doner Wrap Menu 1',
-    description: 'Katik chicken doner wrap, served with french fries and ayran (300 ml).',
-    ingredients: 'Chicken doner, french fries, special Katik sauce, wheat flour lavash (contains gluten) or bread, vegetable oil, salt, spices. Menu includes french fries and drink (or ayran).'
-  },
-  'katik-tavuk-menu-2': {
-    name: 'Katik Chicken Doner Wrap Menu 2',
-    description: 'Katik chicken doner wrap, served with french fries and canned soft drink (330 ml).',
-    ingredients: 'Chicken doner, french fries, special Katik sauce, wheat flour lavash (contains gluten) or bread, vegetable oil, salt, spices. Menu includes french fries and drink (or ayran).'
-  },
-  'zurna-tavuk-menu-1': {
-    name: 'Zurna Chicken Menu 1',
-    description: 'Satisfying zurna chicken doner wrap, served with french fries and ayran (300 ml).',
-    ingredients: 'Chicken doner, french fries, special Katik sauce, wheat flour lavash (contains gluten) or bread, vegetable oil, salt, spices. Menu includes french fries and drink (or ayran).'
-  },
-  'zurna-tavuk-menu-2': {
-    name: 'Zurna Chicken Menu 2',
-    description: 'Satisfying zurna chicken doner wrap, served with french fries and canned soft drink (330 ml).',
-    ingredients: 'Chicken doner, french fries, special Katik sauce, wheat flour lavash (contains gluten) or bread, vegetable oil, salt, spices. Menu includes french fries and drink (or ayran).'
-  },
-  'katik-et-menu-1': {
-    name: 'Katik Beef Menu 1',
-    description: 'Katik beef doner wrap, served with french fries and ayran (300 ml).',
-    ingredients: 'Beef doner, french fries, special Katik sauce, wheat flour lavash (contains gluten) or bread, vegetable oil, salt, spices. Menu includes french fries and drink (or ayran).'
-  },
-  'katik-et-menu-2': {
-    name: 'Katik Beef Menu 2',
-    description: 'Katik beef doner wrap, served with french fries and canned soft drink (330 ml).',
-    ingredients: 'Beef doner, french fries, special Katik sauce, wheat flour lavash (contains gluten) or bread, vegetable oil, salt, spices. Menu includes french fries and drink (or ayran).'
-  },
-  'combo-tavuk-menu-1': {
-    name: 'Combo Chicken Menu 1',
-    description: '1 Katik Chicken Wrap + 1 Chicken Tantuni Wrap, served with french fries and canned soft drink (330 ml).',
-    ingredients: 'Chicken doner, chicken tantuni, french fries, special Katik sauce, wheat flour lavash (contains gluten) or bread, vegetable oil, salt, spices.'
-  },
-  'combo-tavuk-menu-2': {
-    name: 'Combo Chicken Menu 2',
-    description: '2 Katik Chicken Wraps, served with french fries and canned soft drink (330 ml).',
-    ingredients: 'Chicken doner, french fries, special Katik sauce, wheat flour lavash (contains gluten) or bread, vegetable oil, salt, spices.'
-  },
-  'combo-et-menu-1': {
-    name: 'Combo Beef Menu 1',
-    description: '1 Katik Beef Wrap + 1 Beef Tantuni Wrap, served with french fries and canned soft drink (330 ml).',
-    ingredients: 'Beef doner, beef tantuni, french fries, special Katik sauce, wheat flour lavash (contains gluten) or bread, vegetable oil, salt, spices.'
-  },
-  'combo-et-menu-2': {
-    name: 'Combo Beef Menu 2',
-    description: '2 Katik Beef Wraps, served with french fries and canned soft drink (330 ml).',
-    ingredients: 'Beef doner, french fries, special Katik sauce, wheat flour lavash (contains gluten) or bread, vegetable oil, salt, spices.'
-  },
-  'et-tantuni-durum': {
-    name: 'Beef Tantuni Wrap',
-    description: 'Traditional beef tantuni wrap with tomatoes, parsley, onions, and spices.',
-    ingredients: 'Beef meat, tomatoes, parsley, onion, special spices, wheat flour lavash (contains gluten).'
-  },
-  'et-tantuni-ekmek-arasi': {
-    name: 'Beef Tantuni Sandwich',
-    description: 'Tasty beef tantuni in a bread roll with tomatoes, parsley, onions, and spices.',
-    ingredients: 'Beef meat, tomatoes, parsley, onion, special spices, sandwich bread (contains gluten).'
-  },
-  'yogurtlu-et-tantuni': {
-    name: 'Beef Tantuni with Yogurt',
-    description: 'Beef tantuni served over sliced bread with yogurt, hot butter, and tomato sauce.',
-    ingredients: 'Beef meat, yogurt, special tomato sauce, melted butter, sliced bread (contains gluten), parsley.'
-  },
-  'tavuk-tantuni-durum': {
-    name: 'Chicken Tantuni Wrap',
-    description: 'Chicken tantuni wrap with tomatoes, parsley, onions, and spices.',
-    ingredients: 'Chicken meat, tomatoes, parsley, onion, special spices, wheat flour lavash (contains gluten).'
-  },
-  'tavuk-tantuni-ekmek-arasi': {
-    name: 'Chicken Tantuni Sandwich',
-    description: 'Chicken tantuni in a bread roll with tomatoes, parsley, onions, and spices.',
-    ingredients: 'Chicken meat, tomatoes, parsley, onion, special spices, sandwich bread (contains gluten).'
-  },
-  'tavuk-tantuni-yogurtlu': {
-    name: 'Chicken Tantuni with Yogurt',
-    description: 'Chicken tantuni served over sliced bread with yogurt, hot butter, and tomato sauce.',
-    ingredients: 'Chicken meat, yogurt, special tomato sauce, melted butter, sliced bread (contains gluten), parsley.'
-  },
-  'zurna-mantarli-durum': {
-    name: 'Zurna Chicken Wrap with Mushrooms',
-    description: 'Zurna chicken doner wrap with special mushroom sauce and greens.',
-    ingredients: 'Chicken doner, special mushroom sauce, special Katik sauce, wheat flour lavash (contains gluten), greens, spices.'
-  },
-  'zurna-cheddarli-tavuk-durum': {
-    name: 'Zurna Chicken Wrap with Cheddar',
-    description: 'Zurna chicken doner wrap with melted cheddar cheese and greens.',
-    ingredients: 'Chicken doner, melted cheddar cheese, special Katik sauce, wheat flour lavash (contains gluten), greens, spices.'
-  },
-  'zurna-kasarli-tavuk-durum': {
-    name: 'Zurna Chicken Wrap with Kashar',
-    description: 'Zurna chicken doner wrap with melted kashar cheese and greens.',
-    ingredients: 'Chicken doner, melted kashar cheese, special Katik sauce, wheat flour lavash (contains gluten), greens, spices.'
-  },
-  'katik-barbeku-soslu-zurna-tavuk': {
-    name: 'Katik BBQ Zurna Chicken Wrap',
-    description: 'Zurna chicken doner wrap with special BBQ sauce and greens.',
-    ingredients: 'Chicken doner, special BBQ sauce, special Katik sauce, wheat flour lavash (contains gluten), greens, spices.'
-  },
-  'katik-barbeku-soslu-tavuk-durum': {
-    name: 'Katik BBQ Chicken Wrap',
-    description: 'Standard chicken doner wrap with BBQ sauce and greens.',
-    ingredients: 'Chicken doner, BBQ sauce, special Katik sauce, wheat flour lavash (contains gluten), greens, spices.'
-  },
-  'zurna-tavuk-doner-durum': {
-    name: 'Zurna Chicken Doner Wrap',
-    description: 'Long zurna chicken doner wrap with special Katik sauce and greens.',
-    ingredients: 'Chicken doner, special Katik sauce, wheat flour lavash (contains gluten), greens, spices.'
-  },
-  'katik-mantarli-tavuk-doner-durum': {
-    name: 'Katik Mushroom Chicken Doner Wrap',
-    description: 'Chicken doner wrap with delicious mushroom sauce and greens.',
-    ingredients: 'Chicken doner, mushroom sauce, special Katik sauce, wheat flour lavash (contains gluten), greens, spices.'
-  },
-  'katik-kasarli-tavuk-doner-durum': {
-    name: 'Katik Kashar Chicken Doner Wrap',
-    description: 'Chicken doner wrap with melted kashar cheese.',
-    ingredients: 'Chicken doner, melted kashar cheese, special Katik sauce, wheat flour lavash (contains gluten).'
-  },
-  'katik-cheddarli-tavuk-doner-durum': {
-    name: 'Katik Cheddar Chicken Doner Wrap',
-    description: 'Chicken doner wrap with melted cheddar cheese.',
-    ingredients: 'Chicken doner, melted cheddar cheese, special Katik sauce, wheat flour lavash (contains gluten).'
-  },
-  'katik-tavuk-doner-durum': {
-    name: 'Katik Chicken Doner Wrap',
-    description: 'Standard chicken doner wrap with special Katik sauce.',
-    ingredients: 'Chicken doner, special Katik sauce, wheat flour lavash (contains gluten).'
-  },
-  'ekmek-arasi-et-doner': {
-    name: 'Beef Doner Sandwich',
-    description: 'Traditional beef doner served inside freshly baked bread.',
-    ingredients: 'Beef doner, sandwich bread (contains gluten), onion, parsley, special spices.'
-  },
-  'zurna-katik-et-doner-durum': {
-    name: 'Zurna Beef Doner Wrap',
-    description: 'Long zurna beef doner wrap with special Katik sauce.',
-    ingredients: 'Beef doner, special Katik sauce, wheat flour lavash (contains gluten).'
-  },
-  'katik-et-doner-durum': {
-    name: 'Katik Beef Doner Wrap',
-    description: 'Beef doner wrap with special Katik sauce and spices.',
-    ingredients: 'Beef doner, special Katik sauce, wheat flour lavash (contains gluten).'
-  },
-  'veggie-durum': {
-    name: 'Veggie Wrap',
-    description: 'A special vegetarian wrap with grilled mushrooms, kashar cheese, and seasonal vegetables.',
-    ingredients: 'Grilled mushrooms, kashar cheese, seasonal vegetables, wheat flour lavash (contains gluten).'
-  },
-  'kutu-icecekler': {
-    name: 'Canned Soft Drinks',
-    description: 'Coca-Cola, Fanta, Sprite, Cappy or Ice Tea.',
-    ingredients: 'Carbonated water, sugar/sweeteners, acidity regulators, natural flavorings.'
-  },
-  'ayran': {
-    name: 'Ayran',
-    description: 'Sutas Ayran (yogurt drink) - 300 ml.',
-    ingredients: 'Yogurt, water, salt.'
-  },
-  'soda': {
-    name: 'Mineral Water',
-    description: 'Carbonated natural mineral water.',
-    ingredients: 'Natural mineral water.'
-  },
-  'su': {
-    name: 'Water',
-    description: 'Drinking Water.',
-    ingredients: 'Pure water.'
-  }
-};
 
 const i18nData = {
   tr: {
@@ -187,13 +9,13 @@ const i18nData = {
     admin_lbl_edit_product: "Ürün Düzenle",
     call: "Ara",
     hero_title_1: "Emek, Lezzet, Kalite.",
-    hero_subtitle_1: "Özel Katık Soslu Tantuni ve Dönerler",
+    hero_subtitle_1: "Lezzetli Yemekler, Taze Malzemeler",
     hero_title_2: "Doyasıya Lezzet",
     hero_subtitle_2: "Geleneksel lezzetler modern sunumla buluşuyor",
-    hero_title_3: "Safranbolu'da Tek",
+    hero_title_3: "Şehrin Gözdesi",
     hero_subtitle_3: "En taze malzemeler, enfes baharatlar",
     info_delivery_title: "Hızlı Teslimat",
-    info_delivery_desc: "Safranbolu Geneline",
+    info_delivery_desc: "Şehir Geneline",
     info_hot_title: "Taze & Sıcak",
     info_hot_desc: "Anında Servis",
     info_rez_title: "Kolay Rezervasyon",
@@ -204,8 +26,8 @@ const i18nData = {
     no_products: "Kategoride ürün bulunmamaktadır.",
     about_heading: "Hakkımızda",
     about_subheading: "Eşsiz Lezzet Yolculuğu",
-    about_text_1: "Dayı Katık Tantuni & Döner olarak, Safranbolu'da en kaliteli malzemelerle hazırladığımız nefis dürüm ve döner çeşitlerimizle hizmetinizdeyiz. Misafirlerimize her zaman taze, sıcak ve lezzetli ürünler sunmak bizim önceliğimizdir.",
-    about_text_2: "Özel soslarımız ve geleneksel pişirme yöntemlerimizle hazırladığımız tantuni ve dönerlerimizle, lezzet standardımızı her geçen gün daha da yukarı taşıyoruz. Sizleri de bu lezzet şölenine ortak olmaya davet ediyoruz.",
+    about_text_1: "En kaliteli malzemelerle hazırladığımız nefis lezzetlerle hizmetinizdeyiz. Misafirlerimize her zaman taze, sıcak ve lezzetli ürünler sunmak bizim önceliğimizdir.",
+    about_text_2: "Özenle seçilmiş malzemeler ve geleneksel pişirme yöntemlerimizle, lezzet standardımızı her geçen gün daha da yukarı taşıyoruz. Sizleri de bu lezzet şölenine ortak olmaya davet ediyoruz.",
     rez_heading: "Rezervasyon Yapın",
     rez_subheading: "Masanızı önceden ayırtın, sıra beklemeden lezzetin tadını çıkarın.",
     lbl_person: "Kişi Sayısı",
@@ -217,11 +39,11 @@ const i18nData = {
     btn_book: "Rezervasyon Yap",
     contact_heading: "İletişim Bilgileri",
     contact_address_lbl: "Adresimiz",
-    contact_address_val: "Emek Mah. 75. Yıl Cad. Safranbolu / Karabük",
+    contact_address_val: "123 Example Street, City",
     contact_phone_lbl: "Telefon",
     contact_hours_lbl: "Çalışma Saatleri",
     contact_hours_val: "Hafta İçi & Hafta Sonu: 11:00 - 22:00",
-    footer_text: "© 2025 Dayı Katık Tantuni & Döner · Safranbolu",
+    footer_text: "© 2025 My Restaurant",
     select_day: "Gün",
     select_month: "Ay",
     select_year: "Yıl",
@@ -257,7 +79,7 @@ const i18nData = {
     ph_gram: "Gram...",
     ph_price: "Örn: 180",
     ph_energy: "Örn: 650",
-    brand_name: "Dayı Katık",
+    brand_name: "My Restaurant",
     rez_success: "Rezervasyonunuz başarıyla alındı! Teşekkür ederiz.",
     rez_error: "Bağlantı hatası. Lütfen telefonla arayın: 0370 712 4747",
     admin_login: "Yönetici Girişi",
@@ -284,8 +106,8 @@ const i18nData = {
     btn_see_menu: "Menüyü Gör",
     ok: "Tamam",
     hero_title_main: "Gerçek<br><em>Lezzet</em><br>Her Lokmada",
-    hero_sub_main: "Tantuni, döner ve dürümde Safranbolu'nun en sevilen adresi.",
-    hero_badge_text: "Safranbolu'nun Gözdesi",
+    hero_sub_main: "Lezzetli yemekler ve sıcak bir atmosfer sizi bekliyor.",
+    hero_badge_text: "Favori Adresiniz",
     all_categories: "Tüm Kategoriler",
     ph_admin_pwd: "Şifrenizi girin...",
     ph_admin_search: "Ürünlerde ara...",
@@ -340,13 +162,13 @@ const i18nData = {
     admin_lbl_edit_product: "Edit Product",
     call: "Call",
     hero_title_1: "Labor, Taste, Quality.",
-    hero_subtitle_1: "Special Katik Sauced Tantuni and Doners",
+    hero_subtitle_1: "Delicious Food, Fresh Ingredients",
     hero_title_2: "Delicious Feast",
     hero_subtitle_2: "Traditional tastes meet modern presentation",
-    hero_title_3: "Unique in Safranbolu",
+    hero_title_3: "The City's Favorite",
     hero_subtitle_3: "The freshest ingredients, delicious spices",
     info_delivery_title: "Fast Delivery",
-    info_delivery_desc: "Across Safranbolu",
+    info_delivery_desc: "Across the City",
     info_hot_title: "Fresh & Hot",
     info_hot_desc: "Instant Service",
     info_rez_title: "Easy Reservation",
@@ -357,8 +179,8 @@ const i18nData = {
     no_products: "No products found in this category.",
     about_heading: "About Us",
     about_subheading: "A Unique Taste Journey",
-    about_text_1: "As Dayi Katik Tantuni & Doner, we are at your service in Safranbolu with our delicious wrap and doner varieties prepared with the highest quality ingredients. Serving fresh, hot, and tasty products to our guests is always our priority.",
-    about_text_2: "With our tantuni and doners prepared with our special sauces and traditional cooking methods, we raise our taste standards day by day. We invite you to share this feast of taste.",
+    about_text_1: "We are at your service with delicious dishes prepared using the highest quality ingredients. Serving fresh, hot, and tasty products to our guests is always our priority.",
+    about_text_2: "With carefully selected ingredients and our traditional cooking methods, we raise our taste standards day by day. We invite you to share this feast of taste.",
     rez_heading: "Book a Table",
     rez_subheading: "Book your table in advance, enjoy the taste without waiting in line.",
     lbl_person: "Number of Guests",
@@ -370,11 +192,11 @@ const i18nData = {
     btn_book: "Book Table",
     contact_heading: "Contact Information",
     contact_address_lbl: "Address",
-    contact_address_val: "Emek Mah. 75. Yil Cad. Safranbolu / Karabuk",
+    contact_address_val: "123 Example Street, City",
     contact_phone_lbl: "Phone",
     contact_hours_lbl: "Opening Hours",
     contact_hours_val: "Weekdays & Weekends: 11:00 - 22:00",
-    footer_text: "© 2025 Dayi Katik Tantuni & Doner · Safranbolu",
+    footer_text: "© 2025 My Restaurant",
     select_day: "Day",
     select_month: "Month",
     select_year: "Year",
@@ -410,7 +232,7 @@ const i18nData = {
     ph_gram: "Grams...",
     ph_price: "e.g., 180",
     ph_energy: "e.g., 650",
-    brand_name: "Dayi Katik",
+    brand_name: "My Restaurant",
     rez_success: "Your reservation has been received successfully! Thank you.",
     rez_error: "Connection error. Please call: 0370 712 4747",
     admin_login: "Admin Login",
@@ -437,8 +259,8 @@ const i18nData = {
     btn_see_menu: "See Menu",
     ok: "OK",
     hero_title_main: "Real<br><em>Taste</em><br>In Every Bite",
-    hero_sub_main: "Safranbolu's favorite address for tantuni, doner, and wraps.",
-    hero_badge_text: "Safranbolu's Favorite",
+    hero_sub_main: "Delicious food and a warm atmosphere await you.",
+    hero_badge_text: "Your Favorite Spot",
     all_categories: "All Categories",
     ph_admin_pwd: "Enter password...",
     ph_admin_search: "Search products...",
@@ -487,8 +309,4 @@ const i18nData = {
   }
 };
 
-module.exports = {
-  defaultCategoriesMap,
-  defaultItemTranslations,
-  i18nData
-};
+module.exports = { i18nData };

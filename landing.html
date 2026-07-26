@@ -1,0 +1,1291 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>HASACA — Komisyonsuz Dijital Restoran Platformu</title>
+<meta name="description" content="HASACA ile restoranınıza özel web sitesi, QR menü, online sipariş, rezervasyon, yapay zekâ ve yönetim panelini tek platformdan yönetin. Komisyon yok, tam kontrol sizde.">
+<meta name="keywords" content="restoran yazılımı, QR menü, online sipariş, komisyonsuz, restoran web sitesi, rezervasyon sistemi, restoran yönetim paneli, HASACA">
+<meta name="theme-color" content="#0a0a0b">
+<link rel="canonical" href="https://hasaca.com/">
+<link rel="icon" href="/favicon.ico">
+<!-- OpenGraph -->
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="HASACA">
+<meta property="og:title" content="HASACA — Komisyonsuz Dijital Restoran Platformu">
+<meta property="og:description" content="Restoranınıza özel web sitesi, QR menü, online sipariş, rezervasyon ve yapay zekâ. Tek platform, sıfır komisyon.">
+<meta property="og:url" content="https://hasaca.com/">
+<meta property="og:image" content="/icons/placeholder-logo.svg">
+<!-- Twitter -->
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="HASACA — Komisyonsuz Dijital Restoran Platformu">
+<meta name="twitter:description" content="Restoranlar için modern işletim sistemi. QR menü, online sipariş, rezervasyon, AI ve daha fazlası.">
+<meta name="twitter:image" content="/icons/placeholder-logo.svg">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  "name": "HASACA",
+  "applicationCategory": "BusinessApplication",
+  "operatingSystem": "Web",
+  "description": "Komisyonsuz dijital restoran platformu: web sitesi, QR menü, online sipariş, rezervasyon, analitik ve yapay zekâ.",
+  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "TRY" },
+  "publisher": { "@type": "Organization", "name": "HASACA", "url": "https://hasaca.com/" }
+}
+</script>
+<script>document.documentElement.className += ' js-anim';</script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+/* ── GLOBAL TYPOGRAPHY — Samsung Sharp Sans (single central config, matches app) ── */
+@font-face{
+  font-family:'Samsung Sharp Sans';
+  src:url('/fonts/SamsungSharpSans-Bold.ttf') format('truetype');
+  font-weight:1 1000; font-style:normal; font-display:swap;
+}
+:root{
+  --font-primary:'Samsung Sharp Sans', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  /* dark-luxury palette */
+  --bg:#0a0a0b;
+  --bg-2:#0e0e11;
+  --bg-3:#141418;
+  --surface:rgba(255,255,255,.03);
+  --surface-2:rgba(255,255,255,.055);
+  --glass:rgba(20,20,24,.55);
+  --border:rgba(255,255,255,.08);
+  --border-2:rgba(255,255,255,.14);
+  --text:#f4f4f6;
+  --text-dim:#a6a6b0;
+  --text-mute:#6c6c78;
+  --white:#ffffff;
+  --gold:#d8b877;
+  --gold-soft:rgba(216,184,119,.14);
+  --shine:linear-gradient(135deg,#ffffff 0%,#c9c9d2 45%,#8f8f9c 100%);
+  --radius:22px;
+  --radius-lg:30px;
+  --radius-sm:14px;
+  --ease:cubic-bezier(.22,.61,.36,1);
+  --shadow:0 30px 80px -30px rgba(0,0,0,.85);
+  --shadow-glow:0 0 0 1px var(--border), 0 24px 70px -25px rgba(0,0,0,.9);
+  --maxw:1180px;
+}
+*{ font-family:var(--font-primary) !important; }
+code,pre,kbd,samp{ font-family:ui-monospace,'SFMono-Regular',Menlo,monospace !important; }
+html{ scroll-behavior:smooth; }
+body{
+  background:var(--bg);
+  color:var(--text);
+  line-height:1.55;
+  -webkit-font-smoothing:antialiased;
+  overflow-x:hidden;
+  position:relative;
+}
+/* Ambient background glows */
+body::before{
+  content:''; position:fixed; inset:0; z-index:0; pointer-events:none;
+  background:
+    radial-gradient(60% 40% at 78% 8%, rgba(216,184,119,.08), transparent 60%),
+    radial-gradient(50% 45% at 8% 20%, rgba(120,130,180,.07), transparent 60%),
+    radial-gradient(70% 60% at 50% 120%, rgba(255,255,255,.04), transparent 60%);
+}
+a{ color:inherit; text-decoration:none; }
+img{ max-width:100%; display:block; }
+::selection{ background:var(--gold-soft); color:#fff; }
+/* Scrollbar */
+::-webkit-scrollbar{ width:11px; height:11px; }
+::-webkit-scrollbar-track{ background:var(--bg); }
+::-webkit-scrollbar-thumb{ background:rgba(255,255,255,.12); border-radius:8px; border:3px solid var(--bg); }
+::-webkit-scrollbar-thumb:hover{ background:rgba(255,255,255,.22); }
+*{ scrollbar-width:thin; scrollbar-color:rgba(255,255,255,.15) transparent; }
+
+.wrap{ max-width:var(--maxw); margin:0 auto; padding:0 24px; position:relative; z-index:1; }
+section{ position:relative; z-index:1; }
+
+/* ── Text helpers ── */
+.shine{ background:var(--shine); -webkit-background-clip:text; background-clip:text; color:transparent; }
+.eyebrow{
+  display:inline-flex; align-items:center; gap:8px;
+  font-size:12.5px; letter-spacing:.14em; text-transform:uppercase;
+  color:var(--text-dim); padding:7px 14px; border-radius:999px;
+  background:var(--surface); border:1px solid var(--border);
+}
+.eyebrow .dot{ width:6px; height:6px; border-radius:50%; background:var(--gold); box-shadow:0 0 10px var(--gold); }
+h1,h2,h3{ line-height:1.08; letter-spacing:-.02em; }
+.sec-head{ max-width:660px; margin:0 auto 56px; text-align:center; }
+.sec-head h2{ font-size:clamp(28px,4.4vw,50px); margin:18px 0 16px; }
+.sec-head p{ color:var(--text-dim); font-size:clamp(15px,1.6vw,18px); }
+
+/* ── Buttons ── */
+.btn{
+  display:inline-flex; align-items:center; justify-content:center; gap:9px;
+  font-size:15px; padding:13px 24px; border-radius:999px; cursor:pointer;
+  border:1px solid transparent; transition:transform .16s var(--ease), box-shadow .16s var(--ease), background .16s var(--ease), border-color .16s var(--ease);
+  white-space:nowrap;
+}
+.btn svg{ width:17px; height:17px; }
+.btn-primary{ background:#fff; color:#0a0a0b; box-shadow:0 10px 30px -8px rgba(255,255,255,.35); }
+.btn-primary:hover{ transform:translateY(-2px); box-shadow:0 16px 42px -8px rgba(255,255,255,.5); }
+.btn-ghost{ background:var(--surface-2); color:var(--text); border-color:var(--border-2); }
+.btn-ghost:hover{ background:rgba(255,255,255,.11); transform:translateY(-2px); }
+.btn-lg{ padding:16px 30px; font-size:16px; }
+
+/* ── Navbar ── */
+.nav{
+  position:sticky; top:0; z-index:100;
+  backdrop-filter:blur(18px) saturate(1.3); -webkit-backdrop-filter:blur(18px) saturate(1.3);
+  background:rgba(10,10,11,.72); border-bottom:1px solid transparent;
+  transition:border-color .3s, background .3s;
+}
+.nav.scrolled{ border-bottom-color:var(--border); background:rgba(10,10,11,.86); }
+.nav-in{ max-width:var(--maxw); margin:0 auto; padding:15px 24px; display:flex; align-items:center; gap:26px; }
+.brand{ display:flex; align-items:center; gap:11px; font-size:20px; letter-spacing:.02em; }
+.brand .mark{
+  width:34px; height:34px; border-radius:10px; display:grid; place-items:center;
+  background:linear-gradient(150deg,#2a2a30,#0c0c0e); border:1px solid var(--border-2);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.14);
+}
+.brand .mark span{ font-size:16px; background:var(--shine); -webkit-background-clip:text; background-clip:text; color:transparent; }
+.nav-links{ display:flex; gap:6px; margin-left:14px; }
+.nav-links a{ color:var(--text-dim); font-size:14.5px; padding:8px 14px; border-radius:10px; transition:color .15s, background .15s; }
+.nav-links a:hover{ color:var(--text); background:var(--surface); }
+.nav-right{ margin-left:auto; display:flex; align-items:center; gap:10px; }
+.nav-cta-mobile{ display:none; color:var(--gold) !important; }
+.lang{
+  display:flex; align-items:center; gap:2px; background:var(--surface); border:1px solid var(--border);
+  border-radius:999px; padding:3px;
+}
+.lang button{
+  background:none; border:none; color:var(--text-mute); font-size:12.5px; cursor:pointer;
+  padding:5px 11px; border-radius:999px; transition:all .15s;
+}
+.lang button.on{ background:var(--surface-2); color:var(--text); }
+.nav-toggle{ display:none; background:var(--surface); border:1px solid var(--border); color:#fff; width:42px; height:42px; border-radius:12px; cursor:pointer; }
+.nav-toggle svg{ width:20px; height:20px; margin:auto; }
+
+/* ── Hero ── */
+.hero{ padding:78px 0 70px; }
+.hero-grid{ display:grid; grid-template-columns:1.02fr .98fr; gap:40px; align-items:center; }
+.hero h1{ font-size:clamp(38px,6vw,72px); margin:22px 0 22px; }
+.hero-sub{ font-size:clamp(16px,1.8vw,19px); color:var(--text-dim); max-width:520px; margin-bottom:32px; }
+.hero-cta{ display:flex; gap:13px; flex-wrap:wrap; margin-bottom:30px; }
+.hero-mini{ display:flex; gap:26px; flex-wrap:wrap; }
+.hero-mini .m{ display:flex; flex-direction:column; }
+.hero-mini .m b{ font-size:22px; }
+.hero-mini .m span{ font-size:12.5px; color:var(--text-mute); }
+
+/* Device cluster (pure CSS/SVG mockups) */
+.devices{ position:relative; height:440px; perspective:1400px; }
+@keyframes floaty{ 0%,100%{ transform:translateY(0); } 50%{ transform:translateY(-14px); } }
+/* The laptop is centred with a transform, so its float animation must carry the
+   centring too — a plain translateY keyframe would override it and shift the element. */
+@keyframes floaty-center{
+  0%,100%{ transform:translate(-50%,-50%); }
+  50%{ transform:translate(-50%,calc(-50% - 14px)); }
+}
+.laptop{
+  position:absolute; left:50%; top:52%; transform:translate(-50%,-50%);
+  width:min(100%,520px);
+  animation:floaty-center 7s ease-in-out infinite;
+}
+.laptop .screen{
+  border-radius:16px 16px 4px 4px; padding:11px; background:linear-gradient(160deg,#26262c,#0b0b0d);
+  border:1px solid var(--border-2); box-shadow:var(--shadow);
+}
+.laptop .base{ height:15px; background:linear-gradient(#1b1b20,#0c0c0e); border-radius:0 0 14px 14px; border:1px solid var(--border); border-top:none; position:relative; }
+.laptop .base::after{ content:''; position:absolute; left:50%; top:0; transform:translateX(-50%); width:80px; height:5px; background:#000; border-radius:0 0 7px 7px; }
+.ui{ background:var(--bg-2); border-radius:9px; overflow:hidden; }
+.ui-top{ display:flex; align-items:center; gap:6px; padding:9px 12px; border-bottom:1px solid var(--border); }
+.ui-top .d{ width:9px; height:9px; border-radius:50%; background:#333; }
+.ui-top .t{ margin-left:8px; font-size:10px; color:var(--text-mute); }
+.ui-body{ display:grid; grid-template-columns:56px 1fr; min-height:210px; }
+.ui-side{ border-right:1px solid var(--border); padding:12px 8px; display:flex; flex-direction:column; gap:9px; }
+.ui-side i{ height:9px; border-radius:4px; background:var(--surface-2); display:block; }
+.ui-side i:first-child{ background:var(--gold-soft); }
+.ui-main{ padding:14px; }
+.ui-cards{ display:grid; grid-template-columns:repeat(3,1fr); gap:9px; margin-bottom:12px; }
+.ui-card{ background:var(--surface); border:1px solid var(--border); border-radius:8px; padding:9px; }
+.ui-card b{ font-size:14px; display:block; }
+.ui-card span{ font-size:8.5px; color:var(--text-mute); }
+.ui-chart{ height:78px; border:1px solid var(--border); border-radius:8px; background:var(--surface); position:relative; overflow:hidden; }
+.ui-chart svg{ position:absolute; inset:0; width:100%; height:100%; }
+.phone{
+  position:absolute; right:0; bottom:0; width:132px;
+  border-radius:22px; padding:7px; background:linear-gradient(160deg,#2a2a30,#0a0a0c);
+  border:1px solid var(--border-2); box-shadow:var(--shadow); animation:floaty 6s ease-in-out infinite .8s;
+}
+.phone .pscreen{ background:var(--bg-2); border-radius:16px; overflow:hidden; }
+.phone .phead{ padding:10px; background:linear-gradient(160deg,#17171b,#0d0d10); }
+.phone .phead .qr{ width:44px; height:44px; margin:2px auto 7px; border-radius:8px; background:
+  conic-gradient(#000 0 25%, #fff 0 50%, #000 0 75%, #fff 0) 0/12px 12px; border:3px solid #fff; }
+.phone .phead .l{ height:6px; width:70%; margin:5px auto; border-radius:3px; background:var(--surface-2); }
+.phone .pitem{ display:flex; gap:7px; align-items:center; padding:8px 9px; border-top:1px solid var(--border); }
+.phone .pitem .thumb{ width:22px; height:22px; border-radius:6px; background:var(--surface-2); }
+.phone .pitem .ln{ flex:1; height:5px; border-radius:3px; background:var(--surface-2); }
+.phone .pitem .pr{ font-size:8px; color:var(--gold); }
+.chip{
+  position:absolute; display:flex; align-items:center; gap:9px; padding:10px 13px;
+  background:var(--glass); backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px);
+  border:1px solid var(--border-2); border-radius:14px; box-shadow:var(--shadow);
+  font-size:12px;
+}
+.chip .ic{ width:26px; height:26px; border-radius:8px; display:grid; place-items:center; background:var(--gold-soft); color:var(--gold); }
+.chip .ic svg{ width:15px; height:15px; }
+.chip b{ font-size:12.5px; } .chip span{ font-size:10.5px; color:var(--text-mute); display:block; }
+.chip.c1{ top:6px; left:0; animation:floaty 6.5s ease-in-out infinite .3s; }
+.chip.c2{ bottom:34px; left:0; animation:floaty 7.5s ease-in-out infinite 1.1s; }
+
+/* ── Trust ── */
+.trust{ padding:26px 0 8px; }
+.counters{ display:grid; grid-template-columns:repeat(4,1fr); gap:18px; margin-bottom:44px; }
+.counter{ text-align:center; padding:26px 14px; border:1px solid var(--border); border-radius:var(--radius); background:var(--surface); }
+.counter .n{ font-size:clamp(26px,3.4vw,40px); background:var(--shine); -webkit-background-clip:text; background-clip:text; color:transparent; }
+.counter .lb{ font-size:13px; color:var(--text-dim); margin-top:6px; }
+.logos{ display:flex; flex-wrap:wrap; gap:14px 44px; justify-content:center; align-items:center; opacity:.62; margin-bottom:8px; }
+.logos .lg{ font-size:16px; letter-spacing:.02em; color:var(--text-dim); display:flex; align-items:center; gap:7px; filter:grayscale(1); }
+.logos .lg svg{ width:18px; height:18px; }
+
+/* ── Section spacing ── */
+.block{ padding:84px 0; }
+
+/* ── Showcase ── */
+.showcase{ display:grid; grid-template-columns:1fr 1fr; gap:54px; align-items:center; margin-bottom:96px; }
+.showcase:last-child{ margin-bottom:0; }
+.showcase.rev .sc-media{ order:2; }
+.sc-copy h3{ font-size:clamp(24px,3.2vw,38px); margin:16px 0 15px; }
+.sc-copy p{ color:var(--text-dim); font-size:16px; margin-bottom:20px; }
+.sc-list{ list-style:none; display:flex; flex-direction:column; gap:11px; margin-bottom:24px; }
+.sc-list li{ display:flex; gap:11px; align-items:flex-start; font-size:14.5px; color:var(--text); }
+.sc-list .ck{ flex:none; width:21px; height:21px; border-radius:6px; background:var(--gold-soft); color:var(--gold); display:grid; place-items:center; margin-top:1px; }
+.sc-list .ck svg{ width:13px; height:13px; }
+.sc-media{ position:relative; }
+.mock{
+  border-radius:var(--radius-lg); border:1px solid var(--border-2); background:linear-gradient(160deg,#161619,#0b0b0d);
+  box-shadow:var(--shadow); padding:16px; overflow:hidden;
+}
+.mock .m-top{ display:flex; align-items:center; gap:6px; margin-bottom:13px; }
+.mock .m-top .d{ width:9px; height:9px; border-radius:50%; background:#2c2c33; }
+.mock .m-top .tt{ margin-left:8px; font-size:11px; color:var(--text-mute); }
+.grid-tiles{ display:grid; grid-template-columns:repeat(2,1fr); gap:11px; }
+.tile{ background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:14px; }
+.tile .lab{ font-size:10.5px; color:var(--text-mute); text-transform:uppercase; letter-spacing:.08em; }
+.tile .big{ font-size:22px; margin-top:5px; }
+.tile .sub{ font-size:10.5px; color:var(--gold); margin-top:3px; }
+.bars{ display:flex; align-items:flex-end; gap:6px; height:60px; margin-top:9px; }
+.bars i{ flex:1; background:linear-gradient(#e9e9ee,#6a6a75); border-radius:4px 4px 0 0; display:block; opacity:.85; }
+.kanban{ display:grid; grid-template-columns:repeat(3,1fr); gap:9px; }
+.kcol{ background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:9px; }
+.kcol .h{ font-size:10px; color:var(--text-mute); margin-bottom:8px; text-transform:uppercase; letter-spacing:.06em; }
+.kcard{ background:var(--surface-2); border:1px solid var(--border); border-radius:8px; padding:8px; margin-bottom:7px; }
+.kcard .l1{ height:6px; width:80%; border-radius:3px; background:rgba(255,255,255,.2); margin-bottom:5px; }
+.kcard .l2{ height:5px; width:52%; border-radius:3px; background:rgba(255,255,255,.1); }
+.chatline{ display:flex; gap:9px; margin-bottom:11px; }
+.chatline .av{ width:28px; height:28px; border-radius:9px; flex:none; background:var(--gold-soft); color:var(--gold); display:grid; place-items:center; }
+.chatline .av svg{ width:15px; height:15px; }
+.bubble{ background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:10px 12px; font-size:11.5px; color:var(--text-dim); }
+.bubble.me{ background:#fff; color:#111; margin-left:auto; }
+
+/* ── Features grid ── */
+.feat-grid{ display:grid; grid-template-columns:repeat(4,1fr); gap:16px; }
+.feat{
+  background:var(--surface); border:1px solid var(--border); border-radius:var(--radius);
+  padding:22px; transition:transform .18s var(--ease), border-color .18s, background .18s;
+  position:relative; overflow:hidden;
+}
+.feat::after{ content:''; position:absolute; inset:0; background:radial-gradient(120% 90% at 50% -20%, rgba(216,184,119,.1), transparent 60%); opacity:0; transition:opacity .25s; pointer-events:none; }
+.feat:hover{ transform:translateY(-5px); border-color:var(--border-2); background:var(--surface-2); }
+.feat:hover::after{ opacity:1; }
+.feat .fi{ width:44px; height:44px; border-radius:12px; display:grid; place-items:center; margin-bottom:15px;
+  background:linear-gradient(150deg,#232329,#0e0e11); border:1px solid var(--border-2); color:#e6e6ea; }
+.feat .fi svg{ width:22px; height:22px; }
+.feat h4{ font-size:16px; margin-bottom:7px; letter-spacing:-.01em; }
+.feat p{ font-size:13px; color:var(--text-dim); line-height:1.5; }
+
+/* ── How it works ── */
+.steps{ max-width:760px; margin:0 auto; position:relative; }
+.steps::before{ content:''; position:absolute; left:27px; top:12px; bottom:12px; width:2px; background:linear-gradient(var(--gold),transparent); opacity:.35; }
+.step{ display:flex; gap:22px; padding:16px 0; align-items:flex-start; }
+.step .num{
+  flex:none; width:56px; height:56px; border-radius:16px; display:grid; place-items:center; font-size:20px;
+  background:linear-gradient(150deg,#202026,#0c0c0e); border:1px solid var(--border-2); position:relative; z-index:1;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.1);
+}
+.step .num .shine{ font-size:22px; }
+.step .sc h4{ font-size:19px; margin:9px 0 5px; }
+.step .sc p{ font-size:14px; color:var(--text-dim); }
+
+/* ── Comparison ── */
+.cmp{ max-width:900px; margin:0 auto; border:1px solid var(--border); border-radius:var(--radius-lg); overflow:hidden; background:var(--surface); }
+.cmp-row{ display:grid; grid-template-columns:1.4fr 1fr 1fr; align-items:center; border-top:1px solid var(--border); }
+.cmp-row:first-child{ border-top:none; }
+.cmp-row > div{ padding:16px 20px; font-size:14.5px; }
+.cmp-head{ background:var(--bg-3); }
+.cmp-head .h-hasaca{ position:relative; }
+.cmp-head b{ font-size:16px; }
+.cmp-head .h-hasaca b{ background:var(--shine); -webkit-background-clip:text; background-clip:text; color:transparent; }
+.cmp-head .tag{ font-size:10px; color:var(--gold); display:block; }
+.cmp .lbl{ color:var(--text-dim); }
+.cmp .cell{ text-align:center; }
+.cmp .yes{ color:#e9e9ee; } .cmp .no{ color:var(--text-mute); }
+.cmp .cell svg{ width:19px; height:19px; }
+.cmp .col-hasaca{ background:linear-gradient(180deg,rgba(216,184,119,.06),transparent); }
+
+/* ── Stats ── */
+.stat-grid{ display:grid; grid-template-columns:repeat(4,1fr); gap:16px; }
+.statc{ background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:26px 20px; }
+.statc .n{ font-size:clamp(26px,3.2vw,38px); background:var(--shine); -webkit-background-clip:text; background-clip:text; color:transparent; }
+.statc .lb{ font-size:13.5px; color:var(--text-dim); margin-top:7px; }
+
+/* ── Testimonials ── */
+.tst-track{ display:flex; gap:20px; overflow-x:auto; scroll-snap-type:x mandatory; padding:6px 2px 20px; scrollbar-width:none; }
+.tst-track::-webkit-scrollbar{ display:none; }
+.tst{
+  flex:0 0 clamp(280px,42%,420px); scroll-snap-align:center;
+  background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-lg); padding:28px;
+}
+.tst .q{ font-size:16px; line-height:1.6; color:var(--text); margin-bottom:22px; }
+.tst .who{ display:flex; align-items:center; gap:13px; }
+.tst .who .av{ width:46px; height:46px; border-radius:14px; display:grid; place-items:center; font-size:16px;
+  background:linear-gradient(150deg,#26262c,#0d0d10); border:1px solid var(--border-2); color:var(--gold); }
+.tst .who b{ font-size:14.5px; } .tst .who span{ font-size:12px; color:var(--text-mute); display:block; }
+.tst .stars{ color:var(--gold); font-size:13px; margin-bottom:14px; letter-spacing:2px; }
+.tst-dots{ display:flex; gap:8px; justify-content:center; margin-top:6px; }
+.tst-dots button{ width:8px; height:8px; border-radius:50%; border:none; background:var(--border-2); cursor:pointer; transition:all .2s; padding:0; }
+.tst-dots button.on{ background:var(--gold); width:22px; border-radius:5px; }
+
+/* ── Pricing ── */
+.price-grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:18px; align-items:stretch; }
+.plan{
+  background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-lg); padding:30px 26px;
+  display:flex; flex-direction:column; transition:transform .18s var(--ease), border-color .18s;
+}
+.plan:hover{ transform:translateY(-5px); border-color:var(--border-2); }
+.plan.pop{ background:linear-gradient(180deg,rgba(216,184,119,.08),var(--surface)); border-color:rgba(216,184,119,.4); box-shadow:0 30px 80px -34px rgba(216,184,119,.35); }
+.plan .badge{ align-self:flex-start; font-size:11px; letter-spacing:.1em; text-transform:uppercase; color:var(--gold); background:var(--gold-soft); border:1px solid rgba(216,184,119,.3); padding:5px 11px; border-radius:999px; margin-bottom:14px; }
+.plan h4{ font-size:19px; margin-bottom:6px; }
+.plan .desc{ font-size:13px; color:var(--text-mute); margin-bottom:18px; min-height:34px; }
+.plan .amt{ display:flex; align-items:baseline; gap:6px; margin-bottom:20px; }
+.plan .amt .v{ font-size:44px; letter-spacing:-.03em; }
+.plan .amt .per{ font-size:13px; color:var(--text-mute); }
+.plan ul{ list-style:none; display:flex; flex-direction:column; gap:11px; margin-bottom:24px; }
+.plan li{ display:flex; gap:10px; font-size:13.5px; color:var(--text-dim); align-items:flex-start; }
+.plan li svg{ width:16px; height:16px; color:var(--gold); flex:none; margin-top:2px; }
+.plan .btn{ margin-top:auto; width:100%; }
+
+/* ── FAQ ── */
+.faq{ max-width:780px; margin:0 auto; }
+.qa{ border:1px solid var(--border); border-radius:var(--radius); margin-bottom:12px; background:var(--surface); overflow:hidden; }
+.qa summary{ list-style:none; cursor:pointer; padding:19px 22px; display:flex; align-items:center; justify-content:space-between; gap:16px; font-size:16px; }
+.qa summary::-webkit-details-marker{ display:none; }
+.qa summary .pl{ flex:none; width:26px; height:26px; border-radius:8px; border:1px solid var(--border-2); display:grid; place-items:center; transition:transform .2s; color:var(--text-dim); }
+.qa[open] summary .pl{ transform:rotate(45deg); color:var(--gold); }
+.qa .ans{ padding:0 22px 20px; color:var(--text-dim); font-size:14.5px; line-height:1.6; }
+
+/* ── Contact ── */
+.contact-grid{ display:grid; grid-template-columns:1fr 1.05fr; gap:48px; align-items:center; }
+.contact-copy h2{ font-size:clamp(28px,4vw,46px); margin:16px 0 16px; }
+.contact-copy p{ color:var(--text-dim); font-size:16px; margin-bottom:26px; }
+.c-points{ list-style:none; display:flex; flex-direction:column; gap:15px; }
+.c-points li{ display:flex; gap:13px; align-items:center; font-size:14.5px; }
+.c-points .ci{ width:40px; height:40px; border-radius:12px; display:grid; place-items:center; background:var(--surface-2); border:1px solid var(--border); color:var(--gold); }
+.c-points .ci svg{ width:19px; height:19px; }
+.form{ background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-lg); padding:30px; box-shadow:var(--shadow); }
+.form .row{ display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+.field{ margin-bottom:15px; }
+.field label{ display:block; font-size:12.5px; color:var(--text-dim); margin-bottom:7px; }
+.field input,.field textarea{
+  width:100%; background:var(--bg-2); border:1px solid var(--border); border-radius:12px;
+  padding:13px 14px; color:var(--text); font-size:14.5px; transition:border-color .15s, box-shadow .15s; resize:vertical;
+}
+.field input:focus,.field textarea:focus{ outline:none; border-color:rgba(216,184,119,.55); box-shadow:0 0 0 3px var(--gold-soft); }
+.field.err input,.field.err textarea{ border-color:#c0463a; box-shadow:0 0 0 3px rgba(192,70,58,.18); }
+.form .btn{ width:100%; margin-top:4px; }
+.form-note{ font-size:12px; color:var(--text-mute); text-align:center; margin-top:13px; }
+.form-msg{ text-align:center; padding:12px; border-radius:12px; font-size:14px; margin-bottom:16px; display:none; }
+.form-msg.ok{ display:block; background:rgba(120,200,120,.1); border:1px solid rgba(120,200,120,.3); color:#a6e0a6; }
+.form-msg.bad{ display:block; background:rgba(200,90,80,.1); border:1px solid rgba(200,90,80,.3); color:#e5a49c; }
+
+/* ── Footer ── */
+.footer{ border-top:1px solid var(--border); padding:66px 0 34px; margin-top:40px; }
+.foot-grid{ display:grid; grid-template-columns:1.4fr 3fr; gap:40px; margin-bottom:44px; }
+.foot-cols-host{ display:grid; grid-template-columns:repeat(auto-fit,minmax(130px,1fr)); gap:26px 22px; }
+.foot-brand p{ color:var(--text-mute); font-size:13.5px; margin:16px 0 20px; max-width:280px; }
+.foot-social{ display:flex; gap:10px; }
+.foot-social a{ width:38px; height:38px; border-radius:11px; border:1px solid var(--border); background:var(--surface); display:grid; place-items:center; color:var(--text-dim); transition:all .15s; }
+.foot-social a:hover{ color:#fff; border-color:var(--border-2); background:var(--surface-2); transform:translateY(-2px); }
+.foot-social svg{ width:17px; height:17px; }
+.foot-col h5{ font-size:13px; color:var(--text); margin-bottom:15px; letter-spacing:.02em; }
+.foot-col a{ display:block; color:var(--text-mute); font-size:13.5px; padding:5px 0; transition:color .15s; }
+.foot-col a:hover{ color:var(--text); }
+.foot-bottom{ display:flex; align-items:center; justify-content:space-between; gap:16px; padding-top:26px; border-top:1px solid var(--border); flex-wrap:wrap; }
+.foot-bottom p{ font-size:13px; color:var(--text-mute); }
+
+/* ── Reveal animation ──
+   Gated behind .js-anim (set by an inline script in <head>) so the page is fully
+   visible if JS is disabled or fails — content must never be trapped at opacity:0. */
+.js-anim .rv{ opacity:0; transform:translateY(26px); transition:opacity .7s var(--ease), transform .7s var(--ease); }
+.js-anim .rv.in{ opacity:1; transform:none; }
+
+/* ── Responsive ── */
+@media (max-width:960px){
+  .hero-grid{ grid-template-columns:1fr; gap:20px; }
+  .devices{ height:380px; margin-top:10px; }
+  .showcase{ grid-template-columns:1fr; gap:28px; margin-bottom:64px; }
+  .showcase.rev .sc-media{ order:0; }
+  .feat-grid{ grid-template-columns:repeat(3,1fr); }
+  .counters{ grid-template-columns:repeat(2,1fr); }
+  .stat-grid{ grid-template-columns:repeat(2,1fr); }
+  .price-grid{ grid-template-columns:1fr; max-width:440px; margin:0 auto; }
+  .plan.pop{ order:-1; }
+  .contact-grid{ grid-template-columns:1fr; gap:30px; }
+  .foot-grid{ grid-template-columns:1fr; gap:30px; }
+}
+/* Nav collapses earlier than the rest: brand + 5 links + lang + CTA stop fitting well before 760px. */
+@media (max-width:1080px){
+  .nav-links{ display:none; }
+  .nav-toggle{ display:grid; }
+  .nav.open .nav-links{
+    display:flex; flex-direction:column; position:absolute; top:100%; left:0; right:0;
+    background:rgba(10,10,11,.97); backdrop-filter:blur(16px); border-bottom:1px solid var(--border); padding:12px; gap:2px;
+  }
+  .nav.open .nav-links a{ padding:12px 14px; }
+}
+@media (max-width:760px){
+  .block{ padding:60px 0; }
+  .cmp-row{ grid-template-columns:1.2fr .9fr .9fr; }
+  .cmp-row > div{ padding:13px 12px; font-size:13px; }
+}
+@media (max-width:620px){
+  /* Both nav buttons move into the collapsed menu so the bar never overflows on phones. */
+  .nav-right > .btn{ display:none; }
+  .nav-cta-mobile{ display:block; }
+  .brand{ font-size:17px; }
+  .brand .mark{ width:30px; height:30px; }
+  .lang button{ padding:5px 9px; font-size:11.5px; }
+  .nav-in{ gap:10px; padding:12px 18px; }
+}
+@media (max-width:560px){
+  .wrap{ padding:0 18px; }
+  .feat-grid{ grid-template-columns:repeat(2,1fr); }
+  .counters{ grid-template-columns:repeat(2,1fr); }
+  .form .row{ grid-template-columns:1fr; }
+  .hero-cta .btn{ flex:1; }
+  .foot-cols-host{ grid-template-columns:repeat(2,1fr); }
+  .foot-bottom{ justify-content:center; text-align:center; }
+  .devices{ height:340px; }
+}
+@media (prefers-reduced-motion:reduce){
+  .phone,.chip{ animation:none !important; }
+  .laptop{ animation:none !important; transform:translate(-50%,-50%) !important; }
+  .js-anim .rv{ transition:none; opacity:1; transform:none; }
+  html{ scroll-behavior:auto; }
+}
+</style>
+</head>
+<body>
+
+<!-- ══════════ NAV ══════════ -->
+<nav class="nav" id="nav">
+  <div class="nav-in">
+    <a href="#top" class="brand"><span class="mark"><span>H</span></span> HASACA</a>
+    <div class="nav-links" id="navLinks">
+      <a href="/ozellikler" data-i18n="nav_features">Özellikler</a>
+      <a href="/cozumler" data-i18n="nav_solutions">Çözümler</a>
+      <a href="/fiyatlandirma" data-i18n="nav_pricing">Fiyatlandırma</a>
+      <a href="/dokumantasyon" data-i18n="nav_docs">Dokümantasyon</a>
+      <a href="/iletisim" data-i18n="nav_contact">İletişim</a>
+      <a href="/demo-talep" class="nav-cta-mobile" data-i18n="nav_cta">Ücretsiz Demo</a>
+      <a href="/giris" class="nav-cta-mobile" data-i18n="nav_login">Yönetici Girişi</a>
+    </div>
+    <div class="nav-right">
+      <div class="lang">
+        <button data-lang="tr" class="on" onclick="setLang('tr')">TR</button>
+        <button data-lang="en" onclick="setLang('en')">EN</button>
+      </div>
+      <a href="/giris" class="btn btn-ghost" data-i18n="nav_login">Yönetici Girişi</a>
+      <a href="/demo-talep" class="btn btn-primary" data-i18n="nav_cta">Ücretsiz Demo</a>
+      <button class="nav-toggle" onclick="document.getElementById('nav').classList.toggle('open')" aria-label="Menu">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+      </button>
+    </div>
+  </div>
+</nav>
+
+<span id="top"></span>
+
+<!-- ══════════ HERO ══════════ -->
+<section class="hero">
+  <div class="wrap hero-grid">
+    <div class="hero-copy">
+      <span class="eyebrow"><span class="dot"></span><span data-i18n="hero_eyebrow">Komisyonsuz Restoran Platformu</span></span>
+      <h1><span data-i18n="hero_h1a">Restoranınızı Dijitalleştirin.</span><br><span class="shine" data-i18n="hero_h1b">Komisyon Ödemeyin.</span></h1>
+      <p class="hero-sub" data-i18n="hero_sub">HASACA ile restoranınıza özel web sitesi, QR menü, online sipariş, rezervasyon, yapay zekâ ve yönetim paneline tek platformdan sahip olun.</p>
+      <div class="hero-cta">
+        <a href="/demo-talep" class="btn btn-primary btn-lg" data-i18n="hero_cta1">Ücretsiz Demo Talep Et
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
+        <a href="/ozellikler" class="btn btn-ghost btn-lg" data-i18n="hero_cta2">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 5v14l11-7z"/></svg>Özellikleri İncele</a>
+      </div>
+      <div class="hero-mini">
+        <div class="m"><b class="shine">%0</b><span data-i18n="hero_m1">Komisyon</span></div>
+        <div class="m"><b class="shine">7/24</b><span data-i18n="hero_m2">Destek</span></div>
+        <div class="m"><b class="shine">5 dk</b><span data-i18n="hero_m3">Kurulum</span></div>
+      </div>
+    </div>
+
+    <!-- Device cluster -->
+    <div class="devices">
+      <div class="chip c1">
+        <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><path d="M3 6h18M16 10a4 4 0 0 1-8 0"/></svg></span>
+        <div><b data-i18n="chip1_t">Yeni Sipariş</b><span data-i18n="chip1_s">Masa 7 · ₺340</span></div>
+      </div>
+      <div class="chip c2">
+        <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></span>
+        <div><b data-i18n="chip2_t">Bugünkü Ciro</b><span class="shine">₺18.240</span></div>
+      </div>
+      <div class="laptop">
+        <div class="screen">
+          <div class="ui">
+            <div class="ui-top"><i class="d"></i><i class="d"></i><i class="d"></i><span class="t">panel.hasaca.com</span></div>
+            <div class="ui-body">
+              <div class="ui-side"><i></i><i></i><i></i><i></i><i></i></div>
+              <div class="ui-main">
+                <div class="ui-cards">
+                  <div class="ui-card"><b>142</b><span data-i18n="ui_orders">Sipariş</span></div>
+                  <div class="ui-card"><b>₺18K</b><span data-i18n="ui_rev">Ciro</span></div>
+                  <div class="ui-card"><b>4.9★</b><span data-i18n="ui_rate">Puan</span></div>
+                </div>
+                <div class="ui-chart">
+                  <svg viewBox="0 0 300 78" preserveAspectRatio="none">
+                    <defs><linearGradient id="g" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="rgba(216,184,119,.35)"/><stop offset="1" stop-color="rgba(216,184,119,0)"/></linearGradient></defs>
+                    <path d="M0,60 C40,54 60,30 100,34 C140,38 160,14 200,20 C240,26 260,8 300,12 L300,78 L0,78 Z" fill="url(#g)"/>
+                    <path d="M0,60 C40,54 60,30 100,34 C140,38 160,14 200,20 C240,26 260,8 300,12" fill="none" stroke="#e8e8ee" stroke-width="1.6"/>
+                  </svg>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="base"></div>
+      </div>
+      <div class="phone">
+        <div class="pscreen">
+          <div class="phead">
+            <div class="qr"></div>
+            <div class="l"></div><div class="l" style="width:50%"></div>
+          </div>
+          <div class="pitem"><div class="thumb"></div><div class="ln"></div><span class="pr">₺120</span></div>
+          <div class="pitem"><div class="thumb"></div><div class="ln"></div><span class="pr">₺85</span></div>
+          <div class="pitem"><div class="thumb"></div><div class="ln"></div><span class="pr">₺60</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════ TRUST ══════════ -->
+<section class="trust">
+  <div class="wrap">
+    <div class="counters rv">
+      <div class="counter"><div class="n"><span class="count" data-count="500">0</span>+</div><div class="lb" data-i18n="tr_restaurants">Restoran</div></div>
+      <div class="counter"><div class="n"><span class="count" data-count="150">0</span>K+</div><div class="lb" data-i18n="tr_orders">Sipariş</div></div>
+      <div class="counter"><div class="n">%<span class="count" data-count="99" data-suffix=".9">0</span></div><div class="lb" data-i18n="tr_uptime">Çalışma Süresi</div></div>
+      <div class="counter"><div class="n">%<span class="count" data-count="0">0</span></div><div class="lb" data-i18n="tr_commission">Komisyon</div></div>
+    </div>
+    <div class="logos rv">
+      <div class="lg"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="10"/></svg>Bistro Co</div>
+      <div class="lg"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2 2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>UrbanEats</div>
+      <div class="lg"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="4"/></svg>Kahve Lab</div>
+      <div class="lg"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3 7h7l-5.5 4 2 7L12 17l-6.5 3 2-7L2 9h7z"/></svg>Anadolu Sofra</div>
+      <div class="lg"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 12h20M12 2v20"/></svg>NoradaGrill</div>
+      <div class="lg"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v10M7 12h10"/></svg>Deniz Balık</div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════ SHOWCASE ══════════ -->
+<section class="block" id="showcase">
+  <div class="wrap">
+    <div class="sec-head rv">
+      <span class="eyebrow"><span class="dot"></span><span data-i18n="sc_eyebrow">Platform</span></span>
+      <h2 data-i18n="sc_title">Restoranınızın ihtiyacı olan her şey, tek yerde</h2>
+      <p data-i18n="sc_sub">Müşteriden mutfağa, rezervasyondan analitiğe kadar tüm operasyonunuzu tek bir premium platformdan yönetin.</p>
+    </div>
+
+    <!-- 1 -->
+    <div class="showcase rv">
+      <div class="sc-copy">
+        <span class="eyebrow"><span class="dot"></span><span data-i18n="sc1_tag">Web Sitesi & QR Menü</span></span>
+        <h3 data-i18n="sc1_h">Markanıza özel web sitesi ve akıllı QR menü</h3>
+        <p data-i18n="sc1_p">Kendi alan adınızda, kendi renkleriniz ve logonuzla profesyonel bir restoran sitesi. Müşteriler QR'ı okutur, menüyü görür ve masadan sipariş verir.</p>
+        <ul class="sc-list">
+          <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6 9 17l-5-5"/></svg></span><span data-i18n="sc1_l1">Özel alan adı ve tam white-label markalaşma</span></li>
+          <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6 9 17l-5-5"/></svg></span><span data-i18n="sc1_l2">Masaya özel QR ile temassız sipariş</span></li>
+          <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6 9 17l-5-5"/></svg></span><span data-i18n="sc1_l3">Çoklu dil desteği ile uluslararası misafirler</span></li>
+        </ul>
+        <a href="/qr-menu" class="btn btn-ghost" data-i18n="sc_more">Daha Fazla Bilgi
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
+      </div>
+      <div class="sc-media">
+        <div class="mock">
+          <div class="m-top"><i class="d"></i><i class="d"></i><i class="d"></i><span class="tt">restoran.hasaca.com</span></div>
+          <div class="grid-tiles">
+            <div class="tile"><div class="lab" data-i18n="sc1_t1">Bugün</div><div class="big">142</div><div class="sub" data-i18n="sc1_t1s">QR sipariş</div></div>
+            <div class="tile"><div class="lab" data-i18n="sc1_t2">Ortalama</div><div class="big">₺128</div><div class="sub" data-i18n="sc1_t2s">sepet</div></div>
+            <div class="tile" style="grid-column:span 2"><div class="lab" data-i18n="sc1_t3">Popüler ürünler</div>
+              <div class="bars"><i style="height:40%"></i><i style="height:70%"></i><i style="height:55%"></i><i style="height:90%"></i><i style="height:48%"></i><i style="height:75%"></i><i style="height:60%"></i></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 2 -->
+    <div class="showcase rev rv">
+      <div class="sc-media">
+        <div class="mock">
+          <div class="m-top"><i class="d"></i><i class="d"></i><i class="d"></i><span class="tt" data-i18n="sc2_scr">Mutfak Ekranı</span></div>
+          <div class="kanban">
+            <div class="kcol"><div class="h" data-i18n="sc2_k1">Yeni</div>
+              <div class="kcard"><div class="l1"></div><div class="l2"></div></div>
+              <div class="kcard"><div class="l1"></div><div class="l2"></div></div>
+            </div>
+            <div class="kcol"><div class="h" data-i18n="sc2_k2">Hazırlanıyor</div>
+              <div class="kcard"><div class="l1"></div><div class="l2"></div></div>
+            </div>
+            <div class="kcol"><div class="h" data-i18n="sc2_k3">Hazır</div>
+              <div class="kcard"><div class="l1"></div><div class="l2"></div></div>
+              <div class="kcard"><div class="l1"></div><div class="l2"></div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="sc-copy">
+        <span class="eyebrow"><span class="dot"></span><span data-i18n="sc2_tag">Yönetim & Mutfak</span></span>
+        <h3 data-i18n="sc2_h">Canlı yönetim paneli ve mutfak ekranı</h3>
+        <p data-i18n="sc2_p">Siparişler anında mutfak ekranına düşer. Garson çağrısı, hesap isteği ve masa durumları tek bakışta. Ekibiniz senkronize çalışır.</p>
+        <ul class="sc-list">
+          <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6 9 17l-5-5"/></svg></span><span data-i18n="sc2_l1">Gerçek zamanlı sipariş akışı (anlık bildirim)</span></li>
+          <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6 9 17l-5-5"/></svg></span><span data-i18n="sc2_l2">Garson çağırma ve hesap isteme yönetimi</span></li>
+          <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6 9 17l-5-5"/></svg></span><span data-i18n="sc2_l3">Rol tabanlı yetkilendirme ile ekip kontrolü</span></li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- 3 -->
+    <div class="showcase rv">
+      <div class="sc-copy">
+        <span class="eyebrow"><span class="dot"></span><span data-i18n="sc3_tag">Yapay Zekâ & Analitik</span></span>
+        <h3 data-i18n="sc3_h">Yapay zekâ asistanı ve derin analitik</h3>
+        <p data-i18n="sc3_p">Menünüzü saniyeler içinde oluşturun, satış tahminleri alın ve müşteri davranışlarını anlayın. Verileriniz size ait, karar gücü sizde.</p>
+        <ul class="sc-list">
+          <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6 9 17l-5-5"/></svg></span><span data-i18n="sc3_l1">AI ile menü ve açıklama üretimi</span></li>
+          <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6 9 17l-5-5"/></svg></span><span data-i18n="sc3_l2">Gelir, sipariş ve en çok satan ürün raporları</span></li>
+          <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6 9 17l-5-5"/></svg></span><span data-i18n="sc3_l3">Tüm müşteri verisi sizin mülkiyetinizde</span></li>
+        </ul>
+      </div>
+      <div class="sc-media">
+        <div class="mock">
+          <div class="m-top"><i class="d"></i><i class="d"></i><i class="d"></i><span class="tt">HASACA AI</span></div>
+          <div class="chatline"><span class="av"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a5 5 0 0 1 5 5v2a5 5 0 0 1-10 0V7a5 5 0 0 1 5-5zM5 20a7 7 0 0 1 14 0"/></svg></span>
+            <div class="bubble" data-i18n="sc3_c1">"Izgara kategorisi için 3 yeni ürün açıklaması yaz."</div></div>
+          <div class="chatline"><div class="bubble me" data-i18n="sc3_c2">Hazır! Közde pişmiş, el yapımı 3 açıklama menünüze eklendi ✓</div></div>
+          <div class="grid-tiles">
+            <div class="tile"><div class="lab" data-i18n="sc3_t1">Bu ay</div><div class="big">+24%</div><div class="sub" data-i18n="sc3_t1s">gelir artışı</div></div>
+            <div class="tile"><div class="lab" data-i18n="sc3_t2">Tahmin</div><div class="big">₺62K</div><div class="sub" data-i18n="sc3_t2s">gelecek hafta</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════ FEATURES ══════════ -->
+<section class="block" id="features">
+  <div class="wrap">
+    <div class="sec-head rv">
+      <span class="eyebrow"><span class="dot"></span><span data-i18n="ft_eyebrow">Özellikler</span></span>
+      <h2 data-i18n="ft_title">Kurumsal seviyede, restoranlar için tasarlandı</h2>
+      <p data-i18n="ft_sub">Büyümeniz için gereken tüm araçlar tek platformda — sade, hızlı ve tamamen sizin markanızla.</p>
+    </div>
+    <div class="feat-grid rv" id="featGrid"></div>
+  </div>
+</section>
+
+<!-- ══════════ HOW IT WORKS ══════════ -->
+<section class="block" id="how">
+  <div class="wrap">
+    <div class="sec-head rv">
+      <span class="eyebrow"><span class="dot"></span><span data-i18n="hw_eyebrow">Nasıl Çalışır</span></span>
+      <h2 data-i18n="hw_title">Dakikalar içinde yayında</h2>
+      <p data-i18n="hw_sub">Teknik bilgi gerektirmez. Altı basit adımda restoranınız dijitalde.</p>
+    </div>
+    <div class="steps rv" id="steps"></div>
+  </div>
+</section>
+
+<!-- ══════════ COMPARISON ══════════ -->
+<section class="block">
+  <div class="wrap">
+    <div class="sec-head rv">
+      <span class="eyebrow"><span class="dot"></span><span data-i18n="cmp_eyebrow">Karşılaştırma</span></span>
+      <h2 data-i18n="cmp_title">Neden pazaryeri değil, HASACA?</h2>
+      <p data-i18n="cmp_sub">Komisyona son verin, markanıza ve müşterinize sahip çıkın.</p>
+    </div>
+    <div class="cmp rv">
+      <div class="cmp-row cmp-head">
+        <div class="lbl"></div>
+        <div class="cell h-hasaca"><b>HASACA</b><span class="tag" data-i18n="cmp_you">Sizin platformunuz</span></div>
+        <div class="cell"><b data-i18n="cmp_other">Pazaryeri Uygulamaları</b></div>
+      </div>
+      <div id="cmpRows"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════ STATS ══════════ -->
+<section class="block">
+  <div class="wrap">
+    <div class="sec-head rv">
+      <span class="eyebrow"><span class="dot"></span><span data-i18n="st_eyebrow">Rakamlarla</span></span>
+      <h2 data-i18n="st_title">Ölçeklenen bir platform</h2>
+    </div>
+    <div class="stat-grid rv">
+      <div class="statc"><div class="n"><span class="count" data-count="1">0</span>.2M+</div><div class="lb" data-i18n="st1">İşlenen Sipariş</div></div>
+      <div class="statc"><div class="n">₺<span class="count" data-count="90">0</span>M+</div><div class="lb" data-i18n="st2">Yıllık Hacim</div></div>
+      <div class="statc"><div class="n"><span class="count" data-count="12">0</span>+</div><div class="lb" data-i18n="st3">Ülke</div></div>
+      <div class="statc"><div class="n">&lt;<span class="count" data-count="200">0</span>ms</div><div class="lb" data-i18n="st4">Yanıt Süresi</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════ TESTIMONIALS ══════════ -->
+<section class="block">
+  <div class="wrap">
+    <div class="sec-head rv">
+      <span class="eyebrow"><span class="dot"></span><span data-i18n="ts_eyebrow">Referanslar</span></span>
+      <h2 data-i18n="ts_title">Restoran sahipleri ne diyor?</h2>
+    </div>
+    <div class="tst-track rv" id="tstTrack"></div>
+    <div class="tst-dots" id="tstDots"></div>
+  </div>
+</section>
+
+<!-- ══════════ PRICING ══════════ -->
+<section class="block" id="pricing">
+  <div class="wrap">
+    <div class="sec-head rv">
+      <span class="eyebrow"><span class="dot"></span><span data-i18n="pr_eyebrow">Fiyatlandırma</span></span>
+      <h2 data-i18n="pr_title">Her işletmeye uygun, esnek planlar</h2>
+      <p data-i18n="pr_sub">Küçük bir kafe de olsanız zincir bir marka da — komisyon her zaman %0.</p>
+    </div>
+    <div class="price-grid rv" id="priceGrid"></div>
+    <p class="form-note" style="margin-top:22px" data-i18n="pr_note">Tüm planlar 14 gün ücretsiz denemeyle başlar. Kredi kartı gerekmez.</p>
+  </div>
+</section>
+
+<!-- ══════════ FAQ ══════════ -->
+<section class="block" id="faq">
+  <div class="wrap">
+    <div class="sec-head rv">
+      <span class="eyebrow"><span class="dot"></span><span data-i18n="fq_eyebrow">SSS</span></span>
+      <h2 data-i18n="fq_title">Sıkça sorulan sorular</h2>
+    </div>
+    <div class="faq rv" id="faqList"></div>
+  </div>
+</section>
+
+<!-- ══════════ CONTACT ══════════ -->
+<section class="block" id="contact">
+  <div class="wrap contact-grid">
+    <div class="contact-copy rv">
+      <span class="eyebrow"><span class="dot"></span><span data-i18n="ct_eyebrow">İletişim</span></span>
+      <h2 data-i18n="ct_title">Restoranınızı dijitale taşıyalım</h2>
+      <p data-i18n="ct_sub">Formu doldurun, ekibimiz 24 saat içinde size özel bir demo ile geri dönsün. Hiçbir taahhüt yok.</p>
+      <ul class="c-points">
+        <li><span class="ci"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12A10 10 0 1 1 12 2"/><path d="M22 4 12 14l-3-3"/></svg></span><span data-i18n="ct_p1">Kişisel kurulum ve ücretsiz veri aktarımı</span></li>
+        <li><span class="ci"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a5 5 0 0 1 5 5v2a5 5 0 0 1-10 0V7a5 5 0 0 1 5-5zM5 20a7 7 0 0 1 14 0"/></svg></span><span data-i18n="ct_p2">Size özel bir başarı danışmanı</span></li>
+        <li><span class="ci"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"/></svg></span><span data-i18n="ct_p3">%0 komisyon, iptal koşulu yok</span></li>
+      </ul>
+    </div>
+    <form class="form rv" id="contactForm" novalidate>
+      <div class="form-msg" id="formMsg"></div>
+      <div class="row">
+        <div class="field"><label data-i18n="ct_name">Ad Soyad *</label><input type="text" name="name" data-i18n-ph="ct_name_ph" placeholder="Adınız"></div>
+        <div class="field"><label data-i18n="ct_rest">Restoran</label><input type="text" name="restaurant" data-i18n-ph="ct_rest_ph" placeholder="Restoran adı"></div>
+      </div>
+      <div class="row">
+        <div class="field"><label data-i18n="ct_email">E-posta *</label><input type="email" name="email" placeholder="mail@ornek.com"></div>
+        <div class="field"><label data-i18n="ct_phone">Telefon</label><input type="tel" name="phone" placeholder="+90 5xx xxx xx xx"></div>
+      </div>
+      <div class="field"><label data-i18n="ct_country">Ülke</label><input type="text" name="country" data-i18n-ph="ct_country_ph" placeholder="Türkiye"></div>
+      <div class="field"><label data-i18n="ct_msg">Mesaj *</label><textarea name="message" rows="4" data-i18n-ph="ct_msg_ph" placeholder="Restoranınız ve ihtiyaçlarınız hakkında kısaca bahsedin..."></textarea></div>
+      <button type="submit" class="btn btn-primary btn-lg" id="submitBtn" data-i18n="ct_submit">Ücretsiz Demo Talep Et</button>
+      <p class="form-note" data-i18n="ct_note">Bilgileriniz gizli tutulur ve yalnızca sizinle iletişim için kullanılır.</p>
+    </form>
+  </div>
+</section>
+
+<!-- ══════════ FOOTER ══════════ -->
+<footer class="footer">
+  <div class="wrap">
+    <div class="foot-grid">
+      <div class="foot-brand">
+        <a href="#top" class="brand"><span class="mark"><span>H</span></span> HASACA</a>
+        <p data-i18n="ft_tagline">Restoranlar için komisyonsuz dijital işletim sistemi. Web sitesi, QR menü, sipariş, rezervasyon ve yapay zekâ — tek platformda.</p>
+        <div class="foot-social">
+          <a href="/iletisim" aria-label="Instagram"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="6"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/></svg></a>
+          <a href="/iletisim" aria-label="X"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M18 2h3l-7.5 8.6L22.5 22h-6.9l-4.8-6.3L5.3 22H2.2l8-9.2L1.8 2h7l4.3 5.7L18 2z"/></svg></a>
+          <a href="/kariyer" aria-label="LinkedIn"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M4.98 3.5A2.5 2.5 0 1 1 0 3.5a2.5 2.5 0 0 1 4.98 0zM0 8h5v16H0zM8 8h4.8v2.2h.07C13.5 8.9 15.3 8 17.5 8 22 8 24 10.7 24 15.2V24h-5v-7.8c0-1.9 0-4.3-2.6-4.3-2.6 0-3 2-3 4.1V24H8z"/></svg></a>
+          <a href="/blog" aria-label="YouTube"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M23 12s0-3.4-.4-5a2.6 2.6 0 0 0-1.8-1.8C19 4.8 12 4.8 12 4.8s-7 0-8.8.4A2.6 2.6 0 0 0 1.4 7C1 8.6 1 12 1 12s0 3.4.4 5a2.6 2.6 0 0 0 1.8 1.8c1.8.4 8.8.4 8.8.4s7 0 8.8-.4A2.6 2.6 0 0 0 22.6 17c.4-1.6.4-5 .4-5zM9.8 15.3V8.7l5.7 3.3z"/></svg></a>
+        </div>
+      </div>
+      <div id="footCols" class="foot-cols-host"></div>
+    </div>
+    <div class="foot-bottom">
+      <p>© <span id="year"></span> HASACA. <span data-i18n="ft_rights">Tüm hakları saklıdır.</span></p>
+      <div class="lang">
+        <button data-lang="tr" class="on" onclick="setLang('tr')">Türkçe</button>
+        <button data-lang="en" onclick="setLang('en')">English</button>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<script src="/marketing-data.js"></script>
+<script>
+/* ─────────────── DATA ─────────────── */
+const ICONS = {
+  qr:'<path d="M3 3h7v7H3zM14 3h7v7h-7zM3 14h7v7H3z"/><path d="M14 14h3v3h-3zM18 18h3v3h-3zM14 18h1M18 14h1"/>',
+  kitchen:'<path d="M3 11h18M5 11V7a7 7 0 0 1 14 0v4M4 11l1 9a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1l1-9"/>',
+  bell:'<path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9M13.7 21a2 2 0 0 1-3.4 0"/>',
+  receipt:'<path d="M4 2v20l2-1 2 1 2-1 2 1 2-1 2 1 2-1V2l-2 1-2-1-2 1-2-1-2 1-2-1zM8 7h8M8 11h8M8 15h5"/>',
+  cart:'<circle cx="9" cy="21" r="1"/><circle cx="18" cy="21" r="1"/><path d="M1 1h4l2.6 12.4a2 2 0 0 0 2 1.6h9.7a2 2 0 0 0 2-1.6L23 6H6"/>',
+  calendar:'<rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/>',
+  truck:'<path d="M1 3h15v13H1zM16 8h4l3 3v5h-7"/><circle cx="5.5" cy="18.5" r="2"/><circle cx="18.5" cy="18.5" r="2"/>',
+  chart:'<path d="M3 3v18h18"/><path d="M7 15l4-4 3 3 5-6"/>',
+  ai:'<path d="M12 2a5 5 0 0 1 5 5v2a5 5 0 0 1-10 0V7a5 5 0 0 1 5-5zM5 20a7 7 0 0 1 14 0"/>',
+  globe:'<circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15 15 0 0 1 0 20 15 15 0 0 1 0-20"/>',
+  label:'<path d="M20.6 13.4 12 22l-9-9V4a1 1 0 0 1 1-1h9z"/><circle cx="7.5" cy="7.5" r="1.5"/>',
+  search:'<circle cx="11" cy="11" r="8"/><path d="M21 21l-4.3-4.3"/>',
+  push:'<path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9M13.7 21a2 2 0 0 1-3.4 0"/>',
+  theme:'<circle cx="12" cy="12" r="10"/><path d="M12 2a10 10 0 0 0 0 20z"/>',
+  roles:'<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.9M16 3.1a4 4 0 0 1 0 7.8"/>',
+  lang:'<path d="M2 5h10M7 3v2c0 5-3 8-5 9M4 9c0 3 3 5 6 6M13 21l4-9 4 9M15 17h4"/>',
+  monitor:'<rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/>'
+};
+const svg = (p,w=22)=>`<svg viewBox="0 0 24 24" width="${w}" height="${w}" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${p}</svg>`;
+
+const FEATURES = [
+  ['qr','f_qr_t','f_qr_d'],['kitchen','f_kitchen_t','f_kitchen_d'],['bell','f_waiter_t','f_waiter_d'],
+  ['receipt','f_bill_t','f_bill_d'],['cart','f_online_t','f_online_d'],['calendar','f_res_t','f_res_d'],
+  ['truck','f_delivery_t','f_delivery_d'],['chart','f_analytics_t','f_analytics_d'],['ai','f_ai_t','f_ai_d'],
+  ['globe','f_domain_t','f_domain_d'],['label','f_wl_t','f_wl_d'],['search','f_seo_t','f_seo_d'],
+  ['push','f_push_t','f_push_d'],['theme','f_theme_t','f_theme_d'],['roles','f_roles_t','f_roles_d'],
+  ['lang','f_lang_t','f_lang_d']
+];
+const STEPS = ['s1','s2','s3','s4','s5','s6'];
+const CMP = [
+  ['cmp_commission','no_high','yes_zero'],
+  ['cmp_brand','yes','no'],
+  ['cmp_data','yes','no'],
+  ['cmp_website','yes','no'],
+  ['cmp_reservation','yes','partial'],
+  ['cmp_ai','yes','no'],
+  ['cmp_analytics','yes','partial'],
+  ['cmp_seo','yes','no'],
+  ['cmp_speed','yes','partial'],
+  ['cmp_freedom','yes','no']
+];
+const PLANS = [
+  {k:'p_start', price:'₺0', pop:false, feats:['pf_qr','pf_menu','pf_1table','pf_email']},
+  {k:'p_pro', price:'₺749', pop:true, feats:['pf_all_start','pf_orders','pf_res','pf_analytics','pf_domain','pf_priority']},
+  {k:'p_ent', price:'p_custom', pop:false, feats:['pf_all_pro','pf_ai','pf_multibranch','pf_wl','pf_sla','pf_manager']}
+];
+const FAQS = ['q1','q2','q3','q4','q5','q6'];
+const TESTI = [
+  {k:'t1', by:'Mert Aydın', role:'t1_role', av:'M'},
+  {k:'t2', by:'Selin Kaya', role:'t2_role', av:'S'},
+  {k:'t3', by:'Burak Demir', role:'t3_role', av:'B'},
+  {k:'t4', by:'Ayşe Yıldız', role:'t4_role', av:'A'}
+];
+
+/* ─────────────── i18n ─────────────── */
+const I18N = {
+tr:{
+  nav_features:'Özellikler', nav_how:'Nasıl Çalışır', nav_pricing:'Fiyatlandırma', nav_faq:'SSS', nav_contact:'İletişim', nav_cta:'Ücretsiz Demo',
+  nav_solutions:'Çözümler', nav_docs:'Dokümantasyon', nav_login:'Yönetici Girişi',
+  hero_eyebrow:'Komisyonsuz Restoran Platformu',
+  hero_h1a:'Restoranınızı Dijitalleştirin.', hero_h1b:'Komisyon Ödemeyin.',
+  hero_sub:'HASACA ile restoranınıza özel web sitesi, QR menü, online sipariş, rezervasyon, yapay zekâ ve yönetim paneline tek platformdan sahip olun.',
+  hero_cta1:'Ücretsiz Demo Talep Et', hero_cta2:'Canlı Demoyu İncele',
+  hero_m1:'Komisyon', hero_m2:'Destek', hero_m3:'Kurulum',
+  chip1_t:'Yeni Sipariş', chip1_s:'Masa 7 · ₺340', chip2_t:'Bugünkü Ciro',
+  ui_orders:'Sipariş', ui_rev:'Ciro', ui_rate:'Puan',
+  tr_restaurants:'Restoran', tr_orders:'Sipariş', tr_uptime:'Çalışma Süresi', tr_commission:'Komisyon',
+  sc_eyebrow:'Platform', sc_title:'Restoranınızın ihtiyacı olan her şey, tek yerde',
+  sc_sub:'Müşteriden mutfağa, rezervasyondan analitiğe kadar tüm operasyonunuzu tek bir premium platformdan yönetin.', sc_more:'Daha Fazla Bilgi',
+  sc1_tag:'Web Sitesi & QR Menü', sc1_h:'Markanıza özel web sitesi ve akıllı QR menü',
+  sc1_p:'Kendi alan adınızda, kendi renkleriniz ve logonuzla profesyonel bir restoran sitesi. Müşteriler QR\'ı okutur, menüyü görür ve masadan sipariş verir.',
+  sc1_l1:'Özel alan adı ve tam white-label markalaşma', sc1_l2:'Masaya özel QR ile temassız sipariş', sc1_l3:'Çoklu dil desteği ile uluslararası misafirler',
+  sc1_t1:'Bugün', sc1_t1s:'QR sipariş', sc1_t2:'Ortalama', sc1_t2s:'sepet', sc1_t3:'Popüler ürünler',
+  sc2_tag:'Yönetim & Mutfak', sc2_h:'Canlı yönetim paneli ve mutfak ekranı',
+  sc2_p:'Siparişler anında mutfak ekranına düşer. Garson çağrısı, hesap isteği ve masa durumları tek bakışta. Ekibiniz senkronize çalışır.',
+  sc2_l1:'Gerçek zamanlı sipariş akışı (anlık bildirim)', sc2_l2:'Garson çağırma ve hesap isteme yönetimi', sc2_l3:'Rol tabanlı yetkilendirme ile ekip kontrolü',
+  sc2_scr:'Mutfak Ekranı', sc2_k1:'Yeni', sc2_k2:'Hazırlanıyor', sc2_k3:'Hazır',
+  sc3_tag:'Yapay Zekâ & Analitik', sc3_h:'Yapay zekâ asistanı ve derin analitik',
+  sc3_p:'Menünüzü saniyeler içinde oluşturun, satış tahminleri alın ve müşteri davranışlarını anlayın. Verileriniz size ait, karar gücü sizde.',
+  sc3_l1:'AI ile menü ve açıklama üretimi', sc3_l2:'Gelir, sipariş ve en çok satan ürün raporları', sc3_l3:'Tüm müşteri verisi sizin mülkiyetinizde',
+  sc3_c1:'"Izgara kategorisi için 3 yeni ürün açıklaması yaz."', sc3_c2:'Hazır! Közde pişmiş, el yapımı 3 açıklama menünüze eklendi ✓',
+  sc3_t1:'Bu ay', sc3_t1s:'gelir artışı', sc3_t2:'Tahmin', sc3_t2s:'gelecek hafta',
+  ft_eyebrow:'Özellikler', ft_title:'Kurumsal seviyede, restoranlar için tasarlandı',
+  ft_sub:'Büyümeniz için gereken tüm araçlar tek platformda — sade, hızlı ve tamamen sizin markanızla.',
+  f_qr_t:'QR Sipariş', f_qr_d:'Masaya özel QR ile temassız, hızlı sipariş deneyimi.',
+  f_kitchen_t:'Mutfak Ekranı', f_kitchen_d:'Siparişler anında mutfağa düşer, hazırlık durumu canlı.',
+  f_waiter_t:'Garson Çağırma', f_waiter_d:'Müşteri tek dokunuşla garson çağırır, ekip anında görür.',
+  f_bill_t:'Hesap İsteme', f_bill_d:'Masadan hesap talebi, bekleme süresi sıfıra iner.',
+  f_online_t:'Online Sipariş', f_online_d:'Paket ve gel-al siparişleri kendi sitenizden alın.',
+  f_res_t:'Rezervasyon', f_res_d:'Masa rezervasyonlarını otomatik yönetin, çakışma olmaz.',
+  f_delivery_t:'Teslimat Modülü', f_delivery_d:'Kendi teslimat akışınız, kurye yönetimi dahil.',
+  f_analytics_t:'Analitik', f_analytics_d:'Gelir, sipariş ve ürün performansı tek panelde.',
+  f_ai_t:'AI Asistan', f_ai_d:'Menü oluşturma, açıklama yazımı ve öngörüler.',
+  f_domain_t:'Özel Alan Adı', f_domain_d:'Kendi alan adınızda, tamamen size ait bir site.',
+  f_wl_t:'White Label', f_wl_d:'HASACA görünmez; her yer sizin markanız.',
+  f_seo_t:'SEO', f_seo_d:'Arama motorlarında görünür olun, daha çok müşteri.',
+  f_push_t:'Bildirimler', f_push_d:'Kampanya ve sipariş bildirimlerini anında gönderin.',
+  f_theme_t:'Tema Motoru', f_theme_d:'Renk ve stil temalarıyla sitenizi özelleştirin.',
+  f_roles_t:'Rol Yönetimi', f_roles_d:'Ekibinize yetki tabanlı erişim tanımlayın.',
+  f_lang_t:'Çoklu Dil', f_lang_d:'Menü ve siteniz birden fazla dilde otomatik.',
+  hw_eyebrow:'Nasıl Çalışır', hw_title:'Dakikalar içinde yayında', hw_sub:'Teknik bilgi gerektirmez. Altı basit adımda restoranınız dijitalde.',
+  s1_t:'Restoran Oluştur', s1_d:'Birkaç bilgiyle restoran hesabınızı saniyeler içinde açın.',
+  s2_t:'Logo Yükle', s2_d:'Logonuz ve renklerinizle markanızı yansıtın.',
+  s3_t:'Menü Aktar', s3_d:'Ürünlerinizi ekleyin veya AI ile otomatik oluşturun.',
+  s4_t:'QR Üret', s4_d:'Her masa için özel QR kodlarını anında oluşturun.',
+  s5_t:'Sipariş Al', s5_d:'Müşteriler QR ile sipariş verir, mutfağa anında düşer.',
+  s6_t:'Her Şeyi Yönet', s6_d:'Siparişler, analitik ve rezervasyonlar tek panelde.',
+  cmp_eyebrow:'Karşılaştırma', cmp_title:'Neden pazaryeri değil, HASACA?', cmp_sub:'Komisyona son verin, markanıza ve müşterinize sahip çıkın.',
+  cmp_you:'Sizin platformunuz', cmp_other:'Pazaryeri Uygulamaları',
+  cmp_commission:'Komisyon', cmp_brand:'Marka Sahipliği', cmp_data:'Müşteri Verisi', cmp_website:'Web Sitesi',
+  cmp_reservation:'Rezervasyon', cmp_ai:'Yapay Zekâ', cmp_analytics:'Analitik', cmp_seo:'SEO', cmp_speed:'Hız', cmp_freedom:'Özgürlük',
+  no_high:'%15 - %20', yes_zero:'%0', cmp_partial:'Kısıtlı',
+  st_eyebrow:'Rakamlarla', st_title:'Ölçeklenen bir platform',
+  st1:'İşlenen Sipariş', st2:'Yıllık Hacim', st3:'Ülke', st4:'Yanıt Süresi',
+  ts_eyebrow:'Referanslar', ts_title:'Restoran sahipleri ne diyor?',
+  t1:'"Pazaryeri komisyonlarından kurtulduk. Artık her siparişin tam karı bizde ve müşteri verisi elimizde."',
+  t1_role:'Sahibi, Bistro Co', t2:'"QR menüye geçtikten sonra masa devir hızımız arttı, personel yükü azaldı. Kurulum inanılmaz kolaydı."',
+  t2_role:'İşletmeci, UrbanEats', t3:'"Kendi alan adımızda, kendi markamızla profesyonel bir site. AI menü oluşturma bize saatler kazandırdı."',
+  t3_role:'Kurucu, Kahve Lab', t4:'"Rezervasyon ve analitik tek yerde. Artık hangi ürünün ne zaman sattığını net görüyoruz."',
+  t4_role:'Müdür, Anadolu Sofra',
+  pr_eyebrow:'Fiyatlandırma', pr_title:'Her işletmeye uygun, esnek planlar', pr_sub:'Küçük bir kafe de olsanız zincir bir marka da — komisyon her zaman %0.',
+  pr_note:'Tüm planlar 14 gün ücretsiz denemeyle başlar. Kredi kartı gerekmez.',
+  p_start:'Başlangıç', p_start_d:'Dijitale ilk adım için ideal.',
+  p_pro:'Profesyonel', p_pro_d:'Büyüyen restoranlar için en popüler seçim.',
+  p_ent:'Kurumsal', p_ent_d:'Zincirler ve çok şubeli işletmeler için.',
+  p_custom:'Özel', p_per:'/ay', p_badge:'En Popüler', p_cta:'Ücretsiz Dene', p_cta_ent:'Satışla Görüş',
+  pf_qr:'QR menü ve dijital menü', pf_menu:'Sınırsız ürün ve kategori', pf_1table:'Tek masa QR', pf_email:'E-posta desteği',
+  pf_all_start:'Başlangıç\'taki her şey', pf_orders:'Online ve masa siparişi', pf_res:'Rezervasyon sistemi', pf_analytics:'Gelişmiş analitik',
+  pf_domain:'Özel alan adı', pf_priority:'Öncelikli destek',
+  pf_all_pro:'Profesyonel\'deki her şey', pf_ai:'AI asistan ve menü üretimi', pf_multibranch:'Çoklu şube yönetimi', pf_wl:'Tam white-label',
+  pf_sla:'SLA garantisi', pf_manager:'Özel başarı danışmanı',
+  fq_eyebrow:'SSS', fq_title:'Sıkça sorulan sorular',
+  q1_q:'HASACA gerçekten komisyon almıyor mu?', q1_a:'Evet. Siparişlerinizden hiçbir komisyon almıyoruz. Sabit bir aylık/yıllık plan ödersiniz, geri kalan tamamen size kalır.',
+  q2_q:'Kurulum ne kadar sürer?', q2_a:'Ortalama 5 dakika. Restoranınızı oluşturur, logonuzu yükler ve menünüzü eklersiniz. Ekibimiz veri aktarımında ücretsiz yardımcı olur.',
+  q3_q:'Kendi alan adımı kullanabilir miyim?', q3_a:'Kesinlikle. Profesyonel ve Kurumsal planlarda kendi alan adınızda, tamamen sizin markanızla yayına geçersiniz.',
+  q4_q:'Müşteri verileri kime ait?', q4_a:'Tüm müşteri ve sipariş verileri size aittir. İstediğiniz zaman dışa aktarabilirsiniz; biz asla üçüncü taraflarla paylaşmayız.',
+  q5_q:'Teknik bilgi gerekiyor mu?', q5_a:'Hayır. Panel sürükle-bırak kadar basittir. Kod veya sunucu bilgisi gerekmez.',
+  q6_q:'İstediğim zaman iptal edebilir miyim?', q6_a:'Evet. Taahhüt yoktur, dilediğiniz an iptal edebilirsiniz. 14 gün ücretsiz deneme ile risksiz başlarsınız.',
+  ct_eyebrow:'İletişim', ct_title:'Restoranınızı dijitale taşıyalım',
+  ct_sub:'Formu doldurun, ekibimiz 24 saat içinde size özel bir demo ile geri dönsün. Hiçbir taahhüt yok.',
+  ct_p1:'Kişisel kurulum ve ücretsiz veri aktarımı', ct_p2:'Size özel bir başarı danışmanı', ct_p3:'%0 komisyon, iptal koşulu yok',
+  ct_name:'Ad Soyad *', ct_name_ph:'Adınız', ct_rest:'Restoran', ct_rest_ph:'Restoran adı', ct_email:'E-posta *', ct_phone:'Telefon',
+  ct_country:'Ülke', ct_country_ph:'Türkiye', ct_msg:'Mesaj *', ct_msg_ph:'Restoranınız ve ihtiyaçlarınız hakkında kısaca bahsedin...',
+  ct_submit:'Ücretsiz Demo Talep Et', ct_note:'Bilgileriniz gizli tutulur ve yalnızca sizinle iletişim için kullanılır.',
+  ct_ok:'Teşekkürler! Talebiniz alındı. Ekibimiz en kısa sürede sizinle iletişime geçecek.',
+  ct_bad:'Lütfen zorunlu alanları (ad, geçerli e-posta, mesaj) doldurun.',
+  ct_err:'Bir hata oluştu. Lütfen tekrar deneyin.', ct_sending:'Gönderiliyor...',
+  ft_tagline:'Restoranlar için komisyonsuz dijital işletim sistemi. Web sitesi, QR menü, sipariş, rezervasyon ve yapay zekâ — tek platformda.',
+  fc_platform:'Platform', fc_features:'Özellikler', fc_showcase:'Ürün Turu', fc_how:'Nasıl Çalışır', fc_root:'Yönetim Girişi',
+  fc_solutions:'Çözümler', fc_qr:'QR Menü', fc_order:'Online Sipariş', fc_res:'Rezervasyon', fc_ai:'Yapay Zekâ',
+  fc_company:'Şirket', fc_contact:'İletişim', fc_pricing:'Fiyatlandırma', fc_support:'Destek', fc_docs:'Dokümantasyon',
+  fc_legal:'Yasal', fc_privacy:'Gizlilik', fc_terms:'Şartlar', fc_kvkk:'KVKK', ft_rights:'Tüm hakları saklıdır.'
+},
+en:{
+  nav_features:'Features', nav_how:'How it works', nav_pricing:'Pricing', nav_faq:'FAQ', nav_contact:'Contact', nav_cta:'Free Demo',
+  nav_solutions:'Solutions', nav_docs:'Documentation', nav_login:'Admin Login',
+  hero_eyebrow:'Commission-Free Restaurant Platform',
+  hero_h1a:'Digitize Your Restaurant.', hero_h1b:'Pay Zero Commission.',
+  hero_sub:'With HASACA, get a branded website, QR menu, online ordering, reservations, AI and a management panel — all from a single platform.',
+  hero_cta1:'Request a Free Demo', hero_cta2:'Explore Live Demo',
+  hero_m1:'Commission', hero_m2:'Support', hero_m3:'Setup',
+  chip1_t:'New Order', chip1_s:'Table 7 · ₺340', chip2_t:'Today\'s Revenue',
+  ui_orders:'Orders', ui_rev:'Revenue', ui_rate:'Rating',
+  tr_restaurants:'Restaurants', tr_orders:'Orders', tr_uptime:'Uptime', tr_commission:'Commission',
+  sc_eyebrow:'Platform', sc_title:'Everything your restaurant needs, in one place',
+  sc_sub:'Run your whole operation — from guest to kitchen, reservations to analytics — from one premium platform.', sc_more:'Learn More',
+  sc1_tag:'Website & QR Menu', sc1_h:'A branded website and a smart QR menu',
+  sc1_p:'A professional restaurant site on your own domain, with your colors and logo. Guests scan the QR, browse the menu and order right from the table.',
+  sc1_l1:'Custom domain and full white-label branding', sc1_l2:'Contactless ordering with per-table QR', sc1_l3:'Multi-language support for international guests',
+  sc1_t1:'Today', sc1_t1s:'QR orders', sc1_t2:'Average', sc1_t2s:'basket', sc1_t3:'Popular items',
+  sc2_tag:'Management & Kitchen', sc2_h:'Live management panel and kitchen display',
+  sc2_p:'Orders hit the kitchen display instantly. Waiter calls, bill requests and table status at a glance. Your team stays in sync.',
+  sc2_l1:'Real-time order flow (instant alerts)', sc2_l2:'Waiter-call and bill-request handling', sc2_l3:'Role-based access to control your team',
+  sc2_scr:'Kitchen Display', sc2_k1:'New', sc2_k2:'Preparing', sc2_k3:'Ready',
+  sc3_tag:'AI & Analytics', sc3_h:'AI assistant and deep analytics',
+  sc3_p:'Build your menu in seconds, get sales forecasts and understand customer behavior. Your data is yours, decisions are yours.',
+  sc3_l1:'AI menu and description generation', sc3_l2:'Revenue, orders and best-seller reports', sc3_l3:'You own all of your customer data',
+  sc3_c1:'"Write 3 new product descriptions for the grill category."', sc3_c2:'Done! 3 handcrafted, chargrilled descriptions added to your menu ✓',
+  sc3_t1:'This month', sc3_t1s:'revenue growth', sc3_t2:'Forecast', sc3_t2s:'next week',
+  ft_eyebrow:'Features', ft_title:'Enterprise-grade, designed for restaurants',
+  ft_sub:'Every tool you need to grow, on one platform — simple, fast and fully your brand.',
+  f_qr_t:'QR Ordering', f_qr_d:'Contactless, fast ordering with per-table QR codes.',
+  f_kitchen_t:'Kitchen Display', f_kitchen_d:'Orders hit the kitchen instantly, prep status live.',
+  f_waiter_t:'Waiter Call', f_waiter_d:'Guests call a waiter with one tap, the team sees it at once.',
+  f_bill_t:'Bill Request', f_bill_d:'Request the bill from the table, waiting drops to zero.',
+  f_online_t:'Online Ordering', f_online_d:'Take delivery and pickup orders on your own site.',
+  f_res_t:'Reservations', f_res_d:'Manage table reservations automatically, no clashes.',
+  f_delivery_t:'Delivery Module', f_delivery_d:'Your own delivery flow, courier management included.',
+  f_analytics_t:'Analytics', f_analytics_d:'Revenue, orders and product performance in one panel.',
+  f_ai_t:'AI Assistant', f_ai_d:'Menu building, description writing and forecasts.',
+  f_domain_t:'Custom Domain', f_domain_d:'A site fully yours, on your own domain.',
+  f_wl_t:'White Label', f_wl_d:'HASACA stays invisible; every surface is your brand.',
+  f_seo_t:'SEO', f_seo_d:'Be visible on search engines, reach more guests.',
+  f_push_t:'Notifications', f_push_d:'Send campaign and order alerts instantly.',
+  f_theme_t:'Theme Engine', f_theme_d:'Customize your site with color and style themes.',
+  f_roles_t:'Role Management', f_roles_d:'Grant permission-based access to your team.',
+  f_lang_t:'Multi Language', f_lang_d:'Your menu and site in multiple languages automatically.',
+  hw_eyebrow:'How it works', hw_title:'Live in minutes', hw_sub:'No technical skills needed. Your restaurant goes digital in six simple steps.',
+  s1_t:'Create Restaurant', s1_d:'Open your restaurant account in seconds with a few details.',
+  s2_t:'Upload Logo', s2_d:'Reflect your brand with your logo and colors.',
+  s3_t:'Import Menu', s3_d:'Add your products or generate them automatically with AI.',
+  s4_t:'Generate QR', s4_d:'Instantly create per-table QR codes.',
+  s5_t:'Receive Orders', s5_d:'Guests order via QR, it hits the kitchen instantly.',
+  s6_t:'Manage Everything', s6_d:'Orders, analytics and reservations in one panel.',
+  cmp_eyebrow:'Comparison', cmp_title:'Why HASACA, not a marketplace?', cmp_sub:'End commissions, own your brand and your guests.',
+  cmp_you:'Your platform', cmp_other:'Marketplace Apps',
+  cmp_commission:'Commission', cmp_brand:'Brand Ownership', cmp_data:'Customer Data', cmp_website:'Website',
+  cmp_reservation:'Reservations', cmp_ai:'AI', cmp_analytics:'Analytics', cmp_seo:'SEO', cmp_speed:'Speed', cmp_freedom:'Freedom',
+  no_high:'15-20%', yes_zero:'0%', cmp_partial:'Limited',
+  st_eyebrow:'By the numbers', st_title:'A platform that scales',
+  st1:'Orders Processed', st2:'Annual Volume', st3:'Countries', st4:'Response Time',
+  ts_eyebrow:'Testimonials', ts_title:'What restaurant owners say',
+  t1:'"We got rid of marketplace commissions. Now every order\'s full profit is ours and we own the customer data."',
+  t1_role:'Owner, Bistro Co', t2:'"After moving to the QR menu our table turnover went up and staff load went down. Setup was incredibly easy."',
+  t2_role:'Operator, UrbanEats', t3:'"A professional site on our own domain, our own brand. AI menu building saved us hours."',
+  t3_role:'Founder, Kahve Lab', t4:'"Reservations and analytics in one place. Now we clearly see what sells and when."',
+  t4_role:'Manager, Anadolu Sofra',
+  pr_eyebrow:'Pricing', pr_title:'Flexible plans for every business', pr_sub:'A small café or a chain brand — commission is always 0%.',
+  pr_note:'All plans start with a 14-day free trial. No credit card required.',
+  p_start:'Starter', p_start_d:'Ideal for a first step into digital.',
+  p_pro:'Professional', p_pro_d:'The most popular choice for growing restaurants.',
+  p_ent:'Enterprise', p_ent_d:'For chains and multi-branch businesses.',
+  p_custom:'Custom', p_per:'/mo', p_badge:'Most Popular', p_cta:'Start Free', p_cta_ent:'Talk to Sales',
+  pf_qr:'QR and digital menu', pf_menu:'Unlimited products and categories', pf_1table:'Single-table QR', pf_email:'Email support',
+  pf_all_start:'Everything in Starter', pf_orders:'Online and table ordering', pf_res:'Reservation system', pf_analytics:'Advanced analytics',
+  pf_domain:'Custom domain', pf_priority:'Priority support',
+  pf_all_pro:'Everything in Professional', pf_ai:'AI assistant and menu generation', pf_multibranch:'Multi-branch management', pf_wl:'Full white-label',
+  pf_sla:'SLA guarantee', pf_manager:'Dedicated success manager',
+  fq_eyebrow:'FAQ', fq_title:'Frequently asked questions',
+  q1_q:'Does HASACA really charge no commission?', q1_a:'Yes. We take no commission on your orders. You pay a fixed monthly/yearly plan and keep the rest entirely.',
+  q2_q:'How long does setup take?', q2_a:'About 5 minutes. You create your restaurant, upload your logo and add your menu. Our team helps with data migration for free.',
+  q3_q:'Can I use my own domain?', q3_a:'Absolutely. On Professional and Enterprise plans you go live on your own domain, fully your brand.',
+  q4_q:'Who owns the customer data?', q4_a:'All customer and order data belongs to you. Export anytime; we never share it with third parties.',
+  q5_q:'Do I need technical skills?', q5_a:'No. The panel is as simple as drag-and-drop. No code or server knowledge needed.',
+  q6_q:'Can I cancel anytime?', q6_a:'Yes. No commitment, cancel whenever you like. Start risk-free with a 14-day free trial.',
+  ct_eyebrow:'Contact', ct_title:'Let\'s take your restaurant digital',
+  ct_sub:'Fill in the form and our team will get back within 24 hours with a tailored demo. No commitment.',
+  ct_p1:'Personal setup and free data migration', ct_p2:'A dedicated success manager', ct_p3:'0% commission, cancel anytime',
+  ct_name:'Full Name *', ct_name_ph:'Your name', ct_rest:'Restaurant', ct_rest_ph:'Restaurant name', ct_email:'Email *', ct_phone:'Phone',
+  ct_country:'Country', ct_country_ph:'Turkey', ct_msg:'Message *', ct_msg_ph:'Tell us briefly about your restaurant and needs...',
+  ct_submit:'Request a Free Demo', ct_note:'Your information is kept private and used only to contact you.',
+  ct_ok:'Thank you! Your request has been received. Our team will contact you shortly.',
+  ct_bad:'Please fill the required fields (name, valid email, message).',
+  ct_err:'Something went wrong. Please try again.', ct_sending:'Sending...',
+  ft_tagline:'The commission-free digital operating system for restaurants. Website, QR menu, ordering, reservations and AI — on one platform.',
+  fc_platform:'Platform', fc_features:'Features', fc_showcase:'Product Tour', fc_how:'How it works', fc_root:'Admin Login',
+  fc_solutions:'Solutions', fc_qr:'QR Menu', fc_order:'Online Ordering', fc_res:'Reservations', fc_ai:'AI',
+  fc_company:'Company', fc_contact:'Contact', fc_pricing:'Pricing', fc_support:'Support', fc_docs:'Documentation',
+  fc_legal:'Legal', fc_privacy:'Privacy', fc_terms:'Terms', fc_kvkk:'GDPR', ft_rights:'All rights reserved.'
+}
+};
+
+let LANG = 'tr';
+function T(k){ return (I18N[LANG] && I18N[LANG][k]) || (I18N.tr[k]) || k; }
+
+/* ─────────────── RENDER ─────────────── */
+// Each feature card links to its dedicated product page.
+const FEAT_LINKS = {
+  qr:'/qr-menu', kitchen:'/mutfak-ekrani', bell:'/garson-cagirma', receipt:'/masa-yonetimi',
+  cart:'/online-siparis', calendar:'/rezervasyon', truck:'/paket-servis', chart:'/analitik',
+  ai:'/yapay-zeka', globe:'/white-label', label:'/white-label', search:'/seo',
+  push:'/bildirim-sistemi', theme:'/tema-sistemi', roles:'/guvenlik', lang:'/ozellikler'
+};
+function renderFeatures(){
+  document.getElementById('featGrid').innerHTML = FEATURES.map(([ic,t,d])=>{
+    const href = FEAT_LINKS[ic];
+    const inner = `<div class="fi">${svg(ICONS[ic])}</div>
+      <h4 data-i18n="${t}">${T(t)}</h4><p data-i18n="${d}">${T(d)}</p>`;
+    return href ? `<a class="feat" href="${href}">${inner}</a>` : `<div class="feat">${inner}</div>`;
+  }).join('');
+}
+function renderSteps(){
+  document.getElementById('steps').innerHTML = STEPS.map((s,i)=>`
+    <div class="step"><div class="num"><span class="shine">${i+1}</span></div>
+      <div class="sc"><h4 data-i18n="${s}_t">${T(s+'_t')}</h4><p data-i18n="${s}_d">${T(s+'_d')}</p></div></div>`).join('');
+}
+const ckSvg = '<svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>';
+const xSvg = '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>';
+function cmpCell(v){
+  if(v==='yes') return `<span class="yes">${ckSvg}</span>`;
+  if(v==='no') return `<span class="no">${xSvg}</span>`;
+  if(v==='partial') return `<span class="no" style="font-size:12px">${T('cmp_partial')||'Kısıtlı'}</span>`;
+  return `<b style="font-size:15px" data-i18n="${v}">${T(v)}</b>`;
+}
+function renderCmp(){
+  document.getElementById('cmpRows').innerHTML = CMP.map(([lbl,h,o])=>`
+    <div class="cmp-row"><div class="lbl" data-i18n="${lbl}">${T(lbl)}</div>
+      <div class="cell col-hasaca">${cmpCell(h)}</div>
+      <div class="cell">${cmpCell(o)}</div></div>`).join('');
+}
+function renderPlans(){
+  document.getElementById('priceGrid').innerHTML = PLANS.map(p=>{
+    const price = p.price.startsWith('p_') ? T(p.price) : p.price;
+    const showPer = !p.price.startsWith('p_') && p.price !== '₺0';
+    const cta = p.k==='p_ent' ? 'p_cta_ent' : 'p_cta';
+    return `<div class="plan ${p.pop?'pop':''}">
+      ${p.pop?`<span class="badge" data-i18n="p_badge">${T('p_badge')}</span>`:''}
+      <h4 data-i18n="${p.k}">${T(p.k)}</h4>
+      <div class="desc" data-i18n="${p.k}_d">${T(p.k+'_d')}</div>
+      <div class="amt"><span class="v">${price}</span>${showPer?`<span class="per" data-i18n="p_per">${T('p_per')}</span>`:''}</div>
+      <ul>${p.feats.map(f=>`<li>${svg('<path d="M20 6 9 17l-5-5"/>',16)}<span data-i18n="${f}">${T(f)}</span></li>`).join('')}</ul>
+      <a href="${p.k==='p_ent'?'/satis-ekibi':'/demo-talep'}" class="btn ${p.pop?'btn-primary':'btn-ghost'}" data-i18n="${cta}">${T(cta)}</a>
+    </div>`;
+  }).join('');
+}
+function renderFaq(){
+  document.getElementById('faqList').innerHTML = FAQS.map(q=>`
+    <details class="qa"><summary><span data-i18n="${q}_q">${T(q+'_q')}</span>
+      <span class="pl">${svg('<path d="M12 5v14M5 12h14"/>',15)}</span></summary>
+      <div class="ans" data-i18n="${q}_a">${T(q+'_a')}</div></details>`).join('');
+}
+function renderTesti(){
+  document.getElementById('tstTrack').innerHTML = TESTI.map(t=>`
+    <div class="tst"><div class="stars">★★★★★</div>
+      <div class="q" data-i18n="${t.k}">${T(t.k)}</div>
+      <div class="who"><span class="av">${t.av}</span><div><b>${t.by}</b><span data-i18n="${t.role}">${T(t.role)}</span></div></div>
+    </div>`).join('');
+  const dots = TESTI.map((_,i)=>`<button class="${i===0?'on':''}" onclick="scrollTesti(${i})"></button>`).join('');
+  document.getElementById('tstDots').innerHTML = dots;
+}
+/* Footer columns are rendered from the shared marketing registry so a new page
+   automatically appears here — no hardcoded link lists, no dead routes. */
+const FOOT_GROUPS = [
+  [['Platform','Platform'], ['ozellikler','qr-menu','online-siparis','rezervasyon','mutfak-ekrani','masa-yonetimi','fiyatlandirma']],
+  [['Çözümler','Solutions'], ['cozumler','paket-servis','coklu-sube','garson-cagirma','yapay-zeka','entegrasyonlar']],
+  [['Ürünler','Products'], ['analitik','seo','bildirim-sistemi','tema-sistemi','white-label','karsilastirma']],
+  [['Kaynaklar','Resources'], ['dokumantasyon','api','blog','yol-haritasi','surum-notlari','durum']],
+  [['Şirket','Company'], ['hakkimizda','neden-hasaca','kariyer','referanslar','basari-hikayeleri','partner-programi','bayilik']],
+  [['Destek','Support'], ['destek','yardim','sss','iletisim','demo-talep','teklif-al','satis-ekibi']],
+  [['Yasal','Legal'], ['gizlilik','kvkk','cerez-politikasi','kullanim-sartlari','hizmet-sozlesmesi','guvenlik']]
+];
+function pick(pair){ return pair[LANG === 'en' ? 1 : 0] || pair[0]; }
+function renderFooter(){
+  const host = document.getElementById('footCols');
+  if (!host || typeof MARKETING === 'undefined') return;
+  host.innerHTML = FOOT_GROUPS.map(([h, slugs]) => `<div class="foot-col"><h5>${pick(h)}</h5>${
+    slugs.map(s => { const p = MARKETING.pages[s]; return p ? `<a href="/${s}">${pick(p.title)}</a>` : ''; }).join('')
+  }</div>`).join('') + `<div class="foot-col"><h5>${pick(['Giriş','Sign in'])}</h5>
+      <a href="/giris">${pick(['Yönetici Girişi','Admin Login'])}</a>
+      <a href="/giris">${pick(['Restoran Girişi','Restaurant Login'])}</a>
+      <a href="/root-girisi">${pick(['Root Panel Girişi','Root Panel Login'])}</a></div>`;
+}
+
+function scrollTesti(i){
+  const track = document.getElementById('tstTrack');
+  const card = track.children[i];
+  if(card) track.scrollTo({ left: card.offsetLeft - track.offsetLeft - 20, behavior:'smooth' });
+}
+
+/* ─────────────── i18n APPLY ─────────────── */
+function applyI18n(){
+  document.querySelectorAll('[data-i18n]').forEach(el=>{ const k=el.getAttribute('data-i18n'); if(I18N[LANG][k]!==undefined) el.textContent=I18N[LANG][k]; });
+  document.querySelectorAll('[data-i18n-ph]').forEach(el=>{ const k=el.getAttribute('data-i18n-ph'); if(I18N[LANG][k]!==undefined) el.placeholder=I18N[LANG][k]; });
+  document.documentElement.lang = LANG;
+}
+function setLang(l){
+  LANG=l;
+  localStorage.setItem('hasaca_landing_lang', l);
+  document.querySelectorAll('.lang button').forEach(b=>b.classList.toggle('on', b.getAttribute('data-lang')===l));
+  applyI18n();
+  renderFooter();
+}
+
+/* ─────────────── COUNTERS + REVEAL ─────────────── */
+function animateCount(el){
+  const target = parseFloat(el.getAttribute('data-count'))||0;
+  const suffix = el.getAttribute('data-suffix')||'';
+  const dur = 1400, start = performance.now();
+  function tick(now){
+    const p = Math.min((now-start)/dur, 1);
+    const eased = 1-Math.pow(1-p,3);
+    el.textContent = Math.round(target*eased);
+    if(p<1) requestAnimationFrame(tick); else el.textContent = target + suffix;
+  }
+  requestAnimationFrame(tick);
+}
+function revealAll(){ document.querySelectorAll('.rv').forEach(el=>el.classList.add('in')); }
+function initObservers(){
+  // No IntersectionObserver (very old browser) → show everything immediately.
+  if(!('IntersectionObserver' in window)){ revealAll(); return; }
+  const revIO = new IntersectionObserver((es)=>{ es.forEach(e=>{ if(e.isIntersecting){ e.target.classList.add('in'); revIO.unobserve(e.target); } }); }, {threshold:.12});
+  document.querySelectorAll('.rv').forEach(el=>revIO.observe(el));
+  // Safety net: never leave content hidden if the observer somehow doesn't fire.
+  setTimeout(revealAll, 3000);
+  const cIO = new IntersectionObserver((es)=>{ es.forEach(e=>{ if(e.isIntersecting){ animateCount(e.target); cIO.unobserve(e.target); } }); }, {threshold:.5});
+  document.querySelectorAll('.count').forEach(el=>cIO.observe(el));
+}
+
+/* ─────────────── CONTACT FORM ─────────────── */
+function initForm(){
+  const form = document.getElementById('contactForm');
+  form.addEventListener('submit', async (e)=>{
+    e.preventDefault();
+    const msg = document.getElementById('formMsg');
+    const btn = document.getElementById('submitBtn');
+    const data = Object.fromEntries(new FormData(form).entries());
+    // client validation
+    form.querySelectorAll('.field').forEach(f=>f.classList.remove('err'));
+    const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test((data.email||'').trim());
+    let bad=false;
+    if(!(data.name||'').trim()){ form.querySelector('[name=name]').closest('.field').classList.add('err'); bad=true; }
+    if(!emailOk){ form.querySelector('[name=email]').closest('.field').classList.add('err'); bad=true; }
+    if(!(data.message||'').trim()){ form.querySelector('[name=message]').closest('.field').classList.add('err'); bad=true; }
+    if(bad){ msg.className='form-msg bad'; msg.textContent=T('ct_bad'); return; }
+
+    btn.disabled=true; const orig=btn.textContent; btn.textContent=T('ct_sending'); msg.className='form-msg';
+    try{
+      const r = await fetch('/api/landing/contact', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(data) });
+      if(r.ok){ msg.className='form-msg ok'; msg.textContent=T('ct_ok'); form.reset(); }
+      else{ msg.className='form-msg bad'; msg.textContent=T('ct_bad'); }
+    }catch(err){ msg.className='form-msg bad'; msg.textContent=T('ct_err'); }
+    btn.disabled=false; btn.textContent=orig;
+    msg.scrollIntoView({behavior:'smooth', block:'center'});
+  });
+}
+
+/* ─────────────── INIT ─────────────── */
+document.addEventListener('DOMContentLoaded', ()=>{
+  document.getElementById('year').textContent = new Date().getFullYear();
+  const saved = localStorage.getItem('hasaca_landing_lang');
+  if(saved) LANG = saved;
+  renderFeatures(); renderSteps(); renderCmp(); renderPlans(); renderFaq(); renderTesti(); renderFooter();
+  setLang(LANG);
+  applyI18n();
+  initObservers();
+  initForm();
+  // nav scrolled state + close mobile menu on click
+  const nav = document.getElementById('nav');
+  const onScroll = ()=>nav.classList.toggle('scrolled', window.scrollY>10);
+  window.addEventListener('scroll', onScroll, {passive:true}); onScroll();
+  document.getElementById('navLinks').addEventListener('click', ()=>nav.classList.remove('open'));
+});
+</script>
+</body>
+</html>

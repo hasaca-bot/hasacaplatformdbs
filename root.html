@@ -8,11 +8,30 @@
 <link rel="icon" href="/favicon.ico">
 <style>
   *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+  /* ── GLOBAL TYPOGRAPHY — Samsung Sharp Sans applied app-wide (single central config) ── */
+  @font-face{
+    font-family:'Samsung Sharp Sans';
+    src:url('/fonts/SamsungSharpSans-Bold.ttf') format('truetype');
+    font-weight:1 1000; font-style:normal; font-display:swap;
+  }
+  *{ font-family:'Samsung Sharp Sans', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif !important; }
+  code,pre,kbd,samp,.cred-box,[class*="mono"],[style*="monospace"]{ font-family:ui-monospace,'SFMono-Regular',Menlo,monospace !important; }
   :root{
-    --fire:#D93B0A; --ember:#FF5722; --gold:#FFA726;
+    /* Phase 32: these 3 + the scroll-thumb pair are fully overridden by panel.css (linked last in
+       <head>, redeclares the same var names) — verified inert. Updated to match its gold values
+       anyway so this fallback block has zero literal legacy-orange text and stays consistent should
+       panel.css ever fail to load. */
+    --fire:#d8b877; --ember:#c9a253; --gold:#d8b877;
     --bg:#14100D; --panel:#1E1712; --card:#28201A; --line:rgba(255,255,255,.09);
     --text:#FFF8F0; --muted:#B09680; --ok:#66BB6A; --bad:#FF5252;
+    --scroll-thumb:rgba(216,184,119,.4); --scroll-thumb-hover:rgba(216,184,119,.7);
   }
+  /* Custom scrollbar — thin, rounded, subtle (Chromium + Firefox) */
+  html{ scrollbar-width:thin; scrollbar-color:var(--scroll-thumb) transparent; }
+  ::-webkit-scrollbar{ width:10px; height:10px; }
+  ::-webkit-scrollbar-track{ background:transparent; }
+  ::-webkit-scrollbar-thumb{ background:var(--scroll-thumb); border-radius:999px; border:2px solid transparent; background-clip:padding-box; }
+  ::-webkit-scrollbar-thumb:hover{ background:var(--scroll-thumb-hover); background-clip:padding-box; }
   body{font-family:system-ui,-apple-system,'Segoe UI',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;}
   a{color:var(--gold);text-decoration:none;}
   button{font-family:inherit;cursor:pointer;}
@@ -44,6 +63,9 @@
   .toolbar input[type=text]{max-width:300px;}
   .chip{background:var(--card);border:1px solid var(--line);color:var(--muted);border-radius:999px;padding:8px 15px;font-size:.8rem;font-weight:700;}
   .chip.active{background:linear-gradient(135deg,var(--fire),var(--ember));color:#fff;border-color:transparent;}
+  /* Unread badge on the Landing Messages button */
+  .lbadge{display:inline-block;margin-left:6px;min-width:18px;padding:1px 6px;border-radius:999px;
+    background:var(--fire);color:#fff;font-size:.7rem;line-height:1.5;text-align:center;}
 
   /* Tenant cards */
   .tenant-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:14px;}
@@ -67,6 +89,29 @@
   .asset-field{display:flex;align-items:center;gap:10px;}
   .asset-field .asset-url{flex:1;min-width:0;opacity:.7;cursor:default;font-size:.72rem;}
   .asset-thumb{width:40px;height:40px;border-radius:8px;object-fit:cover;background:#1c1c1c;border:1px solid rgba(255,255,255,.12);display:none;flex-shrink:0;}
+  .brand-section{margin:22px 0 4px;font-size:.95rem;color:var(--gold);border-top:1px solid var(--line);padding-top:16px;}
+  .seo-count{float:right;font-size:.68rem;color:var(--muted);text-transform:none;letter-spacing:0;}
+  .seo-count.over{color:var(--bad);}
+  .seo-preview{margin:10px 0 4px;padding:12px 14px;background:var(--panel);border:1px solid var(--line);border-radius:12px;}
+  .seo-preview .sp-title{color:#8ab4f8;font-size:1rem;line-height:1.3;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .seo-preview .sp-url{color:#3ea150;font-size:.78rem;margin:2px 0;}
+  .seo-preview .sp-desc{color:var(--muted);font-size:.82rem;line-height:1.4;}
+  .cs-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px 14px;}
+  @media(max-width:520px){ .cs-grid{grid-template-columns:1fr;} }
+  .hstat-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px;}
+  .hstat{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px 14px;}
+  .hstat .k{font-size:.68rem;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);}
+  .hstat .v{font-size:1.25rem;font-weight:800;margin-top:4px;color:var(--text);}
+  .hstat .v small{font-size:.7rem;font-weight:600;color:var(--muted);}
+  .hsec-title{font-size:.8rem;color:var(--gold);margin:16px 0 8px;font-weight:700;}
+  .hdot{display:inline-block;width:9px;height:9px;border-radius:50%;vertical-align:middle;margin-right:6px;}
+  .hdot.ok{background:var(--ok);} .hdot.bad{background:var(--bad);}
+  .bars{display:flex;align-items:flex-end;gap:2px;height:120px;padding:6px 0;border-bottom:1px solid var(--line);}
+  .bars .bar{flex:1;min-width:2px;background:linear-gradient(180deg,var(--ember),var(--fire));border-radius:3px 3px 0 0;transition:height .2s;}
+  .bars .bar:hover{opacity:.8;}
+  .toplist{list-style:none;margin:8px 0 0;padding:0;}
+  .toplist li{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--line);font-size:.85rem;}
+  .toplist li b{color:var(--text);} .toplist li span{color:var(--muted);}
   .detail-list{font-size:.85rem;line-height:1.8;color:var(--muted);}
   .detail-list b{color:var(--text);}
   .tbl{width:100%;border-collapse:collapse;font-size:.82rem;margin-top:8px;}
@@ -76,6 +121,8 @@
   .toast.show{opacity:1;}
   .empty{color:var(--muted);text-align:center;padding:50px 0;grid-column:1/-1;}
 </style>
+<!-- Centralized panel design system + Black/White/System themes (Phase 24). Linked last so it is authoritative. -->
+<link rel="stylesheet" href="/panel.css">
 </head>
 <body>
 
@@ -96,23 +143,205 @@
 
 <!-- SHELL -->
 <div class="shell" id="shellView">
-  <div class="topbar">
-    <h1><span id="rootHeaderName">HASACA</span> <span>Root</span> <span style="color:var(--muted);font-weight:400;font-size:.85rem;" data-i18n="root_tenant_mgmt">Restoran Yönetimi</span></h1>
-    <button class="btn small secondary" onclick="toggleRootLang()"><span id="rootLangBtn">EN</span></button>
-    <button class="btn small secondary" onclick="openBrandingModal()" data-i18n="root_branding">Marka</button>
-    <button class="btn small secondary" onclick="openAiSettingsModal()" data-i18n="root_ai_settings">AI Ayarları</button>
-    <button class="btn small" onclick="openCreateModal()" data-i18n="root_new_tenant">+ Yeni Restoran</button>
-    <button class="btn small danger" onclick="rootLogout()" data-i18n="root_logout">Çıkış</button>
-  </div>
+ <div class="app-shell" id="appShell">
+  <!-- SIDEBAR -->
+  <aside class="app-sidebar" id="appSidebar">
+    <div class="side-brand">
+      <span class="mark"><span>H</span></span>
+      <span class="txt"><b id="sideBrandName">HASACA</b><small>Root Panel</small></span>
+    </div>
 
-  <div class="toolbar">
-    <input type="text" id="searchInput" data-i18n-placeholder="root_search_ph" placeholder="Restoran ara..." oninput="renderTenants()">
-    <button class="chip active" data-f="all" onclick="setFilter('all',this)" data-i18n="root_filter_all">Tümü</button>
-    <button class="chip" data-f="active" onclick="setFilter('active',this)" data-i18n="root_filter_active">Aktif</button>
-    <button class="chip" data-f="disabled" onclick="setFilter('disabled',this)" data-i18n="root_filter_disabled">Devre Dışı</button>
-  </div>
+    <div class="nav-group">
+      <div class="lbl" data-i18n="nav_grp_general">Genel</div>
+      <button class="nav-item active" id="navDashboard" onclick="showView('dashboard')">
+        <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/><rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/></svg></span>
+        <span class="lbl" data-i18n="nav_dashboard">Panel</span>
+      </button>
+      <button class="nav-item" id="navRestaurants" onclick="showView('restaurants')">
+        <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9h18M3 9l1.5-5h15L21 9M4 9v11h16V9M9 20v-5h6v5"/></svg></span>
+        <span class="lbl" data-i18n="nav_restaurants">Restoranlar</span>
+      </button>
+    </div>
 
-  <div class="tenant-grid" id="tenantGrid"></div>
+    <div class="nav-group">
+      <div class="lbl" data-i18n="nav_grp_monitor">İzleme</div>
+      <button class="nav-item" onclick="openHealthModal()">
+        <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg></span>
+        <span class="lbl" data-i18n="root_health">Sistem Durumu</span>
+      </button>
+      <button class="nav-item" onclick="openActivityModal()">
+        <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 8v4l3 2"/><circle cx="12" cy="12" r="9"/></svg></span>
+        <span class="lbl" data-i18n="root_activity">Aktivite</span>
+      </button>
+      <button class="nav-item" onclick="openAnalyticsModal()">
+        <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 14l3-3 3 3 5-6"/></svg></span>
+        <span class="lbl" data-i18n="root_analytics">Analitik</span>
+      </button>
+    </div>
+
+    <div class="nav-group">
+      <div class="lbl" data-i18n="nav_grp_comms">İletişim</div>
+      <button class="nav-item" onclick="openNotifyModal()">
+        <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9M13.7 21a2 2 0 0 1-3.4 0"/></svg></span>
+        <span class="lbl" data-i18n="root_notify">Bildirim</span>
+      </button>
+      <button class="nav-item" onclick="openLandingModal()">
+        <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16v12H5.2L4 18z"/><path d="M8 9h8M8 12h5"/></svg></span>
+        <span class="lbl" data-i18n="root_landing">Landing Mesajları</span>
+        <span class="nbadge" id="landingBadge" style="display:none;">0</span>
+      </button>
+    </div>
+
+    <div class="nav-group">
+      <div class="lbl" data-i18n="nav_grp_ai">Yapay Zeka</div>
+      <button class="nav-item" id="navAiAssistant" onclick="showView('ai-assistant')">
+        <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a4 4 0 0 1 4 4v1a4 4 0 0 1-8 0V6a4 4 0 0 1 4-4z"/><path d="M8 14a4 4 0 0 0-4 4v1h16v-1a4 4 0 0 0-4-4H8z"/><path d="M12 7v3"/></svg></span>
+        <span class="lbl" data-i18n="nav_ai_assistant">AI Asistanı</span>
+      </button>
+    </div>
+
+    <div class="nav-group">
+      <div class="lbl" data-i18n="nav_grp_settings">Ayarlar</div>
+      <button class="nav-item" onclick="openBrandingModal()">
+        <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="13.5" cy="6.5" r="2.5"/><circle cx="17.5" cy="12" r="2"/><circle cx="8.5" cy="7.5" r="2.5"/><circle cx="6.5" cy="13" r="2"/><path d="M12 22a10 10 0 1 1 0-20c1.7 0 3 1.3 3 3 0 .8-.3 1.5-.8 2 .5.5.8 1.2.8 2 0 1.7-1.3 3-3 3h-1a2 2 0 0 0 0 4c1 0 2 1 2 2a2 2 0 0 1-2 2z"/></svg></span>
+        <span class="lbl" data-i18n="root_branding">Marka</span>
+      </button>
+      <button class="nav-item" onclick="openAiSettingsModal()">
+        <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a5 5 0 0 1 5 5v2a5 5 0 0 1-10 0V7a5 5 0 0 1 5-5zM5 20a7 7 0 0 1 14 0"/></svg></span>
+        <span class="lbl" data-i18n="root_ai_settings">AI Ayarları</span>
+      </button>
+    </div>
+
+    <div class="side-spacer"></div>
+    <div class="side-foot">
+      <button class="collapse-btn" onclick="toggleCollapse()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+        <span data-i18n="nav_collapse">Daralt</span>
+      </button>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <div class="app-main">
+    <header class="app-topbar">
+      <button class="topbar-icon hamburger" onclick="toggleSidebar()" aria-label="Menu">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+      </button>
+      <span class="page-title" id="pageTitle" data-i18n="nav_dashboard">Panel</span>
+      <span class="spacer"></span>
+      <div class="seg" id="themeSeg">
+        <button data-theme-mode="system" onclick="setTheme('system')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg><span data-i18n="theme_system">Sistem</span></button>
+        <button data-theme-mode="light" onclick="setTheme('light')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4 12H2M22 12h-2M5 5l1.5 1.5M17.5 17.5 19 19M19 5l-1.5 1.5M6.5 17.5 5 19"/></svg><span data-i18n="theme_light">Açık</span></button>
+        <button data-theme-mode="dark" onclick="setTheme('dark')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.8A9 9 0 1 1 11.2 3 7 7 0 0 0 21 12.8z"/></svg><span data-i18n="theme_dark">Koyu</span></button>
+      </div>
+      <button class="btn small secondary" onclick="toggleRootLang()"><span id="rootLangBtn">EN</span></button>
+      <button class="btn small topbar-create" onclick="openCreateModal()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+        <span class="tb-label" data-i18n="root_new_tenant">Yeni Restoran</span>
+      </button>
+      <div class="profile">
+        <button class="profile-btn" onclick="toggleProfileMenu(event)">
+          <span class="av">R</span><span class="nm">root</span>
+        </button>
+        <div class="profile-menu" id="profileMenu">
+          <button onclick="openBrandingModal();toggleProfileMenu()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-2.9 1.2 2 2 0 1 1-4 0 1.7 1.7 0 0 0-2.9-1.2l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1A1.7 1.7 0 0 0 4.6 15a1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1A1.7 1.7 0 0 0 4.6 9a1.7 1.7 0 0 0-.3-1.9l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1A1.7 1.7 0 0 0 10 4.6a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 2.9 1.2l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0 1.2 2.9H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg><span data-i18n="root_branding">Marka</span></button>
+          <button onclick="openHealthModal();toggleProfileMenu()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg><span data-i18n="root_health">Sistem Durumu</span></button>
+          <div class="sep"></div>
+          <button class="danger" onclick="rootLogout()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/></svg><span data-i18n="root_logout">Çıkış</span></button>
+        </div>
+      </div>
+    </header>
+
+    <main class="app-content">
+      <!-- DASHBOARD VIEW -->
+      <section class="view" id="view-dashboard">
+        <div class="dash-grid">
+          <div class="stat-card">
+            <div class="st-top"><span class="st-k" data-i18n="dash_tenants">Restoran</span>
+              <span class="st-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9h18M3 9l1.5-5h15L21 9M4 9v11h16V9"/></svg></span></div>
+            <div class="st-v" id="dashTenants">–</div><div class="st-sub" data-i18n="dash_total">Toplam</div>
+          </div>
+          <div class="stat-card">
+            <div class="st-top"><span class="st-k" data-i18n="dash_active">Aktif</span>
+              <span class="st-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.1V12a10 10 0 1 1-5.9-9.1"/><path d="M22 4 12 14.01l-3-3"/></svg></span></div>
+            <div class="st-v" id="dashActive">–</div><div class="st-sub" data-i18n="dash_active_sub">Yayında</div>
+          </div>
+          <div class="stat-card">
+            <div class="st-top"><span class="st-k" data-i18n="dash_orders">Sipariş</span>
+              <span class="st-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="18" cy="21" r="1"/><path d="M1 1h4l2.6 12.4a2 2 0 0 0 2 1.6h9.7a2 2 0 0 0 2-1.6L23 6H6"/></svg></span></div>
+            <div class="st-v" id="dashOrders">–</div><div class="st-sub" data-i18n="dash_30d">Son 30 gün</div>
+          </div>
+          <div class="stat-card">
+            <div class="st-top"><span class="st-k" data-i18n="dash_revenue">Ciro</span>
+              <span class="st-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></span></div>
+            <div class="st-v" id="dashRevenue">–</div><div class="st-sub" data-i18n="dash_30d">Son 30 gün</div>
+          </div>
+        </div>
+        <div class="dash-row">
+          <div class="panel-card">
+            <h3><span data-i18n="dash_recent">Son Aktivite</span><a onclick="openActivityModal()" data-i18n="dash_viewall">Tümü</a></h3>
+            <div class="act-list" id="dashActivity"><div class="hint" data-i18n="dash_loading">Yükleniyor…</div></div>
+          </div>
+          <div class="panel-card">
+            <h3 data-i18n="dash_quick">Hızlı İşlemler</h3>
+            <div class="quick-actions">
+              <button onclick="openCreateModal()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg><span data-i18n="root_new_tenant">+ Yeni Restoran</span></button>
+              <button onclick="openNotifyModal()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/></svg><span data-i18n="root_notify">Bildirim Gönder</span></button>
+              <button onclick="openAnalyticsModal()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 14l3-3 3 3 5-6"/></svg><span data-i18n="root_analytics">Analitik</span></button>
+              <button onclick="openLandingModal()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16v12H5.2L4 18z"/></svg><span data-i18n="root_landing">Landing Mesajları</span></button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- RESTAURANTS VIEW -->
+      <section class="view" id="view-restaurants" hidden>
+        <div class="toolbar">
+          <input type="text" id="searchInput" data-i18n-placeholder="root_search_ph" placeholder="Restoran ara..." oninput="renderTenants()">
+          <button class="chip active" data-f="all" onclick="setFilter('all',this)" data-i18n="root_filter_all">Tümü</button>
+          <button class="chip" data-f="active" onclick="setFilter('active',this)" data-i18n="root_filter_active">Aktif</button>
+          <button class="chip" data-f="disabled" onclick="setFilter('disabled',this)" data-i18n="root_filter_disabled">Devre Dışı</button>
+        </div>
+        <div class="tenant-grid" id="tenantGrid"></div>
+      </section>
+
+      <!-- AI ASSISTANT VIEW (Phase 27) -->
+      <section class="view" id="view-ai-assistant" hidden>
+        <div class="panel-card">
+          <h3 data-i18n="root_ai_asst_title">AI Asistanı</h3>
+          <p class="hint" data-i18n="root_ai_asst_desc">Platform markanızı doğal dille yönetin.</p>
+          <label data-i18n="root_ai_asst_target">Hedef</label>
+          <select id="rAiTarget" onchange="rootAiTargetChanged()">
+            <option value="" data-i18n="root_ai_asst_platform">Platform (HASACA markası)</option>
+          </select>
+          <p class="hint" id="rAiTargetHint" style="margin-top:6px;" data-i18n="root_ai_asst_platform_hint">Platform adı, logo ve landing metinleri düzenlenir.</p>
+          <div style="display:flex; gap:10px; margin-top:12px; align-items:flex-start;">
+            <textarea id="rAiInput" rows="2" style="flex:1; resize:vertical;" data-i18n-placeholder="root_ai_asst_ph" placeholder="Ne yapmak istersiniz?"></textarea>
+            <button class="btn" id="rAiSendBtn" onclick="rootAiSend()" style="white-space:nowrap;"><span data-i18n="root_ai_asst_send">Gönder</span></button>
+          </div>
+          <div id="rAiStatus" class="hint" style="display:none; margin-top:10px;"></div>
+        </div>
+
+        <div class="panel-card" id="rAiPlanCard" style="display:none; margin-top:16px;">
+          <h3 data-i18n="root_ai_asst_plan_title">Önerilen Değişiklikler</h3>
+          <p id="rAiSummary" style="margin:6px 0 12px;"></p>
+          <div id="rAiActions" class="act-list"></div>
+          <div id="rAiUnsupported" class="hint" style="display:none; margin-top:10px;"></div>
+          <div class="row" style="margin-top:16px;">
+            <button class="btn" id="rAiConfirmBtn" onclick="rootAiConfirm()" data-i18n="root_ai_asst_confirm">Onayla ve Uygula</button>
+            <button class="btn secondary" onclick="rootAiCancel()" data-i18n="root_ai_asst_cancel">İptal</button>
+          </div>
+        </div>
+
+        <div class="panel-card" id="rAiResultCard" style="display:none; margin-top:16px;">
+          <h3 data-i18n="root_ai_asst_applied_title">Uygulandı</h3>
+          <p id="rAiResultSummary"></p>
+        </div>
+      </section>
+    </main>
+  </div>
+ </div>
+ <div class="app-backdrop" id="appBackdrop" onclick="toggleSidebar(false)"></div>
 </div>
 
 <!-- CREATE MODAL -->
@@ -179,10 +408,63 @@
     <input type="text" id="bHeroSubEn">
     <label data-i18n="root_brand_footer">Footer Metni</label>
     <input type="text" id="bFooter">
-    <label>SEO Title</label>
-    <input type="text" id="bSeoTitle">
-    <label>SEO Description</label>
-    <input type="text" id="bSeoDesc">
+    <h3 class="brand-section" data-i18n="root_seo_title">SEO</h3>
+    <label>SEO Title <span class="seo-count" id="bSeoTitleCount"></span></label>
+    <input type="text" id="bSeoTitle" maxlength="80" oninput="updateSeoPreview()">
+    <label>SEO Description <span class="seo-count" id="bSeoDescCount"></span></label>
+    <textarea id="bSeoDesc" rows="2" maxlength="220" style="resize:vertical;" oninput="updateSeoPreview()"></textarea>
+    <label data-i18n="root_seo_keywords">Anahtar Kelimeler</label>
+    <input type="text" id="bSeoKeywords" placeholder="restoran, menü, sipariş">
+    <label data-i18n="root_seo_og">Sosyal Paylaşım Görseli (OG)</label>
+    <div class="asset-field"><img class="asset-thumb" id="bOgImage_thumb" alt=""><input type="text" id="bOgImage" readonly class="asset-url"><button class="btn small secondary" onclick="uploadPlatformAsset('bOgImage')" data-i18n="root_upload">Yükle</button></div>
+    <label data-i18n="root_seo_robots">Arama Motoru İndeksleme</label>
+    <select id="bSeoRobots">
+      <option value="index" data-i18n="root_seo_indexed">İndekslensin (varsayılan)</option>
+      <option value="noindex" data-i18n="root_seo_noindex">İndekslenmesin</option>
+    </select>
+    <div class="seo-preview" id="bSeoPreview"></div>
+    <label data-i18n="root_brand_theme">Tema</label>
+    <select id="bTheme">
+      <option value="dark" data-i18n="root_theme_dark">Sıcak (Varsayılan)</option>
+      <option value="light" data-i18n="root_theme_light">Açık</option>
+      <option value="bw" data-i18n="root_theme_bw">Siyah &amp; Beyaz</option>
+    </select>
+
+    <h3 class="brand-section" data-i18n="root_contact_title">İletişim & Sosyal Medya</h3>
+    <p class="hint" data-i18n="root_contact_hint">Bu bilgiler sitenin her yerinde (üst bilgi, alt bilgi, iletişim, harita, sosyal butonlar) otomatik kullanılır.</p>
+    <div class="cs-grid">
+      <div><label data-i18n="root_cs_phone">Telefon</label><input type="text" id="bPhone" placeholder="+90 555 123 4567"></div>
+      <div><label data-i18n="root_cs_whatsapp">WhatsApp</label><input type="text" id="bWhatsapp" placeholder="+90 555 123 4567"></div>
+      <div><label data-i18n="root_cs_email">E-posta</label><input type="text" id="bEmail" placeholder="info@restaurant.com"></div>
+      <div><label data-i18n="root_cs_website">Web Sitesi</label><input type="text" id="bWebsite" placeholder="https://..."></div>
+    </div>
+    <label data-i18n="root_cs_address">Adres</label>
+    <input type="text" id="bAddress" placeholder="123 Example Street, City">
+    <label data-i18n="root_cs_maps_link">Google Maps Linki</label>
+    <input type="text" id="bMapsLink" placeholder="https://maps.google.com/...">
+    <label data-i18n="root_cs_maps_embed">Google Maps Embed URL</label>
+    <input type="text" id="bMapsEmbed" placeholder="https://www.google.com/maps/embed?...">
+    <div class="cs-grid">
+      <div><label>Instagram</label><input type="text" id="bInstagram" placeholder="https://instagram.com/..."></div>
+      <div><label>Facebook</label><input type="text" id="bFacebook" placeholder="https://facebook.com/..."></div>
+      <div><label>X (Twitter)</label><input type="text" id="bTwitter" placeholder="https://x.com/..."></div>
+      <div><label>TikTok</label><input type="text" id="bTiktok" placeholder="https://tiktok.com/@..."></div>
+      <div><label>YouTube</label><input type="text" id="bYoutube" placeholder="https://youtube.com/@..."></div>
+    </div>
+
+    <h3 class="brand-section" data-i18n="root_widgets_title">Widget'lar</h3>
+    <p class="hint" data-i18n="root_widgets_hint">Müşteri sitesinde hangi butonların/bölümlerin gösterileceğini kapatıp açın. Bir widget'ı kapatmak, ilgili bilgiyi silmez — sadece siteden gizler.</p>
+    <div class="cs-grid" id="bWidgetsGrid">
+      <label style="display:flex;align-items:center;gap:8px;text-transform:none;letter-spacing:0;color:var(--text);font-weight:600;"><input type="checkbox" id="wWhatsapp" style="width:auto;" checked> WhatsApp</label>
+      <label style="display:flex;align-items:center;gap:8px;text-transform:none;letter-spacing:0;color:var(--text);font-weight:600;"><input type="checkbox" id="wInstagram" style="width:auto;" checked> Instagram</label>
+      <label style="display:flex;align-items:center;gap:8px;text-transform:none;letter-spacing:0;color:var(--text);font-weight:600;"><input type="checkbox" id="wFacebook" style="width:auto;" checked> Facebook</label>
+      <label style="display:flex;align-items:center;gap:8px;text-transform:none;letter-spacing:0;color:var(--text);font-weight:600;"><input type="checkbox" id="wTwitter" style="width:auto;" checked> X (Twitter)</label>
+      <label style="display:flex;align-items:center;gap:8px;text-transform:none;letter-spacing:0;color:var(--text);font-weight:600;"><input type="checkbox" id="wTiktok" style="width:auto;" checked> TikTok</label>
+      <label style="display:flex;align-items:center;gap:8px;text-transform:none;letter-spacing:0;color:var(--text);font-weight:600;"><input type="checkbox" id="wYoutube" style="width:auto;" checked> YouTube</label>
+      <label style="display:flex;align-items:center;gap:8px;text-transform:none;letter-spacing:0;color:var(--text);font-weight:600;"><input type="checkbox" id="wWebsite" style="width:auto;" checked> <span data-i18n="root_cs_website">Web Sitesi</span></label>
+      <label style="display:flex;align-items:center;gap:8px;text-transform:none;letter-spacing:0;color:var(--text);font-weight:600;"><input type="checkbox" id="wMaps" style="width:auto;" checked> Google Maps</label>
+    </div>
+
     <div class="row">
       <button class="btn secondary" onclick="closeModal('brandOverlay')" data-i18n="root_cancel">Vazgeç</button>
       <button class="btn" onclick="saveBranding()" data-i18n="root_save">Kaydet</button>
@@ -247,6 +529,123 @@
   </div>
 </div>
 
+<!-- PLATFORM HEALTH MODAL -->
+<div class="overlay" id="healthOverlay" onclick="if(event.target===this)closeModal('healthOverlay')">
+  <div class="modal" style="width:min(680px,100%);">
+    <h2 data-i18n="root_health_title">Platform Sağlık Durumu</h2>
+    <p class="hint" data-i18n="root_health_hint">Uygulamadan okunan bilgiler (Render, Railway, Docker, VPS vb. her ortamda çalışır).</p>
+    <div id="healthBody" style="margin-top:14px;"></div>
+    <div class="row">
+      <button class="btn secondary" onclick="openHealthModal()" data-i18n="root_health_refresh">Yenile</button>
+      <button class="btn" onclick="closeModal('healthOverlay')" data-i18n="root_close">Kapat</button>
+    </div>
+  </div>
+</div>
+
+<!-- ACTIVITY LOG MODAL -->
+<div class="overlay" id="activityOverlay" onclick="if(event.target===this)closeModal('activityOverlay')">
+  <div class="modal" style="width:min(760px,100%);">
+    <h2 data-i18n="root_activity_title">Aktivite Kaydı</h2>
+    <p class="hint" data-i18n="root_activity_hint">Platform genelindeki önemli işlemler (giriş, restoran oluşturma/silme, marka değişiklikleri).</p>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin:10px 0;">
+      <input type="text" id="actFilterTenant" placeholder="tenant" style="max-width:160px;" oninput="loadActivity()">
+      <select id="actFilterAction" onchange="loadActivity()" style="max-width:200px;">
+        <option value="" data-i18n="root_activity_all">Tüm işlemler</option>
+        <option value="login">login</option>
+        <option value="tenant_created">tenant_created</option>
+        <option value="tenant_deleted">tenant_deleted</option>
+        <option value="branding_updated">branding_updated</option>
+      </select>
+    </div>
+    <div style="max-height:52vh;overflow:auto;"><table class="tbl"><thead><tr>
+      <th data-i18n="root_activity_when">Zaman</th><th data-i18n="root_activity_actor">Kullanıcı</th>
+      <th data-i18n="root_activity_action">İşlem</th><th data-i18n="root_activity_target">Hedef</th><th>Tenant</th>
+    </tr></thead><tbody id="activityBody"></tbody></table></div>
+    <div class="row">
+      <button class="btn secondary" onclick="loadActivity()" data-i18n="root_health_refresh">Yenile</button>
+      <button class="btn" onclick="closeModal('activityOverlay')" data-i18n="root_close">Kapat</button>
+    </div>
+  </div>
+</div>
+
+<!-- LANDING MESSAGES MODAL -->
+<div class="overlay" id="landingOverlay" onclick="if(event.target===this)closeModal('landingOverlay')">
+  <div class="modal" style="width:min(920px,100%);">
+    <h2 data-i18n="root_landing_title">Landing Mesajları</h2>
+    <p class="hint" data-i18n="root_landing_hint">HASACA tanıtım sitesindeki iletişim formundan gelen talepler.</p>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin:10px 0;align-items:center;">
+      <select id="lmStatus" onchange="loadLandingMessages()" style="max-width:170px;">
+        <option value="" data-i18n="root_landing_all">Tümü</option>
+        <option value="unread" data-i18n="root_landing_unread">Okunmamış</option>
+        <option value="read" data-i18n="root_landing_read">Okunmuş</option>
+        <option value="archived" data-i18n="root_landing_archived">Arşiv</option>
+      </select>
+      <input type="text" id="lmSearch" data-i18n-placeholder="root_landing_search" placeholder="Ad, restoran veya e-posta ara" style="max-width:250px;" oninput="loadLandingMessages()">
+      <span class="hint" id="lmCount" style="margin-left:auto;"></span>
+      <button class="btn small secondary" onclick="exportLandingCsv()" data-i18n="root_landing_csv">CSV Dışa Aktar</button>
+    </div>
+    <div style="max-height:50vh;overflow:auto;"><table class="tbl"><thead><tr>
+      <th data-i18n="root_landing_when">Tarih</th><th data-i18n="root_landing_rest">Restoran</th>
+      <th data-i18n="root_landing_name">Ad</th><th data-i18n="root_landing_contact">İletişim</th>
+      <th data-i18n="root_landing_status">Durum</th><th></th>
+    </tr></thead><tbody id="landingBody"></tbody></table></div>
+    <div id="lmDetail" style="display:none;margin-top:12px;padding:12px;border:1px solid var(--line);border-radius:10px;background:rgba(255,255,255,.03);"></div>
+    <div class="row">
+      <button class="btn secondary" onclick="loadLandingMessages()" data-i18n="root_health_refresh">Yenile</button>
+      <button class="btn" onclick="closeModal('landingOverlay')" data-i18n="root_close">Kapat</button>
+    </div>
+  </div>
+</div>
+
+<!-- ANALYTICS MODAL -->
+<div class="overlay" id="analyticsOverlay" onclick="if(event.target===this)closeModal('analyticsOverlay')">
+  <div class="modal" style="width:min(760px,100%);">
+    <h2 data-i18n="root_analytics_title">Platform Analitiği</h2>
+    <p class="hint" data-i18n="root_analytics_hint">Tüm restoranların toplamı. Restoran sahipleri yalnızca kendi verilerini görür.</p>
+    <div style="margin:10px 0;">
+      <select id="anRange" onchange="loadAnalytics()" style="max-width:200px;">
+        <option value="7">7 <span data-i18n="root_an_days">gün</span></option>
+        <option value="30" selected>30 <span data-i18n="root_an_days">gün</span></option>
+        <option value="90">90 <span data-i18n="root_an_days">gün</span></option>
+        <option value="365">365 <span data-i18n="root_an_days">gün</span></option>
+      </select>
+    </div>
+    <div id="analyticsBody"></div>
+    <div class="row">
+      <button class="btn secondary" onclick="loadAnalytics()" data-i18n="root_health_refresh">Yenile</button>
+      <button class="btn" onclick="closeModal('analyticsOverlay')" data-i18n="root_close">Kapat</button>
+    </div>
+  </div>
+</div>
+
+<!-- NOTIFICATION CENTER MODAL -->
+<div class="overlay" id="notifyOverlay" onclick="if(event.target===this)closeModal('notifyOverlay')">
+  <div class="modal" style="width:min(720px,100%);">
+    <h2 data-i18n="root_notify_title">Bildirim Merkezi</h2>
+    <p class="hint" data-i18n="root_notify_hint">Seçili restoranların abonelerine push bildirimi gönderin. Her restoran yalnızca kendi abonelerine ulaşır.</p>
+    <label data-i18n="root_notify_ntitle">Başlık</label>
+    <input type="text" id="nfTitle" maxlength="120">
+    <label data-i18n="root_notify_nbody">Mesaj</label>
+    <textarea id="nfBody" rows="3" maxlength="500" style="resize:vertical;"></textarea>
+    <label data-i18n="root_notify_nurl">Bağlantı (opsiyonel)</label>
+    <input type="text" id="nfUrl" placeholder="https://...">
+    <label data-i18n="root_notify_target">Hedef</label>
+    <div style="display:flex;gap:16px;margin:4px 0 8px;">
+      <label style="display:flex;align-items:center;gap:6px;text-transform:none;letter-spacing:0;color:var(--text);font-weight:600;"><input type="radio" name="nfTarget" value="all" checked onchange="toggleNotifyTargets()" style="width:auto;"> <span data-i18n="root_notify_all">Tüm restoranlar</span></label>
+      <label style="display:flex;align-items:center;gap:6px;text-transform:none;letter-spacing:0;color:var(--text);font-weight:600;"><input type="radio" name="nfTarget" value="sel" onchange="toggleNotifyTargets()" style="width:auto;"> <span data-i18n="root_notify_selected">Seçili</span></label>
+    </div>
+    <div id="nfTenantList" style="display:none;max-height:120px;overflow:auto;border:1px solid var(--line);border-radius:10px;padding:8px;margin-bottom:8px;"></div>
+    <div class="row" style="justify-content:space-between;">
+      <button class="btn" onclick="sendRootNotification()" data-i18n="root_notify_send">Gönder</button>
+      <button class="btn secondary" onclick="closeModal('notifyOverlay')" data-i18n="root_close">Kapat</button>
+    </div>
+    <div class="hsec-title" data-i18n="root_notify_history">Gönderim Geçmişi</div>
+    <div style="max-height:34vh;overflow:auto;"><table class="tbl"><thead><tr>
+      <th data-i18n="root_activity_when">Zaman</th><th>Tenant</th><th data-i18n="root_notify_ntitle">Başlık</th><th data-i18n="root_notify_sent">Gönderildi</th>
+    </tr></thead><tbody id="notifyHistory"></tbody></table></div>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script>
@@ -269,7 +668,7 @@ const i18nData = {
     root_login_wrong: "Giriş başarısız. Bilgileri kontrol edin.",
     root_not_root: "Bu hesap root yetkisine sahip değil.",
     root_tenant_mgmt: "Restoran Yönetimi",
-    root_new_tenant: "+ Yeni Restoran", root_logout: "Çıkış",
+    root_new_tenant: "Yeni Restoran", root_logout: "Çıkış",
     root_search_ph: "Restoran ara...",
     root_filter_all: "Tümü", root_filter_active: "Aktif", root_filter_disabled: "Devre Dışı",
     root_create_title: "Yeni Restoran Oluştur",
@@ -283,6 +682,62 @@ const i18nData = {
     root_edit_title: "Restoranı Düzenle",
     root_brand_title: "Marka / Site İçeriği (Root)",
     root_brand_logo: "Logo", root_brand_company: "Şirket Adı", root_brand_footer: "Footer Metni",
+    root_contact_title: "İletişim & Sosyal Medya",
+    root_contact_hint: "Bu bilgiler sitenin her yerinde (üst bilgi, alt bilgi, iletişim, harita, sosyal butonlar) otomatik kullanılır.",
+    root_cs_phone: "Telefon", root_cs_whatsapp: "WhatsApp", root_cs_email: "E-posta", root_cs_website: "Web Sitesi",
+    root_cs_address: "Adres", root_cs_maps_link: "Google Maps Linki", root_cs_maps_embed: "Google Maps Embed URL",
+    root_widgets_title: "Widget'lar", root_widgets_hint: "Müşteri sitesinde hangi butonların/bölümlerin gösterileceğini kapatıp açın. Bir widget'ı kapatmak, ilgili bilgiyi silmez — sadece siteden gizler.",
+    root_brand_theme: "Tema", root_theme_dark: "Sıcak (Varsayılan)", root_theme_light: "Açık", root_theme_bw: "Siyah & Beyaz",
+    root_seo_title: "SEO", root_seo_keywords: "Anahtar Kelimeler", root_seo_og: "Sosyal Paylaşım Görseli (OG)",
+    root_seo_robots: "Arama Motoru İndeksleme", root_seo_indexed: "İndekslensin (varsayılan)", root_seo_noindex: "İndekslenmesin",
+    root_health: "Sistem Durumu", root_health_title: "Platform Sağlık Durumu",
+    root_health_hint: "Uygulamadan okunan bilgiler (Render, Railway, Docker, VPS vb. her ortamda çalışır).",
+    root_health_refresh: "Yenile", root_health_app: "Uygulama", root_health_ok: "Çalışıyor", root_health_db: "Veritabanı",
+    root_health_uptime: "Çalışma Süresi", root_health_version: "Sürüm", root_health_business: "İşletme Metrikleri",
+    root_health_tenants: "Restoranlar", root_health_products: "Ürünler", root_health_orders_today: "Bugünkü Sipariş",
+    root_health_month: "ay", root_health_orders_total: "Toplam Sipariş", root_health_reservations: "Rezervasyonlar",
+    root_health_subs: "Push Aboneleri", root_health_qr: "QR Masaları", root_health_runtime: "Çalışma Ortamı",
+    root_health_env: "Ortam", root_health_dbsize: "Veritabanı Boyutu", root_health_uploads: "Yüklemeler",
+    root_activity: "Aktivite", root_activity_title: "Aktivite Kaydı",
+    root_activity_hint: "Platform genelindeki önemli işlemler (giriş, restoran oluşturma/silme, marka değişiklikleri).",
+    root_activity_all: "Tüm işlemler", root_activity_when: "Zaman", root_activity_actor: "Kullanıcı",
+    root_activity_action: "İşlem", root_activity_target: "Hedef", root_activity_empty: "Kayıt yok.",
+    root_analytics: "Analitik", root_analytics_title: "Platform Analitiği",
+    root_analytics_hint: "Tüm restoranların toplamı. Restoran sahipleri yalnızca kendi verilerini görür.",
+    root_an_days: "gün", root_an_orders: "Sipariş", root_an_revenue: "Ciro", root_an_avg: "Ort. Sepet",
+    root_an_reservations: "Rezervasyon", root_an_delivery: "Paket", root_an_dinein: "Masa",
+    root_an_orders_by_day: "Günlük Sipariş", root_an_top_tenants: "En Çok Sipariş Alan Restoranlar",
+    root_notify: "Bildirim", root_notify_title: "Bildirim Merkezi",
+    root_notify_hint: "Seçili restoranların abonelerine push bildirimi gönderin. Her restoran yalnızca kendi abonelerine ulaşır.",
+    root_notify_ntitle: "Başlık", root_notify_nbody: "Mesaj", root_notify_nurl: "Bağlantı (opsiyonel)",
+    root_notify_target: "Hedef", root_notify_all: "Tüm restoranlar", root_notify_selected: "Seçili",
+    root_notify_send: "Gönder", root_notify_history: "Gönderim Geçmişi", root_notify_sent: "Gönderildi",
+    root_notify_need: "Başlık ve mesaj gerekli.", root_notify_pick: "En az bir restoran seçin.", root_notify_ok: "Bildirim gönderildi",
+    root_landing: "Landing Mesajları", root_landing_title: "Landing Mesajları",
+    root_landing_hint: "HASACA tanıtım sitesindeki iletişim formundan gelen talepler.",
+    root_landing_all: "Tümü", root_landing_unread: "Okunmamış", root_landing_read: "Okunmuş", root_landing_archived: "Arşiv",
+    root_landing_search: "Ad, restoran veya e-posta ara", root_landing_csv: "CSV Dışa Aktar",
+    root_landing_when: "Tarih", root_landing_rest: "Restoran", root_landing_name: "Ad",
+    root_landing_contact: "İletişim", root_landing_status: "Durum", root_landing_view: "Görüntüle",
+    root_landing_arch: "Arşivle", root_landing_empty: "Henüz mesaj yok.",
+    root_landing_updated: "Durum güncellendi", root_landing_deleted: "Mesaj silindi",
+    root_landing_confirm_del: "Bu mesajı silmek istediğinize emin misiniz?",
+    nav_grp_general: "Genel", nav_grp_monitor: "İzleme", nav_grp_comms: "İletişim", nav_grp_settings: "Ayarlar", nav_grp_ai: "Yapay Zeka",
+    nav_dashboard: "Panel", nav_restaurants: "Restoranlar", nav_collapse: "Daralt", nav_ai_assistant: "AI Asistanı",
+    root_ai_asst_title: "AI Asistanı", root_ai_asst_desc: 'Platform markanızı veya seçtiğiniz restoranın menüsünü doğal dille yönetin.',
+    root_ai_asst_target: "Hedef", root_ai_asst_platform: "Platform (HASACA markası)",
+    root_ai_asst_platform_hint: 'Platform adı, logo ve landing metinleri düzenlenir. Örn: "Platform adını HASACA Pro yap".',
+    root_ai_asst_tenant_hint: 'Seçili restoranın ürünleri ve kategorileri düzenlenir. Örn: "Tüm içeceklerin fiyatını %10 artır".',
+    root_ai_asst_ph: "Ne yapmak istersiniz?", root_ai_asst_send: "Gönder", root_ai_asst_thinking: "Düşünülüyor…",
+    root_ai_asst_plan_title: "Önerilen Değişiklikler", root_ai_asst_confirm: "Onayla ve Uygula", root_ai_asst_cancel: "İptal",
+    root_ai_asst_applied_title: "Uygulandı", root_ai_asst_unsupported: "Desteklenmeyen istekler:",
+    root_ai_asst_not_configured: "AI asistanı henüz yapılandırılmadı. Önce AI Ayarları'ndan anahtarı etkinleştirin.",
+    root_ai_asst_no_actions: "İsteğinizden uygulanabilir bir değişiklik çıkaramadım.",
+    theme_system: "Sistem", theme_light: "Açık", theme_dark: "Koyu",
+    dash_tenants: "Restoran", dash_active: "Aktif", dash_orders: "Sipariş", dash_revenue: "Ciro",
+    dash_total: "Toplam", dash_active_sub: "Yayında", dash_30d: "Son 30 gün",
+    dash_recent: "Son Aktivite", dash_viewall: "Tümü", dash_quick: "Hızlı İşlemler",
+    dash_loading: "Yükleniyor…", dash_empty: "Henüz aktivite yok.",
     root_detail_tables: "Masalar & QR Token'ları",
     root_tbl_name: "Masa", root_tbl_created: "Oluşturma",
     root_act_site: "Siteyi Aç", root_act_admin: "Tenant Girişi", root_act_edit: "Düzenle",
@@ -290,6 +745,9 @@ const i18nData = {
     root_act_disable: "Devre Dışı", root_act_enable: "Aktifleştir", root_act_delete: "Sil",
     root_act_resetpwd: "Şifre Sıfırla",
     root_confirm_delete: "Bu restoranı ve TÜM verilerini kalıcı olarak silmek istediğinize emin misiniz? Bu işlem geri alınamaz!",
+    root_confirm_delete_default: "Bu VARSAYILAN restorandır. Silinirse yerine otomatik olarak yeni bir demo restoran oluşturulacaktır. Onaylamak için DELETE yazın:",
+    root_delete_cancelled: "Silme iptal edildi.",
+    root_default_regenerated: "Restoran silindi. Platform boş kalmasın diye yeni bir varsayılan restoran oluşturuldu.",
     root_confirm_disable: "Bu restoran sitesi devre dışı bırakılsın mı? Site ziyaretçilere kapatılır.",
     root_deleted: "Restoran silindi", root_saved: "Kaydedildi", root_updated: "Güncellendi",
     root_stats_products: "ürün", root_stats_tables: "masa", root_stats_orders: "sipariş",
@@ -314,7 +772,7 @@ const i18nData = {
     root_login_wrong: "Login failed. Check your credentials.",
     root_not_root: "This account does not have root access.",
     root_tenant_mgmt: "Tenant Management",
-    root_new_tenant: "+ New Restaurant", root_logout: "Logout",
+    root_new_tenant: "New Restaurant", root_logout: "Logout",
     root_search_ph: "Search restaurants...",
     root_filter_all: "All", root_filter_active: "Active", root_filter_disabled: "Disabled",
     root_create_title: "Create New Restaurant",
@@ -328,6 +786,62 @@ const i18nData = {
     root_edit_title: "Edit Restaurant",
     root_brand_title: "Branding / Site Content (Root)",
     root_brand_logo: "Logo", root_brand_company: "Company Name", root_brand_footer: "Footer Text",
+    root_contact_title: "Contact & Social",
+    root_contact_hint: "These values are used automatically across the whole site (header, footer, contact, map, social buttons).",
+    root_cs_phone: "Phone", root_cs_whatsapp: "WhatsApp", root_cs_email: "Email", root_cs_website: "Website",
+    root_cs_address: "Address", root_cs_maps_link: "Google Maps Link", root_cs_maps_embed: "Google Maps Embed URL",
+    root_widgets_title: "Widgets", root_widgets_hint: "Turn individual buttons/sections on or off on the customer site. Disabling a widget doesn't delete the underlying info — it just hides it.",
+    root_brand_theme: "Theme", root_theme_dark: "Warm (Default)", root_theme_light: "Light", root_theme_bw: "Black & White",
+    root_seo_title: "SEO", root_seo_keywords: "Keywords", root_seo_og: "Social Share Image (OG)",
+    root_seo_robots: "Search Engine Indexing", root_seo_indexed: "Indexed (default)", root_seo_noindex: "Not indexed",
+    root_health: "Health", root_health_title: "Platform Health",
+    root_health_hint: "Read only from the running app (works on Render, Railway, Docker, VPS, etc.).",
+    root_health_refresh: "Refresh", root_health_app: "Application", root_health_ok: "Running", root_health_db: "Database",
+    root_health_uptime: "Uptime", root_health_version: "Version", root_health_business: "Business Metrics",
+    root_health_tenants: "Restaurants", root_health_products: "Products", root_health_orders_today: "Orders Today",
+    root_health_month: "mo", root_health_orders_total: "Total Orders", root_health_reservations: "Reservations",
+    root_health_subs: "Push Subscribers", root_health_qr: "QR Tables", root_health_runtime: "Runtime",
+    root_health_env: "Environment", root_health_dbsize: "Database Size", root_health_uploads: "Uploads",
+    root_activity: "Activity", root_activity_title: "Activity Log",
+    root_activity_hint: "Important platform actions (login, restaurant create/delete, branding changes).",
+    root_activity_all: "All actions", root_activity_when: "Time", root_activity_actor: "User",
+    root_activity_action: "Action", root_activity_target: "Target", root_activity_empty: "No records.",
+    root_analytics: "Analytics", root_analytics_title: "Platform Analytics",
+    root_analytics_hint: "Aggregate across all restaurants. Restaurant owners see only their own data.",
+    root_an_days: "days", root_an_orders: "Orders", root_an_revenue: "Revenue", root_an_avg: "Avg Order",
+    root_an_reservations: "Reservations", root_an_delivery: "Delivery", root_an_dinein: "Dine-in",
+    root_an_orders_by_day: "Orders by Day", root_an_top_tenants: "Top Restaurants by Orders",
+    root_notify: "Notifications", root_notify_title: "Notification Center",
+    root_notify_hint: "Send push notifications to selected restaurants' subscribers. Each restaurant reaches only its own subscribers.",
+    root_notify_ntitle: "Title", root_notify_nbody: "Message", root_notify_nurl: "Link (optional)",
+    root_notify_target: "Target", root_notify_all: "All restaurants", root_notify_selected: "Selected",
+    root_notify_send: "Send", root_notify_history: "Send History", root_notify_sent: "Sent",
+    root_notify_need: "Title and message are required.", root_notify_pick: "Select at least one restaurant.", root_notify_ok: "Notification sent",
+    root_landing: "Landing Messages", root_landing_title: "Landing Messages",
+    root_landing_hint: "Requests from the contact form on the HASACA marketing site.",
+    root_landing_all: "All", root_landing_unread: "Unread", root_landing_read: "Read", root_landing_archived: "Archived",
+    root_landing_search: "Search name, restaurant or email", root_landing_csv: "Export CSV",
+    root_landing_when: "Date", root_landing_rest: "Restaurant", root_landing_name: "Name",
+    root_landing_contact: "Contact", root_landing_status: "Status", root_landing_view: "View",
+    root_landing_arch: "Archive", root_landing_empty: "No messages yet.",
+    root_landing_updated: "Status updated", root_landing_deleted: "Message deleted",
+    root_landing_confirm_del: "Are you sure you want to delete this message?",
+    nav_grp_general: "General", nav_grp_monitor: "Monitoring", nav_grp_comms: "Communication", nav_grp_settings: "Settings", nav_grp_ai: "AI",
+    nav_dashboard: "Dashboard", nav_restaurants: "Restaurants", nav_collapse: "Collapse", nav_ai_assistant: "AI Assistant",
+    root_ai_asst_title: "AI Assistant", root_ai_asst_desc: "Manage your platform branding — or a selected restaurant's menu — in plain language.",
+    root_ai_asst_target: "Target", root_ai_asst_platform: "Platform (HASACA branding)",
+    root_ai_asst_platform_hint: 'Edits the platform name, logo and landing copy. E.g. "Rename the platform to HASACA Pro".',
+    root_ai_asst_tenant_hint: 'Edits the selected restaurant\'s products and categories. E.g. "Increase all drink prices by 10%".',
+    root_ai_asst_ph: "What would you like to do?", root_ai_asst_send: "Send", root_ai_asst_thinking: "Thinking…",
+    root_ai_asst_plan_title: "Proposed Changes", root_ai_asst_confirm: "Confirm & Apply", root_ai_asst_cancel: "Cancel",
+    root_ai_asst_applied_title: "Applied", root_ai_asst_unsupported: "Unsupported requests:",
+    root_ai_asst_not_configured: "The AI assistant isn't configured yet. Enable it from AI Settings first.",
+    root_ai_asst_no_actions: "I couldn't derive an actionable change from your request.",
+    theme_system: "System", theme_light: "Light", theme_dark: "Dark",
+    dash_tenants: "Restaurants", dash_active: "Active", dash_orders: "Orders", dash_revenue: "Revenue",
+    dash_total: "Total", dash_active_sub: "Live", dash_30d: "Last 30 days",
+    dash_recent: "Recent Activity", dash_viewall: "View all", dash_quick: "Quick Actions",
+    dash_loading: "Loading…", dash_empty: "No activity yet.",
     root_detail_tables: "Tables & QR Tokens",
     root_tbl_name: "Table", root_tbl_created: "Created",
     root_act_site: "Open Site", root_act_admin: "Login as Tenant", root_act_edit: "Edit",
@@ -335,6 +849,9 @@ const i18nData = {
     root_act_disable: "Disable", root_act_enable: "Enable", root_act_delete: "Delete",
     root_act_resetpwd: "Reset Password",
     root_confirm_delete: "Are you sure you want to permanently delete this restaurant and ALL of its data? This cannot be undone!",
+    root_confirm_delete_default: "This is the DEFAULT restaurant. Deleting it will auto-generate a fresh demo restaurant in its place. Type DELETE to confirm:",
+    root_delete_cancelled: "Deletion cancelled.",
+    root_default_regenerated: "Restaurant deleted. A fresh default restaurant was created so the platform is never empty.",
     root_confirm_disable: "Disable this restaurant site? It will be closed to visitors.",
     root_deleted: "Restaurant deleted", root_saved: "Saved", root_updated: "Updated",
     root_stats_products: "products", root_stats_tables: "tables", root_stats_orders: "orders",
@@ -355,8 +872,9 @@ function applyRootLanguage(){
 function toggleRootLang(){ lang = lang === 'tr' ? 'en' : 'tr'; localStorage.setItem('hasaca_root_lang', lang); applyRootLanguage(); }
 
 // ── auth ──
-function rootToken(){ try { return localStorage.getItem('hasaca_root_token') || ''; } catch(e){ return ''; } }
-function setRootToken(t){ try { t ? localStorage.setItem('hasaca_root_token', t) : localStorage.removeItem('hasaca_root_token'); } catch(e){} }
+// sessionStorage is used when the login page's "Beni hatırla" is unchecked.
+function rootToken(){ try { return localStorage.getItem('hasaca_root_token') || sessionStorage.getItem('hasaca_root_token') || ''; } catch(e){ return ''; } }
+function setRootToken(t){ try { if(t) localStorage.setItem('hasaca_root_token', t); else { localStorage.removeItem('hasaca_root_token'); sessionStorage.removeItem('hasaca_root_token'); } } catch(e){} }
 
 async function rootFetch(path, opts = {}){
   opts.headers = Object.assign({ 'Authorization': 'Bearer ' + rootToken() }, opts.headers || {});
@@ -384,7 +902,93 @@ async function rootLogin(){
 }
 function rootLogout(){ setRootToken(''); showLogin(); }
 function showLogin(){ document.getElementById('loginView').style.display = 'flex'; document.getElementById('shellView').style.display = 'none'; }
-function showShell(){ document.getElementById('loginView').style.display = 'none'; document.getElementById('shellView').style.display = 'block'; loadTenants(); }
+async function showShell(){ document.getElementById('loginView').style.display = 'none'; document.getElementById('shellView').style.display = 'block'; refreshLandingBadge(); showView('dashboard'); await loadTenants(); loadDashboard(); }
+
+// ── Desktop shell: view switching, sidebar, dashboard (Phase 24, presentation only) ──
+function showView(name){
+  document.querySelectorAll('#appShell .view').forEach(v => v.hidden = (v.id !== 'view-' + name));
+  document.getElementById('navDashboard').classList.toggle('active', name === 'dashboard');
+  document.getElementById('navRestaurants').classList.toggle('active', name === 'restaurants');
+  document.getElementById('navAiAssistant').classList.toggle('active', name === 'ai-assistant');
+  const titleKey = name === 'restaurants' ? 'nav_restaurants' : (name === 'ai-assistant' ? 'nav_ai_assistant' : 'nav_dashboard');
+  const pt = document.getElementById('pageTitle');
+  pt.setAttribute('data-i18n', titleKey); pt.textContent = T(titleKey);
+  if (name === 'dashboard') loadDashboard();
+  if (name === 'ai-assistant') rootAiPopulateTargets();
+  toggleSidebar(false); // close the mobile drawer after navigating
+}
+function toggleSidebar(force){
+  const shell = document.getElementById('appShell');
+  const open = typeof force === 'boolean' ? force : !shell.classList.contains('drawer-open');
+  shell.classList.toggle('drawer-open', open);
+  document.getElementById('appBackdrop').classList.toggle('show', open);
+}
+function toggleCollapse(){
+  const shell = document.getElementById('appShell');
+  const c = shell.classList.toggle('collapsed');
+  try { localStorage.setItem('hasaca_panel_collapsed', c ? '1' : '0'); } catch(e){}
+}
+function toggleProfileMenu(e){ if (e) e.stopPropagation(); document.getElementById('profileMenu').classList.toggle('open'); }
+document.addEventListener('click', (e) => {
+  const p = document.getElementById('profileMenu');
+  if (p && p.classList.contains('open') && !e.target.closest('.profile')) p.classList.remove('open');
+});
+
+// ── Theme: system (default) / light / dark — instant, persisted ──
+const THEME_MQ = window.matchMedia('(prefers-color-scheme: dark)');
+function resolveTheme(mode){ return mode === 'system' ? (THEME_MQ.matches ? 'dark' : 'light') : mode; }
+function applyThemeAttr(mode){ document.documentElement.setAttribute('data-theme', resolveTheme(mode)); }
+function setTheme(mode){
+  try { localStorage.setItem('hasaca_panel_theme', mode); } catch(e){}
+  applyThemeAttr(mode);
+  document.querySelectorAll('#themeSeg button').forEach(b => b.classList.toggle('on', b.getAttribute('data-theme-mode') === mode));
+}
+function initTheme(){
+  let mode = 'system';
+  try { mode = localStorage.getItem('hasaca_panel_theme') || 'system'; } catch(e){}
+  setTheme(mode);
+  // live-follow the OS when in system mode
+  THEME_MQ.addEventListener('change', () => { let m='system'; try{ m=localStorage.getItem('hasaca_panel_theme')||'system'; }catch(e){} if (m === 'system') applyThemeAttr('system'); });
+}
+
+// ── Dashboard (read-only; reuses existing endpoints) ──
+async function loadDashboard(){
+  // tenant tiles from the already-loaded list
+  try {
+    const total = (tenants || []).length;
+    const active = (tenants || []).filter(t => (t.status || 'active') === 'active').length;
+    document.getElementById('dashTenants').textContent = total;
+    document.getElementById('dashActive').textContent = active;
+  } catch(e){}
+  // orders + revenue from the platform analytics endpoint
+  try {
+    const a = await (await rootFetch('/api/root/analytics?days=30')).json();
+    const s = a.summary || {};
+    document.getElementById('dashOrders').textContent = (s.orders != null ? s.orders : 0).toLocaleString(lang === 'tr' ? 'tr-TR' : 'en-US');
+    document.getElementById('dashRevenue').textContent = '₺' + Math.round(s.revenue || 0).toLocaleString(lang === 'tr' ? 'tr-TR' : 'en-US');
+  } catch(e){}
+  // recent activity
+  try {
+    const d = await (await rootFetch('/api/root/activity?limit=6')).json();
+    const box = document.getElementById('dashActivity');
+    const esc = x => String(x == null ? '' : x).replace(/[<>&]/g, c => ({'<':'&lt;','>':'&gt;','&':'&amp;'}[c]));
+    if (!d.items || !d.items.length) { box.innerHTML = '<div class="hint">' + T('dash_empty') + '</div>'; return; }
+    box.innerHTML = d.items.map(r => {
+      const when = new Date(Number(r.created_at)).toLocaleString(lang === 'tr' ? 'tr-TR' : 'en-US');
+      return `<div class="act-row"><span class="act-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 8v4l3 2"/></svg></span>
+        <div class="act-main"><b>${esc(r.action)}</b> ${esc(r.target) || ''} <span style="color:var(--faint)">${esc(r.tenant_id) || ''}</span></div>
+        <span class="act-when">${esc(when)}</span></div>`;
+    }).join('');
+  } catch(e){}
+}
+// Unread landing-message count for the topbar badge (cheap, no modal render).
+async function refreshLandingBadge(){
+  try {
+    const d = await (await rootFetch('/api/root/landing-messages?limit=1')).json();
+    const b = document.getElementById('landingBadge');
+    if (b) { b.textContent = d.unread || 0; b.style.display = d.unread ? 'inline-block' : 'none'; }
+  } catch(e){ /* badge is non-critical */ }
+}
 
 // ── tenants ──
 let tenants = [];
@@ -549,6 +1153,31 @@ function openBrandModal(slug){
   document.getElementById('bFooter').value = s.footer_text || '';
   document.getElementById('bSeoTitle').value = s.seo_title || '';
   document.getElementById('bSeoDesc').value = s.seo_description || '';
+  document.getElementById('bSeoKeywords').value = s.seo_keywords || '';
+  document.getElementById('bOgImage').value = s.og_image || '';
+  document.getElementById('bSeoRobots').value = s.seo_robots || 'index';
+  refreshAssetThumb('bOgImage');
+  updateSeoPreview();
+  document.getElementById('bTheme').value = s.theme || 'dark';
+  // Contact & Social
+  document.getElementById('bPhone').value = s.contact_phone || t.contact_phone || '';
+  document.getElementById('bWhatsapp').value = s.whatsapp || '';
+  document.getElementById('bEmail').value = s.contact_email || t.contact_email || '';
+  document.getElementById('bWebsite').value = s.website || '';
+  document.getElementById('bAddress').value = s.address || t.address || '';
+  document.getElementById('bMapsLink').value = s.maps_link || '';
+  document.getElementById('bMapsEmbed').value = s.maps_embed || '';
+  document.getElementById('bInstagram').value = s.instagram || '';
+  document.getElementById('bFacebook').value = s.facebook || '';
+  document.getElementById('bTwitter').value = s.twitter || '';
+  document.getElementById('bTiktok').value = s.tiktok || '';
+  document.getElementById('bYoutube').value = s.youtube || '';
+  // Widgets (Phase 28): missing key defaults to enabled, matching applySiteConfig()'s fallback.
+  const w = s.widgets || {};
+  ['whatsapp','instagram','facebook','twitter','tiktok','youtube','website','maps'].forEach(key => {
+    const el = document.getElementById('w' + key.charAt(0).toUpperCase() + key.slice(1));
+    if (el) el.checked = w[key] !== false;
+  });
   refreshAssetThumb('bLogo');
   document.getElementById('brandOverlay').classList.add('open');
 }
@@ -566,12 +1195,38 @@ async function saveBranding(){
         hero_sub_en: document.getElementById('bHeroSubEn').value,
         footer_text: document.getElementById('bFooter').value.trim(),
         seo_title: document.getElementById('bSeoTitle').value.trim(),
-        seo_description: document.getElementById('bSeoDesc').value.trim()
+        seo_description: document.getElementById('bSeoDesc').value.trim(),
+        seo_keywords: document.getElementById('bSeoKeywords').value.trim(),
+        og_image: document.getElementById('bOgImage').value.trim(),
+        seo_robots: document.getElementById('bSeoRobots').value,
+        theme: document.getElementById('bTheme').value,
+        contact_phone: document.getElementById('bPhone').value.trim(),
+        whatsapp: document.getElementById('bWhatsapp').value.trim(),
+        contact_email: document.getElementById('bEmail').value.trim(),
+        website: document.getElementById('bWebsite').value.trim(),
+        address: document.getElementById('bAddress').value.trim(),
+        maps_link: document.getElementById('bMapsLink').value.trim(),
+        maps_embed: document.getElementById('bMapsEmbed').value.trim(),
+        instagram: document.getElementById('bInstagram').value.trim(),
+        facebook: document.getElementById('bFacebook').value.trim(),
+        twitter: document.getElementById('bTwitter').value.trim(),
+        tiktok: document.getElementById('bTiktok').value.trim(),
+        youtube: document.getElementById('bYoutube').value.trim(),
+        widgets: {
+          whatsapp: document.getElementById('wWhatsapp').checked,
+          instagram: document.getElementById('wInstagram').checked,
+          facebook: document.getElementById('wFacebook').checked,
+          twitter: document.getElementById('wTwitter').checked,
+          tiktok: document.getElementById('wTiktok').checked,
+          youtube: document.getElementById('wYoutube').checked,
+          website: document.getElementById('wWebsite').checked,
+          maps: document.getElementById('wMaps').checked
+        }
       })
     });
-    if (!res.ok) throw new Error();
+    if (!res.ok) { const e = await res.json().catch(()=>({})); throw new Error(e.error || ''); }
     closeModal('brandOverlay'); toast(T('root_saved')); loadTenants();
-  } catch(e){ toast(T('root_err')); }
+  } catch(e){ toast(e.message || T('root_err')); }
 }
 
 // ── detail ──
@@ -616,10 +1271,17 @@ async function toggleStatus(slug, current){
 }
 async function deleteTenant(slug){
   if (!confirm(T('root_confirm_delete'))) return;
+  // Deleting the default tenant needs a strong (type-to-confirm) step; it will be auto-regenerated.
+  if (slug === 'default') {
+    const typed = prompt(T('root_confirm_delete_default'));
+    if ((typed || '').trim().toUpperCase() !== 'DELETE') { toast(T('root_delete_cancelled')); return; }
+  }
   try {
     const res = await rootFetch('/api/root/tenants/' + slug, { method: 'DELETE' });
+    const data = await res.json().catch(() => ({}));
     if (!res.ok) throw new Error();
-    toast(T('root_deleted')); loadTenants();
+    toast(data.regeneratedDefault ? T('root_default_regenerated') : T('root_deleted'));
+    loadTenants();
   } catch(e){ toast(T('root_err')); }
 }
 async function resetTenantPassword(slug){
@@ -645,7 +1307,7 @@ async function applyPlatformConfig(){
     platformCfg = cfg || {};
     const name = cfg.platform_name || 'HASACA';
     document.getElementById('rootLoginName').textContent = name;
-    document.getElementById('rootHeaderName').textContent = name;
+    const sbn = document.getElementById('sideBrandName'); if (sbn) sbn.textContent = name;
     const logo = cfg.login_logo_url || cfg.logo_url;
     if (logo) document.getElementById('rootLoginLogo').src = logo;
     if (cfg.favicon_url) { let f = document.querySelector('link[rel="icon"]'); if (f) f.href = cfg.favicon_url; }
@@ -713,6 +1375,253 @@ function refreshAssetThumb(targetId){
   else { thumb.removeAttribute('src'); thumb.style.display = 'none'; }
 }
 
+// Live SEO preview + char counters (Google-style snippet)
+function updateSeoPreview(){
+  const title = (document.getElementById('bSeoTitle').value || '').trim();
+  const desc = (document.getElementById('bSeoDesc').value || '').trim();
+  const company = (document.getElementById('bCompany').value || '').trim();
+  const tc = document.getElementById('bSeoTitleCount'), dc = document.getElementById('bSeoDescCount');
+  if (tc) { tc.textContent = title.length + '/60'; tc.classList.toggle('over', title.length > 60); }
+  if (dc) { dc.textContent = desc.length + '/160'; dc.classList.toggle('over', desc.length > 160); }
+  const prev = document.getElementById('bSeoPreview');
+  if (prev) {
+    const esc = s => String(s||'').replace(/[<>&]/g,c=>({'<':'&lt;','>':'&gt;','&':'&amp;'}[c]));
+    prev.innerHTML = `<div class="sp-title">${esc(title || (company ? company + ' | HASACA' : 'My Restaurant | HASACA'))}</div>`
+      + `<div class="sp-url">${esc((location.origin||'https://restoran.hasaca.com'))}</div>`
+      + `<div class="sp-desc">${esc(desc || '—')}</div>`;
+  }
+}
+
+// ── Platform Health ──
+function fmtUptime(sec){
+  sec = Math.max(0, sec|0);
+  const d = Math.floor(sec/86400), h = Math.floor(sec%86400/3600), m = Math.floor(sec%3600/60);
+  return (d?d+'g ':'') + (h?h+'s ':'') + m + 'dk';
+}
+async function openHealthModal(){
+  const body = document.getElementById('healthBody');
+  document.getElementById('healthOverlay').classList.add('open');
+  body.innerHTML = '<p class="hint">…</p>';
+  try {
+    const h = await (await rootFetch('/api/root/health')).json();
+    const stat = (k, v) => `<div class="hstat"><div class="k">${k}</div><div class="v">${v}</div></div>`;
+    const m = h.metrics || {}, r = h.runtime || {}, st = h.storage || {}, db = h.db || {};
+    const okDot = (ok) => `<span class="hdot ${ok ? 'ok' : 'bad'}"></span>`;
+    body.innerHTML =
+      `<div class="hstat-grid">
+        ${stat(T('root_health_app'), okDot(h.status==='ok') + (h.status==='ok'?T('root_health_ok'):h.status))}
+        ${stat(T('root_health_db'), okDot(db.status==='ok') + (db.engine||'') + ' <small>' + (db.responseMs!=null?db.responseMs+'ms':'') + '</small>')}
+        ${stat(T('root_health_uptime'), fmtUptime(r.uptimeSeconds))}
+        ${stat(T('root_health_version'), 'v' + (h.version||'?'))}
+      </div>
+      <div class="hsec-title">${T('root_health_business')}</div>
+      <div class="hstat-grid">
+        ${stat(T('root_health_tenants'), m.tenants ?? '–')}
+        ${stat(T('root_health_products'), m.products ?? '–')}
+        ${stat(T('root_health_orders_today'), (m.ordersToday ?? '–') + ' <small>/ ' + (m.ordersMonth ?? '–') + ' ' + T('root_health_month') + '</small>')}
+        ${stat(T('root_health_orders_total'), m.ordersTotal ?? '–')}
+        ${stat(T('root_health_reservations'), m.reservations ?? '–')}
+        ${stat(T('root_health_subs'), m.pushSubscriptions ?? '–')}
+        ${stat(T('root_health_qr'), m.qrTables ?? '–')}
+      </div>
+      <div class="hsec-title">${T('root_health_runtime')}</div>
+      <div class="hstat-grid">
+        ${stat('Node', r.nodeVersion||'–')}
+        ${stat(T('root_health_env'), r.environment||'–')}
+        ${stat('RAM', (r.memoryMB?r.memoryMB.rss:'–') + ' <small>MB RSS</small>')}
+        ${st.databaseMB!=null ? stat(T('root_health_dbsize'), st.databaseMB + ' <small>MB</small>') : ''}
+        ${st.uploads ? stat(T('root_health_uploads'), st.uploads.sizeMB + ' <small>MB / ' + st.uploads.files + '</small>') : ''}
+      </div>`;
+  } catch(e){ body.innerHTML = '<p class="hint" style="color:var(--bad);">'+T('root_err')+'</p>'; }
+}
+
+// ── Activity log ──
+function openActivityModal(){ document.getElementById('activityOverlay').classList.add('open'); loadActivity(); }
+async function loadActivity(){
+  const tbody = document.getElementById('activityBody');
+  tbody.innerHTML = '<tr><td colspan="5" class="hint">…</td></tr>';
+  const tenant = document.getElementById('actFilterTenant').value.trim();
+  const action = document.getElementById('actFilterAction').value;
+  const qs = new URLSearchParams({ limit: '100' });
+  if (tenant) qs.set('tenant', tenant);
+  if (action) qs.set('action', action);
+  try {
+    const data = await (await rootFetch('/api/root/activity?' + qs.toString())).json();
+    const esc = s => String(s == null ? '' : s).replace(/[<>&]/g, c => ({'<':'&lt;','>':'&gt;','&':'&amp;'}[c]));
+    if (!data.items || !data.items.length) { tbody.innerHTML = '<tr><td colspan="5" class="hint">'+T('root_activity_empty')+'</td></tr>'; return; }
+    tbody.innerHTML = data.items.map(r => {
+      const when = new Date(Number(r.created_at)).toLocaleString(lang === 'tr' ? 'tr-TR' : 'en-US');
+      return `<tr><td style="white-space:nowrap;font-size:.75rem;">${esc(when)}</td><td>${esc(r.actor)} <small style="color:var(--muted);">${esc(r.role)}</small></td><td><b>${esc(r.action)}</b></td><td>${esc(r.target)}</td><td>${esc(r.tenant_id) || '—'}</td></tr>`;
+    }).join('');
+  } catch(e){ tbody.innerHTML = '<tr><td colspan="5" class="hint" style="color:var(--bad);">'+T('root_err')+'</td></tr>'; }
+}
+
+// ── Landing messages (marketing-site contact inbox) ──
+function openLandingModal(){ document.getElementById('landingOverlay').classList.add('open'); loadLandingMessages(); }
+function landingQuery(){
+  const qs = new URLSearchParams({ limit: '100' });
+  const st = document.getElementById('lmStatus').value;
+  const q = document.getElementById('lmSearch').value.trim();
+  if (st) qs.set('status', st);
+  if (q) qs.set('q', q);
+  return qs;
+}
+async function loadLandingMessages(){
+  const tbody = document.getElementById('landingBody');
+  tbody.innerHTML = '<tr><td colspan="6" class="hint">…</td></tr>';
+  try {
+    const data = await (await rootFetch('/api/root/landing-messages?' + landingQuery().toString())).json();
+    const esc = s => String(s == null ? '' : s).replace(/[<>&"]/g, c => ({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;'}[c]));
+    // unread badge on the topbar button
+    const badge = document.getElementById('landingBadge');
+    if (badge) { badge.textContent = data.unread || 0; badge.style.display = data.unread ? 'inline-block' : 'none'; }
+    document.getElementById('lmCount').textContent = (data.total || 0) + ' • ' + (data.unread || 0) + ' ' + T('root_landing_unread').toLowerCase();
+    if (!data.items || !data.items.length) { tbody.innerHTML = '<tr><td colspan="6" class="hint">'+T('root_landing_empty')+'</td></tr>'; return; }
+    tbody.innerHTML = data.items.map(r => {
+      const when = new Date(Number(r.created_at)).toLocaleString(lang === 'tr' ? 'tr-TR' : 'en-US');
+      const isUnread = r.status === 'unread';
+      const stLabel = T('root_landing_' + (r.status === 'archived' ? 'archived' : r.status === 'read' ? 'read' : 'unread'));
+      return `<tr style="${isUnread ? 'background:rgba(255,255,255,.04);' : ''}">
+        <td style="white-space:nowrap;font-size:.75rem;">${esc(when)}</td>
+        <td>${esc(r.restaurant) || '—'}</td>
+        <td>${isUnread ? '<b>' + esc(r.name) + '</b>' : esc(r.name)}</td>
+        <td style="font-size:.78rem;">${esc(r.email)}${r.phone ? '<br><span style="color:var(--muted);">' + esc(r.phone) + '</span>' : ''}</td>
+        <td style="font-size:.75rem;">${esc(stLabel)}</td>
+        <td style="white-space:nowrap;">
+          <button class="btn small secondary" onclick="viewLandingMessage('${esc(r.id)}')" data-i18n="root_landing_view">Görüntüle</button>
+          ${isUnread ? `<button class="btn small secondary" onclick="setLandingStatus('${esc(r.id)}','read')">✓</button>` : ''}
+          ${r.status !== 'archived' ? `<button class="btn small secondary" onclick="setLandingStatus('${esc(r.id)}','archived')" data-i18n="root_landing_arch">Arşivle</button>` : ''}
+          <button class="btn small danger" onclick="deleteLandingMessage('${esc(r.id)}')">×</button>
+        </td></tr>`;
+    }).join('');
+    window.__landingItems = data.items;
+  } catch(e){ tbody.innerHTML = '<tr><td colspan="6" class="hint" style="color:var(--bad);">'+T('root_err')+'</td></tr>'; }
+}
+function viewLandingMessage(id){
+  const r = (window.__landingItems || []).find(x => x.id === id);
+  if (!r) return;
+  const esc = s => String(s == null ? '' : s).replace(/[<>&]/g, c => ({'<':'&lt;','>':'&gt;','&':'&amp;'}[c]));
+  const box = document.getElementById('lmDetail');
+  box.style.display = 'block';
+  box.innerHTML = `<div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;">
+      <b>${esc(r.name)}</b><span class="hint">${esc(r.restaurant)} ${r.country ? '· ' + esc(r.country) : ''}</span></div>
+    <p style="margin:8px 0;white-space:pre-wrap;font-size:.86rem;">${esc(r.message)}</p>
+    <div class="hint" style="font-size:.75rem;">
+      <a href="mailto:${esc(r.email)}" style="color:var(--gold,#d8b877);">${esc(r.email)}</a>
+      ${r.phone ? ' · ' + esc(r.phone) : ''}${r.ip ? ' · IP ' + esc(r.ip) : ''}
+    </div>`;
+  if (r.status === 'unread') setLandingStatus(id, 'read', true);
+}
+async function setLandingStatus(id, status, quiet){
+  try {
+    await rootFetch('/api/root/landing-messages/' + encodeURIComponent(id) + '/status', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ status })
+    });
+    if (!quiet) toast(T('root_landing_updated'));
+    loadLandingMessages();
+  } catch(e){ toast(T('root_err')); }
+}
+async function deleteLandingMessage(id){
+  if (!confirm(T('root_landing_confirm_del'))) return;
+  try {
+    await rootFetch('/api/root/landing-messages/' + encodeURIComponent(id), { method: 'DELETE' });
+    document.getElementById('lmDetail').style.display = 'none';
+    toast(T('root_landing_deleted'));
+    loadLandingMessages();
+  } catch(e){ toast(T('root_err')); }
+}
+async function exportLandingCsv(){
+  try {
+    const res = await rootFetch('/api/root/landing-messages/export.csv?' + landingQuery().toString());
+    const blob = await res.blob();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = 'landing-messages.csv';
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  } catch(e){ toast(T('root_err')); }
+}
+
+// ── Analytics ──
+function openAnalyticsModal(){ document.getElementById('analyticsOverlay').classList.add('open'); loadAnalytics(); }
+async function loadAnalytics(){
+  const box = document.getElementById('analyticsBody');
+  box.innerHTML = '<p class="hint">…</p>';
+  const days = document.getElementById('anRange').value;
+  try {
+    const a = await (await rootFetch('/api/root/analytics?days=' + days)).json();
+    const s = a.summary || {}, series = a.ordersByDay || [], ts = a.typeSplit || {};
+    const max = Math.max(1, ...series.map(d => d.orders));
+    const stat = (k, v) => `<div class="hstat"><div class="k">${k}</div><div class="v">${v}</div></div>`;
+    const money = n => new Intl.NumberFormat(lang==='tr'?'tr-TR':'en-US').format(n||0);
+    const bars = series.map(d => `<div class="bar" style="height:${Math.round((d.orders/max)*100)}%" title="${d.date}: ${d.orders}"></div>`).join('');
+    const top = (a.topTenants||[]).map(t => `<li><b>${t.tenant||'—'}</b><span>${t.orders} · ₺${money(t.revenue)}</span></li>`).join('') || `<li><span class="hint">${T('root_activity_empty')}</span></li>`;
+    box.innerHTML =
+      `<div class="hstat-grid">
+        ${stat(T('root_an_orders'), s.orders ?? 0)}
+        ${stat(T('root_an_revenue'), '₺' + money(s.revenue))}
+        ${stat(T('root_an_avg'), '₺' + money(s.avgOrderValue))}
+        ${stat(T('root_an_reservations'), s.reservations ?? 0)}
+        ${stat(T('root_an_delivery'), ts.delivery ?? 0)}
+        ${stat(T('root_an_dinein'), ts.dinein ?? 0)}
+      </div>
+      <div class="hsec-title">${T('root_an_orders_by_day')}</div>
+      <div class="bars">${bars}</div>
+      <div class="hsec-title">${T('root_an_top_tenants')}</div>
+      <ul class="toplist">${top}</ul>`;
+  } catch(e){ box.innerHTML = '<p class="hint" style="color:var(--bad);">'+T('root_err')+'</p>'; }
+}
+
+// ── Notification Center ──
+function openNotifyModal(){
+  document.getElementById('notifyOverlay').classList.add('open');
+  // build the tenant checkbox list from the already-loaded tenants
+  const list = document.getElementById('nfTenantList');
+  list.innerHTML = (tenants||[]).map(t => `<label style="display:flex;align-items:center;gap:6px;padding:3px 0;text-transform:none;letter-spacing:0;color:var(--text);"><input type="checkbox" class="nf-ten" value="${t.id}" style="width:auto;"> ${(t.display_name||t.name||t.id)} <span style="color:var(--muted);font-size:.75rem;">(${t.id})</span></label>`).join('') || `<span class="hint">${T('root_activity_empty')}</span>`;
+  toggleNotifyTargets();
+  loadNotifyHistory();
+}
+function toggleNotifyTargets(){
+  const sel = document.querySelector('input[name="nfTarget"]:checked').value === 'sel';
+  document.getElementById('nfTenantList').style.display = sel ? 'block' : 'none';
+}
+async function sendRootNotification(){
+  const title = document.getElementById('nfTitle').value.trim();
+  const body = document.getElementById('nfBody').value.trim();
+  const url = document.getElementById('nfUrl').value.trim();
+  if (!title || !body) { toast(T('root_notify_need')); return; }
+  const mode = document.querySelector('input[name="nfTarget"]:checked').value;
+  let target = 'all';
+  if (mode === 'sel') {
+    target = [...document.querySelectorAll('.nf-ten:checked')].map(c => c.value);
+    if (!target.length) { toast(T('root_notify_pick')); return; }
+  }
+  try {
+    const res = await rootFetch('/api/root/notifications', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ title, body, url, target })
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || '');
+    toast((T('root_notify_ok') || 'Sent') + ' (' + data.count + ')');
+    document.getElementById('nfTitle').value = ''; document.getElementById('nfBody').value = ''; document.getElementById('nfUrl').value = '';
+    loadNotifyHistory();
+  } catch(e){ toast(e.message || T('root_err')); }
+}
+async function loadNotifyHistory(){
+  const tbody = document.getElementById('notifyHistory');
+  tbody.innerHTML = '<tr><td colspan="4" class="hint">…</td></tr>';
+  try {
+    const data = await (await rootFetch('/api/root/notifications?limit=60')).json();
+    const esc = s => String(s==null?'':s).replace(/[<>&]/g,c=>({'<':'&lt;','>':'&gt;','&':'&amp;'}[c]));
+    if (!data.items || !data.items.length) { tbody.innerHTML = '<tr><td colspan="4" class="hint">'+T('root_activity_empty')+'</td></tr>'; return; }
+    tbody.innerHTML = data.items.map(r => {
+      const when = new Date(Number(r.created_at)||Date.parse(r.created_at)||Date.now()).toLocaleString(lang==='tr'?'tr-TR':'en-US');
+      return `<tr><td style="white-space:nowrap;font-size:.74rem;">${esc(when)}</td><td>${esc(r.tenant_id)}</td><td>${esc(r.title)}</td><td>${r.success_count||0} / ${r.failed_count||0}</td></tr>`;
+    }).join('');
+  } catch(e){ tbody.innerHTML = '<tr><td colspan="4" class="hint" style="color:var(--bad);">'+T('root_err')+'</td></tr>'; }
+}
+
 // ── AI settings (Gemini) ──
 async function openAiSettingsModal(){
   try {
@@ -750,7 +1659,116 @@ async function testAiConnection(){
   } catch(e){ el.textContent = T('root_test_fail'); el.style.color = 'var(--bad)'; }
 }
 
+// ── AI Assistant (Phase 27) — thin UI over /api/root/ai-assistant/plan|execute ──
+// Writes nothing until Confirm is clicked; the server re-applies through savePlatform()/
+// ALLOWED_PLATFORM_KEYS exactly like the Branding modal's own PUT /platform-settings.
+let rootAiPlanId = null;
+function rootAiEsc(x){ return String(x == null ? '' : x).replace(/[<>&]/g, c => ({'<':'&lt;','>':'&gt;','&':'&amp;'}[c])); }
+// Phase 30: the assistant can target the platform's own branding OR one specific tenant's menu.
+function rootAiPopulateTargets(){
+  const sel = document.getElementById('rAiTarget');
+  if (!sel) return;
+  const keep = sel.value;
+  sel.innerHTML = `<option value="">${rootAiEsc(T('root_ai_asst_platform'))}</option>` +
+    (tenants || []).map(t => `<option value="${rootAiEsc(t.id)}">${rootAiEsc(t.display_name || t.name || t.id)}</option>`).join('');
+  sel.value = keep;
+  rootAiTargetChanged();
+}
+function rootAiTargetChanged(){
+  const sel = document.getElementById('rAiTarget');
+  const hint = document.getElementById('rAiTargetHint');
+  if (!sel || !hint) return;
+  const key = sel.value ? 'root_ai_asst_tenant_hint' : 'root_ai_asst_platform_hint';
+  hint.setAttribute('data-i18n', key);
+  hint.textContent = T(key);
+  // A cached plan belongs to the scope it was built for — switching target invalidates the preview.
+  rootAiCancel();
+}
+async function rootAiSend(){
+  const input = document.getElementById('rAiInput');
+  const msg = (input.value || '').trim();
+  if (!msg) return;
+  const statusEl = document.getElementById('rAiStatus');
+  const sendBtn = document.getElementById('rAiSendBtn');
+  document.getElementById('rAiPlanCard').style.display = 'none';
+  document.getElementById('rAiResultCard').style.display = 'none';
+  statusEl.style.display = 'block';
+  statusEl.textContent = T('root_ai_asst_thinking');
+  sendBtn.disabled = true;
+  try {
+    const res = await rootFetch('/api/root/ai-assistant/plan', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message: msg, targetTenant: (document.getElementById('rAiTarget') || {}).value || '' })
+    });
+    const data = await res.json();
+    sendBtn.disabled = false;
+    if (!res.ok) {
+      statusEl.textContent = data.error === 'ai_not_configured' ? T('root_ai_asst_not_configured') : (data.error || T('root_err'));
+      return;
+    }
+    if (!data.planId && !(data.actions && data.actions.length)) {
+      statusEl.textContent = data.summary || T('root_ai_asst_no_actions');
+      if (data.unsupported && data.unsupported.length) rootAiRenderPlan(data);
+      return;
+    }
+    statusEl.style.display = 'none';
+    input.value = '';
+    rootAiRenderPlan(data);
+  } catch(e) {
+    sendBtn.disabled = false;
+    statusEl.textContent = T('root_err');
+  }
+}
+function rootAiRenderPlan(data){
+  rootAiPlanId = data.planId || null;
+  const planCard = document.getElementById('rAiPlanCard');
+  const summaryEl = document.getElementById('rAiSummary');
+  const actionsEl = document.getElementById('rAiActions');
+  const unsupEl = document.getElementById('rAiUnsupported');
+  const confirmBtn = document.getElementById('rAiConfirmBtn');
+  summaryEl.textContent = data.summary || '';
+  actionsEl.innerHTML = (data.actions || []).map(a =>
+    '<div class="act-row"><div class="act-main"><b>' + rootAiEsc(a.label || a.field) + '</b><br><span style="color:var(--muted)">' +
+    rootAiEsc(a.oldValue) + '</span> → <span>' + rootAiEsc(a.newValue) + '</span></div></div>'
+  ).join('');
+  if (data.unsupported && data.unsupported.length) {
+    unsupEl.style.display = 'block';
+    unsupEl.innerHTML = '<b>' + T('root_ai_asst_unsupported') + '</b><br>' + data.unsupported.map(rootAiEsc).join('<br>');
+  } else {
+    unsupEl.style.display = 'none';
+  }
+  confirmBtn.style.display = rootAiPlanId ? 'inline-block' : 'none';
+  planCard.style.display = 'block';
+}
+async function rootAiConfirm(){
+  if (!rootAiPlanId) return;
+  const confirmBtn = document.getElementById('rAiConfirmBtn');
+  confirmBtn.disabled = true;
+  try {
+    const res = await rootFetch('/api/root/ai-assistant/execute', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ planId: rootAiPlanId })
+    });
+    const data = await res.json();
+    confirmBtn.disabled = false;
+    if (!res.ok) { toast(data.error || T('root_err')); return; }
+    document.getElementById('rAiPlanCard').style.display = 'none';
+    document.getElementById('rAiResultSummary').textContent = data.summary || '';
+    document.getElementById('rAiResultCard').style.display = 'block';
+    rootAiPlanId = null;
+    applyPlatformConfig();
+  } catch(e) {
+    confirmBtn.disabled = false;
+  }
+}
+function rootAiCancel(){
+  rootAiPlanId = null;
+  document.getElementById('rAiPlanCard').style.display = 'none';
+}
+
 // ── boot ──
+initTheme();
+try { if (localStorage.getItem('hasaca_panel_collapsed') === '1') document.getElementById('appShell').classList.add('collapsed'); } catch(e){}
 applyRootLanguage();
 applyPlatformConfig();
 (async () => {

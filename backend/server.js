@@ -5,10 +5,10 @@ const express = require('express');
 const cors = require('cors');
 const path = require('path');
 const fs = require('fs');
-const { db, initDatabase, resetDatabase } = require('./db');
+const { db, initDatabase, resetDatabase, logActivity } = require('./db');
 const webpush = require('web-push');
 const { hashPassword, verifyPassword, signToken, verifyToken, generatePassword } = require('./lib/auth');
-const { createTenantResolver } = require('./lib/tenant');
+const { createTenantResolver, slugFromHost } = require('./lib/tenant');
 const platformEvents = require('./lib/events');
 
 // Generate or load VAPID keys
@@ -50,7 +50,7 @@ if (VAPID_PUBLIC_KEY && VAPID_PRIVATE_KEY) {
 }
 
 const app = express();
-const PORT = process.env.PORT || 12999;
+const PORT = process.env.PORT || 17888;
 
 // Enable CORS with robust origin support for Netlify subdomains, previews, and local development
 const allowedOrigins = [
@@ -59,6 +59,8 @@ const allowedOrigins = [
   'https://dayikatikornek.netlify.app',
   'https://resonant-elf-d2b58b.netlify.app',
   'https://glittering-raindrop-435319.netlify.app',
+  'http://localhost:17888',
+  'http://127.0.0.1:17888',
   'http://localhost:12999',
   'http://127.0.0.1:12999',
   'http://localhost:12000',
@@ -93,6 +95,12 @@ app.use((req, res, next) => {
   res.setHeader('Expires', '0');
   next();
 });
+
+// Health check endpoint for zero-downtime deployment monitoring
+app.get('/api/health', (req, res) => {
+  res.json({ status: 'ok', timestamp: new Date().toISOString(), db: process.env.DATABASE_URL ? 'postgresql' : 'sqlite' });
+});
+
 
 // Helper to build parameterized queries for both PG ($1) and SQLite (?)
 const isPg = !!process.env.DATABASE_URL;
@@ -510,6 +518,42 @@ app.post('/api/reservations', async (req, res) => {
     res.status(201).json(mapReservationRow(row));
   } catch (err) {
     console.error('[API ERROR] POST /api/reservations:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// POST /api/landing/contact — public lead capture from the HASACA marketing landing page.
+// No auth (public form). Validated + length-capped; stored in landing_messages for the Root Panel.
+app.post('/api/landing/contact', async (req, res) => {
+  try {
+    const b = req.body || {};
+    const clip = (v, n) => String(v == null ? '' : v).trim().slice(0, n);
+    const name = clip(b.name, 120);
+    const restaurant = clip(b.restaurant, 160);
+    const email = clip(b.email, 160);
+    const phone = clip(b.phone, 60);
+    const country = clip(b.country, 80);
+    const message = clip(b.message, 4000);
+
+    // Required: name, email, message. Email must look like an email.
+    const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+    if (!name || !message || !emailOk) {
+      return res.status(400).json({ error: 'invalid_input', fields: { name: !!name, email: emailOk, message: !!message } });
+    }
+
+    const id = 'lm-' + Date.now() + '-' + Math.random().toString(36).slice(2, 8);
+    const ip = (req.headers['x-forwarded-for'] || '').split(',')[0].trim() || req.socket?.remoteAddress || '';
+    const now = Date.now();
+    await db.run(
+      isPg
+        ? 'INSERT INTO landing_messages (id, name, restaurant, email, phone, country, message, status, ip, created_at) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)'
+        : 'INSERT INTO landing_messages (id, name, restaurant, email, phone, country, message, status, ip, created_at) VALUES (?,?,?,?,?,?,?,?,?,?)',
+      [id, name, restaurant, email, phone, country, message, 'unread', ip, now]
+    );
+    logActivity({ tenantId: '', actor: email, role: 'lead', action: 'landing_message', target: restaurant || name, details: { name, email, phone, country }, ip });
+    res.status(201).json({ success: true });
+  } catch (err) {
+    console.error('[API ERROR] POST /api/landing/contact:', err);
     res.status(500).json({ error: err.message });
   }
 });
@@ -1004,6 +1048,11 @@ app.post('/api/auth/login', rateLimiter(15), async (req, res) => {
     );
 
     const token = signToken({ uid: user.id, tenant_id: user.tenant_id, role: user.role, username: user.username });
+    logActivity({
+      tenantId: user.role === 'root' ? '' : user.tenant_id, actor: user.username, role: user.role,
+      action: 'login', target: user.username,
+      ip: (req.headers['x-forwarded-for'] || '').split(',')[0].trim() || req.socket?.remoteAddress || ''
+    });
     res.json({
       token,
       role: user.role,
@@ -1033,7 +1082,8 @@ app.get('/api/auth/me', adminAuth, (req, res) => {
 // ==========================================
 const createRootRouter = require('./routes/root');
 app.use('/api/root', rootAuth, createRootRouter({
-  db, isPg, invalidateTenantCache, signToken, hashPassword, generatePassword
+  db, isPg, invalidateTenantCache, signToken, hashPassword, generatePassword,
+  sendPush: sendPushNotificationInternal   // hoisted fn (defined below) — used by the Root Notification Center
 }));
 
 // Root panel page (served regardless of tenant host — guarded by root login client+server side)
@@ -1487,6 +1537,281 @@ app.post('/api/notifications/upload-image', adminAuth, rateLimiter(10), async (r
 // POST /api/admin/upload-image (Admin only — store an uploaded image on disk, return a hosted URL)
 // Used by the tenant admin for menu/product photos (and any other editable asset) so images are
 // stored as files under /uploads and referenced by URL — never embedded as base64 in the DB.
+// GET /api/admin/activity — the tenant's OWN audit trail (tenant-isolated; never shows other tenants).
+app.get('/api/admin/activity', adminAuth, async (req, res) => {
+  try {
+    const limit = Math.min(200, Math.max(1, parseInt(req.query.limit) || 50));
+    const offset = Math.max(0, parseInt(req.query.offset) || 0);
+    const rows = await db.all(
+      `SELECT id, actor, role, action, target, details, created_at FROM activity_log WHERE tenant_id = ${p(1)} ORDER BY created_at DESC LIMIT ${p(2)} OFFSET ${p(3)}`,
+      [req.tenantId, limit, offset]
+    );
+    const totalRow = await db.get(`SELECT COUNT(*) c FROM activity_log WHERE tenant_id = ${p(1)}`, [req.tenantId]);
+    res.json({ items: rows, total: totalRow ? Number(Object.values(totalRow)[0]) : 0, limit, offset });
+  } catch (err) {
+    console.error('[API ERROR] GET /api/admin/activity:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// GET /api/admin/analytics?days=30 — the tenant's OWN analytics (tenant-isolated).
+app.get('/api/admin/analytics', adminAuth, async (req, res) => {
+  try {
+    const days = Math.min(365, Math.max(1, parseInt(req.query.days) || 30));
+    const since = Date.now() - days * 86400000;
+    const orders = await db.all(
+      `SELECT total, created_at, order_type, status FROM orders WHERE tenant_id = ${p(1)} AND created_at >= ${p(2)}`,
+      [req.tenantId, since]
+    );
+    let revenue = 0, delivery = 0, dinein = 0; const byDay = {}, statusB = {};
+    for (const o of orders) {
+      const t = Number(o.total) || 0; revenue += t;
+      if (o.order_type === 'dinein') dinein++; else delivery++;
+      statusB[o.status || 'new'] = (statusB[o.status || 'new'] || 0) + 1;
+      const key = new Date(Number(o.created_at)).toISOString().slice(0, 10);
+      (byDay[key] = byDay[key] || { date: key, orders: 0, revenue: 0 }).orders++;
+      byDay[key].revenue += t;
+    }
+    const series = [];
+    for (let i = days - 1; i >= 0; i--) {
+      const key = new Date(Date.now() - i * 86400000).toISOString().slice(0, 10);
+      series.push(byDay[key] || { date: key, orders: 0, revenue: 0 });
+    }
+    const items = await db.all(
+      `SELECT product_name, SUM(quantity) q FROM order_items WHERE tenant_id = ${p(1)} GROUP BY product_name ORDER BY q DESC LIMIT 8`,
+      [req.tenantId]
+    );
+    const rez = await db.get(`SELECT COUNT(*) c FROM reservations WHERE tenant_id = ${p(1)}`, [req.tenantId]);
+    res.json({
+      days,
+      summary: {
+        orders: orders.length,
+        revenue: +revenue.toFixed(2),
+        avgOrderValue: orders.length ? +(revenue / orders.length).toFixed(2) : 0,
+        reservations: rez ? Number(Object.values(rez)[0]) : 0
+      },
+      typeSplit: { delivery, dinein },
+      statusBreakdown: statusB,
+      ordersByDay: series,
+      topProducts: items.map(i => ({ name: i.product_name, qty: Number(i.q) }))
+    });
+  } catch (err) {
+    console.error('[API ERROR] GET /api/admin/analytics:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ---------- AI Assistant (Phase 27) — tenant-scoped ----------
+// Reuses the shared Gemini key/model from platform_settings (Phase 26's /api/root/ai-settings).
+// The assistant only ever sets whitelisted fields on rows already scoped to req.tenantId — the
+// exact same tenant_id-guarded UPDATE pattern as PUT /api/products/:id and /api/categories/:id
+// above. Plans are held in-memory (never persisted) and are single-use + tenant-locked.
+const aiPlanCache = new Map(); // planId -> { tenantId, actions, createdAt }
+const AI_PLAN_TTL_MS = 10 * 60 * 1000;
+const AI_FIELD_WHITELIST = {
+  products: ['name_tr', 'name_en', 'description_tr', 'description_en', 'price', 'category'],
+  categories: ['name_tr', 'name_en']
+};
+
+async function getAiConfig() {
+  const row = await db.get(isPg ? 'SELECT settings FROM platform_settings WHERE id = $1' : 'SELECT settings FROM platform_settings WHERE id = ?', ['platform']);
+  let s = {}; try { s = JSON.parse((row && row.settings) || '{}') || {}; } catch (e) {}
+  return { ai_enabled: !!s.ai_enabled, ai_model: s.ai_model || 'gemini-2.0-flash', ai_key: s.ai_key || '' };
+}
+
+async function callGeminiJSON(key, model, systemPrompt, userMessage) {
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent?key=${encodeURIComponent(key)}`;
+  const body = {
+    contents: [{ role: 'user', parts: [{ text: systemPrompt + '\n\nKullanıcı isteği: ' + userMessage }] }],
+    generationConfig: { responseMimeType: 'application/json' }
+  };
+  const r = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+  const data = await r.json();
+  if (!r.ok) throw new Error((data.error && data.error.message) || ('http_' + r.status));
+  const text = data.candidates && data.candidates[0] && data.candidates[0].content && data.candidates[0].content.parts && data.candidates[0].content.parts[0] && data.candidates[0].content.parts[0].text;
+  if (!text) throw new Error('empty_response');
+  return JSON.parse(text);
+}
+
+// POST /api/admin/ai-assistant/plan — { message } -> { planId, summary, actions, unsupported }
+// Reads ONLY this tenant's own products/categories; proposes field-level changes; nothing is written.
+app.post('/api/admin/ai-assistant/plan', adminAuth, async (req, res) => {
+  try {
+    const message = String((req.body && req.body.message) || '').trim().slice(0, 500);
+    if (!message) return res.status(400).json({ error: 'message_required' });
+
+    const cfg = await getAiConfig();
+    if (!cfg.ai_enabled || !cfg.ai_key) return res.status(400).json({ error: 'ai_not_configured' });
+
+    const products = await db.all(
+      isPg ? 'SELECT id, name_tr, name_en, description_tr, description_en, category, price FROM products WHERE tenant_id = $1'
+           : 'SELECT id, name_tr, name_en, description_tr, description_en, category, price FROM products WHERE tenant_id = ?',
+      [req.tenantId]
+    );
+    const categories = await db.all(
+      isPg ? 'SELECT id, name_tr, name_en FROM categories WHERE tenant_id = $1' : 'SELECT id, name_tr, name_en FROM categories WHERE tenant_id = ?',
+      [req.tenantId]
+    );
+
+    const systemPrompt = `Sen bir restoran yönetim panelinin asistanısın. Sana restoranın ürün ve kategori
+verisi JSON olarak verilecek. Kullanıcının isteğini SADECE aşağıdaki JSON şemasıyla, SADECE verilen
+id'leri kullanarak yanıtla. Hesaplama gerekiyorsa (yüzde artış, büyük harf, metin değişimi, çeviri vb.)
+SONUCU SEN HESAPLA ve newValue alanına nihai değeri yaz — asla formül yazma.
+Şema: {"summary": string, "actions": [{"type": string, "table": "products"|"categories",
+"targetId": string, "field": string, "newValue": string}], "unsupported": [string]}
+İzin verilen alanlar — products: name_tr, name_en, description_tr, description_en, price, category.
+categories: name_tr, name_en. Sistemde OLMAYAN bir şey istenirse (örn. açılış saati, telefon numarası,
+adres) onu "unsupported" listesine kısa bir açıklamayla ekle, ASLA action üretme. Fiyat (price) her
+zaman sayı olarak string'e çevrilip yazılmalı (örn. "112.5").
+Ürünler: ${JSON.stringify(products)}
+Kategoriler: ${JSON.stringify(categories)}`;
+
+    let plan;
+    try {
+      plan = await callGeminiJSON(cfg.ai_key, cfg.ai_model, systemPrompt, message);
+    } catch (e) {
+      return res.json({ planId: null, summary: '', actions: [], unsupported: [], error: e.message });
+    }
+
+    const productsById = Object.fromEntries(products.map(p => [p.id, p]));
+    const categoriesById = Object.fromEntries(categories.map(c => [c.id, c]));
+    const unsupported = Array.isArray(plan.unsupported) ? plan.unsupported.slice(0, 20) : [];
+    const actions = [];
+    for (const a of (Array.isArray(plan.actions) ? plan.actions : []).slice(0, 50)) {
+      const table = a.table === 'categories' ? 'categories' : (a.table === 'products' ? 'products' : null);
+      if (!table || !AI_FIELD_WHITELIST[table].includes(a.field)) { unsupported.push(`Desteklenmeyen alan: ${a.field}`); continue; }
+      const row = table === 'products' ? productsById[a.targetId] : categoriesById[a.targetId];
+      if (!row) { unsupported.push(`Bulunamayan kayıt: ${a.targetId}`); continue; }
+      actions.push({ type: String(a.type || 'update').slice(0, 40), table, targetId: a.targetId, field: a.field, oldValue: row[a.field], newValue: String(a.newValue ?? '').slice(0, 2000) });
+    }
+
+    if (!actions.length) return res.json({ planId: null, summary: plan.summary || '', actions: [], unsupported });
+
+    const planId = 'aip-' + Date.now() + '-' + Math.random().toString(36).slice(2, 10);
+    aiPlanCache.set(planId, { tenantId: req.tenantId, actions, createdAt: Date.now() });
+    res.json({ planId, summary: plan.summary || '', actions, unsupported });
+  } catch (err) {
+    console.error('[API ERROR] POST /api/admin/ai-assistant/plan:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// POST /api/admin/ai-assistant/execute — { planId } -> applies a previously-returned plan.
+// Tenant isolation: a plan cached under tenant A is rejected outright for tenant B.
+app.post('/api/admin/ai-assistant/execute', adminAuth, async (req, res) => {
+  try {
+    const planId = req.body && req.body.planId;
+    const cached = planId && aiPlanCache.get(planId);
+    if (!cached || cached.tenantId !== req.tenantId) return res.status(404).json({ error: 'plan_not_found' });
+    aiPlanCache.delete(planId);
+    if (Date.now() - cached.createdAt > AI_PLAN_TTL_MS) return res.status(410).json({ error: 'plan_expired' });
+
+    const applied = [];
+    for (const a of cached.actions) {
+      // Re-verify the target still belongs to this tenant immediately before writing.
+      const exists = await db.get(
+        isPg ? `SELECT id FROM ${a.table} WHERE id = $1 AND tenant_id = $2` : `SELECT id FROM ${a.table} WHERE id = ? AND tenant_id = ?`,
+        [a.targetId, req.tenantId]
+      );
+      if (!exists) continue;
+      await db.run(
+        isPg ? `UPDATE ${a.table} SET ${a.field} = $1 WHERE id = $2 AND tenant_id = $3` : `UPDATE ${a.table} SET ${a.field} = ? WHERE id = ? AND tenant_id = ?`,
+        [a.newValue, a.targetId, req.tenantId]
+      );
+      applied.push(a);
+    }
+
+    logActivity({ tenantId: req.tenantId, actor: (req.auth && req.auth.username) || 'admin', role: 'tenant_admin', action: 'ai_assistant_applied', target: `${applied.length} field(s)`, details: applied.map(a => `${a.table}.${a.field}`).join(','), ip: (req.headers['x-forwarded-for'] || '').split(',')[0].trim() || req.socket?.remoteAddress || '' });
+    res.json({ success: true, applied, summary: `${applied.length} değişiklik uygulandı.` });
+  } catch (err) {
+    console.error('[API ERROR] POST /api/admin/ai-assistant/execute:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ---------- Widget Management (Phase 28) — tenant self-service on/off, root also controls these ----------
+// Narrow by design: this endpoint ONLY ever touches settings.widgets, never branding/SEO/contact
+// fields (those remain root-only), preserving the existing "no tenant self-service branding" boundary.
+const WIDGET_KEYS = ['whatsapp', 'instagram', 'facebook', 'twitter', 'tiktok', 'youtube', 'website', 'maps'];
+app.put('/api/admin/site-widgets', adminAuth, async (req, res) => {
+  try {
+    const widgets = req.body && req.body.widgets;
+    if (!widgets || typeof widgets !== 'object') return res.status(400).json({ error: 'widgets_required' });
+    const row = await db.get(
+      isPg ? 'SELECT settings FROM tenants WHERE id = $1' : 'SELECT settings FROM tenants WHERE id = ?',
+      [req.tenantId]
+    );
+    if (!row) return res.status(404).json({ error: 'tenant_not_found' });
+    let settings = {}; try { settings = JSON.parse(row.settings || '{}') || {}; } catch (e) {}
+    settings.widgets = { ...(settings.widgets || {}) };
+    for (const key of WIDGET_KEYS) {
+      if (Object.prototype.hasOwnProperty.call(widgets, key)) settings.widgets[key] = !!widgets[key];
+    }
+    await db.run(
+      isPg ? 'UPDATE tenants SET settings = $1, updated_at = $2 WHERE id = $3' : 'UPDATE tenants SET settings = ?, updated_at = ? WHERE id = ?',
+      [JSON.stringify(settings), Date.now(), req.tenantId]
+    );
+    invalidateTenantCache(req.tenantId);
+    logActivity({ tenantId: req.tenantId, actor: (req.auth && req.auth.username) || 'admin', role: 'tenant_admin', action: 'widgets_updated', target: req.tenantId, details: JSON.stringify(settings.widgets), ip: (req.headers['x-forwarded-for'] || '').split(',')[0].trim() || req.socket?.remoteAddress || '' });
+    res.json({ success: true, widgets: settings.widgets });
+  } catch (err) {
+    console.error('[API ERROR] PUT /api/admin/site-widgets:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ---------- QR Designer (Phase 29) — tenant self-service QR appearance ----------
+// Narrow by design, same shape as PUT /api/admin/site-widgets: only ever touches settings.qr_style.
+const HEX_COLOR_RE = /^#[0-9a-f]{6}([0-9a-f]{2})?$/i;
+const ECC_LEVELS = ['L', 'M', 'Q', 'H'];
+function normalizeHexColor(v) {
+  const hex = String(v).trim();
+  return hex.length === 7 ? hex + 'ff' : hex.toLowerCase();
+}
+app.put('/api/admin/qr-style', adminAuth, async (req, res) => {
+  try {
+    const body = (req.body && req.body.qr_style) || {};
+    const patch = {};
+    if (body.fg !== undefined) {
+      if (!HEX_COLOR_RE.test(String(body.fg))) return res.status(400).json({ error: 'invalid_fg' });
+      patch.fg = normalizeHexColor(body.fg);
+    }
+    if (body.bg !== undefined) {
+      if (!HEX_COLOR_RE.test(String(body.bg))) return res.status(400).json({ error: 'invalid_bg' });
+      patch.bg = normalizeHexColor(body.bg);
+    }
+    if (body.margin !== undefined) {
+      const m = Number(body.margin);
+      if (!Number.isInteger(m) || m < 0 || m > 10) return res.status(400).json({ error: 'invalid_margin' });
+      patch.margin = m;
+    }
+    if (body.ecc !== undefined) {
+      const e = String(body.ecc).toUpperCase();
+      if (!ECC_LEVELS.includes(e)) return res.status(400).json({ error: 'invalid_ecc' });
+      patch.ecc = e;
+    }
+    if (!Object.keys(patch).length) return res.status(400).json({ error: 'qr_style_required' });
+
+    const row = await db.get(
+      isPg ? 'SELECT settings FROM tenants WHERE id = $1' : 'SELECT settings FROM tenants WHERE id = ?',
+      [req.tenantId]
+    );
+    if (!row) return res.status(404).json({ error: 'tenant_not_found' });
+    let settings = {}; try { settings = JSON.parse(row.settings || '{}') || {}; } catch (e) {}
+    settings.qr_style = { ...(settings.qr_style || {}), ...patch };
+    await db.run(
+      isPg ? 'UPDATE tenants SET settings = $1, updated_at = $2 WHERE id = $3' : 'UPDATE tenants SET settings = ?, updated_at = ? WHERE id = ?',
+      [JSON.stringify(settings), Date.now(), req.tenantId]
+    );
+    invalidateTenantCache(req.tenantId);
+    logActivity({ tenantId: req.tenantId, actor: (req.auth && req.auth.username) || 'admin', role: 'tenant_admin', action: 'qr_style_updated', target: req.tenantId, details: JSON.stringify(settings.qr_style), ip: (req.headers['x-forwarded-for'] || '').split(',')[0].trim() || req.socket?.remoteAddress || '' });
+    res.json({ success: true, qr_style: settings.qr_style });
+  } catch (err) {
+    console.error('[API ERROR] PUT /api/admin/qr-style:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
 app.post('/api/admin/upload-image', adminAuth, rateLimiter(30), async (req, res) => {
   try {
     const image = req.body && req.body.image;
@@ -1569,12 +1894,116 @@ app.use((req, res, next) => {
   next();
 });
 
+// Phase 31: "/" is host-aware, not tenant-aware. A real tenant subdomain (restaurant1.hasaca.com,
+// restaurant1.localhost:17888) still resolves to that tenant's own site here, unchanged. Only the
+// bare-host fallback case (localhost, an IP, the platform's own apex domain, *.onrender.com/
+// *.netlify.app, or anything else slugFromHost() can't match to a subdomain) changes: it used to
+// silently render the 'default' demo tenant; it now renders the HASACA landing page instead. Checking
+// the raw host (not req.tenantId) is deliberate — req.tenantId can't tell "true bare-host fallback"
+// apart from an actual tenant whose id happens to be 'default'.
+// The dev-only ?tenant= override (same gate as lib/tenant.js's allowQueryOverride) is honored here
+// too — /tenant/:slug redirects into it, and an explicit override always means "show that tenant",
+// even when the requested slug happens to be 'default'.
+const allowTenantQueryOverride = !process.env.DATABASE_URL;
 app.get('/', (req, res) => {
+  if (allowTenantQueryOverride && req.query && typeof req.query.tenant === 'string' && req.query.tenant) {
+    return res.sendFile(path.join(rootDir, 'index.html'));
+  }
+  const host = req.headers['x-forwarded-host'] || req.headers.host;
+  if (slugFromHost(host) === 'default') return res.sendFile(path.join(rootDir, 'landing.html'));
   res.sendFile(path.join(rootDir, 'index.html'));
 });
 
-app.get('/admin.html', (req, res) => {
+app.get(['/admin.html', '/admin'], (req, res) => {
   res.sendFile(path.join(rootDir, 'admin.html'));
+});
+
+// HASACA public marketing landing page (platform site — distinct from a tenant's own restaurant site).
+app.get(['/landing', '/hasaca'], (req, res) => {
+  res.sendFile(path.join(rootDir, 'landing.html'));
+});
+
+// Path-based way to reach a specific tenant's site without needing subdomain DNS (local dev / internal
+// preview). Redirects into the existing, already-working dev-only ?tenant= query override (lib/
+// tenant.js resolveTenant + the __devTenant fetch interceptor already in index.html/admin.html) —
+// no new tenant-resolution logic. Scoped the same as that override: local dev only.
+app.get('/tenant/:slug', (req, res) => {
+  res.redirect('/?tenant=' + encodeURIComponent(req.params.slug));
+});
+
+// ── HASACA marketing sub-pages (Phase 23) ──
+// One shared shell (marketing.html) renders every page from marketing-data.js.
+// Meta is injected server-side per slug so each URL is genuinely crawlable.
+const MARKETING = require('../marketing-data.js');
+const MARKETING_SLUGS = Object.keys(MARKETING.pages);
+let marketingShell = null;
+const esc = (s) => String(s == null ? '' : s)
+  .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+
+app.get(MARKETING_SLUGS.map((s) => '/' + s), (req, res) => {
+  try {
+    if (!marketingShell || process.env.NODE_ENV !== 'production') {
+      marketingShell = fs.readFileSync(path.join(rootDir, 'marketing.html'), 'utf8');
+    }
+    const slug = req.path.replace(/^\/+|\/+$/g, '');
+    const page = MARKETING.pages[slug];
+    if (!page) return res.status(404).sendFile(path.join(rootDir, 'marketing.html'));
+    const title = page.title[0] + ' — HASACA';
+    const desc = page.desc[0];
+    const url = baseUrl(req) + '/' + slug;
+    const head = [
+      `<title>${esc(title)}</title>`,
+      `<meta name="description" content="${esc(desc)}">`,
+      `<link rel="canonical" href="${esc(url)}">`,
+      `<meta name="robots" content="index,follow">`,
+      `<meta property="og:type" content="website">`,
+      `<meta property="og:site_name" content="HASACA">`,
+      `<meta property="og:title" content="${esc(title)}">`,
+      `<meta property="og:description" content="${esc(desc)}">`,
+      `<meta property="og:url" content="${esc(url)}">`,
+      `<meta property="og:image" content="/icons/placeholder-logo.svg">`,
+      `<meta name="twitter:card" content="summary_large_image">`,
+      `<meta name="twitter:title" content="${esc(title)}">`,
+      `<meta name="twitter:description" content="${esc(desc)}">`,
+      `<meta name="theme-color" content="#0a0a0b">`
+    ].join('\n');
+    res.type('html').send(marketingShell.replace('<!--HEAD-->', head));
+  } catch (err) {
+    console.error('[MARKETING] render:', err);
+    res.status(500).send('Sayfa yüklenemedi.');
+  }
+});
+
+// Auth entry points — one login page, tenant + root tabs. Auth logic itself is unchanged.
+app.get(['/login', '/giris', '/yonetici-girisi', '/restoran-girisi', '/root-girisi'], (req, res) => {
+  res.sendFile(path.join(rootDir, 'login.html'));
+});
+
+// ── Dynamic, per-tenant SEO: robots.txt + sitemap.xml (host-derived, no hardcoded domain) ──
+// Defined BEFORE express.static so they take precedence over any static files.
+function baseUrl(req) {
+  const proto = (req.headers['x-forwarded-proto'] || req.protocol || 'https').split(',')[0];
+  return `${proto}://${req.headers.host}`;
+}
+app.get('/robots.txt', (req, res) => {
+  let seoRobots = 'index';
+  try { seoRobots = (JSON.parse((req.tenant && req.tenant.settings) || '{}').seo_robots) || 'index'; } catch (e) {}
+  const rule = seoRobots === 'noindex' ? 'Disallow: /' : 'Allow: /';
+  res.type('text/plain').send(`User-agent: *\n${rule}\n\nSitemap: ${baseUrl(req)}/sitemap.xml\n`);
+});
+app.get('/sitemap.xml', (req, res) => {
+  const url = baseUrl(req) + '/';
+  let lastmod = new Date().toISOString().slice(0, 10);
+  try { const u = req.tenant && req.tenant.updated_at; if (u) lastmod = new Date(Number(u)).toISOString().slice(0, 10); } catch (e) {}
+  // Tenant homepage + every HASACA marketing page (all host-derived, no hardcoded domain).
+  const entries = [`  <url>\n    <loc>${url}</loc>\n    <lastmod>${lastmod}</lastmod>\n    <changefreq>weekly</changefreq>\n    <priority>1.0</priority>\n  </url>`];
+  entries.push(`  <url>\n    <loc>${baseUrl(req)}/landing</loc>\n    <lastmod>${lastmod}</lastmod>\n    <changefreq>weekly</changefreq>\n    <priority>0.9</priority>\n  </url>`);
+  for (const slug of MARKETING_SLUGS) {
+    entries.push(`  <url>\n    <loc>${baseUrl(req)}/${slug}</loc>\n    <lastmod>${lastmod}</lastmod>\n    <changefreq>monthly</changefreq>\n    <priority>0.7</priority>\n  </url>`);
+  }
+  res.type('application/xml').send(
+    `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${entries.join('\n')}\n</urlset>\n`
+  );
 });
 
 app.use(express.static(rootDir));
@@ -1590,7 +2019,7 @@ app.get('*', (req, res) => {
 initDatabase().then(() => {
   app.listen(PORT, '0.0.0.0', () => {
     console.log(`==================================================`);
-    console.log(` Dayı Katık Web App Server is running!`);
+    console.log(` HASACA Platform Server is running!`);
     console.log(` Port: ${PORT}`);
     console.log(` Local:  http://localhost:${PORT}`);
     console.log(` Mode:   ${process.env.DATABASE_URL ? 'PRODUCTION (PostgreSQL)' : 'DEVELOPMENT (SQLite)'}`);

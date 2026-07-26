@@ -1,5 +1,4 @@
+# Served dynamically per tenant by the server (backend/server.js → GET /robots.txt).
+# This static file is a minimal fallback and is normally superseded by the dynamic route.
 User-agent: *
 Allow: /
-
-# Sitemaps
-Sitemap: https://dayikatik.netlify.app/sitemap.xml

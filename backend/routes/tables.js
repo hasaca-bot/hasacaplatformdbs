@@ -138,6 +138,20 @@ module.exports = function createTablesRouter({ db, isPg, events, adminAuth, rate
     }
   });
 
+  // Phase 29: per-tenant QR appearance, stored at settings.qr_style. Missing key/entry falls back
+  // to exactly the pre-Phase-29 hardcoded defaults, so untouched tenants render byte-identical QRs.
+  async function getQrOptions(tenantId) {
+    const row = await db.get(`SELECT settings FROM tenants WHERE id = ${P(1)}`, [tenantId]);
+    let s = {}; try { s = JSON.parse((row && row.settings) || '{}') || {}; } catch (e) {}
+    const q = s.qr_style || {};
+    return {
+      width: 512,
+      margin: Number.isInteger(q.margin) ? q.margin : 1,
+      errorCorrectionLevel: q.ecc || 'M',
+      color: { dark: q.fg || '#000000ff', light: q.bg || '#ffffffff' }
+    };
+  }
+
   // GET /api/tables/:id/qr — QR image (PNG data-uri + SVG) + the encoded URL
   router.get('/tables/:id/qr', adminAuth, async (req, res) => {
     try {
@@ -146,9 +160,10 @@ module.exports = function createTablesRouter({ db, isPg, events, adminAuth, rate
       );
       if (!t) return res.status(404).json({ error: 'Table not found' });
       const url = buildTableUrl(req, req.tenantId, t.token);
+      const opts = await getQrOptions(req.tenantId);
       const [png, svg] = await Promise.all([
-        QRCode.toDataURL(url, { width: 512, margin: 1, errorCorrectionLevel: 'M' }),
-        QRCode.toString(url, { type: 'svg', margin: 1, errorCorrectionLevel: 'M' })
+        QRCode.toDataURL(url, opts),
+        QRCode.toString(url, { ...opts, type: 'svg' })
       ]);
       res.json({ id: t.id, name: t.name, token: t.token, url, png, svg });
     } catch (err) {
@@ -164,10 +179,11 @@ module.exports = function createTablesRouter({ db, isPg, events, adminAuth, rate
         `SELECT * FROM tables WHERE tenant_id = ${P(1)} ORDER BY sort_order ASC, created_at ASC`,
         [req.tenantId]
       );
+      const opts = await getQrOptions(req.tenantId);
       const out = [];
       for (const t of rows) {
         const url = buildTableUrl(req, req.tenantId, t.token);
-        const png = await QRCode.toDataURL(url, { width: 512, margin: 1, errorCorrectionLevel: 'M' });
+        const png = await QRCode.toDataURL(url, opts);
         out.push({ id: t.id, name: t.name, token: t.token, url, png });
       }
       res.json(out);

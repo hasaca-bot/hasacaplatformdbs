@@ -2,8 +2,10 @@
   "version": "0.0.1",
   "configurations": [
     {
-      "name": "hasaca-working",
-      "url": "http://localhost:17888",
+      "name": "hasaca-fork",
+      "runtimeExecutable": "node",
+      "runtimeArgs": ["server.js"],
+      "cwd": "C:\\Users\\hasan_y4hfwna\\Desktop\\hasaca-platform\\backend",
       "port": 17888
     },
     {

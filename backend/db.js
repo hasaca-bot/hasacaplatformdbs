@@ -466,6 +466,41 @@ async function runPlatformMigrations() {
     );
   `);
 
+  // Activity log (audit trail) — tenant_id '' means a platform/root-level action.
+  await dbDriver.exec(`
+    CREATE TABLE IF NOT EXISTS activity_log (
+      id TEXT PRIMARY KEY,
+      tenant_id TEXT NOT NULL DEFAULT '',
+      actor TEXT,
+      role TEXT,
+      action TEXT NOT NULL,
+      target TEXT,
+      details TEXT,
+      ip TEXT,
+      created_at BIGINT
+    );
+  `);
+  await dbDriver.exec(`CREATE INDEX IF NOT EXISTS idx_activity_tenant ON activity_log(tenant_id);`);
+  await dbDriver.exec(`CREATE INDEX IF NOT EXISTS idx_activity_created ON activity_log(created_at);`);
+
+  // Landing / marketing-site contact leads (public inbox → Root Panel). Platform-level, no tenant.
+  await dbDriver.exec(`
+    CREATE TABLE IF NOT EXISTS landing_messages (
+      id TEXT PRIMARY KEY,
+      name TEXT,
+      restaurant TEXT,
+      email TEXT,
+      phone TEXT,
+      country TEXT,
+      message TEXT,
+      status TEXT NOT NULL DEFAULT 'unread',
+      ip TEXT,
+      created_at BIGINT
+    );
+  `);
+  await dbDriver.exec(`CREATE INDEX IF NOT EXISTS idx_landing_status ON landing_messages(status);`);
+  await dbDriver.exec(`CREATE INDEX IF NOT EXISTS idx_landing_created ON landing_messages(created_at);`);
+
   await dbDriver.exec(`CREATE UNIQUE INDEX IF NOT EXISTS idx_admin_users_tenant_username ON admin_users(tenant_id, username);`);
   await dbDriver.exec(`CREATE UNIQUE INDEX IF NOT EXISTS idx_tables_token ON tables(token);`);
   await dbDriver.exec(`CREATE INDEX IF NOT EXISTS idx_tables_tenant ON tables(tenant_id);`);
@@ -747,7 +782,7 @@ async function seedPlatform() {
       isPg
         ? 'INSERT INTO admin_users (id, tenant_id, username, password_hash, role, display_name, created_at) VALUES ($1,$2,$3,$4,$5,$6,$7)'
         : 'INSERT INTO admin_users (id, tenant_id, username, password_hash, role, display_name, created_at) VALUES (?,?,?,?,?,?,?)',
-      [`user-default-${now}`, 'default', 'dayikatik', hashPassword('dayikatik123'), 'tenant_admin', 'Dayı Katık Yönetici', now]
+      [`user-default-${now}`, 'default', 'dayikatik', hashPassword('dayikatik123'), 'tenant_admin', 'Yönetici', now]
     );
     console.log('[DB] Seeded default tenant admin (dayikatik).');
   }
@@ -767,6 +802,88 @@ async function resetDatabase(tenantId = 'default') {
   console.log(`[DB] Reset completed for tenant '${tenantId}'.`);
 }
 
+// ── REGENERATE DEFAULT TENANT ──
+// Rebuilds a fresh, fully-usable `default` tenant from the master template. Used when the Root user
+// deletes the default tenant (or the last remaining tenant) so the platform is never left empty.
+// Idempotent: clears any stale `default` rows first, then reseeds tenant + menu + translations + admin.
+async function regenerateDefaultTenant() {
+  const { hashPassword } = require('./lib/auth');
+  const { i18nData } = require('./seedData');
+  const tpl = require('./masterTemplate');
+  const isPg = dbDriver.type === 'pg';
+  const p1 = isPg ? '$1' : '?';
+  const now = Date.now();
+
+  console.log('[DB] Regenerating a fresh default tenant from the master template...');
+
+  // Defensive cleanup (safe whether or not `default` currently exists)
+  await dbDriver.run(
+    isPg ? 'DELETE FROM order_items WHERE order_id IN (SELECT id FROM orders WHERE tenant_id = $1)'
+         : 'DELETE FROM order_items WHERE order_id IN (SELECT id FROM orders WHERE tenant_id = ?)',
+    ['default']
+  );
+  for (const table of ['orders', 'products', 'categories', 'translations', 'reservations',
+                       'subscriptions', 'notifications', 'tables', 'service_requests', 'admin_users']) {
+    await dbDriver.run(`DELETE FROM ${table} WHERE tenant_id = ${p1}`, ['default']);
+  }
+  await dbDriver.run(`DELETE FROM tenants WHERE id = ${p1}`, ['default']);
+
+  // 1) tenant row (generic "My Restaurant" placeholder branding + demo contact)
+  const settings = JSON.stringify(tpl.defaultSettings('My Restaurant'));
+  await dbDriver.run(
+    isPg
+      ? 'INSERT INTO tenants (id, name, display_name, status, contact_phone, contact_email, address, settings, created_at, updated_at) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)'
+      : 'INSERT INTO tenants (id, name, display_name, status, contact_phone, contact_email, address, settings, created_at, updated_at) VALUES (?,?,?,?,?,?,?,?,?,?)',
+    ['default', 'My Restaurant', 'My Restaurant', 'active', '123456789', 'example@email.com',
+     'Example Address', settings, now, now]
+  );
+
+  // 2) demo menu (categories + products) from the master template
+  await seedTemplateMenu('default');
+
+  // 3) UI translations from seedData (TR/EN)
+  let idx = 1;
+  for (const key of Object.keys(i18nData.tr)) {
+    const trVal = i18nData.tr[key];
+    const enVal = i18nData.en[key] || trVal;
+    await dbDriver.run(
+      isPg ? "INSERT INTO translations (id, tenant_id, key, tr, en) VALUES ($1, 'default', $2, $3, $4) ON CONFLICT (tenant_id, key) DO NOTHING"
+           : "INSERT OR IGNORE INTO translations (id, tenant_id, key, tr, en) VALUES (?, 'default', ?, ?, ?)",
+      [`trans-regen-${now}-${idx++}`, key, trVal, enVal]
+    );
+  }
+
+  // 4) default tenant admin (same known credentials as the seed: dayikatik / dayikatik123)
+  await dbDriver.run(
+    isPg
+      ? 'INSERT INTO admin_users (id, tenant_id, username, password_hash, role, display_name, created_at) VALUES ($1,$2,$3,$4,$5,$6,$7)'
+      : 'INSERT INTO admin_users (id, tenant_id, username, password_hash, role, display_name, created_at) VALUES (?,?,?,?,?,?,?)',
+    [`user-default-${now}`, 'default', 'dayikatik', hashPassword('dayikatik123'), 'tenant_admin', 'Restaurant Admin', now]
+  );
+
+  console.log('[DB] Fresh default tenant regenerated (My Restaurant master template).');
+  return { id: 'default', name: 'My Restaurant' };
+}
+
+// ── ACTIVITY LOG ──
+// Fire-and-forget audit logging. Never throws (logging must never break the request it records).
+// tenant_id '' = a platform/root-level action; a slug = a tenant-scoped action.
+async function logActivity({ tenantId = '', actor = '', role = '', action, target = '', details = '', ip = '' } = {}) {
+  if (!action) return;
+  try {
+    const isPg = dbDriver.type === 'pg';
+    const id = 'act-' + Date.now() + '-' + Math.random().toString(36).slice(2, 8);
+    const det = typeof details === 'string' ? details : JSON.stringify(details || '');
+    await dbDriver.run(
+      isPg
+        ? 'INSERT INTO activity_log (id, tenant_id, actor, role, action, target, details, ip, created_at) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)'
+        : 'INSERT INTO activity_log (id, tenant_id, actor, role, action, target, details, ip, created_at) VALUES (?,?,?,?,?,?,?,?,?)',
+      [id, tenantId || '', String(actor || '').slice(0, 120), role || '', String(action).slice(0, 60),
+       String(target || '').slice(0, 200), det.slice(0, 500), String(ip || '').slice(0, 60), Date.now()]
+    );
+  } catch (e) { /* swallow — audit logging must never break the caller */ }
+}
+
 // ── INIT (async) ──
 async function initDatabase() {
   await runMigrations();
@@ -774,4 +891,4 @@ async function initDatabase() {
   await seedPlatform();
 }
 
-module.exports = { db: dbDriver, initDatabase, resetDatabase };
+module.exports = { db: dbDriver, initDatabase, resetDatabase, regenerateDefaultTenant, logActivity };

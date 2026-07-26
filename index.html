@@ -89,18 +89,59 @@
 
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+/* ── GLOBAL TYPOGRAPHY — Samsung Sharp Sans applied app-wide (single central config) ── */
+@font-face{
+  font-family:'Samsung Sharp Sans';
+  src:url('/fonts/SamsungSharpSans-Bold.ttf') format('truetype');
+  font-weight:1 1000; font-style:normal; font-display:swap;
+}
+:root{ --font-primary:'Samsung Sharp Sans', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; }
+*{ font-family:var(--font-primary) !important; }
+code,pre,kbd,samp,.cred-box,[class*="mono"],[style*="monospace"]{ font-family:ui-monospace,'SFMono-Regular',Menlo,monospace !important; }
 :root{
   --fire:#D93B0A;
   --ember:#FF5722;
   --gold:#FFA726;
   --amber:#FFB74D;
+  /* RGB triplets for rgba() forms that can't interpolate a hex custom property (Phase 32) */
+  --fire-rgb:217,59,10;
+  --ember-rgb:255,87,34;
+  --amber-rgb:255,167,38;
+  /* Error/warning indicator — a distinct shade from --ember, used for allergen/login/checkout errors */
+  --bad:#FF7043;
+  --bad-rgb:255,112,67;
   --cream:#FFF8F0;
   --dark:#1C0A00;
   --dark2:#2E1208;
   --card:#3D1A0A;
   --muted:#C4906A;
   --white:#FFFFFF;
+  /* safe-area inset + floating-layer scale (keeps fixed overlays from colliding) */
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-top: env(safe-area-inset-top, 0px);
+  --z-header: 100;
+  --z-bottomnav: 200;
+  --z-dinein-actions: 850;
+  --z-fab: 900;
+  --z-dinein-badge: 950;
+  --z-cart-backdrop: 1400;
+  --z-cart-drawer: 1450;
+  --z-detail-backdrop: 1600;
+  --z-dinein-track: 1650;
+  --z-toast: 1750;
+  --z-modal: 2000;
+  --z-push: 2200;
+  /* custom scrollbar (themeable) */
+  --scroll-thumb: rgba(var(--fire-rgb),.45);
+  --scroll-thumb-hover: rgba(var(--fire-rgb),.75);
 }
+
+/* ── CUSTOM SCROLLBAR — thin, rounded, subtle (Chromium + Firefox) ── */
+html{ scrollbar-width:thin; scrollbar-color:var(--scroll-thumb) transparent; }
+::-webkit-scrollbar{ width:10px; height:10px; }
+::-webkit-scrollbar-track{ background:transparent; }
+::-webkit-scrollbar-thumb{ background:var(--scroll-thumb); border-radius:999px; border:2px solid transparent; background-clip:padding-box; }
+::-webkit-scrollbar-thumb:hover{ background:var(--scroll-thumb-hover); background-clip:padding-box; }
 
 /* ── PREMIUM LIGHT THEME ── */
 body.theme-bw {
@@ -116,6 +157,37 @@ body.theme-bw {
   --white: #FFFFFF;
 }
 
+/* ── BLACK & WHITE THEME (dark monochrome: grayscale accents on the dark base) ── */
+/* Only the warm accent tokens are overridden — the fully-working dark background/text stay intact,
+   so nothing breaks; orange simply becomes greyscale. */
+body.theme-mono {
+  --fire: #4A4A4A;       /* primary → mid-grey (gradients + fills become greyscale, white text stays readable) */
+  --ember: #6B6B6B;      /* secondary grey */
+  --gold: #E0E0E0;       /* highlights/stars → light grey */
+  --amber: #9A9A9A;
+  --muted: #A8A8A8;      /* warm taupe secondary text → neutral grey */
+  /* RGB companions (Phase 32) so every rgba(var(--fire-rgb),X) literal greys out too */
+  --fire-rgb: 74,74,74;
+  --ember-rgb: 107,107,107;
+  --amber-rgb: 154,154,154;
+  --bad: #6B6B6B;         /* reuses the --ember grey so error states stay visually distinct via lightness */
+  --bad-rgb: 107,107,107;
+  --scroll-thumb: rgba(255,255,255,.28);
+  --scroll-thumb-hover: rgba(255,255,255,.5);
+}
+/* neutralise the hardcoded warm glows/borders so B&W stays truly monochrome */
+body.theme-mono .cart-fab{ box-shadow:0 8px 22px rgba(0,0,0,.45); }
+body.theme-mono .pax-btn.active{ box-shadow:0 3px 12px rgba(0,0,0,.4); }
+body.theme-mono .dinein-badge{ box-shadow:0 6px 18px rgba(0,0,0,.45); }
+body.theme-mono .btn-main,
+body.theme-mono .order-cta .btn-main{ box-shadow:0 6px 20px rgba(0,0,0,.4); }
+body.theme-mono .hero-badge{ border-color:rgba(255,255,255,.25); }
+/* components that hardcode/latch warm accents → force greyscale in B&W (scoped, so nothing else is affected) */
+body.theme-mono .pax-btn{ color:#A8A8A8 !important; border-color:rgba(255,255,255,.14) !important; }
+body.theme-mono .pax-btn.active{ background:#4A4A4A !important; border-color:#4A4A4A !important; box-shadow:0 3px 12px rgba(0,0,0,.4) !important; color:#fff !important; }
+body.theme-mono .food-card-btn{ color:#C9C9C9 !important; border-color:rgba(255,255,255,.16) !important; }
+body.theme-mono .food-card-cart-btn{ background:linear-gradient(135deg,#4A4A4A,#6B6B6B) !important; }
+
 
 html{scroll-behavior:smooth;}
 
@@ -130,7 +202,7 @@ html{scroll-behavior:smooth;}
 .pax-btn.active{
   background:var(--fire);color:#fff;
   border-color:var(--fire);
-  box-shadow:0 3px 12px rgba(217,59,10,0.35);
+  box-shadow:0 3px 12px rgba(var(--fire-rgb),0.35);
 }
 
 body{
@@ -145,15 +217,15 @@ body{
 /* ── BOTTOM NAV (floating mobile dock) ── */
 .bottom-nav{
   position:fixed;
-  bottom:16px;
+  bottom:calc(16px + var(--safe-bottom));
   left:50%;
   transform:translateX(-50%);
   width:calc(100% - 32px);
   max-width:480px;
-  z-index:200;
+  z-index:var(--z-bottomnav);
   background:rgba(28,10,0,0.85);
   backdrop-filter:blur(20px);
-  border:1.5px solid rgba(255,87,34,0.25);
+  border:1.5px solid rgba(var(--ember-rgb),0.25);
   border-radius:24px;
   box-shadow:0 8px 32px rgba(0,0,0,0.6);
   display:flex;justify-content:space-around;align-items:center;
@@ -184,7 +256,7 @@ body.theme-bw .bottom-nav {
   display:flex;flex-direction:column;align-items:center;gap:2px;
   font-size:0.6rem;font-weight:700;letter-spacing:0.5px;text-transform:uppercase;
   text-decoration:none;
-  box-shadow:0 4px 20px rgba(217,59,10,0.5);
+  box-shadow:0 4px 20px rgba(var(--fire-rgb),0.5);
   -webkit-tap-highlight-color:transparent;
 }
 
@@ -200,7 +272,7 @@ body.theme-bw .bottom-nav {
 .topbar.scrolled {
   background:rgba(28,10,0,0.9);
   backdrop-filter:blur(16px);
-  border-bottom:1px solid rgba(255,87,34,0.15);
+  border-bottom:1px solid rgba(var(--ember-rgb),0.15);
 }
 body.theme-bw .topbar.scrolled {
   background: rgba(255, 255, 255, 0.95);
@@ -212,8 +284,8 @@ body.theme-bw .topbar.scrolled {
   display:flex;align-items:center;gap:6px;
   text-decoration:none;color:var(--cream);
   font-size:0.8rem;font-weight:600;
-  background:rgba(255,87,34,0.15);
-  border:1px solid rgba(255,87,34,0.3);
+  background:rgba(var(--ember-rgb),0.15);
+  border:1px solid rgba(var(--ember-rgb),0.3);
   border-radius:50px;padding:8px 14px;
   transition: all 0.2s ease;
 }
@@ -223,8 +295,8 @@ body.theme-bw .topbar:not(.scrolled) .topbar-phone {
   border-color: rgba(255, 255, 255, 0.3);
 }
 body.theme-bw .topbar.scrolled .topbar-phone {
-  background: rgba(217, 59, 10, 0.08);
-  border-color: rgba(217, 59, 10, 0.2);
+  background: rgba(var(--fire-rgb), 0.08);
+  border-color: rgba(var(--fire-rgb), 0.2);
   color: var(--cream);
 }
 
@@ -257,8 +329,8 @@ body.theme-bw .order-cta .btn-main {
   color: #fff;
 }
 body.theme-bw .order-cta .btn-secondary {
-  background: rgba(217, 59, 10, 0.08);
-  border-color: rgba(217, 59, 10, 0.2);
+  background: rgba(var(--fire-rgb), 0.08);
+  border-color: rgba(var(--fire-rgb), 0.2);
   color: var(--cream);
 }
 body.theme-bw .review-card {
@@ -277,7 +349,7 @@ body.theme-bw .food-card {
   border-color: rgba(44, 26, 16, 0.08);
 }
 body.theme-bw .food-card:hover {
-  border-color: rgba(217, 59, 10, 0.3);
+  border-color: rgba(var(--fire-rgb), 0.3);
   box-shadow: 0 8px 24px rgba(44, 26, 16, 0.08);
 }
 
@@ -430,7 +502,7 @@ body.theme-bw .bnav-cta {
   background: var(--fire);
   border-color: var(--fire);
   color: #fff;
-  box-shadow: 0 4px 12px rgba(217, 59, 10, 0.35);
+  box-shadow: 0 4px 12px rgba(var(--fire-rgb), 0.35);
 }
 body.theme-bw .lang-btn {
   background: rgba(44, 26, 16, 0.05);
@@ -511,7 +583,7 @@ body.theme-bw .lang-btn:hover {
 }
 .hero-badge{
   display:inline-flex;align-items:center;gap:6px;
-  background:rgba(255,167,38,0.18);border:1px solid rgba(255,167,38,0.4);
+  background:rgba(var(--amber-rgb),0.18);border:1px solid rgba(var(--amber-rgb),0.4);
   border-radius:50px;padding:5px 12px;
   font-size:0.7rem;font-weight:700;letter-spacing:1px;
   text-transform:uppercase;color:var(--gold);
@@ -534,11 +606,11 @@ body.theme-bw .lang-btn:hover {
   background:var(--fire);color:#fff;
   padding:16px 24px;border-radius:16px;
   font-weight:700;font-size:1rem;text-decoration:none;
-  box-shadow:0 6px 24px rgba(217,59,10,0.45);
+  box-shadow:0 6px 24px rgba(var(--fire-rgb),0.45);
   transition:transform 0.15s,box-shadow 0.15s;
   -webkit-tap-highlight-color:transparent;
 }
-.btn-main:active{transform:scale(0.97);box-shadow:0 3px 12px rgba(217,59,10,0.3);}
+.btn-main:active{transform:scale(0.97);box-shadow:0 3px 12px rgba(var(--fire-rgb),0.3);}
 .btn-secondary{
   display:flex;align-items:center;justify-content:center;gap:10px;
   background:rgba(255,248,240,0.1);
@@ -815,7 +887,7 @@ body.theme-bw .category-dropdown-option:hover {
 .contact-row:last-child{border-bottom:none;}
 .contact-ico{
   width:40px;height:40px;border-radius:12px;
-  background:rgba(217,59,10,0.15);
+  background:rgba(var(--fire-rgb),0.15);
   display:flex;align-items:center;justify-content:center;
   flex-shrink:0;font-size:1.1rem;overflow:hidden;
 }
@@ -823,6 +895,11 @@ body.theme-bw .category-dropdown-option:hover {
 .contact-lbl{font-weight:600;font-size:0.92rem;}
 .contact-val{font-size:0.8rem;color:var(--muted);margin-top:1px;}
 .contact-arrow{margin-left:auto;color:var(--muted);font-size:1rem;}
+.social-links{display:flex;flex-wrap:wrap;gap:10px;margin-top:14px;}
+.social-links:empty{display:none;}
+.social-btn{width:42px;height:42px;border-radius:12px;display:flex;align-items:center;justify-content:center;background:var(--card);border:1px solid rgba(255,248,240,0.1);color:var(--cream);transition:transform .15s ease,background .15s ease;}
+.social-btn:hover{transform:translateY(-2px);background:linear-gradient(135deg,var(--fire),var(--ember));color:#fff;}
+.social-btn svg{width:20px;height:20px;}
 
 /* ── FOOTER ── */
 footer{
@@ -899,7 +976,7 @@ footer p{font-size:0.75rem;color:var(--muted);}
 }
 .food-card:hover {
   transform: translateY(-2px);
-  border-color: rgba(255,87,34,0.3);
+  border-color: rgba(var(--ember-rgb),0.3);
   box-shadow: 0 8px 24px rgba(28,10,0,0.4);
 }
 .food-card-img {
@@ -1351,8 +1428,8 @@ footer p{font-size:0.75rem;color:var(--muted);}
   width: 48px;
   height: 48px;
   border-radius: 50%;
-  background: rgba(255,87,34,0.08);
-  border: 1px solid rgba(255,87,34,0.15);
+  background: rgba(var(--ember-rgb),0.08);
+  border: 1px solid rgba(var(--ember-rgb),0.15);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1365,12 +1442,12 @@ footer p{font-size:0.75rem;color:var(--muted);}
   line-height: 1.2;
 }
 .allergen-warning {
-  background: rgba(217,59,10,0.08);
-  border: 1px solid rgba(217,59,10,0.15);
+  background: rgba(var(--fire-rgb),0.08);
+  border: 1px solid rgba(var(--fire-rgb),0.15);
   border-radius: 12px;
   padding: 10px 14px;
   font-size: 0.72rem;
-  color: #FF7043;
+  color: var(--bad);
   display: flex;
   align-items: center;
   gap: 8px;
@@ -1804,14 +1881,14 @@ body.theme-bw .allergen-badge-btn .badge-status-dot {
   background: rgba(44, 26, 16, 0.2);
 }
 .allergen-badge-btn.active {
-  background: rgba(217, 59, 10, 0.1);
-  border-color: rgba(217, 59, 10, 0.3);
-  color: #FF7043;
+  background: rgba(var(--fire-rgb), 0.1);
+  border-color: rgba(var(--fire-rgb), 0.3);
+  color: var(--bad);
 }
 body.theme-bw .allergen-badge-btn.active {
-  background: rgba(217, 59, 10, 0.06);
-  border-color: rgba(217, 59, 10, 0.25);
-  color: #D93B0A;
+  background: rgba(var(--fire-rgb), 0.06);
+  border-color: rgba(var(--fire-rgb), 0.25);
+  color: var(--fire);
 }
 .allergen-badge-btn.active .badge-status-dot {
   background: var(--fire);
@@ -1996,10 +2073,10 @@ body.theme-bw .admin-rez-item {
 }
 .admin-rez-item.unread {
   border-left: 4px solid var(--ember);
-  background: rgba(255, 87, 34, 0.02);
+  background: rgba(var(--ember-rgb), 0.02);
 }
 body.theme-bw .admin-rez-item.unread {
-  background: rgba(217, 59, 10, 0.02);
+  background: rgba(var(--fire-rgb), 0.02);
 }
 .rez-drag-handle {
   color: rgba(255,248,240,0.2);
@@ -2090,9 +2167,9 @@ body.theme-bw .rez-note {
   align-items: center;
   justify-content: center;
   gap: 12px;
-  border: 2px dashed rgba(217, 59, 10, 0.25);
-  background: rgba(217, 59, 10, 0.02);
-  color: rgba(217, 59, 10, 0.6);
+  border: 2px dashed rgba(var(--fire-rgb), 0.25);
+  background: rgba(var(--fire-rgb), 0.02);
+  color: rgba(var(--fire-rgb), 0.6);
   border-radius: 16px;
   padding: 40px 20px;
   text-align: center;
@@ -2102,7 +2179,7 @@ body.theme-bw .rez-note {
 }
 .admin-trash-zone.drag-hover {
   border-color: var(--fire);
-  background: rgba(217, 59, 10, 0.1);
+  background: rgba(var(--fire-rgb), 0.1);
   color: var(--fire);
   transform: scale(1.02);
 }
@@ -2154,14 +2231,14 @@ body.theme-bw .rez-note {
   margin: 0 auto 16px;
   width: 64px;
   height: 64px;
-  background: rgba(217, 59, 10, 0.1);
+  background: rgba(var(--fire-rgb), 0.1);
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
 }
 .custom-popup-icon.warning {
-  background: rgba(255, 112, 67, 0.1);
+  background: rgba(var(--bad-rgb), 0.1);
 }
 .custom-popup-title {
   font-family: 'Syne', sans-serif;
@@ -2196,7 +2273,7 @@ body.theme-bw .rez-note {
   color: #FFF;
 }
 .custom-popup-actions-row .admin-btn.danger:hover {
-  background: #FF7043;
+  background: var(--bad);
 }
 
 body.theme-bw .custom-popup-card {
@@ -2316,7 +2393,7 @@ body.theme-bw .custom-select-option:hover {
 }
 .rez-select-trigger:hover {
   background: rgba(255, 248, 240, 0.08);
-  border-color: rgba(217, 59, 10, 0.6);
+  border-color: rgba(var(--fire-rgb), 0.6);
 }
 .custom-select-container.open .rez-select-trigger {
   border-color: var(--fire);
@@ -2409,7 +2486,7 @@ body.theme-bw .rez-select-trigger:hover {
 
   <div class="order-cta">
 <a href="tel:123456789" class="btn-secondary">
-      📞 <span data-i18n="order_phone">Telefonla Sipariş</span> &nbsp;<span style="opacity:.7;font-size:.85em;">123 456 789</span>
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg> <span data-i18n="order_phone">Telefonla Sipariş</span> &nbsp;<span id="orderPhoneNum" style="opacity:.7;font-size:.85em;">123 456 789</span>
     </a>
   </div>
 </section>
@@ -2427,13 +2504,13 @@ body.theme-bw .rez-select-trigger:hover {
       <!-- Ad -->
       <div>
         <label style="font-size:0.72rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--ember);display:block;margin-bottom:7px;" data-i18n="lbl_fullname">Ad Soyad</label>
-        <input id="rezAd" type="text" data-i18n-placeholder="ph_name" placeholder="Adınız ve soyadınız" style="width:100%;background:rgba(255,248,240,0.06);border:1.5px solid rgba(255,248,240,0.1);border-radius:12px;padding:13px 16px;color:var(--cream);font-size:0.95rem;font-family:'DM Sans',sans-serif;outline:none;transition:border 0.2s;" onfocus="this.style.borderColor='rgba(217,59,10,0.6)'" onblur="this.style.borderColor='rgba(255,248,240,0.1)'">
+        <input id="rezAd" type="text" data-i18n-placeholder="ph_name" placeholder="Adınız ve soyadınız" style="width:100%;background:rgba(255,248,240,0.06);border:1.5px solid rgba(255,248,240,0.1);border-radius:12px;padding:13px 16px;color:var(--cream);font-size:0.95rem;font-family:'DM Sans',sans-serif;outline:none;transition:border 0.2s;" onfocus="this.style.borderColor='rgba(var(--fire-rgb),0.6)'" onblur="this.style.borderColor='rgba(255,248,240,0.1)'">
       </div>
 
       <!-- Telefon -->
       <div>
         <label style="font-size:0.72rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--ember);display:block;margin-bottom:7px;" data-i18n="lbl_phone">Telefon</label>
-        <input id="rezTel" type="tel" inputmode="numeric" autocomplete="off" data-i18n-placeholder="ph_phone" placeholder="05321234567 veya 0532 123 45 67" style="width:100%;background:rgba(255,248,240,0.06);border:1.5px solid rgba(255,248,240,0.1);border-radius:12px;padding:13px 16px;color:var(--cream);font-size:0.95rem;font-family:'DM Sans',sans-serif;outline:none;transition:border 0.2s;" onfocus="this.style.borderColor='rgba(217,59,10,0.6)'" onblur="this.style.borderColor='rgba(255,248,240,0.1)'">
+        <input id="rezTel" type="tel" inputmode="numeric" autocomplete="off" data-i18n-placeholder="ph_phone" placeholder="05321234567 veya 0532 123 45 67" style="width:100%;background:rgba(255,248,240,0.06);border:1.5px solid rgba(255,248,240,0.1);border-radius:12px;padding:13px 16px;color:var(--cream);font-size:0.95rem;font-family:'DM Sans',sans-serif;outline:none;transition:border 0.2s;" onfocus="this.style.borderColor='rgba(var(--fire-rgb),0.6)'" onblur="this.style.borderColor='rgba(255,248,240,0.1)'">
       </div>
 
       <!-- Tarih + Saat -->
@@ -2532,11 +2609,11 @@ body.theme-bw .rez-select-trigger:hover {
       <!-- Not -->
       <div>
         <label style="font-size:0.72rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--ember);display:block;margin-bottom:7px;" data-i18n="lbl_note">Not (İsteğe bağlı)</label>
-        <textarea id="rezNot" data-i18n-placeholder="ph_note" placeholder="Özel istek, alerji bilgisi..." rows="2" style="width:100%;background:rgba(255,248,240,0.06);border:1.5px solid rgba(255,248,240,0.1);border-radius:12px;padding:13px 16px;color:var(--cream);font-size:0.9rem;font-family:'DM Sans',sans-serif;outline:none;resize:none;transition:border 0.2s;" onfocus="this.style.borderColor='rgba(217,59,10,0.6)'" onblur="this.style.borderColor='rgba(255,248,240,0.1)'"></textarea>
+        <textarea id="rezNot" data-i18n-placeholder="ph_note" placeholder="Özel istek, alerji bilgisi..." rows="2" style="width:100%;background:rgba(255,248,240,0.06);border:1.5px solid rgba(255,248,240,0.1);border-radius:12px;padding:13px 16px;color:var(--cream);font-size:0.9rem;font-family:'DM Sans',sans-serif;outline:none;resize:none;transition:border 0.2s;" onfocus="this.style.borderColor='rgba(var(--fire-rgb),0.6)'" onblur="this.style.borderColor='rgba(255,248,240,0.1)'"></textarea>
       </div>
 
       <!-- Gönder -->
-      <button id="rezBtn" onclick="sendRezervasyon()" style="width:100%;background:var(--fire);color:#fff;border:none;border-radius:14px;padding:16px;font-family:'Syne',sans-serif;font-size:1rem;font-weight:700;cursor:pointer;transition:all 0.2s;box-shadow:0 6px 20px rgba(217,59,10,0.35);" onmousedown="this.style.transform='scale(0.97)'" onmouseup="this.style.transform='scale(1)'">
+      <button id="rezBtn" onclick="sendRezervasyon()" style="width:100%;background:var(--fire);color:#fff;border:none;border-radius:14px;padding:16px;font-family:'Syne',sans-serif;font-size:1rem;font-weight:700;cursor:pointer;transition:all 0.2s;box-shadow:0 6px 20px rgba(var(--fire-rgb),0.35);" onmousedown="this.style.transform='scale(0.97)'" onmouseup="this.style.transform='scale(1)'">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-3px"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg> <span data-i18n="btn_book">Rezervasyon Yap</span>
       </button>
 
@@ -2567,25 +2644,36 @@ body.theme-bw .rez-select-trigger:hover {
     </div>
     <div class="info-card">
       <div class="info-card-hd"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--ember)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg> <span data-i18n="contact_heading">İletişim</span></div>
-      <a href="tel:123456789" class="contact-row">
+      <a id="contactPhoneRow" href="tel:123456789" class="contact-row">
         <div class="contact-ico"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--ember)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg></div>
-        <div><div class="contact-lbl" data-i18n="contact_phone_lbl">Telefon</div><div class="contact-val">123 456 789</div></div>
+        <div><div class="contact-lbl" data-i18n="contact_phone_lbl">Telefon</div><div class="contact-val" id="contactPhoneVal">123 456 789</div></div>
         <div class="contact-arrow">›</div>
       </a>
-      <a href="#" target="_blank" class="contact-row">
+      <a id="contactInstagramRow" href="#" target="_blank" rel="noopener" class="contact-row" style="display:none;">
         <div class="contact-ico"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--ember)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg></div>
-        <div><div class="contact-lbl">Instagram</div><div class="contact-val">@myrestaurant</div></div>
+        <div><div class="contact-lbl">Instagram</div><div class="contact-val" id="contactInstagramVal">@myrestaurant</div></div>
+        <div class="contact-arrow">›</div>
+      </a>
+      <a id="contactWhatsappRow" href="#" target="_blank" rel="noopener" class="contact-row" style="display:none;">
+        <div class="contact-ico"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--ember)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg></div>
+        <div><div class="contact-lbl">WhatsApp</div><div class="contact-val" id="contactWhatsappVal"></div></div>
+        <div class="contact-arrow">›</div>
+      </a>
+      <a id="contactEmailRow" href="#" class="contact-row" style="display:none;">
+        <div class="contact-ico"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--ember)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg></div>
+        <div><div class="contact-lbl" data-i18n="contact_email_lbl">E-posta</div><div class="contact-val" id="contactEmailVal"></div></div>
         <div class="contact-arrow">›</div>
       </a>
 <div class="contact-row" style="pointer-events:none;">
         <div class="contact-ico"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--ember)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg></div>
         <div><div class="contact-lbl" data-i18n="contact_address_lbl">Adres</div><div class="contact-val" data-i18n="contact_address_val">123 Example Street, City</div></div>
       </div>
+      <div id="socialLinks" class="social-links"></div>
     </div>
   </div>
 
     <!-- Google Maps -->
-    <div style="margin-top:20px;border-radius:20px;overflow:hidden;border:1px solid rgba(255,248,240,0.08);">
+    <div id="gmapWidgetBox" style="margin-top:20px;border-radius:20px;overflow:hidden;border:1px solid rgba(255,248,240,0.08);">
       <iframe
         id="gmap-iframe"
         src="https://maps.google.com/maps?q=restaurant&output=embed&hl=tr"
@@ -2598,9 +2686,9 @@ body.theme-bw .rez-select-trigger:hover {
       </iframe>
       <a id="gmap-link" href="https://maps.google.com/?q=restaurant" target="_blank"
         style="display:flex;align-items:center;justify-content:center;gap:8px;padding:14px;background:var(--dark2);color:var(--cream);text-decoration:none;font-weight:600;font-size:0.88rem;border-top:1px solid rgba(255,248,240,0.06);transition:background 0.2s;"
-        onmouseover="this.style.background='rgba(217,59,10,0.15)'"
+        onmouseover="this.style.background='rgba(var(--fire-rgb),0.15)'"
         onmouseout="this.style.background='var(--dark2)'">
-        📍 <span data-i18n="btn_open_maps">Google Maps'te Aç</span> &nbsp;›
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg> <span data-i18n="btn_open_maps">Google Maps'te Aç</span> &nbsp;›
       </a>
     </div>
 
@@ -2657,7 +2745,7 @@ body.theme-bw .rez-select-trigger:hover {
 <div id="customConfirmOverlay" class="custom-popup-overlay">
   <div class="custom-popup-card" onclick="event.stopPropagation()">
     <div class="custom-popup-icon warning">
-      <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#FF7043" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+      <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--bad)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
     </div>
     <h3 class="custom-popup-title" id="customConfirmTitle" data-i18n="confirm_title_sure">Emin misiniz?</h3>
     <p class="custom-popup-message" id="customConfirmMessage"></p>
@@ -2676,7 +2764,7 @@ body.theme-bw .rez-select-trigger:hover {
     <input type="text" id="adminUsername" class="admin-input" data-i18n-placeholder="ph_admin_user" placeholder="Kullanıcı adınız..." autocomplete="username" onkeydown="if(event.key==='Enter') document.getElementById('adminPassword').focus()" />
     <label class="admin-form-label" data-i18n="admin_pwd_lbl">Şifre</label>
     <input type="password" id="adminPassword" class="admin-input" data-i18n-placeholder="ph_admin_pwd" placeholder="Şifrenizi girin..." autocomplete="current-password" onkeydown="if(event.key==='Enter') submitAdminLogin()" />
-    <div id="adminLoginError" style="color:#FF7043;font-size:0.8rem;font-weight:600;margin-top:-10px;margin-bottom:12px;display:none;text-align:center;"></div>
+    <div id="adminLoginError" style="color:var(--bad);font-size:0.8rem;font-weight:600;margin-top:-10px;margin-bottom:12px;display:none;text-align:center;"></div>
     <button class="admin-btn" data-i18n="admin_btn_login" onclick="submitAdminLogin()">Giriş Yap</button>
     <button class="admin-btn secondary" data-i18n="admin_btn_cancel" onclick="closeAdminLogin()">Vazgeç</button>
   </div>
@@ -3150,6 +3238,7 @@ const i18nData = {
     contact_address_lbl: "Adresimiz",
     contact_address_val: "123 Example Street, City",
     contact_phone_lbl: "Telefon",
+    contact_email_lbl: "E-posta",
     contact_hours_lbl: "Çalışma Saatleri",
     contact_hours_val: "Hafta İçi & Hafta Sonu: 11:00 - 22:00",
     footer_text: "© 2025 My Restaurant",
@@ -3400,6 +3489,7 @@ const i18nData = {
     contact_address_lbl: "Address",
     contact_address_val: "123 Example Street, City",
     contact_phone_lbl: "Phone",
+    contact_email_lbl: "Email",
     contact_hours_lbl: "Opening Hours",
     contact_hours_val: "Weekdays & Weekends: 11:00 - 22:00",
     footer_text: "© 2025 My Restaurant",
@@ -3606,179 +3696,7 @@ const i18nData = {
     push_prompt_allow: "Allow"
   }
 };
-const defaultItemTranslations = {
-  'katik-tavuk-menu-1': {
-    name: 'Katik Chicken Doner Wrap Menu 1',
-    description: 'Katik chicken doner wrap, served with french fries and ayran (300 ml).',
-    ingredients: 'Chicken doner, french fries, special Katik sauce, wheat flour lavash (contains gluten) or bread, vegetable oil, salt, spices. Menu includes french fries and drink (or ayran).'
-  },
-  'katik-tavuk-menu-2': {
-    name: 'Katik Chicken Doner Wrap Menu 2',
-    description: 'Katik chicken doner wrap, served with french fries and canned soft drink (330 ml).',
-    ingredients: 'Chicken doner, french fries, special Katik sauce, wheat flour lavash (contains gluten) or bread, vegetable oil, salt, spices. Menu includes french fries and drink (or ayran).'
-  },
-  'zurna-tavuk-menu-1': {
-    name: 'Zurna Chicken Menu 1',
-    description: 'Satisfying zurna chicken doner wrap, served with french fries and ayran (300 ml).',
-    ingredients: 'Chicken doner, french fries, special Katik sauce, wheat flour lavash (contains gluten) or bread, vegetable oil, salt, spices. Menu includes french fries and drink (or ayran).'
-  },
-  'zurna-tavuk-menu-2': {
-    name: 'Zurna Chicken Menu 2',
-    description: 'Satisfying zurna chicken doner wrap, served with french fries and canned soft drink (330 ml).',
-    ingredients: 'Chicken doner, french fries, special Katik sauce, wheat flour lavash (contains gluten) or bread, vegetable oil, salt, spices. Menu includes french fries and drink (or ayran).'
-  },
-  'katik-et-menu-1': {
-    name: 'Katik Beef Menu 1',
-    description: 'Katik beef doner wrap, served with french fries and ayran (300 ml).',
-    ingredients: 'Beef doner, french fries, special Katik sauce, wheat flour lavash (contains gluten) or bread, vegetable oil, salt, spices. Menu includes french fries and drink (or ayran).'
-  },
-  'katik-et-menu-2': {
-    name: 'Katik Beef Menu 2',
-    description: 'Katik beef doner wrap, served with french fries and canned soft drink (330 ml).',
-    ingredients: 'Beef doner, french fries, special Katik sauce, wheat flour lavash (contains gluten) or bread, vegetable oil, salt, spices. Menu includes french fries and drink (or ayran).'
-  },
-  'combo-tavuk-menu-1': {
-    name: 'Combo Chicken Menu 1',
-    description: '1 Katik Chicken Wrap + 1 Chicken Tantuni Wrap, served with french fries and canned soft drink (330 ml).',
-    ingredients: 'Chicken doner, chicken tantuni, french fries, special Katik sauce, wheat flour lavash (contains gluten) or bread, vegetable oil, salt, spices.'
-  },
-  'combo-tavuk-menu-2': {
-    name: 'Combo Chicken Menu 2',
-    description: '2 Katik Chicken Wraps, served with french fries and canned soft drink (330 ml).',
-    ingredients: 'Chicken doner, french fries, special Katik sauce, wheat flour lavash (contains gluten) or bread, vegetable oil, salt, spices.'
-  },
-  'combo-et-menu-1': {
-    name: 'Combo Beef Menu 1',
-    description: '1 Katik Beef Wrap + 1 Beef Tantuni Wrap, served with french fries and canned soft drink (330 ml).',
-    ingredients: 'Beef doner, beef tantuni, french fries, special Katik sauce, wheat flour lavash (contains gluten) or bread, vegetable oil, salt, spices.'
-  },
-  'combo-et-menu-2': {
-    name: 'Combo Beef Menu 2',
-    description: '2 Katik Beef Wraps, served with french fries and canned soft drink (330 ml).',
-    ingredients: 'Beef doner, french fries, special Katik sauce, wheat flour lavash (contains gluten) or bread, vegetable oil, salt, spices.'
-  },
-  'et-tantuni-durum': {
-    name: 'Beef Tantuni Wrap',
-    description: 'Traditional beef tantuni wrap with tomatoes, parsley, onions, and spices.',
-    ingredients: 'Beef meat, tomatoes, parsley, onion, special spices, wheat flour lavash (contains gluten).'
-  },
-  'et-tantuni-ekmek-arasi': {
-    name: 'Beef Tantuni Sandwich',
-    description: 'Tasty beef tantuni in a bread roll with tomatoes, parsley, onions, and spices.',
-    ingredients: 'Beef meat, tomatoes, parsley, onion, special spices, sandwich bread (contains gluten).'
-  },
-  'yogurtlu-et-tantuni': {
-    name: 'Beef Tantuni with Yogurt',
-    description: 'Beef tantuni served over sliced bread with yogurt, hot butter, and tomato sauce.',
-    ingredients: 'Beef meat, yogurt, special tomato sauce, melted butter, sliced bread (contains gluten), parsley.'
-  },
-  'tavuk-tantuni-durum': {
-    name: 'Chicken Tantuni Wrap',
-    description: 'Chicken tantuni wrap with tomatoes, parsley, onions, and spices.',
-    ingredients: 'Chicken meat, tomatoes, parsley, onion, special spices, wheat flour lavash (contains gluten).'
-  },
-  'tavuk-tantuni-ekmek-arasi': {
-    name: 'Chicken Tantuni Sandwich',
-    description: 'Chicken tantuni in a bread roll with tomatoes, parsley, onions, and spices.',
-    ingredients: 'Chicken meat, tomatoes, parsley, onion, special spices, sandwich bread (contains gluten).'
-  },
-  'tavuk-tantuni-yogurtlu': {
-    name: 'Chicken Tantuni with Yogurt',
-    description: 'Chicken tantuni served over sliced bread with yogurt, hot butter, and tomato sauce.',
-    ingredients: 'Chicken meat, yogurt, special tomato sauce, melted butter, sliced bread (contains gluten), parsley.'
-  },
-  'zurna-mantarli-durum': {
-    name: 'Zurna Chicken Wrap with Mushrooms',
-    description: 'Zurna chicken doner wrap with special mushroom sauce and greens.',
-    ingredients: 'Chicken doner, special mushroom sauce, special Katik sauce, wheat flour lavash (contains gluten), greens, spices.'
-  },
-  'zurna-cheddarli-tavuk-durum': {
-    name: 'Zurna Chicken Wrap with Cheddar',
-    description: 'Zurna chicken doner wrap with melted cheddar cheese and greens.',
-    ingredients: 'Chicken doner, melted cheddar cheese, special Katik sauce, wheat flour lavash (contains gluten), greens, spices.'
-  },
-  'zurna-kasarli-tavuk-durum': {
-    name: 'Zurna Chicken Wrap with Kashar',
-    description: 'Zurna chicken doner wrap with melted kashar cheese and greens.',
-    ingredients: 'Chicken doner, melted kashar cheese, special Katik sauce, wheat flour lavash (contains gluten), greens, spices.'
-  },
-  'katik-barbeku-soslu-zurna-tavuk': {
-    name: 'Katik BBQ Zurna Chicken Wrap',
-    description: 'Zurna chicken doner wrap with special BBQ sauce and greens.',
-    ingredients: 'Chicken doner, special BBQ sauce, special Katik sauce, wheat flour lavash (contains gluten), greens, spices.'
-  },
-  'katik-barbeku-soslu-tavuk-durum': {
-    name: 'Katik BBQ Chicken Wrap',
-    description: 'Standard chicken doner wrap with BBQ sauce and greens.',
-    ingredients: 'Chicken doner, BBQ sauce, special Katik sauce, wheat flour lavash (contains gluten), greens, spices.'
-  },
-  'zurna-tavuk-doner-durum': {
-    name: 'Zurna Chicken Doner Wrap',
-    description: 'Long zurna chicken doner wrap with special Katik sauce and greens.',
-    ingredients: 'Chicken doner, special Katik sauce, wheat flour lavash (contains gluten), greens, spices.'
-  },
-  'katik-mantarli-tavuk-doner-durum': {
-    name: 'Katik Mushroom Chicken Doner Wrap',
-    description: 'Chicken doner wrap with delicious mushroom sauce and greens.',
-    ingredients: 'Chicken doner, mushroom sauce, special Katik sauce, wheat flour lavash (contains gluten), greens, spices.'
-  },
-  'katik-kasarli-tavuk-doner-durum': {
-    name: 'Katik Kashar Chicken Doner Wrap',
-    description: 'Chicken doner wrap with melted kashar cheese.',
-    ingredients: 'Chicken doner, melted kashar cheese, special Katik sauce, wheat flour lavash (contains gluten).'
-  },
-  'katik-cheddarli-tavuk-doner-durum': {
-    name: 'Katik Cheddar Chicken Doner Wrap',
-    description: 'Chicken doner wrap with melted cheddar cheese.',
-    ingredients: 'Chicken doner, melted cheddar cheese, special Katik sauce, wheat flour lavash (contains gluten).'
-  },
-  'katik-tavuk-doner-durum': {
-    name: 'Katik Chicken Doner Wrap',
-    description: 'Standard chicken doner wrap with special Katik sauce.',
-    ingredients: 'Chicken doner, special Katik sauce, wheat flour lavash (contains gluten).'
-  },
-  'ekmek-arasi-et-doner': {
-    name: 'Beef Doner Sandwich',
-    description: 'Traditional beef doner served inside freshly baked bread.',
-    ingredients: 'Beef doner, sandwich bread (contains gluten), onion, parsley, special spices.'
-  },
-  'zurna-katik-et-doner-durum': {
-    name: 'Zurna Beef Doner Wrap',
-    description: 'Long zurna beef doner wrap with special Katik sauce.',
-    ingredients: 'Beef doner, special Katik sauce, wheat flour lavash (contains gluten).'
-  },
-  'katik-et-doner-durum': {
-    name: 'Katik Beef Doner Wrap',
-    description: 'Beef doner wrap with special Katik sauce and spices.',
-    ingredients: 'Beef doner, special Katik sauce, wheat flour lavash (contains gluten).'
-  },
-  'veggie-durum': {
-    name: 'Veggie Wrap',
-    description: 'A special vegetarian wrap with grilled mushrooms, kashar cheese, and seasonal vegetables.',
-    ingredients: 'Grilled mushrooms, kashar cheese, seasonal vegetables, wheat flour lavash (contains gluten).'
-  },
-  'kutu-icecekler': {
-    name: 'Canned Soft Drinks',
-    description: 'Coca-Cola, Fanta, Sprite, Cappy or Ice Tea.',
-    ingredients: 'Carbonated water, sugar/sweeteners, acidity regulators, natural flavorings.'
-  },
-  'ayran': {
-    name: 'Ayran',
-    description: 'Sutas Ayran (yogurt drink) - 300 ml.',
-    ingredients: 'Yogurt, water, salt.'
-  },
-  'soda': {
-    name: 'Mineral Water',
-    description: 'Carbonated natural mineral water.',
-    ingredients: 'Natural mineral water.'
-  },
-  'su': {
-    name: 'Water',
-    description: 'Spring water - 500 ml.',
-    ingredients: 'Natural spring water.'
-  }
-};
-
+// (legacy static item translations removed — menu translations are built from tenant DB data)
 let itemTranslations = {};
 
 function toggleLanguage() {
@@ -3891,12 +3809,7 @@ function applyLanguage(lang) {
       if (cat) {
         let catName = cat.name;
         if (lang === 'en') {
-          const catTranslations = {
-            'Tantuni': 'Tantuni',
-            'Tavuk Döner': 'Chicken Doner',
-            'Et Döner': 'Beef Doner',
-            'Diğer & İçecek': 'Sides & Drinks'
-          };
+          const catTranslations = {};
           catName = catTranslations[cat.name] || cat.name;
         }
         selectedText.textContent = catName;
@@ -3909,14 +3822,15 @@ function applyLanguage(lang) {
   const activeCat = activeTabBtn ? activeTabBtn.getAttribute('data-tab') : 'tumu';
   renderMenuCards(activeCat);
   
-  // Dynamically update Google Maps iframe language (query comes from the tenant's address)
+  // Update Google Maps. An explicit tenant embed/link (set by Root) always wins; otherwise the
+  // query is derived from the tenant's address (with the current UI language).
   const mapIframe = document.getElementById('gmap-iframe');
   const mapQuery = window.__mapQuery || 'restaurant';
   if (mapIframe) {
-    mapIframe.src = `https://maps.google.com/maps?q=${mapQuery}&output=embed&hl=${lang}`;
+    mapIframe.src = window.__mapEmbed || `https://maps.google.com/maps?q=${mapQuery}&output=embed&hl=${lang}`;
   }
   const mapLink = document.getElementById('gmap-link');
-  if (mapLink) mapLink.href = `https://maps.google.com/?q=${mapQuery}`;
+  if (mapLink) mapLink.href = window.__mapLink || `https://maps.google.com/?q=${mapQuery}`;
 
   // Update header text in details modal if open
   const detailPanel = document.getElementById('foodDetailPanel');
@@ -3934,12 +3848,7 @@ function applyLanguage(lang) {
 
 // Categories metadata for dynamic rendering
 // Categories metadata for dynamic rendering
-const defaultCategoriesMap = {
-  'tantuni': { name: 'Tantuni', icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M16.5 5.5l-9 9c-.8.8-.8 2 0 2.8l2.2 2.2c.8.8 2 .8 2.8 0l9-9c.8-.8.8-2 0-2.8l-2.2-2.2c-.8-.8-2-.8-2.8 0z" /><path d="M14 6.5l3.5 3.5" fill="none" stroke="currentColor" stroke-width="1.5" /><path d="M17.5 16.5c-1-1-2.5-.5-3 1-.3.8-.2 1.8.3 2.5.5.7 1.5 1.2 2.2.8.8-.4.8-1.5.5-2.3-.3-.8 0-1.5 0-2z" /><path d="M6.5 18.5c-3-2.5-4-6.5-2.5-10.5C5.5 4 9.5 1.5 13.5 2" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>' },
-  'tavuk': { name: 'Tavuk Döner', icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M10 3h2v18h-2z"/><path d="M6 6c0-.5.5-1 1-1h6c.5 0 1 .5 1 1v1c0 .5-.5 1-1 1H7c-.5 0-1-.5-1-1V6zM6.5 8c0-.5.5-1 1-1h5c.5 0 1 .5 1 1v1.5c0 .5-.5 1-1 1h-5c-.5 0-1-.5-1-1V8zM7 11.5c0-.5.5-1 1-1h4c.5 0 1 .5 1 1V13c0 .5-.5 1-1 1H8c-.5 0-1-.5-1-1v-1.5zM7.5 14.5c0-.5.5-1 1-1h3c.5 0 1 .5 1 1v1.5c0 .5-.5 1-1 1h-3c-.5 0-1-.5-1-1v-1.5zM8 17.5c0-.5.5-1 1-1h2c.5 0 1 .5 1 1v1c0 .5-.5 1-1 1H9c-.5 0-1-.5-1-1v-1z"/><path d="M15.5 13.5c0 0 .5-1.5 1.5-2 .5-.2.5-.5.5-.8 0-.5-.3-.7-.7-.7-.3 0-.6.1-.9.3-.3-1 .2-2.3.8-2.8.3-.3.8-.5 1.2-.4s.7.4.8.8c.2.8.2 1.6-.2 2.3.3.5.7.8 1 .8.5 0 1.2-.5 1.5-.8.2.5.3 1.1.2 1.7-.2.8-.7 1.3-1.3 1.5-.6.2-1.3.1-1.8-.2-.3.3-.6.7-1 .9-.3.2-.6.3-.9.3-.7 0-1.2-.6-1.2-1.4z"/><path d="M5.5 19.5c-3-2.5-4-6.5-2.5-10.5C4.5 5 8.5 2.5 12.5 3" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>' },
-  'et': { name: 'Et Döner', icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M10 3h2v18h-2z"/><path d="M6 6c0-.5.5-1 1-1h6c.5 0 1 .5 1 1v1c0 .5-.5 1-1 1H7c-.5 0-1-.5-1-1V6zM6.5 8c0-.5.5-1 1-1h5c.5 0 1 .5 1 1v1.5c0 .5-.5 1-1 1h-5c-.5 0-1-.5-1-1V8zM7 11.5c0-.5.5-1 1-1h4c.5 0 1 .5 1 1V13c0 .5-.5 1-1 1H8c-.5 0-1-.5-1-1v-1.5zM7.5 14.5c0-.5.5-1 1-1h3c.5 0 1 .5 1 1v1.5c0 .5-.5 1-1 1h-3c-.5 0-1-.5-1-1v-1.5zM8 17.5c0-.5.5-1 1-1h2c.5 0 1 .5 1 1v1c0 .5-.5 1-1 1H9c-.5 0-1-.5-1-1v-1z"/><path d="M15.5 10c0 0 .5-1.5 1-2.5.2-.4.6-.7 1-.7.5 0 .8.3.9.7.1.5-.1 1-.4 1.5h1c.6 0 1 .4 1 1v2c0 1.1-.9 2-2 2h-1c-.5.8-1.3 1.3-2.3 1.3-1.5 0-2.2-.8-2.2-1.8 0-.5.2-1 .5-1.3l-1.5-1.2v-1z"/><path d="M5.5 19.5c-3-2.5-4-6.5-2.5-10.5C4.5 5 8.5 2.5 12.5 3" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>' },
-  'diger': { name: 'Diğer & İçecek', icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 8h1a4 4 0 1 1 0 8h-1"/><path d="M3 8h14v9a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4V8z"/><line x1="6" y1="2" x2="6" y2="4"/><line x1="10" y1="2" x2="10" y2="4"/><line x1="14" y1="2" x2="14" y2="4"/></svg>' }
-};
+// (removed legacy category map — categories come from tenant DB data)
 
 let categoriesMap = {};
 
@@ -3947,12 +3856,7 @@ function getCategoryTranslatedName(key, lang) {
   if (!categoriesMap[key]) return '';
   const cat = categoriesMap[key];
   if (lang === 'en') {
-    const catTranslations = {
-      'Tantuni': 'Tantuni',
-      'Tavuk Döner': 'Chicken Doner',
-      'Et Döner': 'Beef Doner',
-      'Diğer & İçecek': 'Sides & Drinks'
-    };
+    const catTranslations = {};
     return catTranslations[cat.name] || cat.name;
   }
   return cat.name;
@@ -4274,12 +4178,7 @@ function renderCategoriesDropdown() {
     // Translate category name dynamically
     let catName = cat.name;
     if (window.currentLanguage === 'en') {
-      const catTranslations = {
-        'Tantuni': 'Tantuni',
-        'Tavuk Döner': 'Chicken Doner',
-        'Et Döner': 'Beef Doner',
-        'Diğer & İçecek': 'Sides & Drinks'
-      };
+      const catTranslations = {};
       catName = catTranslations[cat.name] || cat.name;
     }
     
@@ -4376,7 +4275,7 @@ async function loadMenuDatabase() {
     }
     document.getElementById('menuCardsContainer').innerHTML = `
       <p style="text-align:center;color:var(--muted);grid-column:1/-1;padding:40px 0;">
-        ⚠️ Menü verileri yüklenemedi. Lütfen sunucu bağlantısını kontrol edin.
+        Menü verileri yüklenemedi. Lütfen sunucu bağlantısını kontrol edin.
       </p>
     `;
   }
@@ -4823,15 +4722,20 @@ document.addEventListener('click', () => {
 });
 
 // Theme Toggle Logic
+// Theme engine: 'dark' (warm default) · 'light' (warm light) · 'bw' (black & white).
+// The B&W theme reuses the light structure (theme-bw) and layers grayscale accents (theme-mono).
 function applyTheme(themeName) {
   const themeSwitch = document.getElementById('switch');
+  const b = document.body;
+  b.classList.remove('theme-bw', 'theme-mono');
   if (themeName === 'light') {
-    document.body.classList.add('theme-bw');
-    if (themeSwitch) themeSwitch.checked = true;
-  } else {
-    document.body.classList.remove('theme-bw');
-    if (themeSwitch) themeSwitch.checked = false;
+    b.classList.add('theme-bw');
+  } else if (themeName === 'bw' || themeName === 'mono') {
+    b.classList.add('theme-mono');   // dark monochrome: grayscale accents on the dark base
   }
+  // 'dark' (or anything else) → warm default, no classes
+  if (themeSwitch) themeSwitch.checked = (themeName === 'light' || themeName === 'bw' || themeName === 'mono');
+  window.__activeTheme = themeName || 'dark';
 }
 
 function toggleMonochromeTheme(checkbox) {
@@ -5016,9 +4920,9 @@ async function sendRezervasyon() {
 
   if(!ad || !tel || !gun || !ay || !yil || !saat){
     msg.style.display='block';
-    msg.style.background='rgba(217,59,10,0.2)';
-    msg.style.color='#FF7043';
-    msg.style.border='1px solid rgba(217,59,10,0.3)';
+    msg.style.background='rgba(var(--fire-rgb),0.2)';
+    msg.style.color='var(--bad)';
+    msg.style.border='1px solid rgba(var(--fire-rgb),0.3)';
     msg.innerHTML='<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg> ' + (window.currentLanguage === 'tr' ? 'Lütfen tüm alanları doldurun.' : 'Please fill all fields.');
     return;
   }
@@ -5030,13 +4934,13 @@ async function sendRezervasyon() {
     : ['','January','February','March','April','May','June','July','August','September','October','November','December'];
   const tarihOku = parseInt(gun) + ' ' + ayIsim[parseInt(ay)] + ' ' + yil;
   const isTr = window.currentLanguage === 'tr';
-  const labelRez = isTr ? '🍽️ YENİ REZERVASYON' : '🍽️ NEW RESERVATION';
-  const labelAd = isTr ? '👤 Ad Soyad' : '👤 Full Name';
-  const labelTel = isTr ? '📞 Telefon' : '📞 Phone';
-  const labelTarih = isTr ? '📅 Tarih' : '📅 Date';
-  const labelSaat = isTr ? '🕐 Saat' : '🕐 Time';
-  const labelKisi = isTr ? '👥 Kişi' : '👥 Guests';
-  const labelNot = isTr ? '📝 Not' : '📝 Note';
+  const labelRez = isTr ? 'YENİ REZERVASYON' : 'NEW RESERVATION';
+  const labelAd = isTr ? 'Ad Soyad' : 'Full Name';
+  const labelTel = isTr ? 'Telefon' : 'Phone';
+  const labelTarih = isTr ? 'Tarih' : 'Date';
+  const labelSaat = isTr ? 'Saat' : 'Time';
+  const labelKisi = isTr ? 'Kişi' : 'Guests';
+  const labelNot = isTr ? 'Not' : 'Note';
   const labelSitesi = isTr ? '— My Restaurant Web Sitesi' : '— My Restaurant Web Site';
   
   const metin = `${labelRez}\n\n${labelAd}: ${ad}\n${labelTel}: ${tel}\n${labelTarih}: ${tarihOku}\n${labelSaat}: ${saat}\n${labelKisi}: ${seciliPax}${not_ ? `\n${labelNot}: ` + not_ : ''}\n\n${labelSitesi}`;
@@ -5113,9 +5017,9 @@ async function sendRezervasyon() {
     }
   } catch(e){
     msg.style.display='block';
-    msg.style.background='rgba(217,59,10,0.2)';
-    msg.style.color='#FF7043';
-    msg.style.border='1px solid rgba(217,59,10,0.3)';
+    msg.style.background='rgba(var(--fire-rgb),0.2)';
+    msg.style.color='var(--bad)';
+    msg.style.border='1px solid rgba(var(--fire-rgb),0.3)';
     msg.innerHTML='<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg> ' + (window.currentLanguage === 'tr' ? 'Bağlantı hatası. Lütfen telefonla arayın: 123 456 789' : 'Connection error. Please call: 123 456 789');
   }
   btn.disabled=false; btn.innerHTML='<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-3px"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg> ' + (window.currentLanguage === 'tr' ? 'Rezervasyon Yap' : 'Book Table');
@@ -5495,7 +5399,7 @@ function openAdminForm(id = null) {
   document.getElementById('formProductPrice').value = '';
   document.getElementById('formProductImage').value = '';
   document.getElementById('formProductFile').value = '';
-  window.selectedFormProductCategory = 'tantuni';
+  window.selectedFormProductCategory = 'starters';
   document.getElementById('formProductDesc').value = '';
   document.getElementById('formProductPortion').value = '';
   document.getElementById('formProductEnergy').value = '';
@@ -5765,7 +5669,7 @@ function showCustomAlert(message, title, type = 'info') {
       iconEl.innerHTML = `<svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--ember)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>`;
     } else {
       iconEl.className = 'custom-popup-icon warning';
-      iconEl.innerHTML = `<svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#FF7043" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>`;
+      iconEl.innerHTML = `<svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--bad)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>`;
     }
     
     const okBtn = overlay.querySelector('.admin-btn');
@@ -5865,7 +5769,7 @@ async function loadPushDashboardData() {
 }
 
 function updatePushPreview() {
-  const title = document.getElementById('pushTitle')?.value || 'Katık Lezzeti';
+  const title = document.getElementById('pushTitle')?.value || 'My Restaurant';
   const body = document.getElementById('pushBody')?.value || 'Kampanya mesajı detayları...';
 
   const titleEl = document.getElementById('phoneNotifTitlePreview');
@@ -5951,21 +5855,23 @@ async function deletePush(id) {
 }
 </script>
 <script>
-// PWA is temporarily DISABLED — the site behaves as a normal responsive web app.
-// Flip this single flag back to true to re-enable installability + offline caching.
+// PWA install is DISABLED (site behaves as a normal responsive web app), but PUSH is enabled:
+// the service worker is registered ONLY for Web Push notifications (it does no page caching).
+//   ENABLE_PWA  → installability / add-to-home + offline caching (kept OFF).
+//   ENABLE_PUSH → register the push-only service worker so notifications can be delivered.
 window.ENABLE_PWA = false;
+window.ENABLE_PUSH = true;
 
-if (window.ENABLE_PWA && 'serviceWorker' in navigator) {
+if (window.ENABLE_PUSH && 'serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/service-worker.js').then(reg => {
-      console.log('[SW] Service worker registered successfully');
+    navigator.serviceWorker.register('/service-worker.js').then(() => {
+      console.log('[SW] Push service worker registered');
     }).catch(err => {
       console.error('[SW ERROR] Service worker registration failed:', err);
     });
   });
 } else if ('serviceWorker' in navigator) {
-  // Clean up any service worker + caches left over from a previous PWA build so
-  // returning visitors stop being served stale, cached pages.
+  // Push disabled → remove any leftover service worker + caches so nothing stale survives.
   navigator.serviceWorker.getRegistrations().then(regs => regs.forEach(r => r.unregister())).catch(() => {});
   if (window.caches) caches.keys().then(keys => keys.forEach(k => caches.delete(k))).catch(() => {});
 }
@@ -6228,7 +6134,7 @@ window.addEventListener('appinstalled', () => {
 <!-- PUSH NOTIFICATION REQUEST DIALOG -->
 <div id="pushPromptBackdrop" style="position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.6);backdrop-filter:blur(8px);z-index:999999;display:none;align-items:center;justify-content:center;opacity:0;transition:opacity 0.3s ease;">
   <div style="background:rgba(20,18,17,0.85);border:1.5px solid rgba(255,248,240,0.1);backdrop-filter:blur(25px);border-radius:24px;padding:30px;width:90%;max-width:400px;text-align:center;box-shadow:0 20px 40px rgba(0,0,0,0.5);transform:scale(0.9);transition:transform 0.3s ease;font-family:'DM Sans',sans-serif;color:var(--cream);">
-    <div style="width:60px;height:60px;background:rgba(217,59,10,0.1);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 20px;border:1px solid rgba(217,59,10,0.2);">
+    <div style="width:60px;height:60px;background:rgba(var(--fire-rgb),0.1);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 20px;border:1px solid rgba(var(--fire-rgb),0.2);">
       <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--ember)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
         <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
         <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
@@ -6244,7 +6150,7 @@ window.addEventListener('appinstalled', () => {
 </div>
 
 <!-- "ANA EKRANA EKLE" INSTALL BANNER -->
-<div id="installBanner" style="display:none;position:fixed;left:50%;transform:translateX(-50%);bottom:96px;width:calc(100% - 32px);max-width:480px;z-index:500;background:var(--card);border:1.5px solid rgba(255,87,34,0.25);border-radius:18px;box-shadow:0 8px 32px rgba(0,0,0,0.4);padding:14px 16px;align-items:center;gap:12px;font-family:'DM Sans',sans-serif;">
+<div id="installBanner" style="display:none;position:fixed;left:50%;transform:translateX(-50%);bottom:96px;width:calc(100% - 32px);max-width:480px;z-index:500;background:var(--card);border:1.5px solid rgba(var(--ember-rgb),0.25);border-radius:18px;box-shadow:0 8px 32px rgba(0,0,0,0.4);padding:14px 16px;align-items:center;gap:12px;font-family:'DM Sans',sans-serif;">
   <img src="/icons/icon-192.png" alt="" style="width:40px;height:40px;border-radius:10px;flex-shrink:0;">
   <div style="flex:1;min-width:0;">
     <p id="installBannerText" style="color:var(--cream);font-size:0.85rem;font-weight:600;line-height:1.3;margin:0;">My Restaurant'ı ana ekranına ekle, tek tıkla sipariş ver!</p>
@@ -6285,18 +6191,18 @@ window.addEventListener('appinstalled', () => {
     width:38px; height:38px; border-radius:12px; cursor:pointer;
     background:linear-gradient(135deg,var(--fire),var(--ember)); color:#fff;
     border:none; flex-shrink:0; transition:transform .15s ease, box-shadow .15s ease;
-    box-shadow:0 4px 14px rgba(217,59,10,.35);
+    box-shadow:0 4px 14px rgba(var(--fire-rgb),.35);
   }
-  .food-card-cart-btn:hover{ transform:translateY(-2px); box-shadow:0 6px 18px rgba(217,59,10,.45); }
+  .food-card-cart-btn:hover{ transform:translateY(-2px); box-shadow:0 6px 18px rgba(var(--fire-rgb),.45); }
   .food-card-cart-btn:active{ transform:scale(.92); }
 
   /* Floating cart button */
   .cart-fab{
-    position:fixed; right:18px; bottom:88px; z-index:1200;
+    position:fixed; right:18px; bottom:calc(96px + var(--safe-bottom)); z-index:var(--z-fab);
     width:60px; height:60px; border-radius:50%; border:none; cursor:pointer;
     background:linear-gradient(135deg,var(--fire),var(--ember)); color:#fff;
     display:flex; align-items:center; justify-content:center;
-    box-shadow:0 8px 26px rgba(217,59,10,.5); transition:transform .18s ease;
+    box-shadow:0 8px 26px rgba(var(--fire-rgb),.5); transition:transform .18s ease;
   }
   .cart-fab:hover{ transform:translateY(-3px) scale(1.04); }
   .cart-fab:active{ transform:scale(.94); }
@@ -6306,7 +6212,7 @@ window.addEventListener('appinstalled', () => {
     display:flex; align-items:center; justify-content:center; border:2px solid var(--dark);
   }
   body.theme-bw .cart-fab-badge{ border-color:#fff; }
-  @media(min-width:768px){ .cart-fab{ right:28px; bottom:28px; width:64px; height:64px; } }
+  @media(min-width:768px){ .cart-fab{ right:28px; bottom:calc(28px + var(--safe-bottom)); width:64px; height:64px; } }
 
   /* Cart drawer + backdrop */
   .cart-backdrop{
@@ -6363,7 +6269,7 @@ window.addEventListener('appinstalled', () => {
     width:100%; border:none; border-radius:14px; padding:15px; cursor:pointer;
     background:linear-gradient(135deg,var(--fire),var(--ember)); color:#fff;
     font-family:'Syne',sans-serif; font-weight:800; font-size:1rem;
-    box-shadow:0 6px 20px rgba(217,59,10,.35); transition:transform .15s ease;
+    box-shadow:0 6px 20px rgba(var(--fire-rgb),.35); transition:transform .15s ease;
   }
   .cart-checkout-btn:hover{ transform:translateY(-1px); }
   .cart-checkout-btn:active{ transform:scale(.98); }
@@ -6415,14 +6321,14 @@ window.addEventListener('appinstalled', () => {
     background:var(--cart-surface2); border:1.5px solid var(--cart-line); border-radius:12px;
     font-weight:700; font-size:.92rem; color:var(--cart-text); transition:border-color .15s ease;
   }
-  .co-pay:has(input:checked){ border-color:var(--fire); background:rgba(217,59,10,.08); }
+  .co-pay:has(input:checked){ border-color:var(--fire); background:rgba(var(--fire-rgb),.08); }
   .co-pay input{ accent-color:var(--fire); width:18px; height:18px; }
   .co-pay.disabled{ opacity:.5; cursor:not-allowed; }
   .checkout-order-summary{ background:var(--cart-surface2); border:1px solid var(--cart-line); border-radius:14px; padding:14px; }
   .co-sum-row{ display:flex; justify-content:space-between; font-size:.88rem; color:var(--cart-muted); margin-bottom:6px; }
   .co-sum-row.co-sum-total{ color:var(--cart-text); font-weight:800; font-size:1rem; margin-top:8px; padding-top:8px; border-top:1px dashed var(--cart-line); margin-bottom:0; }
   .checkout-msg{ display:none; padding:11px 14px; border-radius:12px; font-size:.88rem; font-weight:600; }
-  .checkout-msg.error{ background:rgba(217,59,10,.14); color:#FF7043; border:1px solid rgba(217,59,10,.3); }
+  .checkout-msg.error{ background:rgba(var(--fire-rgb),.14); color:var(--bad); border:1px solid rgba(var(--fire-rgb),.3); }
   .checkout-foot{ padding:14px 18px calc(14px + env(safe-area-inset-bottom)); border-top:1px solid var(--cart-line); flex-shrink:0; }
 
   /* Toast */
@@ -6439,17 +6345,19 @@ window.addEventListener('appinstalled', () => {
   /* In dine-in mode the reservation section is irrelevant (customer is seated). */
   body.dinein-mode #rezervasyon { display:none !important; }
   .dinein-badge{
-    position:fixed; top:12px; left:50%; transform:translateX(-50%); z-index:1250;
+    position:fixed; top:calc(12px + var(--safe-top)); left:50%; transform:translateX(-50%); z-index:var(--z-dinein-badge);
     display:flex; align-items:center; gap:7px; background:linear-gradient(135deg,var(--fire),var(--ember));
     color:#fff; padding:8px 16px; border-radius:999px; font-size:.82rem; font-weight:700;
-    box-shadow:0 6px 18px rgba(217,59,10,.4);
+    box-shadow:0 6px 18px rgba(var(--fire-rgb),.4);
   }
   .dinein-badge b{ font-weight:800; }
   .dinein-actions{
-    position:fixed; left:0; right:0; bottom:0; z-index:1150; display:flex; gap:8px;
-    padding:10px 12px calc(10px + env(safe-area-inset-bottom)); background:var(--cart-surface);
+    position:fixed; left:0; right:0; bottom:0; z-index:var(--z-dinein-actions); display:flex; gap:8px;
+    padding:10px 12px calc(10px + var(--safe-bottom)); background:var(--cart-surface);
     border-top:1px solid var(--cart-line); box-shadow:0 -6px 20px rgba(0,0,0,.25);
   }
+  /* dine-in has its own bottom action bar → hide the browsing dock to avoid a double bottom bar */
+  body.dinein-mode .bottom-nav{ display:none !important; }
   .dinein-actions button{
     flex:1; display:flex; flex-direction:column; align-items:center; gap:3px; padding:9px 4px;
     background:var(--cart-chip); border:1px solid var(--cart-line); color:var(--cart-text);
@@ -6458,16 +6366,18 @@ window.addEventListener('appinstalled', () => {
   .dinein-actions button.primary{ background:linear-gradient(135deg,var(--fire),var(--ember)); color:#fff; border-color:transparent; }
   .dinein-actions button svg{ opacity:.9; }
   /* keep the floating cart above the dine-in action bar */
-  body.dinein-mode .cart-fab{ bottom:104px; }
+  /* mobile: cart floats above the full-width dine-in bar */
+  body.dinein-mode .cart-fab{ bottom:calc(104px + var(--safe-bottom)); }
   @media(min-width:768px){
-    .dinein-actions{ left:auto; right:20px; bottom:20px; width:auto; border-radius:16px; border:1px solid var(--cart-line); }
+    .dinein-actions{ left:auto; right:24px; bottom:calc(24px + var(--safe-bottom)); width:auto; border-radius:16px; border:1px solid var(--cart-line); }
     .dinein-actions button{ min-width:96px; }
-    body.dinein-mode .cart-fab{ bottom:28px; }
+    /* desktop: stack the cart FAB clearly above the bottom-right dine-in bar (no overlap) */
+    body.dinein-mode .cart-fab{ bottom:calc(120px + var(--safe-bottom)); }
   }
 
   /* Live tracking card */
   .dinein-track{
-    position:fixed; left:50%; bottom:0; transform:translate(-50%,110%); z-index:1650;
+    position:fixed; left:50%; bottom:0; transform:translate(-50%,110%); z-index:var(--z-dinein-track);
     width:min(440px,94%); background:var(--cart-surface); color:var(--cart-text);
     border:1px solid var(--cart-line); border-radius:20px 20px 0 0; padding:20px;
     box-shadow:0 -10px 40px rgba(0,0,0,.4); transition:transform .35s cubic-bezier(.25,1,.5,1);
@@ -6921,12 +6831,53 @@ async function applySiteConfig() {
     const s = cfg.settings || {};
     const displayName = cfg.display_name || cfg.name || '';
 
-    // SEO / tab title
-    window.__siteTitle = s.seo_title || (displayName + ' | HASACA');
-    if (s.seo_description) {
-      const meta = document.querySelector('meta[name="description"]');
-      if (meta) meta.setAttribute('content', s.seo_description);
+    // Per-tenant default theme (only if the visitor hasn't chosen one themselves)
+    if (s.theme && !localStorage.getItem('theme') && typeof applyTheme === 'function') {
+      applyTheme(s.theme);
     }
+
+    // ── SEO — full per-tenant meta (title/description/keywords/OG/Twitter/canonical/robots/JSON-LD) ──
+    const seoTitle = s.seo_title || (displayName + ' | HASACA');
+    window.__siteTitle = seoTitle;
+    const seoDesc = s.seo_description || '';
+    const ogImage = s.og_image || s.logo_url || '/icons/placeholder-logo.svg';
+    const pageUrl = (s.seo_canonical || location.origin + '/');
+    // create-or-update a <meta>/<link> in <head> by attribute selector
+    const setMeta = (sel, attr, val) => {
+      if (val == null || val === '') return;
+      let el = document.head.querySelector(sel);
+      if (!el) {
+        el = document.createElement(sel.startsWith('link') ? 'link' : 'meta');
+        if (sel.includes('property=')) el.setAttribute('property', sel.match(/property="([^"]+)"/)[1]);
+        else if (sel.includes('rel=')) el.setAttribute('rel', sel.match(/rel="([^"]+)"/)[1]);
+        else if (sel.includes('name=')) el.setAttribute('name', sel.match(/name="([^"]+)"/)[1]);
+        document.head.appendChild(el);
+      }
+      el.setAttribute(attr, val);
+    };
+    if (seoDesc) setMeta('meta[name="description"]', 'content', seoDesc);
+    if (s.seo_keywords) setMeta('meta[name="keywords"]', 'content', s.seo_keywords);
+    setMeta('meta[property="og:title"]', 'content', seoTitle);
+    if (seoDesc) setMeta('meta[property="og:description"]', 'content', seoDesc);
+    setMeta('meta[property="og:image"]', 'content', ogImage);
+    setMeta('meta[property="og:url"]', 'content', pageUrl);
+    setMeta('meta[name="twitter:title"]', 'content', seoTitle);
+    if (seoDesc) setMeta('meta[name="twitter:description"]', 'content', seoDesc);
+    setMeta('meta[name="twitter:image"]', 'content', ogImage);
+    setMeta('link[rel="canonical"]', 'href', pageUrl);
+    setMeta('meta[name="robots"]', 'content', s.seo_robots === 'noindex' ? 'noindex,nofollow' : 'index,follow');
+    // Update the first JSON-LD (Restaurant) name/url/description/image
+    try {
+      const ld = document.querySelector('script[type="application/ld+json"]');
+      if (ld) {
+        const data = JSON.parse(ld.textContent);
+        data.name = displayName || data.name;
+        data.url = pageUrl;
+        if (seoDesc) data.description = seoDesc;
+        data.image = ogImage;
+        ld.textContent = JSON.stringify(data);
+      }
+    } catch (e) {}
 
     // Brand strings flow through the normal i18n pipeline so language switching keeps working
     ['tr', 'en'].forEach(l => {
@@ -6952,20 +6903,68 @@ async function applySiteConfig() {
       if (apple) apple.href = favUrl;
     }
 
-    // Contact phone (tel: links + visible numbers stay consistent per tenant)
-    if (cfg.contact_phone) {
-      const telHref = 'tel:' + cfg.contact_phone.replace(/\s+/g, '');
+    // ── Contact & Social (all root-controlled, tenant-driven; no hardcoded values) ──
+    const phone = s.contact_phone || cfg.contact_phone || '';
+    if (phone) {
+      const telHref = 'tel:' + phone.replace(/[^\d+]/g, '');
       document.querySelectorAll('a[href^="tel:"]').forEach(a => { a.href = telHref; });
+      const pv = document.getElementById('contactPhoneVal'); if (pv) pv.textContent = phone;
+      const opn = document.getElementById('orderPhoneNum'); if (opn) opn.textContent = phone;
     }
+    // helper: show/hide + wire a contact row
+    const setRow = (rowId, valId, href, text) => {
+      const row = document.getElementById(rowId); if (!row) return;
+      if (href) { row.style.display = ''; row.href = href; const v = document.getElementById(valId); if (v && text != null) v.textContent = text; }
+      else { row.style.display = 'none'; }
+    };
+    // Widgets: optional per-tenant on/off flags (Phase 28). Missing key/entry defaults to enabled,
+    // so tenants that never touch this keep rendering exactly as before.
+    const widgets = s.widgets || {};
+    const wa = (widgets.whatsapp !== false) ? (s.whatsapp || '').replace(/[^\d]/g, '') : '';
+    setRow('contactWhatsappRow', 'contactWhatsappVal', wa ? 'https://wa.me/' + wa : '', s.whatsapp || '');
+    const email = s.contact_email || cfg.contact_email || '';
+    setRow('contactEmailRow', 'contactEmailVal', email ? 'mailto:' + email : '', email);
+    if (s.instagram && widgets.instagram !== false) {
+      const handle = '@' + s.instagram.replace(/\/+$/, '').split('/').pop().replace(/^@/, '');
+      setRow('contactInstagramRow', 'contactInstagramVal', s.instagram, handle);
+    } else { const r = document.getElementById('contactInstagramRow'); if (r) r.style.display = 'none'; }
 
-    // Address → visible contact line + Google Maps (map query is derived from the tenant address)
-    if (cfg.address) {
-      document.querySelectorAll('[data-i18n="contact_address_val"]').forEach(el => { el.textContent = cfg.address; el.removeAttribute('data-i18n'); });
-      window.__mapQuery = encodeURIComponent(cfg.address);
-      const mapIframe = document.getElementById('gmap-iframe');
-      if (mapIframe) mapIframe.src = `https://maps.google.com/maps?q=${window.__mapQuery}&output=embed&hl=${window.currentLanguage || 'tr'}`;
-      const mapLink = document.getElementById('gmap-link');
-      if (mapLink) mapLink.href = `https://maps.google.com/?q=${window.__mapQuery}`;
+    // Address → visible contact line
+    const addr = s.address || cfg.address || '';
+    if (addr) document.querySelectorAll('[data-i18n="contact_address_val"]').forEach(el => { el.textContent = addr; el.removeAttribute('data-i18n'); });
+
+    // Google Maps: explicit embed/link (set by Root) always wins; else derive from the address.
+    // Stored on window so the language-change map updater keeps the same source of truth.
+    const mapBox = document.getElementById('gmapWidgetBox');
+    const mapIframe = document.getElementById('gmap-iframe');
+    const mapLink = document.getElementById('gmap-link');
+    if (mapBox) mapBox.style.display = (widgets.maps === false) ? 'none' : '';
+    window.__mapEmbed = s.maps_embed || '';
+    window.__mapLink = s.maps_link || '';
+    if (addr) window.__mapQuery = encodeURIComponent(addr);
+    if (mapIframe) mapIframe.src = window.__mapEmbed || (addr ? `https://maps.google.com/maps?q=${window.__mapQuery}&output=embed&hl=${window.currentLanguage || 'tr'}` : mapIframe.src);
+    if (mapLink) mapLink.href = window.__mapLink || (addr ? `https://maps.google.com/?q=${window.__mapQuery}` : mapLink.href);
+
+    // Social buttons — rendered only for links that are configured AND not widget-disabled
+    const socialIcons = {
+      facebook: '<path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/>',
+      twitter: '<path d="M23 3a10.9 10.9 0 0 1-3.14 1.53 4.48 4.48 0 0 0-7.86 3v1A10.66 10.66 0 0 1 3 4s-4 9 5 13a11.64 11.64 0 0 1-7 2c9 5 20 0 20-11.5a4.5 4.5 0 0 0-.08-.83A7.72 7.72 0 0 0 23 3z"/>',
+      tiktok: '<path d="M9 12a4 4 0 1 0 4 4V4a5 5 0 0 0 5 5"/>',
+      youtube: '<path d="M22.54 6.42a2.78 2.78 0 0 0-1.94-2C18.88 4 12 4 12 4s-6.88 0-8.6.46a2.78 2.78 0 0 0-1.94 2A29 29 0 0 0 1 11.75a29 29 0 0 0 .46 5.33A2.78 2.78 0 0 0 3.4 19c1.72.46 8.6.46 8.6.46s6.88 0 8.6-.46a2.78 2.78 0 0 0 1.94-2 29 29 0 0 0 .46-5.25 29 29 0 0 0-.46-5.33z"/><polygon points="9.75 15.02 15.5 11.75 9.75 8.48 9.75 15.02"/>',
+      website: '<circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>'
+    };
+    const socialBox = document.getElementById('socialLinks');
+    if (socialBox) {
+      socialBox.innerHTML = '';
+      ['facebook', 'twitter', 'tiktok', 'youtube', 'website'].forEach(key => {
+        const url = s[key];
+        if (url && widgets[key] !== false && /^https?:\/\//i.test(url)) {
+          const a = document.createElement('a');
+          a.href = url; a.target = '_blank'; a.rel = 'noopener'; a.className = 'social-btn'; a.setAttribute('aria-label', key);
+          a.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${socialIcons[key]}</svg>`;
+          socialBox.appendChild(a);
+        }
+      });
     }
 
     // Re-render texts with the merged branding

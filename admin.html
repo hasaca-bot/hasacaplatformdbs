@@ -1,5 +1,8 @@
 <!DOCTYPE html>
-<html lang="tr">
+<!-- Phase 25.2: admin-page class marker so we can neutralise the customer :root tokens on
+     admin.html ONLY (the real customer restaurant site at / is served from a separate file,
+     index.html, and is completely unaffected). See the html.admin-page override block below. -->
+<html lang="tr" class="admin-page">
 <head>
   
   <meta charset="UTF-8"/>
@@ -12,17 +15,16 @@
   <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600;700&family=Syne:wght@600;700;800&family=Dancing+Script:wght@600;700&display=swap" rel="stylesheet">
   <!-- SEO -->
-  <meta name="description" content="Safranbolu'nun en sevilen tantuni ve döner restoranı My Restaurant. Et tantuni, tavuk döner, zurna dürüm ve daha fazlası. Hızlı teslimat, bol porsiyon.">
-  <meta name="keywords" content="My Restaurant, My Restaurant Safranbolu, My Restaurant tantuni, My Restaurant döner, Safranbolu tantuni, Safranbolu döner, Safranbolu yemek, Safranbolu restoran, Safranbolu sipariş, Safranbolu en iyi döner, Safranbolu en iyi tantuni, Safranbolu paket servis, Safranbolu yemek siparişi, Safranbolu fast food, tantuni Safranbolu, döner Safranbolu, Karabük tantuni, Karabük döner, Karabük yemek, Karabük restoran, Karabük sipariş, et tantuni, tavuk tantuni, yoğurtlu tantuni, et tantuni dürüm, tavuk tantuni dürüm, et döner, tavuk döner, zurna dürüm, katık dürüm, zurna tavuk döner, cheddarlı dürüm, kaşarlı dürüm, mantarlı dürüm, barbekü soslu dürüm, combo menü, döner menü, tantuni menü, ayran, paket servis döner, online sipariş Safranbolu, Getir Safranbolu, Getir döner, Getir tantuni, en iyi döner Karabük, en iyi tantuni Karabük, ucuz yemek Safranbolu, lezzetli döner Safranbolu, dürüm Safranbolu, ekmek arası döner Safranbolu, veggie dürüm, Safranbolu emek mahallesi yemek, döner fiyatları Safranbolu, tantuni fiyatları Safranbolu">
+  <meta name="description" content="A restaurant website powered by the HASACA platform.">
+  <meta name="keywords" content="restaurant, menu, online order, food, reservation, QR menu">
   <meta name="author" content="My Restaurant">
   <meta name="robots" content="index, follow">
   <meta name="language" content="Turkish">
   <meta name="geo.region" content="TR-78">
-  <meta name="geo.placename" content="Safranbolu, Karabük">
 
   <!-- Open Graph (sosyal medya paylaşım) -->
-  <meta property="og:title" content="My Restaurant | Tantuni & Döner – Safranbolu">
-  <meta property="og:description" content="Safranbolu'nun en sevilen tantuni ve döner restoranı. Et tantuni, tavuk döner, zurna dürüm. Getir'den sipariş ver!">
+  <meta property="og:title" content="My Restaurant">
+  <meta property="og:description" content="Delicious food and a warm atmosphere. Browse the menu and order now.">
   <meta property="og:type" content="restaurant">
   <meta property="og:url" content="">
   <meta property="og:locale" content="tr_TR">
@@ -33,14 +35,14 @@
     "@context": "https://schema.org",
     "@type": "Restaurant",
     "name": "My Restaurant",
-    "description": "Safranbolu'nun en sevilen tantuni ve döner restoranı. Et tantuni, tavuk döner, zurna dürüm.",
+    "description": "A restaurant website powered by the HASACA platform.",
     "url": "",
     "telephone": "123456789",
     "address": {
       "@type": "PostalAddress",
-      "streetAddress": "Emek Mahallesi",
-      "addressLocality": "Safranbolu",
-      "addressRegion": "Karabük",
+      "streetAddress": "",
+      "addressLocality": "",
+      "addressRegion": "",
       "addressCountry": "TR"
     },
     "geo": {
@@ -56,7 +58,7 @@
         "closes": "22:30"
       }
     ],
-    "servesCuisine": ["Türk Mutfağı", "Tantuni", "Döner"],
+    "servesCuisine": ["Restaurant"],
     "priceRange": "₺₺",
     "sameAs": ["#"]
   }
@@ -82,18 +84,99 @@
 
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+/* ── GLOBAL TYPOGRAPHY — Samsung Sharp Sans applied app-wide (single central config) ── */
+@font-face{
+  font-family:'Samsung Sharp Sans';
+  src:url('/fonts/SamsungSharpSans-Bold.ttf') format('truetype');
+  font-weight:1 1000; font-style:normal; font-display:swap;
+}
+:root{ --font-primary:'Samsung Sharp Sans', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; }
+*{ font-family:var(--font-primary) !important; }
+code,pre,kbd,samp,.cred-box,[class*="mono"],[style*="monospace"]{ font-family:ui-monospace,'SFMono-Regular',Menlo,monospace !important; }
 :root{
   --fire:#D93B0A;
   --ember:#FF5722;
   --gold:#FFA726;
   --amber:#FFB74D;
+  /* RGB triplets for rgba() forms that can't interpolate a hex custom property (Phase 32).
+     This embedded customer-site block is unconditionally display:none on admin.html (verified live —
+     html.admin-page hides it), so this is a pure de-hardcoding refactor with no visual outcome. */
+  --fire-rgb:217,59,10;
+  --ember-rgb:255,87,34;
+  --amber-rgb:255,167,38;
+  --bad:#FF7043;
+  --bad-rgb:255,112,67;
   --cream:#FFF8F0;
   --dark:#1C0A00;
   --dark2:#2E1208;
   --card:#3D1A0A;
   --muted:#C4906A;
   --white:#FFFFFF;
+  --scroll-thumb: rgba(var(--fire-rgb),.45);
+  --scroll-thumb-hover: rgba(var(--fire-rgb),.75);
 }
+/* ================================================================
+   PHASE 25.2 — Root-level token neutralization for admin.html ONLY.
+   The customer restaurant site is served from a separate file (index.html
+   at `/`); it never sees this rule. On admin.html the customer :root
+   values above are overridden here to the same neutral panel palette
+   used inside #adminPanelOverlay, so EVERYTHING outside the overlay
+   (body backdrop, root scrollbar, modal cards, form panels, generic
+   buttons/inputs/labels) reads the same neutral tokens. Any legacy
+   reference to var(--fire)/var(--ember)/var(--card)/var(--dark) etc.
+   cascades to these values automatically — no per-component rewrites.
+   ================================================================ */
+html.admin-page{
+  --fire:#d8b877;             /* was #D93B0A (orange) → neutral gold */
+  --ember:#c9a253;            /* was #FF5722 (orange) → deeper gold */
+  --gold:#d8b877;             /* was #FFA726 → same gold */
+  --amber:#c9a253;            /* was #FFB74D → deeper gold */
+  --cream:#f4f4f6;            /* was #FFF8F0 (warm off-white) → cool white */
+  --dark:#0a0a0b;             /* was #1C0A00 (deep brown) → panel bg */
+  --dark2:#141418;            /* was #2E1208 (brown) → panel surface */
+  --card:#1b1b20;             /* was #3D1A0A (brown) → card surface */
+  --muted:#a6a6b0;            /* was #C4906A (warm taupe) → cool muted */
+  --white:#ffffff;
+  --scroll-thumb:rgba(255,255,255,.15);           /* was orange rgba */
+  --scroll-thumb-hover:rgba(255,255,255,.28);     /* was orange rgba */
+  /* Also define the panel semantic tokens at page scope so form panels /
+     modals outside the overlay can use them consistently. */
+  --ap-bg:#0a0a0b; --ap-bg-2:#0e0e11; --ap-panel:#141418; --ap-card:#1b1b20; --ap-elev:#212127;
+  --ap-line:rgba(255,255,255,.09); --ap-line-2:rgba(255,255,255,.15);
+  --ap-text:#f4f4f6; --ap-muted:#a6a6b0; --ap-faint:#6c6c78;
+  --ap-gold:#d8b877; --ap-gold-2:#c9a253; --ap-gold-soft:rgba(216,184,119,.14);
+  --ap-bad:#e5776b; --ap-bad-soft:rgba(229,119,107,.14);
+  color-scheme:dark;
+  scrollbar-color:var(--scroll-thumb) transparent;
+}
+/* Light-theme mirror — activated when the shared Panel theme (Phase 24/25) is Light. */
+html.admin-page[data-theme="light"]{
+  --dark:#f4f5f7; --dark2:#eceef2; --card:#ffffff;
+  --cream:#15171c; --muted:#565c69; --white:#ffffff;
+  --fire:#9a7526; --ember:#7f5f1e; --gold:#9a7526; --amber:#7f5f1e;
+  --scroll-thumb:rgba(15,18,25,.22);
+  --scroll-thumb-hover:rgba(15,18,25,.4);
+  --ap-bg:#f4f5f7; --ap-bg-2:#eceef2; --ap-panel:#ffffff; --ap-card:#ffffff; --ap-elev:#ffffff;
+  --ap-line:rgba(15,18,25,.10); --ap-line-2:rgba(15,18,25,.17);
+  --ap-text:#15171c; --ap-muted:#565c69; --ap-faint:#8b909c;
+  --ap-gold:#9a7526; --ap-gold-2:#7f5f1e; --ap-gold-soft:rgba(154,117,38,.12);
+  color-scheme:light;
+}
+/* body.theme-bw is the CUSTOMER site's own theme engine — on admin.html the
+   customer content is display:none anyway, but keep the mirror in case any
+   inherited rule reads --dark/--card via the theme-bw cascade. */
+html.admin-page body.theme-bw{
+  --dark:#f4f5f7; --dark2:#eceef2; --card:#ffffff;
+  --cream:#15171c; --muted:#565c69;
+  --fire:#9a7526; --ember:#7f5f1e; --gold:#9a7526; --amber:#7f5f1e;
+}
+
+/* ── CUSTOM SCROLLBAR — thin, rounded, subtle (Chromium + Firefox) ── */
+html{ scrollbar-width:thin; scrollbar-color:var(--scroll-thumb) transparent; }
+::-webkit-scrollbar{ width:10px; height:10px; }
+::-webkit-scrollbar-track{ background:transparent; }
+::-webkit-scrollbar-thumb{ background:var(--scroll-thumb); border-radius:999px; border:2px solid transparent; background-clip:padding-box; }
+::-webkit-scrollbar-thumb:hover{ background:var(--scroll-thumb-hover); background-clip:padding-box; }
 
 /* ── PREMIUM LIGHT THEME ── */
 body.theme-bw {
@@ -123,7 +206,7 @@ html{scroll-behavior:smooth;}
 .pax-btn.active{
   background:var(--fire);color:#fff;
   border-color:var(--fire);
-  box-shadow:0 3px 12px rgba(217,59,10,0.35);
+  box-shadow:0 3px 12px rgba(var(--fire-rgb),0.35);
 }
 
 body{
@@ -146,7 +229,7 @@ body{
   z-index:200;
   background:rgba(28,10,0,0.85);
   backdrop-filter:blur(20px);
-  border:1.5px solid rgba(255,87,34,0.25);
+  border:1.5px solid rgba(var(--ember-rgb),0.25);
   border-radius:24px;
   box-shadow:0 8px 32px rgba(0,0,0,0.6);
   display:flex;justify-content:space-around;align-items:center;
@@ -177,7 +260,7 @@ body.theme-bw .bottom-nav {
   display:flex;flex-direction:column;align-items:center;gap:2px;
   font-size:0.6rem;font-weight:700;letter-spacing:0.5px;text-transform:uppercase;
   text-decoration:none;
-  box-shadow:0 4px 20px rgba(217,59,10,0.5);
+  box-shadow:0 4px 20px rgba(var(--fire-rgb),0.5);
   -webkit-tap-highlight-color:transparent;
 }
 
@@ -193,7 +276,7 @@ body.theme-bw .bottom-nav {
 .topbar.scrolled {
   background:rgba(28,10,0,0.9);
   backdrop-filter:blur(16px);
-  border-bottom:1px solid rgba(255,87,34,0.15);
+  border-bottom:1px solid rgba(var(--ember-rgb),0.15);
 }
 body.theme-bw .topbar.scrolled {
   background: rgba(255, 255, 255, 0.95);
@@ -205,8 +288,8 @@ body.theme-bw .topbar.scrolled {
   display:flex;align-items:center;gap:6px;
   text-decoration:none;color:var(--cream);
   font-size:0.8rem;font-weight:600;
-  background:rgba(255,87,34,0.15);
-  border:1px solid rgba(255,87,34,0.3);
+  background:rgba(var(--ember-rgb),0.15);
+  border:1px solid rgba(var(--ember-rgb),0.3);
   border-radius:50px;padding:8px 14px;
   transition: all 0.2s ease;
 }
@@ -216,8 +299,8 @@ body.theme-bw .topbar:not(.scrolled) .topbar-phone {
   border-color: rgba(255, 255, 255, 0.3);
 }
 body.theme-bw .topbar.scrolled .topbar-phone {
-  background: rgba(217, 59, 10, 0.08);
-  border-color: rgba(217, 59, 10, 0.2);
+  background: rgba(var(--fire-rgb), 0.08);
+  border-color: rgba(var(--fire-rgb), 0.2);
   color: var(--cream);
 }
 
@@ -250,8 +333,8 @@ body.theme-bw .order-cta .btn-main {
   color: #fff;
 }
 body.theme-bw .order-cta .btn-secondary {
-  background: rgba(217, 59, 10, 0.08);
-  border-color: rgba(217, 59, 10, 0.2);
+  background: rgba(var(--fire-rgb), 0.08);
+  border-color: rgba(var(--fire-rgb), 0.2);
   color: var(--cream);
 }
 body.theme-bw .review-card {
@@ -270,7 +353,7 @@ body.theme-bw .food-card {
   border-color: rgba(44, 26, 16, 0.08);
 }
 body.theme-bw .food-card:hover {
-  border-color: rgba(217, 59, 10, 0.3);
+  border-color: rgba(var(--fire-rgb), 0.3);
   box-shadow: 0 8px 24px rgba(44, 26, 16, 0.08);
 }
 
@@ -423,7 +506,7 @@ body.theme-bw .bnav-cta {
   background: var(--fire);
   border-color: var(--fire);
   color: #fff;
-  box-shadow: 0 4px 12px rgba(217, 59, 10, 0.35);
+  box-shadow: 0 4px 12px rgba(var(--fire-rgb), 0.35);
 }
 body.theme-bw .lang-btn {
   background: rgba(44, 26, 16, 0.05);
@@ -504,7 +587,7 @@ body.theme-bw .lang-btn:hover {
 }
 .hero-badge{
   display:inline-flex;align-items:center;gap:6px;
-  background:rgba(255,167,38,0.18);border:1px solid rgba(255,167,38,0.4);
+  background:rgba(var(--amber-rgb),0.18);border:1px solid rgba(var(--amber-rgb),0.4);
   border-radius:50px;padding:5px 12px;
   font-size:0.7rem;font-weight:700;letter-spacing:1px;
   text-transform:uppercase;color:var(--gold);
@@ -527,11 +610,11 @@ body.theme-bw .lang-btn:hover {
   background:var(--fire);color:#fff;
   padding:16px 24px;border-radius:16px;
   font-weight:700;font-size:1rem;text-decoration:none;
-  box-shadow:0 6px 24px rgba(217,59,10,0.45);
+  box-shadow:0 6px 24px rgba(var(--fire-rgb),0.45);
   transition:transform 0.15s,box-shadow 0.15s;
   -webkit-tap-highlight-color:transparent;
 }
-.btn-main:active{transform:scale(0.97);box-shadow:0 3px 12px rgba(217,59,10,0.3);}
+.btn-main:active{transform:scale(0.97);box-shadow:0 3px 12px rgba(var(--fire-rgb),0.3);}
 .btn-secondary{
   display:flex;align-items:center;justify-content:center;gap:10px;
   background:rgba(255,248,240,0.1);
@@ -808,7 +891,7 @@ body.theme-bw .category-dropdown-option:hover {
 .contact-row:last-child{border-bottom:none;}
 .contact-ico{
   width:40px;height:40px;border-radius:12px;
-  background:rgba(217,59,10,0.15);
+  background:rgba(var(--fire-rgb),0.15);
   display:flex;align-items:center;justify-content:center;
   flex-shrink:0;font-size:1.1rem;overflow:hidden;
 }
@@ -892,7 +975,7 @@ footer p{font-size:0.75rem;color:var(--muted);}
 }
 .food-card:hover {
   transform: translateY(-2px);
-  border-color: rgba(255,87,34,0.3);
+  border-color: rgba(var(--ember-rgb),0.3);
   box-shadow: 0 8px 24px rgba(28,10,0,0.4);
 }
 .food-card-img {
@@ -1344,8 +1427,8 @@ footer p{font-size:0.75rem;color:var(--muted);}
   width: 48px;
   height: 48px;
   border-radius: 50%;
-  background: rgba(255,87,34,0.08);
-  border: 1px solid rgba(255,87,34,0.15);
+  background: rgba(var(--ember-rgb),0.08);
+  border: 1px solid rgba(var(--ember-rgb),0.15);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1358,12 +1441,12 @@ footer p{font-size:0.75rem;color:var(--muted);}
   line-height: 1.2;
 }
 .allergen-warning {
-  background: rgba(217,59,10,0.08);
-  border: 1px solid rgba(217,59,10,0.15);
+  background: rgba(var(--fire-rgb),0.08);
+  border: 1px solid rgba(var(--fire-rgb),0.15);
   border-radius: 12px;
   padding: 10px 14px;
   font-size: 0.72rem;
-  color: #FF7043;
+  color: var(--bad);
   display: flex;
   align-items: center;
   gap: 8px;
@@ -1797,14 +1880,14 @@ body.theme-bw .allergen-badge-btn .badge-status-dot {
   background: rgba(44, 26, 16, 0.2);
 }
 .allergen-badge-btn.active {
-  background: rgba(217, 59, 10, 0.1);
-  border-color: rgba(217, 59, 10, 0.3);
-  color: #FF7043;
+  background: rgba(var(--fire-rgb), 0.1);
+  border-color: rgba(var(--fire-rgb), 0.3);
+  color: var(--bad);
 }
 body.theme-bw .allergen-badge-btn.active {
-  background: rgba(217, 59, 10, 0.06);
-  border-color: rgba(217, 59, 10, 0.25);
-  color: #D93B0A;
+  background: rgba(var(--fire-rgb), 0.06);
+  border-color: rgba(var(--fire-rgb), 0.25);
+  color: var(--fire);
 }
 .allergen-badge-btn.active .badge-status-dot {
   background: var(--fire);
@@ -1882,82 +1965,11 @@ body.theme-bw .admin-file-upload-btn {
   border: 1px solid rgba(255, 248, 240, 0.05);
 }
 
-/* ── ADMIN RESERVATIONS TABS & DRAG-DROP STYLING ── */
-.admin-panel-tabs {
-  display: flex;
-  gap: 8px;
-  margin-bottom: 20px;
-  border-bottom: 1px solid rgba(255,248,240,0.06);
-  position: relative;
-}
-body.theme-bw .admin-panel-tabs {
-  border-bottom-color: rgba(44, 26, 16, 0.1);
-}
-.admin-tab-btn {
-  flex: 1;
-  background: transparent;
-  border: none;
-  color: var(--muted);
-  font-family: 'DM Sans', sans-serif;
-  font-size: 0.85rem;
-  font-weight: 700;
-  padding: 10px 16px;
-  cursor: pointer;
-  position: relative;
-  transition: color 0.2s;
-  text-align: center;
-}
-.admin-tab-btn:hover {
-  color: var(--cream);
-}
-.admin-tab-btn.active {
-  color: var(--ember);
-}
-.admin-tab-indicator {
-  position: absolute;
-  bottom: -1px;
-  left: 0;
-  width: 33.333%;
-  height: 2.5px;
-  background: var(--ember);
-  border-radius: 2px;
-  transition: left 0.35s cubic-bezier(0.25, 1, 0.5, 1), width 0.35s cubic-bezier(0.25, 1, 0.5, 1);
-}
-.admin-tab-btn .badge {
-  background: var(--fire);
-  color: #FFFFFF;
-  font-size: 0.7rem;
-  padding: 2px 6px;
-  border-radius: 10px;
-  margin-left: 6px;
-}
-.admin-tab-content-wrapper {
-  overflow: hidden;
-  width: 100%;
-  flex: 1;
-  display: flex;
-}
-.admin-tab-content-slider {
-  display: flex;
-  width: 600%;
-  height: 100%;
-  transition: transform 0.4s cubic-bezier(0.25, 1, 0.5, 1);
-  flex-shrink: 0;
-}
-.admin-tab-content {
-  width: 16.6667%;
-  height: 100%;
-  flex-shrink: 0;
-  display: block;
-  opacity: 0.35;
-  transition: opacity 0.4s ease;
-  overflow-y: auto;
-  -webkit-overflow-scrolling: touch;
-  padding-bottom: 120px;
-}
-.admin-tab-content.active-tab {
-  opacity: 1;
-}
+/* ── Phase 25 REVISION: legacy .admin-panel-tabs / .admin-tab-btn / .admin-tab-indicator /
+   .admin-tab-content-wrapper / .admin-tab-content-slider REMOVED. The old horizontal
+   sliding-tab navigation is replaced by an in-overlay sidebar shell (.app-shell/.app-sidebar/…),
+   defined in the Phase 25 REVISION block below. The 6 tab-content divs are reparented as-is
+   and adapted into .view panes (see the .app-content .view rules further down). ── */
 
 /* ── Push Notification Compose/Preview (ported from style.css so admin.html stays self-contained) ── */
 .push-send-screen {
@@ -2170,10 +2182,10 @@ body.theme-bw .admin-rez-item {
 }
 .admin-rez-item.unread {
   border-left: 4px solid var(--ember);
-  background: rgba(255, 87, 34, 0.02);
+  background: rgba(var(--ember-rgb), 0.02);
 }
 body.theme-bw .admin-rez-item.unread {
-  background: rgba(217, 59, 10, 0.02);
+  background: rgba(var(--fire-rgb), 0.02);
 }
 .rez-drag-handle {
   color: rgba(255,248,240,0.2);
@@ -2264,9 +2276,9 @@ body.theme-bw .rez-note {
   align-items: center;
   justify-content: center;
   gap: 12px;
-  border: 2px dashed rgba(217, 59, 10, 0.25);
-  background: rgba(217, 59, 10, 0.02);
-  color: rgba(217, 59, 10, 0.6);
+  border: 2px dashed rgba(var(--fire-rgb), 0.25);
+  background: rgba(var(--fire-rgb), 0.02);
+  color: rgba(var(--fire-rgb), 0.6);
   border-radius: 16px;
   padding: 40px 20px;
   text-align: center;
@@ -2276,7 +2288,7 @@ body.theme-bw .rez-note {
 }
 .admin-trash-zone.drag-hover {
   border-color: var(--fire);
-  background: rgba(217, 59, 10, 0.1);
+  background: rgba(var(--fire-rgb), 0.1);
   color: var(--fire);
   transform: scale(1.02);
 }
@@ -2328,14 +2340,14 @@ body.theme-bw .rez-note {
   margin: 0 auto 16px;
   width: 64px;
   height: 64px;
-  background: rgba(217, 59, 10, 0.1);
+  background: rgba(var(--fire-rgb), 0.1);
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
 }
 .custom-popup-icon.warning {
-  background: rgba(255, 112, 67, 0.1);
+  background: rgba(var(--bad-rgb), 0.1);
 }
 .custom-popup-title {
   font-family: 'Syne', sans-serif;
@@ -2366,11 +2378,12 @@ body.theme-bw .rez-note {
   flex: 1;
 }
 .custom-popup-actions-row .admin-btn.danger {
-  background: #D84315;
+  background: var(--ap-bad, #e5776b);
   color: #FFF;
 }
 .custom-popup-actions-row .admin-btn.danger:hover {
-  background: #FF7043;
+  background: var(--ap-bad, #e5776b);
+  filter: brightness(1.12);
 }
 
 body.theme-bw .custom-popup-card {
@@ -2490,7 +2503,7 @@ body.theme-bw .custom-select-option:hover {
 }
 .rez-select-trigger:hover {
   background: rgba(255, 248, 240, 0.08);
-  border-color: rgba(217, 59, 10, 0.6);
+  border-color: rgba(var(--fire-rgb), 0.6);
 }
 .custom-select-container.open .rez-select-trigger {
   border-color: var(--fire);
@@ -2516,11 +2529,13 @@ body.theme-bw .rez-select-trigger:hover {
   }
   .admin-panel.open,
   #adminPanelOverlay.open {
-    display: flex !important;
+    /* Phase 25 REVISION: fullscreen sidebar shell — no side gutters, no inner padding.
+       Padding/scroll are handled by .app-content inside the shell. */
+    display: block !important;
     position: relative !important;
     max-width: 100% !important;
     width: 100% !important;
-    margin: 0 auto !important;
+    margin: 0 !important;
     border: none !important;
     box-shadow: none !important;
     transform: none !important;
@@ -2529,24 +2544,12 @@ body.theme-bw .rez-select-trigger:hover {
     right: 0 !important;
     height: 100vh !important;
     max-height: 100vh !important;
-    padding: 24px 20px !important;
-    overflow-y: auto !important;
+    padding: 0 !important;
+    overflow: hidden !important;
     z-index: 1 !important;
   }
   #adminLoginBackdrop {
     display: none !important;
-  }
-  @media(min-width: 992px) {
-    .admin-panel.open,
-    #adminPanelOverlay.open {
-      max-width: 900px !important;
-      left: 0 !important;
-      right: 0 !important;
-      margin: 0 auto !important;
-      transform: none !important;
-      border: none !important;
-      box-shadow: none !important;
-    }
   }
 </style>
 </head>
@@ -2597,14 +2600,11 @@ body.theme-bw .rez-select-trigger:hover {
   
   <div class="hero-gradient"></div>
   <div class="hero-content">
-    <div class="hero-badge"><svg width="14" height="14" viewBox="0 0 24 24" fill="var(--gold)" style="vertical-align:-1px"><polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/></svg> <span data-i18n="hero_badge_text">Safranbolu'nun Gözdesi</span></div>
+    <div class="hero-badge"><svg width="14" height="14" viewBox="0 0 24 24" fill="var(--gold)" style="vertical-align:-1px"><polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/></svg> <span data-i18n="hero_badge_text">Favori Adresiniz</span></div>
     <h1 class="hero-title" data-i18n="hero_title_main">Gerçek<br><em>Lezzet</em><br>Her Lokmada</h1>
-    <p class="hero-sub" data-i18n="hero_sub_main">Tantuni, döner ve dürümde Safranbolu'nun en sevilen adresi.</p>
+    <p class="hero-sub" data-i18n="hero_sub_main">Lezzetli yemekler ve sıcak bir atmosfer sizi bekliyor.</p>
     <div class="hero-btns">
-      <a href="https://getir.com/yemek/restoran/dayi-katik-tantuni-safranbolu-emek-mah-safranbolu-karabuk/" target="_blank" class="btn-main">
-        <img src="data:image/png;base64,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" style="width:22px;height:22px;border-radius:50%;"> <span data-i18n="order_getir">Getir'den Sipariş Ver</span>
-      </a>
-      <a href="#menu" class="btn-secondary" onclick="event.preventDefault();document.getElementById('menu').scrollIntoView({behavior:'smooth'});">
+<a href="#menu" class="btn-secondary" onclick="event.preventDefault();document.getElementById('menu').scrollIntoView({behavior:'smooth'});">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-3px"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/><line x1="8" y1="10" x2="16" y2="10"/><line x1="8" y1="14" x2="16" y2="14"/><line x1="8" y1="18" x2="12" y2="18"/></svg> <span data-i18n="btn_see_menu">Menüyü Gör</span>
       </a>
     </div>
@@ -2617,7 +2617,7 @@ body.theme-bw .rez-select-trigger:hover {
   <div class="sec-title" data-i18n="menu_heading">Menümüz</div>
   <div class="category-dropdown-container" id="categoryDropdownContainer">
     <button class="category-dropdown-btn" id="categoryDropdownBtn" onclick="toggleCategoryDropdown(event)">
-      <span id="categoryDropdownSelectedText">Tantuni</span>
+      <span id="categoryDropdownSelectedText" data-i18n="menu_heading">Menü</span>
       <svg class="chevron-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
     </button>
     <div class="category-dropdown-list" id="categoryDropdownList">
@@ -2628,11 +2628,8 @@ body.theme-bw .rez-select-trigger:hover {
   <div class="menu-cards-container" id="menuCardsContainer"></div>
 
   <div class="order-cta">
-    <a href="https://getir.com/yemek/restoran/dayi-katik-tantuni-safranbolu-emek-mah-safranbolu-karabuk/" target="_blank" class="btn-main">
-      <img src="data:image/png;base64,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" style="width:22px;height:22px;border-radius:50%;"> <span data-i18n="order_getir">Getir'den Sipariş Ver</span>
-    </a>
-    <a href="tel:123456789" class="btn-secondary">
-      📞 <span data-i18n="order_phone">Telefonla Sipariş</span> &nbsp;<span style="opacity:.7;font-size:.85em;">123 456 789</span>
+<a href="tel:123456789" class="btn-secondary">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg> <span data-i18n="order_phone">Telefonla Sipariş</span> &nbsp;<span style="opacity:.7;font-size:.85em;">123 456 789</span>
     </a>
   </div>
 </section>
@@ -2650,13 +2647,13 @@ body.theme-bw .rez-select-trigger:hover {
       <!-- Ad -->
       <div>
         <label style="font-size:0.72rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--ember);display:block;margin-bottom:7px;" data-i18n="lbl_fullname">Ad Soyad</label>
-        <input id="rezAd" type="text" data-i18n-placeholder="ph_name" placeholder="Adınız ve soyadınız" style="width:100%;background:rgba(255,248,240,0.06);border:1.5px solid rgba(255,248,240,0.1);border-radius:12px;padding:13px 16px;color:var(--cream);font-size:0.95rem;font-family:'DM Sans',sans-serif;outline:none;transition:border 0.2s;" onfocus="this.style.borderColor='rgba(217,59,10,0.6)'" onblur="this.style.borderColor='rgba(255,248,240,0.1)'">
+        <input id="rezAd" type="text" data-i18n-placeholder="ph_name" placeholder="Adınız ve soyadınız" style="width:100%;background:rgba(255,248,240,0.06);border:1.5px solid rgba(255,248,240,0.1);border-radius:12px;padding:13px 16px;color:var(--cream);font-size:0.95rem;font-family:'DM Sans',sans-serif;outline:none;transition:border 0.2s;" onfocus="this.style.borderColor='rgba(var(--fire-rgb),0.6)'" onblur="this.style.borderColor='rgba(255,248,240,0.1)'">
       </div>
 
       <!-- Telefon -->
       <div>
         <label style="font-size:0.72rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--ember);display:block;margin-bottom:7px;" data-i18n="lbl_phone">Telefon</label>
-        <input id="rezTel" type="tel" inputmode="numeric" autocomplete="off" data-i18n-placeholder="ph_phone" placeholder="05321234567 veya 0532 123 45 67" style="width:100%;background:rgba(255,248,240,0.06);border:1.5px solid rgba(255,248,240,0.1);border-radius:12px;padding:13px 16px;color:var(--cream);font-size:0.95rem;font-family:'DM Sans',sans-serif;outline:none;transition:border 0.2s;" onfocus="this.style.borderColor='rgba(217,59,10,0.6)'" onblur="this.style.borderColor='rgba(255,248,240,0.1)'">
+        <input id="rezTel" type="tel" inputmode="numeric" autocomplete="off" data-i18n-placeholder="ph_phone" placeholder="05321234567 veya 0532 123 45 67" style="width:100%;background:rgba(255,248,240,0.06);border:1.5px solid rgba(255,248,240,0.1);border-radius:12px;padding:13px 16px;color:var(--cream);font-size:0.95rem;font-family:'DM Sans',sans-serif;outline:none;transition:border 0.2s;" onfocus="this.style.borderColor='rgba(var(--fire-rgb),0.6)'" onblur="this.style.borderColor='rgba(255,248,240,0.1)'">
       </div>
 
       <!-- Tarih + Saat -->
@@ -2755,11 +2752,11 @@ body.theme-bw .rez-select-trigger:hover {
       <!-- Not -->
       <div>
         <label style="font-size:0.72rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--ember);display:block;margin-bottom:7px;" data-i18n="lbl_note">Not (İsteğe bağlı)</label>
-        <textarea id="rezNot" data-i18n-placeholder="ph_note" placeholder="Özel istek, alerji bilgisi..." rows="2" style="width:100%;background:rgba(255,248,240,0.06);border:1.5px solid rgba(255,248,240,0.1);border-radius:12px;padding:13px 16px;color:var(--cream);font-size:0.9rem;font-family:'DM Sans',sans-serif;outline:none;resize:none;transition:border 0.2s;" onfocus="this.style.borderColor='rgba(217,59,10,0.6)'" onblur="this.style.borderColor='rgba(255,248,240,0.1)'"></textarea>
+        <textarea id="rezNot" data-i18n-placeholder="ph_note" placeholder="Özel istek, alerji bilgisi..." rows="2" style="width:100%;background:rgba(255,248,240,0.06);border:1.5px solid rgba(255,248,240,0.1);border-radius:12px;padding:13px 16px;color:var(--cream);font-size:0.9rem;font-family:'DM Sans',sans-serif;outline:none;resize:none;transition:border 0.2s;" onfocus="this.style.borderColor='rgba(var(--fire-rgb),0.6)'" onblur="this.style.borderColor='rgba(255,248,240,0.1)'"></textarea>
       </div>
 
       <!-- Gönder -->
-      <button id="rezBtn" onclick="sendRezervasyon()" style="width:100%;background:var(--fire);color:#fff;border:none;border-radius:14px;padding:16px;font-family:'Syne',sans-serif;font-size:1rem;font-weight:700;cursor:pointer;transition:all 0.2s;box-shadow:0 6px 20px rgba(217,59,10,0.35);" onmousedown="this.style.transform='scale(0.97)'" onmouseup="this.style.transform='scale(1)'">
+      <button id="rezBtn" onclick="sendRezervasyon()" style="width:100%;background:var(--fire);color:#fff;border:none;border-radius:14px;padding:16px;font-family:'Syne',sans-serif;font-size:1rem;font-weight:700;cursor:pointer;transition:all 0.2s;box-shadow:0 6px 20px rgba(var(--fire-rgb),0.35);" onmousedown="this.style.transform='scale(0.97)'" onmouseup="this.style.transform='scale(1)'">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-3px"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg> <span data-i18n="btn_book">Rezervasyon Yap</span>
       </button>
 
@@ -2800,14 +2797,9 @@ body.theme-bw .rez-select-trigger:hover {
         <div><div class="contact-lbl">Instagram</div><div class="contact-val">@myrestaurant</div></div>
         <div class="contact-arrow">›</div>
       </a>
-      <a href="https://getir.com/yemek/restoran/dayi-katik-tantuni-safranbolu-emek-mah-safranbolu-karabuk/" target="_blank" class="contact-row">
-        <div class="contact-ico"><img src="data:image/png;base64,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" alt="Getir"></div>
-        <div><div class="contact-lbl">Getir Yemek</div><div class="contact-val" data-i18n="order_online">Online sipariş</div></div>
-        <div class="contact-arrow">›</div>
-      </a>
-      <div class="contact-row" style="pointer-events:none;">
+<div class="contact-row" style="pointer-events:none;">
         <div class="contact-ico"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--ember)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg></div>
-        <div><div class="contact-lbl" data-i18n="contact_address_lbl">Adres</div><div class="contact-val" data-i18n="contact_address_val">Emek Mah., Safranbolu, Karabük</div></div>
+        <div><div class="contact-lbl" data-i18n="contact_address_lbl">Adres</div><div class="contact-val" data-i18n="contact_address_val">123 Example Street, City</div></div>
       </div>
     </div>
   </div>
@@ -2816,7 +2808,7 @@ body.theme-bw .rez-select-trigger:hover {
     <div style="margin-top:20px;border-radius:20px;overflow:hidden;border:1px solid rgba(255,248,240,0.08);">
       <iframe
         id="gmap-iframe"
-        src="https://maps.google.com/maps?q=Dayı+Katık+Tantuni+Safranbolu+Karabük&output=embed&hl=tr"
+        src="https://maps.google.com/maps?q=restaurant&output=embed&hl=tr"
         width="100%"
         height="220"
         style="border:0;display:block;filter:grayscale(20%) contrast(1.1);"
@@ -2824,18 +2816,18 @@ body.theme-bw .rez-select-trigger:hover {
         loading="lazy"
         referrerpolicy="no-referrer-when-downgrade">
       </iframe>
-      <a href="https://maps.google.com/?q=Dayı+Katık+Tantuni+Safranbolu+Karabük" target="_blank"
+      <a href="https://maps.google.com/?q=restaurant" target="_blank"
         style="display:flex;align-items:center;justify-content:center;gap:8px;padding:14px;background:var(--dark2);color:var(--cream);text-decoration:none;font-weight:600;font-size:0.88rem;border-top:1px solid rgba(255,248,240,0.06);transition:background 0.2s;"
-        onmouseover="this.style.background='rgba(217,59,10,0.15)'"
+        onmouseover="this.style.background='rgba(var(--fire-rgb),0.15)'"
         onmouseout="this.style.background='var(--dark2)'">
-        📍 <span data-i18n="btn_open_maps">Google Maps'te Aç</span> &nbsp;›
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg> <span data-i18n="btn_open_maps">Google Maps'te Aç</span> &nbsp;›
       </a>
     </div>
 
 </section>
 <footer style="cursor: pointer;" onclick="window.location.href='admin/'">
   <img src="/icons/placeholder-logo.svg" alt="My Restaurant" data-i18n-alt="brand_name">
-  <p data-i18n="footer_text">© 2025 My Restaurant · Safranbolu</p>
+  <p data-i18n="footer_text">© 2025 My Restaurant</p>
 </footer>
 
 <nav class="bottom-nav">
@@ -2843,10 +2835,7 @@ body.theme-bw .rez-select-trigger:hover {
   <a href="#menu" class="bnav-item" onclick="event.preventDefault();document.getElementById('menu').scrollIntoView({behavior:'smooth'});">
     <span class="bnav-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2"/><path d="M7 2v20"/><path d="M21 15V2v0a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3zm0 0v7"/></svg></span><span data-i18n="bottom_nav_menu">Menü</span>
   </a>
-  <a href="https://getir.com/yemek/restoran/dayi-katik-tantuni-safranbolu-emek-mah-safranbolu-karabuk/" target="_blank" class="bnav-cta">
-    <img src="data:image/png;base64,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" style="width:24px;height:24px;border-radius:50%;"><span data-i18n="bottom_nav_order">Sipariş</span>
-  </a>
-  <a href="tel:123456789" class="bnav-item">
+<a href="tel:123456789" class="bnav-item">
     <span class="bnav-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg></span><span data-i18n="bottom_nav_call">Ara</span>
   </a>
   <a href="#info" class="bnav-item" onclick="event.preventDefault();document.getElementById('info').scrollIntoView({behavior:'smooth'});">
@@ -2888,13 +2877,13 @@ body.theme-bw .rez-select-trigger:hover {
 <div id="customConfirmOverlay" class="custom-popup-overlay">
   <div class="custom-popup-card" onclick="event.stopPropagation()">
     <div class="custom-popup-icon warning">
-      <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#FF7043" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+      <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--ap-bad,#e5776b)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
     </div>
     <h3 class="custom-popup-title" id="customConfirmTitle" data-i18n="confirm_title_sure">Emin misiniz?</h3>
     <p class="custom-popup-message" id="customConfirmMessage"></p>
     <div class="custom-popup-actions-row">
       <button class="admin-btn secondary" id="customConfirmCancelBtn" data-i18n="admin_btn_cancel" style="margin: 0;">İptal</button>
-      <button class="admin-btn danger" id="customConfirmOkBtn" style="margin: 0; background: #D84315; color: #FFF;" data-i18n="admin_btn_yes">Evet</button>
+      <button class="admin-btn danger" id="customConfirmOkBtn" style="margin: 0;" data-i18n="admin_btn_yes">Evet</button>
     </div>
   </div>
 </div>
@@ -2907,7 +2896,7 @@ body.theme-bw .rez-select-trigger:hover {
     <input type="text" id="adminUsername" class="admin-input" data-i18n-placeholder="ph_admin_user" placeholder="Kullanıcı adınız..." autocomplete="username" onkeydown="if(event.key==='Enter') document.getElementById('adminPassword').focus()" />
     <label class="admin-form-label" data-i18n="admin_pwd_lbl">Şifre</label>
     <input type="password" id="adminPassword" class="admin-input" data-i18n-placeholder="ph_admin_pwd" placeholder="Şifrenizi girin..." autocomplete="current-password" onkeydown="if(event.key==='Enter') submitAdminLogin()" />
-    <div id="adminLoginError" style="color:#FF7043;font-size:0.8rem;font-weight:600;margin-top:-10px;margin-bottom:12px;display:none;text-align:center;"></div>
+    <div id="adminLoginError" style="color:var(--ap-bad);font-size:0.8rem;font-weight:600;margin-top:-10px;margin-bottom:12px;display:none;text-align:center;"></div>
     <button class="admin-btn" data-i18n="admin_btn_login" onclick="submitAdminLogin()">Giriş Yap</button>
     <button class="admin-btn secondary" data-i18n="admin_btn_cancel" onclick="closeAdminLogin()">Vazgeç</button>
   </div>
@@ -2915,36 +2904,238 @@ body.theme-bw .rez-select-trigger:hover {
 
 <!-- ADMIN CONTROL PANEL OVERLAY -->
 <div id="adminPanelOverlay" class="admin-panel">
-  <div class="admin-panel-header">
-    <h2 class="admin-panel-title" data-i18n="admin_panel_title">Yönetim Paneli</h2>
-    <div class="admin-panel-actions">
-      <button class="admin-btn secondary" style="margin-top:0;" onclick="toggleLanguage()"><span id="admin-lang-btn-text">EN</span></button>
-      <button class="admin-btn secondary" style="margin-top:0;" onclick="closeAdminPanel()" data-i18n="admin_btn_cancel">Kapat</button>
-    </div>
-  </div>
-  
-  <div class="admin-panel-tabs">
-    <button class="admin-tab-btn active" id="adminTabBtnProd" data-i18n="admin_tab_prod" onclick="switchAdminPanelTab(this, 0)">Ürün Yönetimi</button>
-    <button class="admin-tab-btn" id="adminTabBtnRez" onclick="switchAdminPanelTab(this, 1)">
-      <span data-i18n="admin_tab_rez">Rezervasyonlar</span> <span class="badge" id="adminRezBadge" style="display:none;">0</span>
-    </button>
-    <button class="admin-tab-btn" id="adminTabBtnOrders" onclick="switchAdminPanelTab(this, 2)">
-      <span data-i18n="admin_tab_orders">Siparişler</span> <span class="badge" id="adminOrdersBadge" style="display:none;">0</span>
-    </button>
-    <button class="admin-tab-btn" id="adminTabBtnPush" onclick="switchAdminPanelTab(this, 3)">Bildirim Gönder</button>
-    <button class="admin-tab-btn" id="adminTabBtnTables" onclick="switchAdminPanelTab(this, 4)">
-      <span data-i18n="admin_tab_tables">Masa Yönetimi</span>
-    </button>
-    <button class="admin-tab-btn" id="adminTabBtnTableOrders" onclick="switchAdminPanelTab(this, 5)">
-      <span data-i18n="admin_tab_tableorders">Masa Sipariş Kontrolü</span> <span class="badge" id="adminTableOrdersBadge" style="display:none;">0</span>
-    </button>
-    <div class="admin-tab-indicator" id="adminTabIndicator"></div>
-  </div>
-  
-  <div class="admin-tab-content-wrapper">
-    <div class="admin-tab-content-slider" id="adminTabSlider">
-      <!-- PRODUCTS TAB CONTENT -->
-      <div id="adminTabProducts" class="admin-tab-content active-tab">
+  <!-- Phase 25 REVISION: old .admin-panel-header removed; theme switch + language button relocated
+       into the new .app-topbar inside the sidebar shell below (with adminThemeSeg + admin-lang-btn-text
+       IDs preserved so setTheme/applyLanguage still find them). -->
+  <div class="app-shell" id="adminAppShell">
+    <!-- SIDEBAR -->
+    <aside class="app-sidebar" id="adminAppSidebar">
+      <div class="side-brand">
+        <span class="mark"><span>H</span></span>
+        <span class="txt"><b id="adminSideBrandName">HASACA</b><small data-i18n="admin_panel_title">Yönetim Paneli</small></span>
+      </div>
+
+      <div class="nav-group">
+        <div class="lbl" data-i18n="admin_nav_grp_general">Genel</div>
+        <button class="nav-item" data-view="dashboard" onclick="showAdminView('dashboard')">
+          <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/><rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/></svg></span>
+          <span class="lbl" data-i18n="admin_nav_dashboard">Panel</span>
+        </button>
+      </div>
+
+      <div class="nav-group">
+        <div class="lbl" data-i18n="admin_nav_grp_products">Ürünler</div>
+        <button class="nav-item" data-view="products" onclick="showAdminView('products')">
+          <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 7L12 3 4 7l8 4 8-4z"/><path d="M4 7v10l8 4 8-4V7"/><path d="M12 11v10"/></svg></span>
+          <span class="lbl" data-i18n="admin_tab_prod">Ürün Yönetimi</span>
+        </button>
+        <button class="nav-item" onclick="openCategoryForm()">
+          <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h16M4 12h16M4 19h16"/><circle cx="4.5" cy="5" r="1"/><circle cx="4.5" cy="12" r="1"/><circle cx="4.5" cy="19" r="1"/></svg></span>
+          <span class="lbl" data-i18n="admin_nav_categories">Kategoriler</span>
+        </button>
+      </div>
+
+      <div class="nav-group">
+        <div class="lbl" data-i18n="admin_nav_grp_orders">Siparişler</div>
+        <button class="nav-item" data-view="orders" onclick="showAdminView('orders')">
+          <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="18" cy="21" r="1"/><path d="M1 1h4l2.6 12.4a2 2 0 0 0 2 1.6h9.7a2 2 0 0 0 2-1.6L23 6H6"/></svg></span>
+          <span class="lbl" data-i18n="admin_tab_orders">Siparişler</span>
+          <span class="nbadge" id="adminOrdersBadge" style="display:none;">0</span>
+        </button>
+        <button class="nav-item" data-view="reservations" onclick="showAdminView('reservations')">
+          <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></span>
+          <span class="lbl" data-i18n="admin_tab_rez">Rezervasyonlar</span>
+          <span class="nbadge" id="adminRezBadge" style="display:none;">0</span>
+        </button>
+        <button class="nav-item" data-view="tables" onclick="showAdminView('tables')">
+          <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10h18M3 10l1.5-5h15L21 10M4 10v9h16v-9M9 19v-4h6v4"/></svg></span>
+          <span class="lbl" data-i18n="admin_tab_tables">Masa Yönetimi</span>
+        </button>
+        <button class="nav-item" data-view="table-orders" onclick="showAdminView('table-orders')">
+          <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg></span>
+          <span class="lbl" data-i18n="admin_tab_tableorders">Masa Sipariş Kontrolü</span>
+          <span class="nbadge" id="adminTableOrdersBadge" style="display:none;">0</span>
+        </button>
+      </div>
+
+      <div class="nav-group">
+        <div class="lbl" data-i18n="admin_nav_grp_analytics">Analitik</div>
+        <button class="nav-item" data-view="analytics" onclick="showAdminView('analytics')">
+          <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 14l3-3 3 3 5-6"/></svg></span>
+          <span class="lbl" data-i18n="admin_nav_analytics">Analitik</span>
+        </button>
+      </div>
+
+      <div class="nav-group">
+        <div class="lbl" data-i18n="admin_nav_grp_comms">İletişim</div>
+        <button class="nav-item" data-view="push" onclick="showAdminView('push')">
+          <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9M13.7 21a2 2 0 0 1-3.4 0"/></svg></span>
+          <span class="lbl" data-i18n="admin_nav_push">Bildirim Gönder</span>
+        </button>
+      </div>
+
+      <div class="nav-group">
+        <div class="lbl" data-i18n="admin_nav_grp_site">Web Sitesi</div>
+        <a class="nav-item" id="adminViewSiteLink" href="/" target="_blank" rel="noopener">
+          <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg></span>
+          <span class="lbl" data-i18n="admin_nav_view_site">Siteyi Görüntüle</span>
+        </a>
+      </div>
+
+      <div class="nav-group">
+        <div class="lbl" data-i18n="admin_nav_grp_ai">Yapay Zeka</div>
+        <button class="nav-item" data-view="ai-assistant" onclick="showAdminView('ai-assistant')">
+          <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a4 4 0 0 1 4 4v1a4 4 0 0 1-8 0V6a4 4 0 0 1 4-4z"/><path d="M8 14a4 4 0 0 0-4 4v1h16v-1a4 4 0 0 0-4-4H8z"/><path d="M12 7v3"/></svg></span>
+          <span class="lbl" data-i18n="admin_nav_ai">AI Asistanı</span>
+        </button>
+      </div>
+
+      <div class="nav-group">
+        <div class="lbl" data-i18n="admin_nav_grp_settings">Ayarlar</div>
+        <button class="nav-item" data-view="widgets" onclick="showAdminView('widgets')">
+          <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/></svg></span>
+          <span class="lbl" data-i18n="admin_nav_widgets">Widget Ayarları</span>
+        </button>
+        <button class="nav-item" onclick="adminLogout()">
+          <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/></svg></span>
+          <span class="lbl" data-i18n="admin_nav_logout">Çıkış</span>
+        </button>
+      </div>
+
+      <div class="side-spacer"></div>
+      <div class="side-foot">
+        <button class="collapse-btn" onclick="apToggleCollapse()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+          <span data-i18n="admin_nav_collapse">Daralt</span>
+        </button>
+      </div>
+    </aside>
+
+    <!-- MAIN -->
+    <div class="app-main">
+      <header class="app-topbar">
+        <button class="topbar-icon hamburger" onclick="apToggleSidebar()" aria-label="Menu">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+        </button>
+        <span class="page-title" id="adminPageTitle" data-i18n="admin_nav_dashboard">Panel</span>
+        <span class="spacer"></span>
+        <!-- Phase 25 REVISION: theme switch relocated here from .admin-panel-header -->
+        <div class="seg" id="adminThemeSeg" role="group" data-i18n-title="admin_theme_group" aria-label="Theme">
+          <button type="button" data-theme-mode="system" onclick="apSetTheme('system')" data-i18n-title="admin_theme_system" title="Sistem" aria-label="Sistem"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg></button>
+          <button type="button" data-theme-mode="light" onclick="apSetTheme('light')" data-i18n-title="admin_theme_light" title="Açık" aria-label="Açık"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4 12H2M22 12h-2M5 5l1.5 1.5M17.5 17.5 19 19M19 5l-1.5 1.5M6.5 17.5 5 19"/></svg></button>
+          <button type="button" data-theme-mode="dark" onclick="apSetTheme('dark')" data-i18n-title="admin_theme_dark" title="Koyu" aria-label="Koyu"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.8A9 9 0 1 1 11.2 3 7 7 0 0 0 21 12.8z"/></svg></button>
+        </div>
+        <button class="admin-btn secondary topbar-lang" onclick="toggleLanguage()"><span id="admin-lang-btn-text">EN</span></button>
+        <div class="profile" id="adminProfile">
+          <button class="profile-btn" onclick="apToggleProfileMenu(event)">
+            <span class="av">A</span><span class="nm" data-i18n="admin_nav_admin">Yönetici</span>
+          </button>
+          <div class="profile-menu" id="adminProfileMenu">
+            <button onclick="adminLogout()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/></svg><span data-i18n="admin_nav_logout">Çıkış</span></button>
+          </div>
+        </div>
+      </header>
+
+      <main class="app-content">
+        <!-- DASHBOARD VIEW -->
+        <section class="view" id="view-dashboard">
+          <div class="dash-grid">
+            <div class="stat-card"><div class="st-top"><span class="st-k" data-i18n="admin_dash_orders">Sipariş</span>
+              <span class="st-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="18" cy="21" r="1"/><path d="M1 1h4l2.6 12.4a2 2 0 0 0 2 1.6h9.7a2 2 0 0 0 2-1.6L23 6H6"/></svg></span></div>
+              <div class="st-v" id="adDashOrders">–</div><div class="st-sub" data-i18n="admin_dash_30d">Son 30 gün</div></div>
+            <div class="stat-card"><div class="st-top"><span class="st-k" data-i18n="admin_dash_revenue">Ciro</span>
+              <span class="st-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></span></div>
+              <div class="st-v" id="adDashRevenue">–</div><div class="st-sub" data-i18n="admin_dash_30d">Son 30 gün</div></div>
+            <div class="stat-card"><div class="st-top"><span class="st-k" data-i18n="admin_dash_avg">Ortalama Sepet</span>
+              <span class="st-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 14l3-3 3 3 5-6"/></svg></span></div>
+              <div class="st-v" id="adDashAvg">–</div><div class="st-sub" data-i18n="admin_dash_30d">Son 30 gün</div></div>
+            <div class="stat-card"><div class="st-top"><span class="st-k" data-i18n="admin_dash_rez">Rezervasyon</span>
+              <span class="st-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/></svg></span></div>
+              <div class="st-v" id="adDashRez">–</div><div class="st-sub" data-i18n="admin_dash_total">Toplam</div></div>
+          </div>
+          <div class="dash-row">
+            <div class="panel-card">
+              <h3><span data-i18n="admin_dash_recent">Son Aktivite</span></h3>
+              <div class="act-list" id="adDashActivity"><div class="hint" data-i18n="admin_dash_loading">Yükleniyor…</div></div>
+            </div>
+            <div class="panel-card">
+              <h3 data-i18n="admin_dash_quick">Hızlı İşlemler</h3>
+              <div class="quick-actions">
+                <button onclick="showAdminView('products')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg><span data-i18n="admin_add_product">Yeni Ürün Ekle</span></button>
+                <button onclick="showAdminView('orders')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="18" cy="21" r="1"/><path d="M1 1h4l2.6 12.4a2 2 0 0 0 2 1.6h9.7a2 2 0 0 0 2-1.6L23 6H6"/></svg><span data-i18n="admin_tab_orders">Siparişler</span></button>
+                <button onclick="showAdminView('table-orders')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg><span data-i18n="admin_tab_tableorders">Masa Sipariş Kontrolü</span></button>
+                <button onclick="showAdminView('push')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/></svg><span data-i18n="admin_nav_push">Bildirim Gönder</span></button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ANALYTICS VIEW -->
+        <section class="view" id="view-analytics" hidden>
+          <div class="dash-grid" style="grid-template-columns:repeat(auto-fill,minmax(160px,1fr))">
+            <div class="stat-card"><div class="st-k" data-i18n="admin_dash_orders">Sipariş</div><div class="st-v" id="adAnOrders">–</div></div>
+            <div class="stat-card"><div class="st-k" data-i18n="admin_dash_revenue">Ciro</div><div class="st-v" id="adAnRevenue">–</div></div>
+            <div class="stat-card"><div class="st-k" data-i18n="admin_dash_avg">Ort. Sepet</div><div class="st-v" id="adAnAvg">–</div></div>
+            <div class="stat-card"><div class="st-k" data-i18n="admin_analytics_dinein">Masa</div><div class="st-v" id="adAnDinein">–</div></div>
+            <div class="stat-card"><div class="st-k" data-i18n="admin_analytics_delivery">Paket / Gel-al</div><div class="st-v" id="adAnDelivery">–</div></div>
+          </div>
+          <div class="panel-card" style="margin-top:16px;">
+            <h3 data-i18n="admin_analytics_top">En Çok Satan Ürünler</h3>
+            <div id="adAnTop" class="act-list"><div class="hint" data-i18n="admin_dash_loading">Yükleniyor…</div></div>
+          </div>
+        </section>
+
+        <!-- AI ASSISTANT VIEW (Phase 27) -->
+        <section class="view" id="view-ai-assistant" hidden>
+          <div class="panel-card">
+            <h3 data-i18n="admin_ai_title">AI Asistanı</h3>
+            <p class="hint" data-i18n="admin_ai_desc">Ürün, kategori ve fiyatlarınızı doğal dille yönetin. Örn: "Tüm içeceklerin fiyatını %10 artır" veya "Kahve kategorisini İçecekler yap".</p>
+            <div style="display:flex; gap:10px; margin-top:12px; align-items:flex-start;">
+              <textarea id="aiAsstInput" class="admin-input" rows="2" style="flex:1; resize:vertical;" data-i18n-placeholder="ph_ai_asst" placeholder="Ne yapmak istersiniz?"></textarea>
+              <button class="admin-btn" id="aiAsstSendBtn" onclick="aiAssistantSend()" style="width:auto; flex:none; margin:0; white-space:nowrap;"><span data-i18n="admin_ai_send">Gönder</span></button>
+            </div>
+            <div id="aiAsstStatus" class="hint" style="display:none; margin-top:10px;"></div>
+          </div>
+
+          <div class="panel-card" id="aiAsstPlanCard" style="display:none; margin-top:16px;">
+            <h3 data-i18n="admin_ai_plan_title">Önerilen Değişiklikler</h3>
+            <p id="aiAsstSummary" style="margin:6px 0 12px;"></p>
+            <div id="aiAsstActions" class="act-list"></div>
+            <div id="aiAsstUnsupported" class="hint" style="display:none; margin-top:10px;"></div>
+            <div style="display:flex; gap:10px; margin-top:16px;">
+              <button class="admin-btn" id="aiAsstConfirmBtn" onclick="aiAssistantConfirm()" style="width:auto; flex:none; margin:0;" data-i18n="admin_ai_confirm">Onayla ve Uygula</button>
+              <button class="admin-btn secondary" onclick="aiAssistantCancel()" style="width:auto; flex:none; margin:0;" data-i18n="admin_ai_cancel">İptal</button>
+            </div>
+          </div>
+
+          <div class="panel-card" id="aiAsstResultCard" style="display:none; margin-top:16px;">
+            <h3 data-i18n="admin_ai_applied_title">Uygulandı</h3>
+            <p id="aiAsstResultSummary"></p>
+          </div>
+        </section>
+
+        <!-- WIDGET SETTINGS VIEW (Phase 28) -->
+        <section class="view" id="view-widgets" hidden>
+          <div class="panel-card">
+            <h3 data-i18n="admin_widgets_title">Widget Ayarları</h3>
+            <p class="hint" data-i18n="admin_widgets_hint">Müşteri sitenizde hangi butonların/bölümlerin gösterileceğini kapatıp açın. Bir widget'ı kapatmak, ilgili bilgiyi silmez — sadece siteden gizler.</p>
+            <div id="tenantWidgetsGrid" style="display:grid; grid-template-columns:repeat(auto-fill,minmax(160px,1fr)); gap:10px; margin-top:14px;">
+              <label class="ap-chk-lbl"><input type="checkbox" id="twWhatsapp" checked> WhatsApp</label>
+              <label class="ap-chk-lbl"><input type="checkbox" id="twInstagram" checked> Instagram</label>
+              <label class="ap-chk-lbl"><input type="checkbox" id="twFacebook" checked> Facebook</label>
+              <label class="ap-chk-lbl"><input type="checkbox" id="twTwitter" checked> X (Twitter)</label>
+              <label class="ap-chk-lbl"><input type="checkbox" id="twTiktok" checked> TikTok</label>
+              <label class="ap-chk-lbl"><input type="checkbox" id="twYoutube" checked> YouTube</label>
+              <label class="ap-chk-lbl"><input type="checkbox" id="twWebsite" checked> <span data-i18n="admin_widgets_website">Web Sitesi</span></label>
+              <label class="ap-chk-lbl"><input type="checkbox" id="twMaps" checked> Google Maps</label>
+            </div>
+            <button class="admin-btn" id="tenantWidgetsSaveBtn" onclick="saveTenantWidgets()" style="width:auto; flex:none; margin-top:18px;" data-i18n="admin_widgets_save">Kaydet</button>
+            <div id="tenantWidgetsStatus" class="hint" style="display:none; margin-top:10px;"></div>
+          </div>
+        </section>
+
+        <!-- PRODUCTS TAB CONTENT -->
+        <div id="adminTabProducts" class="view admin-tab-content" hidden>
         <div style="margin-bottom: 16px;">
           <button class="admin-btn" id="adminAddNewProductBtn" onclick="openAdminForm()" style="margin: 0; width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px; font-weight: 700; font-size: 1rem;">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
@@ -2965,7 +3156,7 @@ body.theme-bw .rez-select-trigger:hover {
         </div>
         <div id="adminSearchSuggestions" class="admin-search-suggestions">
           <span data-i18n="admin_category_not_found">Aradığınız kategoriyi bulamadınız mı?</span>
-          <button class="admin-btn mini" id="adminAddNewCategoryBtn" onclick="openCategoryForm()" data-i18n="admin_add_category_btn" style="margin:0; background:#5D4037; font-size:0.8rem; padding:4px 8px;">Yeni Kategori Ekle</button>
+          <button class="admin-btn mini secondary" id="adminAddNewCategoryBtn" onclick="openCategoryForm()" data-i18n="admin_add_category_btn" style="margin:0; font-size:0.8rem; padding:4px 8px;">Yeni Kategori Ekle</button>
         </div>
         <div class="admin-products-list" id="adminProductsList">
           <!-- Dynamic admin products list goes here -->
@@ -2973,7 +3164,7 @@ body.theme-bw .rez-select-trigger:hover {
       </div>
 
       <!-- RESERVATIONS TAB CONTENT -->
-      <div id="adminTabRezCont" class="admin-tab-content">
+      <div id="adminTabRezCont" class="view admin-tab-content" hidden>
         <div class="admin-rez-header">
           <h3 data-i18n="admin_rez_title">Müşteri Rezervasyonları</h3>
           <div class="admin-trash-zone" id="adminTrashZone" ondragover="allowRezDragOver(event)" ondragleave="handleRezDragLeave(event)" ondrop="handleRezDrop(event)">
@@ -2985,7 +3176,7 @@ body.theme-bw .rez-select-trigger:hover {
       </div>
 
       <!-- ORDERS TAB CONTENT -->
-      <div id="adminTabOrdersCont" class="admin-tab-content">
+      <div id="adminTabOrdersCont" class="view admin-tab-content" hidden>
         <style>
           :root{ --ord-surface:#2E1208; --ord-surface2:#3D1A0A; --ord-line:rgba(255,255,255,0.08); --ord-text:#FFF8F0; --ord-muted:#C4906A; --ord-chip:rgba(255,255,255,0.05); }
           body.theme-bw{ --ord-surface:#FFFFFF; --ord-surface2:#F6EFE8; --ord-line:rgba(0,0,0,0.10); --ord-text:#2C1A10; --ord-muted:#8E7564; --ord-chip:rgba(0,0,0,0.04); }
@@ -3000,13 +3191,13 @@ body.theme-bw .rez-select-trigger:hover {
           .admin-order-card{ background:var(--ord-surface); border:1px solid var(--ord-line); border-left:4px solid var(--fire); border-radius:14px; padding:14px; margin-bottom:12px; }
           .admin-order-card.read{ border-left-color:var(--ord-line); opacity:.82; }
           .admin-order-card.flash{ animation:orderFlash 1.3s ease; }
-          @keyframes orderFlash{ 0%,100%{ box-shadow:0 0 0 rgba(217,59,10,0); } 30%{ box-shadow:0 0 0 3px rgba(217,59,10,.45); } }
+          @keyframes orderFlash{ 0%,100%{ box-shadow:0 0 0 rgba(216,184,119,0); } 30%{ box-shadow:0 0 0 3px rgba(216,184,119,.5); } }
           .aoc-top{ display:flex; align-items:flex-start; justify-content:space-between; gap:10px; margin-bottom:8px; }
           .aoc-name{ font-weight:800; font-size:1rem; color:var(--ord-text); }
           .aoc-phone{ font-size:0.82rem; color:var(--ord-muted); margin-top:2px; }
           .aoc-phone a{ color:var(--ord-muted); text-decoration:none; }
           .aoc-badge{ font-size:0.66rem; font-weight:800; text-transform:uppercase; letter-spacing:.5px; padding:4px 9px; border-radius:999px; white-space:nowrap; }
-          .aoc-badge.new{ background:rgba(217,59,10,.16); color:var(--ember); }
+          .aoc-badge.new{ background:rgba(216,184,119,.16); color:var(--ember); }
           .aoc-badge.read{ background:var(--ord-chip); color:var(--ord-muted); }
           .aoc-section{ font-size:0.85rem; color:var(--ord-text); margin:6px 0; line-height:1.4; }
           .aoc-section .lbl{ color:var(--ord-muted); font-weight:700; text-transform:uppercase; font-size:0.64rem; letter-spacing:.5px; display:block; margin-bottom:2px; }
@@ -3044,7 +3235,7 @@ body.theme-bw .rez-select-trigger:hover {
       </div>
 
       <!-- PUSH NOTIFICATIONS TAB CONTENT (HIDDEN) -->
-      <div id="adminTabPushCont" class="admin-tab-content">
+      <div id="adminTabPushCont" class="view admin-tab-content" hidden>
         <div class="push-send-screen" id="pushSendScreenMain">
           <h2 class="push-screen-title" style="margin-bottom:15px;">Bildirim Gönder</h2>
 
@@ -3133,15 +3324,17 @@ body.theme-bw .rez-select-trigger:hover {
                   
                   <div class="phone-notification-card">
                     <div class="phone-notif-header">
-                      <img src="/icons/icon-192.png" alt="Icon" />
-                      <span style="font-weight:700;">DAYI KATIK</span>
+                      <!-- Phase 25.2: brand icon + name are populated dynamically from the current
+                           tenant via restaurantBrand() / window.__siteConfig — never hardcoded. -->
+                      <img id="phoneMockBrandIcon" src="/icons/placeholder-logo.svg" alt="Icon" />
+                      <span id="phoneMockBrandName" style="font-weight:700;">Restaurant</span>
                       <span id="phoneMockTypeBadge" style="margin-left:4px;opacity:0.7;">· kampanya</span>
                       <span class="phone-notif-time" id="phoneMockTimeNotif">Şimdi</span>
                     </div>
                     
                     <div class="phone-notif-content-row">
                       <div class="phone-notif-text">
-                        <div class="phone-notif-title" id="phoneNotifTitlePreview">Katık Lezzeti</div>
+                        <div class="phone-notif-title" id="phoneNotifTitlePreview">My Restaurant</div>
                         <div class="phone-notif-body" id="phoneNotifBodyPreview">Kampanya mesajı detayları burada canlı olarak güncellenecektir.</div>
                       </div>
                       <div class="phone-notif-icon-small" id="phoneNotifIconPreview" style="display:none;"></div>
@@ -3187,7 +3380,7 @@ body.theme-bw .rez-select-trigger:hover {
       </div>
 
       <!-- TABLE MANAGEMENT TAB CONTENT -->
-      <div id="adminTabTablesCont" class="admin-tab-content">
+      <div id="adminTabTablesCont" class="view admin-tab-content" hidden>
         <div class="tbl-mgmt-header">
           <h3 data-i18n="admin_tables_title">Masa Yönetimi</h3>
         </div>
@@ -3196,11 +3389,43 @@ body.theme-bw .rez-select-trigger:hover {
           <button class="admin-btn secondary" onclick="openBulkTableModal()" data-i18n="admin_tbl_bulk">Toplu Ekle</button>
           <button class="admin-btn secondary" onclick="printAllQr()" data-i18n="admin_tbl_printall">Tüm QR'ları Yazdır</button>
         </div>
+
+        <div class="panel-card" style="margin:14px 0;">
+          <h3 data-i18n="admin_qrstyle_title">QR Stili</h3>
+          <p class="hint" data-i18n="admin_qrstyle_hint">Masa QR kodlarınızın renklerini, kenar boşluğunu ve hata düzeltme seviyesini özelleştirin.</p>
+          <div style="display:flex; flex-wrap:wrap; gap:16px; align-items:flex-end; margin-top:12px;">
+            <div>
+              <label class="hint" data-i18n="admin_qrstyle_fg" style="display:block; margin-bottom:4px;">Ön Plan</label>
+              <input type="color" id="qrStyleFg" value="#000000" style="width:56px; height:36px; padding:2px; border-radius:8px;">
+            </div>
+            <div>
+              <label class="hint" data-i18n="admin_qrstyle_bg" style="display:block; margin-bottom:4px;">Arka Plan</label>
+              <input type="color" id="qrStyleBg" value="#ffffff" style="width:56px; height:36px; padding:2px; border-radius:8px;">
+            </div>
+            <div>
+              <label class="hint" data-i18n="admin_qrstyle_margin" style="display:block; margin-bottom:4px;">Kenar Boşluğu</label>
+              <input type="number" id="qrStyleMargin" class="admin-input" min="0" max="10" value="1" style="width:70px;">
+            </div>
+            <div>
+              <label class="hint" data-i18n="admin_qrstyle_ecc" style="display:block; margin-bottom:4px;">Hata Düzeltme</label>
+              <select id="qrStyleEcc" class="admin-input" style="width:auto;">
+                <option value="L">L</option>
+                <option value="M" selected>M</option>
+                <option value="Q">Q</option>
+                <option value="H">H</option>
+              </select>
+            </div>
+            <button class="admin-btn" id="qrStyleSaveBtn" onclick="saveQrStyle()" style="width:auto; flex:none; margin:0;" data-i18n="admin_qrstyle_save">Kaydet</button>
+            <img id="qrStylePreview" alt="" style="display:none; width:96px; height:96px; border-radius:8px; border:1px solid var(--ap-line);">
+          </div>
+          <div id="qrStyleStatus" class="hint" style="display:none; margin-top:10px;"></div>
+        </div>
+
         <div id="adminTablesList" class="tbl-list"></div>
       </div>
 
       <!-- TABLE ORDER CONTROL TAB CONTENT -->
-      <div id="adminTabTableOrdersCont" class="admin-tab-content">
+      <div id="adminTabTableOrdersCont" class="view admin-tab-content" hidden>
         <div class="tbl-mgmt-header">
           <h3 data-i18n="admin_tableorders_title">Masa Sipariş Kontrolü</h3>
         </div>
@@ -3216,8 +3441,10 @@ body.theme-bw .rez-select-trigger:hover {
         <div id="tableOrdersList" class="tbl-orders-list"></div>
       </div>
 
+      </main>
     </div>
   </div>
+  <div class="app-backdrop" id="adminAppBackdrop" onclick="apToggleSidebar(false)"></div>
 </div>
 
 
@@ -3303,7 +3530,7 @@ body.theme-bw .rez-select-trigger:hover {
     <div>
       <label class="admin-form-label" data-i18n="admin_lbl_select_category">Kategori</label>
       <div class="custom-select-container" id="formProductCategoryContainer" style="width: 100%;">
-        <div class="custom-select-trigger" onclick="toggleFormProductCategoryDropdown(event)" style="height: 48px; background:#3D1A0A; border-color:rgba(255,248,240,0.1);">
+        <div class="custom-select-trigger" onclick="toggleFormProductCategoryDropdown(event)" style="height: 48px;">
           <span id="formProductCategorySelectedText" data-i18n="admin_lbl_select_category">Kategori Seçin</span>
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="margin-left:auto; transition:transform 0.2s;"><polyline points="6 9 12 15 18 9"/></svg>
         </div>
@@ -3503,10 +3730,14 @@ window.API_BASE = (() => {
 
 // Admin session token (multi-tenant auth)
 function getAdminToken() {
-  try { return localStorage.getItem('hasaca_admin_token') || ''; } catch (e) { return ''; }
+  // sessionStorage is used when the login page's "Beni hatırla" is unchecked.
+  try { return localStorage.getItem('hasaca_admin_token') || sessionStorage.getItem('hasaca_admin_token') || ''; } catch (e) { return ''; }
 }
 function setAdminToken(t) {
-  try { if (t) localStorage.setItem('hasaca_admin_token', t); else localStorage.removeItem('hasaca_admin_token'); } catch (e) {}
+  try {
+    if (t) localStorage.setItem('hasaca_admin_token', t);
+    else { localStorage.removeItem('hasaca_admin_token'); sessionStorage.removeItem('hasaca_admin_token'); }
+  } catch (e) {}
 }
 
 // Root impersonation handoff: /admin.html#imp=<token> (opened from the Root Panel)
@@ -3579,13 +3810,13 @@ const i18nData = {
     admin_lbl_edit_product: "Ürün Düzenle",
     call: "Ara",
     hero_title_1: "Emek, Lezzet, Kalite.",
-    hero_subtitle_1: "Özel Katık Soslu Tantuni ve Dönerler",
+    hero_subtitle_1: "Lezzetli Yemekler, Taze Malzemeler",
     hero_title_2: "Doyasıya Lezzet",
     hero_subtitle_2: "Geleneksel lezzetler modern sunumla buluşuyor",
-    hero_title_3: "Safranbolu'da Tek",
+    hero_title_3: "Şehrin Gözdesi",
     hero_subtitle_3: "En taze malzemeler, enfes baharatlar",
     info_delivery_title: "Hızlı Teslimat",
-    info_delivery_desc: "Safranbolu Geneline",
+    info_delivery_desc: "Şehir Geneline",
     info_hot_title: "Taze & Sıcak",
     info_hot_desc: "Anında Servis",
     info_rez_title: "Kolay Rezervasyon",
@@ -3598,8 +3829,8 @@ const i18nData = {
     no_products: "Kategoride ürün bulunmamaktadır.",
     about_heading: "Hakkımızda",
     about_subheading: "Eşsiz Lezzet Yolculuğu",
-    about_text_1: "My Restaurant olarak, Safranbolu'da en kaliteli malzemelerle hazırladığımız nefis dürüm ve döner çeşitlerimizle hizmetinizdeyiz. Misafirlerimize her zaman taze, sıcak ve lezzetli ürünler sunmak bizim önceliğimizdir.",
-    about_text_2: "Özel soslarımız ve geleneksel pişirme yöntemlerimizle hazırladığımız tantuni ve dönerlerimizle, lezzet standardımızı her geçen gün daha da yukarı taşıyoruz. Sizleri de bu lezzet şölenine ortak olmaya davet ediyoruz.",
+    about_text_1: "En kaliteli malzemelerle hazırladığımız nefis lezzetlerle hizmetinizdeyiz. Misafirlerimize her zaman taze, sıcak ve lezzetli ürünler sunmak bizim önceliğimizdir.",
+    about_text_2: "Özenle seçilmiş malzemeler ve geleneksel pişirme yöntemlerimizle, lezzet standardımızı her geçen gün daha da yukarı taşıyoruz. Sizleri de bu lezzet şölenine ortak olmaya davet ediyoruz.",
     rez_heading: "Rezervasyon Yapın",
     rez_subheading: "Masanızı önceden ayırtın, sıra beklemeden lezzetin tadını çıkarın.",
     lbl_person: "Kişi Sayısı",
@@ -3611,11 +3842,11 @@ const i18nData = {
     btn_book: "Rezervasyon Yap",
     contact_heading: "İletişim Bilgileri",
     contact_address_lbl: "Adresimiz",
-    contact_address_val: "Emek Mah. 75. Yıl Cad. Safranbolu / Karabük",
+    contact_address_val: "123 Example Street, City",
     contact_phone_lbl: "Telefon",
     contact_hours_lbl: "Çalışma Saatleri",
     contact_hours_val: "Hafta İçi & Hafta Sonu: 11:00 - 22:00",
-    footer_text: "© 2025 My Restaurant · Safranbolu",
+    footer_text: "© 2025 My Restaurant",
     
     // Select dropdown defaults
     select_day: "Gün",
@@ -3681,7 +3912,7 @@ const i18nData = {
     // Contact section tags
     sec_tag_contact: "Bize Ulaşın",
     btn_open_maps: "Google Maps'te Aç",
-    order_getir: "Getir'den Sipariş Ver",
+    order_getir: "Online Sipariş",
     order_phone: "Telefonla Sipariş",
     
     // Weekday names
@@ -3697,8 +3928,8 @@ const i18nData = {
     btn_see_menu: "Menüyü Gör",
     ok: "Tamam",
     hero_title_main: "Gerçek<br><em>Lezzet</em><br>Her Lokmada",
-    hero_sub_main: "Tantuni, döner ve dürümde Safranbolu'nun en sevilen adresi.",
-    hero_badge_text: "Safranbolu'nun Gözdesi",
+    hero_sub_main: "Lezzetli yemekler ve sıcak bir atmosfer sizi bekliyor.",
+    hero_badge_text: "Favori Adresiniz",
     all_categories: "Tüm Kategoriler",
     ph_admin_pwd: "Şifrenizi girin...",
     ph_admin_search: "Ürünlerde ara...",
@@ -3741,6 +3972,14 @@ const i18nData = {
     admin_tbl_add: "+ Masa Ekle",
     admin_tbl_bulk: "Toplu Ekle",
     admin_tbl_printall: "Tüm QR'ları Yazdır",
+    admin_qrstyle_title: "QR Stili",
+    admin_qrstyle_hint: "Masa QR kodlarınızın renklerini, kenar boşluğunu ve hata düzeltme seviyesini özelleştirin.",
+    admin_qrstyle_fg: "Ön Plan",
+    admin_qrstyle_bg: "Arka Plan",
+    admin_qrstyle_margin: "Kenar Boşluğu",
+    admin_qrstyle_ecc: "Hata Düzeltme",
+    admin_qrstyle_save: "Kaydet",
+    admin_qrstyle_saved: "Kaydedildi.",
     admin_tbl_add_title: "Yeni Masa",
     admin_tbl_bulk_title: "Toplu Masa Oluştur",
     admin_tbl_name_lbl: "Masa Adı",
@@ -3900,7 +4139,60 @@ const i18nData = {
     alg_hardal: "Hardal",
     alg_kereviz: "Kereviz",
     alg_soya: "Soya",
-    alg_susam: "Susam"
+    alg_susam: "Susam",
+    admin_theme_group: "Tema",
+    admin_theme_system: "Sistem",
+    admin_theme_light: "Açık",
+    admin_theme_dark: "Koyu",
+    admin_nav_grp_general: "Genel",
+    admin_nav_grp_products: "Ürünler",
+    admin_nav_grp_orders: "Siparişler",
+    admin_nav_grp_analytics: "Analitik",
+    admin_nav_grp_comms: "İletişim",
+    admin_nav_grp_site: "Web Sitesi",
+    admin_nav_grp_ai: "Yapay Zeka",
+    admin_nav_grp_settings: "Ayarlar",
+    admin_nav_dashboard: "Panel",
+    admin_nav_categories: "Kategoriler",
+    admin_nav_analytics: "Analitik",
+    admin_nav_push: "Bildirim Gönder",
+    admin_nav_view_site: "Siteyi Görüntüle",
+    admin_nav_ai: "AI Asistanı",
+    admin_ai_title: "AI Asistanı",
+    admin_ai_desc: 'Ürün, kategori ve fiyatlarınızı doğal dille yönetin. Örn: "Tüm içeceklerin fiyatını %10 artır" veya "Kahve kategorisini İçecekler yap".',
+    ph_ai_asst: "Ne yapmak istersiniz?",
+    admin_ai_send: "Gönder",
+    admin_ai_thinking: "Düşünülüyor…",
+    admin_ai_plan_title: "Önerilen Değişiklikler",
+    admin_ai_confirm: "Onayla ve Uygula",
+    admin_ai_cancel: "İptal",
+    admin_ai_applied_title: "Uygulandı",
+    admin_ai_unsupported: "Desteklenmeyen istekler:",
+    admin_ai_not_configured: "AI asistanı henüz yapılandırılmadı. Lütfen Root panelinden AI ayarlarını etkinleştirin.",
+    admin_ai_error_generic: "Bir hata oluştu. Lütfen tekrar deneyin.",
+    admin_ai_conn_error: "Bağlantı hatası.",
+    admin_ai_no_actions: "İsteğinizden uygulanabilir bir değişiklik çıkaramadım.",
+    admin_nav_widgets: "Widget Ayarları",
+    admin_widgets_title: "Widget Ayarları",
+    admin_widgets_hint: "Müşteri sitenizde hangi butonların/bölümlerin gösterileceğini kapatıp açın. Bir widget'ı kapatmak, ilgili bilgiyi silmez — sadece siteden gizler.",
+    admin_widgets_website: "Web Sitesi",
+    admin_widgets_save: "Kaydet",
+    admin_widgets_saved: "Kaydedildi.",
+    admin_nav_logout: "Çıkış",
+    admin_nav_collapse: "Daralt",
+    admin_nav_admin: "Yönetici",
+    admin_dash_orders: "Sipariş",
+    admin_dash_revenue: "Ciro",
+    admin_dash_avg: "Ortalama Sepet",
+    admin_dash_rez: "Rezervasyon",
+    admin_dash_30d: "Son 30 gün",
+    admin_dash_total: "Toplam",
+    admin_dash_recent: "Son Aktivite",
+    admin_dash_quick: "Hızlı İşlemler",
+    admin_dash_loading: "Yükleniyor…",
+    admin_analytics_dinein: "Masa",
+    admin_analytics_delivery: "Paket / Gel-al",
+    admin_analytics_top: "En Çok Satan Ürünler"
   },
   en: {
     rez_info_note: "Your reservation will be forwarded to the restaurant.<br>We may call you for confirmation.",
@@ -3910,13 +4202,13 @@ const i18nData = {
     admin_lbl_edit_product: "Edit Product",
     call: "Call",
     hero_title_1: "Labor, Taste, Quality.",
-    hero_subtitle_1: "Special Katik Sauced Tantuni and Doners",
+    hero_subtitle_1: "Delicious Food, Fresh Ingredients",
     hero_title_2: "Delicious Feast",
     hero_subtitle_2: "Traditional tastes meet modern presentation",
-    hero_title_3: "Unique in Safranbolu",
+    hero_title_3: "The City's Favorite",
     hero_subtitle_3: "The freshest ingredients, delicious spices",
     info_delivery_title: "Fast Delivery",
-    info_delivery_desc: "Across Safranbolu",
+    info_delivery_desc: "Across the City",
     info_hot_title: "Fresh & Hot",
     info_hot_desc: "Instant Service",
     info_rez_title: "Easy Reservation",
@@ -3929,8 +4221,8 @@ const i18nData = {
     no_products: "No products found in this category.",
     about_heading: "About Us",
     about_subheading: "A Unique Taste Journey",
-    about_text_1: "As My Restaurant, we are at your service in Safranbolu with our delicious wrap and doner varieties prepared with the highest quality ingredients. Serving fresh, hot, and tasty products to our guests is always our priority.",
-    about_text_2: "With our tantuni and doners prepared with our special sauces and traditional cooking methods, we raise our taste standards day by day. We invite you to share this feast of taste.",
+    about_text_1: "We are at your service with delicious dishes prepared using the highest quality ingredients. Serving fresh, hot, and tasty products to our guests is always our priority.",
+    about_text_2: "With carefully selected ingredients and our traditional cooking methods, we raise our taste standards day by day. We invite you to share this feast of taste.",
     rez_heading: "Book a Table",
     rez_subheading: "Book your table in advance, enjoy the taste without waiting in line.",
     lbl_person: "Number of Guests",
@@ -3942,11 +4234,11 @@ const i18nData = {
     btn_book: "Book Table",
     contact_heading: "Contact Information",
     contact_address_lbl: "Address",
-    contact_address_val: "Emek Mah. 75. Yil Cad. Safranbolu / Karabuk",
+    contact_address_val: "123 Example Street, City",
     contact_phone_lbl: "Phone",
     contact_hours_lbl: "Opening Hours",
     contact_hours_val: "Weekdays & Weekends: 11:00 - 22:00",
-    footer_text: "© 2025 My Restaurant · Safranbolu",
+    footer_text: "© 2025 My Restaurant",
     
     // Select dropdown defaults
     select_day: "Day",
@@ -4000,7 +4292,7 @@ const i18nData = {
     admin_btn_login: "Login",
     order_online: "Online order",
     admin_btn_cancel: "Cancel",
-    order_getir: "Order from Getir",
+    order_getir: "Order Online",
     order_phone: "Order by Phone",
     
     // Weekday names
@@ -4016,8 +4308,8 @@ const i18nData = {
     btn_see_menu: "See Menu",
     ok: "OK",
     hero_title_main: "Real<br><em>Taste</em><br>In Every Bite",
-    hero_sub_main: "Safranbolu's favorite address for tantuni, doner, and wraps.",
-    hero_badge_text: "Safranbolu's Favorite",
+    hero_sub_main: "Delicious food and a warm atmosphere await you.",
+    hero_badge_text: "Your Favorite Spot",
     all_categories: "All Categories",
     ph_admin_pwd: "Enter password...",
     ph_admin_search: "Search products...",
@@ -4060,6 +4352,14 @@ const i18nData = {
     admin_tbl_add: "+ Add Table",
     admin_tbl_bulk: "Bulk Add",
     admin_tbl_printall: "Print All QR",
+    admin_qrstyle_title: "QR Style",
+    admin_qrstyle_hint: "Customize your table QR codes' colors, margin, and error-correction level.",
+    admin_qrstyle_fg: "Foreground",
+    admin_qrstyle_bg: "Background",
+    admin_qrstyle_margin: "Margin",
+    admin_qrstyle_ecc: "Error Correction",
+    admin_qrstyle_save: "Save",
+    admin_qrstyle_saved: "Saved.",
     admin_tbl_add_title: "New Table",
     admin_tbl_bulk_title: "Bulk Create Tables",
     admin_tbl_name_lbl: "Table Name",
@@ -4165,181 +4465,63 @@ const i18nData = {
     alg_hardal: "Mustard",
     alg_kereviz: "Celery",
     alg_soya: "Soy",
-    alg_susam: "Sesame"
+    alg_susam: "Sesame",
+    admin_theme_group: "Theme",
+    admin_theme_system: "System",
+    admin_theme_light: "Light",
+    admin_theme_dark: "Dark",
+    admin_nav_grp_general: "General",
+    admin_nav_grp_products: "Products",
+    admin_nav_grp_orders: "Orders",
+    admin_nav_grp_analytics: "Analytics",
+    admin_nav_grp_comms: "Communication",
+    admin_nav_grp_site: "Website",
+    admin_nav_grp_ai: "AI",
+    admin_nav_grp_settings: "Settings",
+    admin_nav_dashboard: "Dashboard",
+    admin_nav_categories: "Categories",
+    admin_nav_analytics: "Analytics",
+    admin_nav_push: "Send Notification",
+    admin_nav_view_site: "View Site",
+    admin_nav_ai: "AI Assistant",
+    admin_ai_title: "AI Assistant",
+    admin_ai_desc: 'Manage your products, categories and prices in plain language. E.g. "Increase all drink prices by 10%" or "Rename Coffee category to Beverages".',
+    ph_ai_asst: "What would you like to do?",
+    admin_ai_send: "Send",
+    admin_ai_thinking: "Thinking…",
+    admin_ai_plan_title: "Proposed Changes",
+    admin_ai_confirm: "Confirm & Apply",
+    admin_ai_cancel: "Cancel",
+    admin_ai_applied_title: "Applied",
+    admin_ai_unsupported: "Unsupported requests:",
+    admin_ai_not_configured: "The AI assistant isn't configured yet. Please enable AI settings from the Root panel.",
+    admin_ai_error_generic: "Something went wrong. Please try again.",
+    admin_ai_conn_error: "Connection error.",
+    admin_ai_no_actions: "I couldn't derive an actionable change from your request.",
+    admin_nav_widgets: "Widget Settings",
+    admin_widgets_title: "Widget Settings",
+    admin_widgets_hint: "Turn individual buttons/sections on or off on your customer site. Disabling a widget doesn't delete the underlying info — it just hides it.",
+    admin_widgets_website: "Website",
+    admin_widgets_save: "Save",
+    admin_widgets_saved: "Saved.",
+    admin_nav_logout: "Logout",
+    admin_nav_collapse: "Collapse",
+    admin_nav_admin: "Admin",
+    admin_dash_orders: "Orders",
+    admin_dash_revenue: "Revenue",
+    admin_dash_avg: "Avg. Basket",
+    admin_dash_rez: "Reservations",
+    admin_dash_30d: "Last 30 days",
+    admin_dash_total: "Total",
+    admin_dash_recent: "Recent Activity",
+    admin_dash_quick: "Quick Actions",
+    admin_dash_loading: "Loading…",
+    admin_analytics_dinein: "Dine-in",
+    admin_analytics_delivery: "Delivery / Pickup",
+    admin_analytics_top: "Best-Selling Products"
   }
 };
-const defaultItemTranslations = {
-  'katik-tavuk-menu-1': {
-    name: 'Katik Chicken Doner Wrap Menu 1',
-    description: 'Katik chicken doner wrap, served with french fries and ayran (300 ml).',
-    ingredients: 'Chicken doner, french fries, special Katik sauce, wheat flour lavash (contains gluten) or bread, vegetable oil, salt, spices. Menu includes french fries and drink (or ayran).'
-  },
-  'katik-tavuk-menu-2': {
-    name: 'Katik Chicken Doner Wrap Menu 2',
-    description: 'Katik chicken doner wrap, served with french fries and canned soft drink (330 ml).',
-    ingredients: 'Chicken doner, french fries, special Katik sauce, wheat flour lavash (contains gluten) or bread, vegetable oil, salt, spices. Menu includes french fries and drink (or ayran).'
-  },
-  'zurna-tavuk-menu-1': {
-    name: 'Zurna Chicken Menu 1',
-    description: 'Satisfying zurna chicken doner wrap, served with french fries and ayran (300 ml).',
-    ingredients: 'Chicken doner, french fries, special Katik sauce, wheat flour lavash (contains gluten) or bread, vegetable oil, salt, spices. Menu includes french fries and drink (or ayran).'
-  },
-  'zurna-tavuk-menu-2': {
-    name: 'Zurna Chicken Menu 2',
-    description: 'Satisfying zurna chicken doner wrap, served with french fries and canned soft drink (330 ml).',
-    ingredients: 'Chicken doner, french fries, special Katik sauce, wheat flour lavash (contains gluten) or bread, vegetable oil, salt, spices. Menu includes french fries and drink (or ayran).'
-  },
-  'katik-et-menu-1': {
-    name: 'Katik Beef Menu 1',
-    description: 'Katik beef doner wrap, served with french fries and ayran (300 ml).',
-    ingredients: 'Beef doner, french fries, special Katik sauce, wheat flour lavash (contains gluten) or bread, vegetable oil, salt, spices. Menu includes french fries and drink (or ayran).'
-  },
-  'katik-et-menu-2': {
-    name: 'Katik Beef Menu 2',
-    description: 'Katik beef doner wrap, served with french fries and canned soft drink (330 ml).',
-    ingredients: 'Beef doner, french fries, special Katik sauce, wheat flour lavash (contains gluten) or bread, vegetable oil, salt, spices. Menu includes french fries and drink (or ayran).'
-  },
-  'combo-tavuk-menu-1': {
-    name: 'Combo Chicken Menu 1',
-    description: '1 Katik Chicken Wrap + 1 Chicken Tantuni Wrap, served with french fries and canned soft drink (330 ml).',
-    ingredients: 'Chicken doner, chicken tantuni, french fries, special Katik sauce, wheat flour lavash (contains gluten) or bread, vegetable oil, salt, spices.'
-  },
-  'combo-tavuk-menu-2': {
-    name: 'Combo Chicken Menu 2',
-    description: '2 Katik Chicken Wraps, served with french fries and canned soft drink (330 ml).',
-    ingredients: 'Chicken doner, french fries, special Katik sauce, wheat flour lavash (contains gluten) or bread, vegetable oil, salt, spices.'
-  },
-  'combo-et-menu-1': {
-    name: 'Combo Beef Menu 1',
-    description: '1 Katik Beef Wrap + 1 Beef Tantuni Wrap, served with french fries and canned soft drink (330 ml).',
-    ingredients: 'Beef doner, beef tantuni, french fries, special Katik sauce, wheat flour lavash (contains gluten) or bread, vegetable oil, salt, spices.'
-  },
-  'combo-et-menu-2': {
-    name: 'Combo Beef Menu 2',
-    description: '2 Katik Beef Wraps, served with french fries and canned soft drink (330 ml).',
-    ingredients: 'Beef doner, french fries, special Katik sauce, wheat flour lavash (contains gluten) or bread, vegetable oil, salt, spices.'
-  },
-  'et-tantuni-durum': {
-    name: 'Beef Tantuni Wrap',
-    description: 'Traditional beef tantuni wrap with tomatoes, parsley, onions, and spices.',
-    ingredients: 'Beef meat, tomatoes, parsley, onion, special spices, wheat flour lavash (contains gluten).'
-  },
-  'et-tantuni-ekmek-arasi': {
-    name: 'Beef Tantuni Sandwich',
-    description: 'Tasty beef tantuni in a bread roll with tomatoes, parsley, onions, and spices.',
-    ingredients: 'Beef meat, tomatoes, parsley, onion, special spices, sandwich bread (contains gluten).'
-  },
-  'yogurtlu-et-tantuni': {
-    name: 'Beef Tantuni with Yogurt',
-    description: 'Beef tantuni served over sliced bread with yogurt, hot butter, and tomato sauce.',
-    ingredients: 'Beef meat, yogurt, special tomato sauce, melted butter, sliced bread (contains gluten), parsley.'
-  },
-  'tavuk-tantuni-durum': {
-    name: 'Chicken Tantuni Wrap',
-    description: 'Chicken tantuni wrap with tomatoes, parsley, onions, and spices.',
-    ingredients: 'Chicken meat, tomatoes, parsley, onion, special spices, wheat flour lavash (contains gluten).'
-  },
-  'tavuk-tantuni-ekmek-arasi': {
-    name: 'Chicken Tantuni Sandwich',
-    description: 'Chicken tantuni in a bread roll with tomatoes, parsley, onions, and spices.',
-    ingredients: 'Chicken meat, tomatoes, parsley, onion, special spices, sandwich bread (contains gluten).'
-  },
-  'tavuk-tantuni-yogurtlu': {
-    name: 'Chicken Tantuni with Yogurt',
-    description: 'Chicken tantuni served over sliced bread with yogurt, hot butter, and tomato sauce.',
-    ingredients: 'Chicken meat, yogurt, special tomato sauce, melted butter, sliced bread (contains gluten), parsley.'
-  },
-  'zurna-mantarli-durum': {
-    name: 'Zurna Chicken Wrap with Mushrooms',
-    description: 'Zurna chicken doner wrap with special mushroom sauce and greens.',
-    ingredients: 'Chicken doner, special mushroom sauce, special Katik sauce, wheat flour lavash (contains gluten), greens, spices.'
-  },
-  'zurna-cheddarli-tavuk-durum': {
-    name: 'Zurna Chicken Wrap with Cheddar',
-    description: 'Zurna chicken doner wrap with melted cheddar cheese and greens.',
-    ingredients: 'Chicken doner, melted cheddar cheese, special Katik sauce, wheat flour lavash (contains gluten), greens, spices.'
-  },
-  'zurna-kasarli-tavuk-durum': {
-    name: 'Zurna Chicken Wrap with Kashar',
-    description: 'Zurna chicken doner wrap with melted kashar cheese and greens.',
-    ingredients: 'Chicken doner, melted kashar cheese, special Katik sauce, wheat flour lavash (contains gluten), greens, spices.'
-  },
-  'katik-barbeku-soslu-zurna-tavuk': {
-    name: 'Katik BBQ Zurna Chicken Wrap',
-    description: 'Zurna chicken doner wrap with special BBQ sauce and greens.',
-    ingredients: 'Chicken doner, special BBQ sauce, special Katik sauce, wheat flour lavash (contains gluten), greens, spices.'
-  },
-  'katik-barbeku-soslu-tavuk-durum': {
-    name: 'Katik BBQ Chicken Wrap',
-    description: 'Standard chicken doner wrap with BBQ sauce and greens.',
-    ingredients: 'Chicken doner, BBQ sauce, special Katik sauce, wheat flour lavash (contains gluten), greens, spices.'
-  },
-  'zurna-tavuk-doner-durum': {
-    name: 'Zurna Chicken Doner Wrap',
-    description: 'Long zurna chicken doner wrap with special Katik sauce and greens.',
-    ingredients: 'Chicken doner, special Katik sauce, wheat flour lavash (contains gluten), greens, spices.'
-  },
-  'katik-mantarli-tavuk-doner-durum': {
-    name: 'Katik Mushroom Chicken Doner Wrap',
-    description: 'Chicken doner wrap with delicious mushroom sauce and greens.',
-    ingredients: 'Chicken doner, mushroom sauce, special Katik sauce, wheat flour lavash (contains gluten), greens, spices.'
-  },
-  'katik-kasarli-tavuk-doner-durum': {
-    name: 'Katik Kashar Chicken Doner Wrap',
-    description: 'Chicken doner wrap with melted kashar cheese.',
-    ingredients: 'Chicken doner, melted kashar cheese, special Katik sauce, wheat flour lavash (contains gluten).'
-  },
-  'katik-cheddarli-tavuk-doner-durum': {
-    name: 'Katik Cheddar Chicken Doner Wrap',
-    description: 'Chicken doner wrap with melted cheddar cheese.',
-    ingredients: 'Chicken doner, melted cheddar cheese, special Katik sauce, wheat flour lavash (contains gluten).'
-  },
-  'katik-tavuk-doner-durum': {
-    name: 'Katik Chicken Doner Wrap',
-    description: 'Standard chicken doner wrap with special Katik sauce.',
-    ingredients: 'Chicken doner, special Katik sauce, wheat flour lavash (contains gluten).'
-  },
-  'ekmek-arasi-et-doner': {
-    name: 'Beef Doner Sandwich',
-    description: 'Traditional beef doner served inside freshly baked bread.',
-    ingredients: 'Beef doner, sandwich bread (contains gluten), onion, parsley, special spices.'
-  },
-  'zurna-katik-et-doner-durum': {
-    name: 'Zurna Beef Doner Wrap',
-    description: 'Long zurna beef doner wrap with special Katik sauce.',
-    ingredients: 'Beef doner, special Katik sauce, wheat flour lavash (contains gluten).'
-  },
-  'katik-et-doner-durum': {
-    name: 'Katik Beef Doner Wrap',
-    description: 'Beef doner wrap with special Katik sauce and spices.',
-    ingredients: 'Beef doner, special Katik sauce, wheat flour lavash (contains gluten).'
-  },
-  'veggie-durum': {
-    name: 'Veggie Wrap',
-    description: 'A special vegetarian wrap with grilled mushrooms, kashar cheese, and seasonal vegetables.',
-    ingredients: 'Grilled mushrooms, kashar cheese, seasonal vegetables, wheat flour lavash (contains gluten).'
-  },
-  'kutu-icecekler': {
-    name: 'Canned Soft Drinks',
-    description: 'Coca-Cola, Fanta, Sprite, Cappy or Ice Tea.',
-    ingredients: 'Carbonated water, sugar/sweeteners, acidity regulators, natural flavorings.'
-  },
-  'ayran': {
-    name: 'Ayran',
-    description: 'Sutas Ayran (yogurt drink) - 300 ml.',
-    ingredients: 'Yogurt, water, salt.'
-  },
-  'soda': {
-    name: 'Mineral Water',
-    description: 'Carbonated natural mineral water.',
-    ingredients: 'Natural mineral water.'
-  },
-  'su': {
-    name: 'Water',
-    description: 'Spring water - 500 ml.',
-    ingredients: 'Natural spring water.'
-  }
-};
+// (legacy static item translations removed — built from tenant DB data)
 
 let itemTranslations = {};
 
@@ -4348,11 +4530,34 @@ function toggleLanguage() {
   applyLanguage(nextLang);
 }
 
+// ── Phase 25: Tenant Admin Panel theme (Black/White/System) ──
+// Scoped entirely to #adminPanelOverlay via CSS (see the PHASE 25 block in <style>).
+// Shares the 'hasaca_panel_theme' localStorage key with the Root Panel + login page so the
+// preference is consistent across every panel, but application here never touches body.theme-bw
+// or any customer-facing markup — only html[data-theme] which the CSS scopes to the overlay.
+const AP_THEME_MQ = window.matchMedia('(prefers-color-scheme: dark)');
+function apResolveTheme(mode){ return mode === 'system' ? (AP_THEME_MQ.matches ? 'dark' : 'light') : mode; }
+function apApplyThemeAttr(mode){ document.documentElement.setAttribute('data-theme', apResolveTheme(mode)); }
+function apSetTheme(mode){
+  try { localStorage.setItem('hasaca_panel_theme', mode); } catch(e){}
+  apApplyThemeAttr(mode);
+  document.querySelectorAll('#adminThemeSeg button').forEach(b => b.classList.toggle('on', b.getAttribute('data-theme-mode') === mode));
+}
+function apInitTheme(){
+  let mode = 'system';
+  try { mode = localStorage.getItem('hasaca_panel_theme') || 'system'; } catch(e){}
+  apSetTheme(mode);
+}
+AP_THEME_MQ.addEventListener('change', () => {
+  let m = 'system'; try { m = localStorage.getItem('hasaca_panel_theme') || 'system'; } catch(e){}
+  if (m === 'system') apApplyThemeAttr('system');
+});
+
 function applyLanguage(lang) {
   window.currentLanguage = lang;
   document.documentElement.lang = lang;
   localStorage.setItem('lang', lang);
-  document.title = lang === 'tr' ? "My Restaurant | Tantuni & Döner" : "My Restaurant | Tantuni & Doner";
+  document.title = 'My Restaurant';
 
   // Update top bar language button text
   const langText = document.getElementById('lang-btn-text');
@@ -4403,8 +4608,17 @@ function applyLanguage(lang) {
     }
   });
 
+  // Update title/aria-label with data-i18n-title (Phase 25 theme switch buttons, etc.)
+  document.querySelectorAll('[data-i18n-title]').forEach(el => {
+    const key = el.getAttribute('data-i18n-title');
+    if (i18nData[lang] && i18nData[lang][key]) {
+      el.setAttribute('title', i18nData[lang][key]);
+      el.setAttribute('aria-label', i18nData[lang][key]);
+    }
+  });
+
   // Update document title dynamically
-  document.title = lang === 'tr' ? 'My Restaurant | Tantuni & Döner' : 'My Restaurant | Tantuni & Doner';
+  document.title = 'My Restaurant';
 
   // Translate custom date select placeholders if they exist
   const rezSaatSelect = document.querySelector('#rezSaatOptions .custom-select-option[data-value=""]');
@@ -4455,12 +4669,7 @@ function applyLanguage(lang) {
       if (cat) {
         let catName = cat.name;
         if (lang === 'en') {
-          const catTranslations = {
-            'Tantuni': 'Tantuni',
-            'Tavuk Döner': 'Chicken Doner',
-            'Et Döner': 'Beef Doner',
-            'Diğer & İçecek': 'Sides & Drinks'
-          };
+          const catTranslations = {};
           catName = catTranslations[cat.name] || cat.name;
         }
         selectedText.textContent = catName;
@@ -4476,7 +4685,7 @@ function applyLanguage(lang) {
   // Dynamically update Google Maps iframe language
   const mapIframe = document.getElementById('gmap-iframe');
   if (mapIframe) {
-    mapIframe.src = `https://maps.google.com/maps?q=Dayı+Katık+Tantuni+Safranbolu+Karabük&output=embed&hl=${lang}`;
+    mapIframe.src = `https://maps.google.com/maps?q=restaurant&output=embed&hl=${lang}`;
   }
 
   // Update header text in details modal if open
@@ -4500,12 +4709,7 @@ function applyLanguage(lang) {
 
 // Categories metadata for dynamic rendering
 // Categories metadata for dynamic rendering
-const defaultCategoriesMap = {
-  'tantuni': { name: 'Tantuni', icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M16.5 5.5l-9 9c-.8.8-.8 2 0 2.8l2.2 2.2c.8.8 2 .8 2.8 0l9-9c.8-.8.8-2 0-2.8l-2.2-2.2c-.8-.8-2-.8-2.8 0z" /><path d="M14 6.5l3.5 3.5" fill="none" stroke="currentColor" stroke-width="1.5" /><path d="M17.5 16.5c-1-1-2.5-.5-3 1-.3.8-.2 1.8.3 2.5.5.7 1.5 1.2 2.2.8.8-.4.8-1.5.5-2.3-.3-.8 0-1.5 0-2z" /><path d="M6.5 18.5c-3-2.5-4-6.5-2.5-10.5C5.5 4 9.5 1.5 13.5 2" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>' },
-  'tavuk': { name: 'Tavuk Döner', icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M10 3h2v18h-2z"/><path d="M6 6c0-.5.5-1 1-1h6c.5 0 1 .5 1 1v1c0 .5-.5 1-1 1H7c-.5 0-1-.5-1-1V6zM6.5 8c0-.5.5-1 1-1h5c.5 0 1 .5 1 1v1.5c0 .5-.5 1-1 1h-5c-.5 0-1-.5-1-1V8zM7 11.5c0-.5.5-1 1-1h4c.5 0 1 .5 1 1V13c0 .5-.5 1-1 1H8c-.5 0-1-.5-1-1v-1.5zM7.5 14.5c0-.5.5-1 1-1h3c.5 0 1 .5 1 1v1.5c0 .5-.5 1-1 1h-3c-.5 0-1-.5-1-1v-1.5zM8 17.5c0-.5.5-1 1-1h2c.5 0 1 .5 1 1v1c0 .5-.5 1-1 1H9c-.5 0-1-.5-1-1v-1z"/><path d="M15.5 13.5c0 0 .5-1.5 1.5-2 .5-.2.5-.5.5-.8 0-.5-.3-.7-.7-.7-.3 0-.6.1-.9.3-.3-1 .2-2.3.8-2.8.3-.3.8-.5 1.2-.4s.7.4.8.8c.2.8.2 1.6-.2 2.3.3.5.7.8 1 .8.5 0 1.2-.5 1.5-.8.2.5.3 1.1.2 1.7-.2.8-.7 1.3-1.3 1.5-.6.2-1.3.1-1.8-.2-.3.3-.6.7-1 .9-.3.2-.6.3-.9.3-.7 0-1.2-.6-1.2-1.4z"/><path d="M5.5 19.5c-3-2.5-4-6.5-2.5-10.5C4.5 5 8.5 2.5 12.5 3" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>' },
-  'et': { name: 'Et Döner', icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M10 3h2v18h-2z"/><path d="M6 6c0-.5.5-1 1-1h6c.5 0 1 .5 1 1v1c0 .5-.5 1-1 1H7c-.5 0-1-.5-1-1V6zM6.5 8c0-.5.5-1 1-1h5c.5 0 1 .5 1 1v1.5c0 .5-.5 1-1 1h-5c-.5 0-1-.5-1-1V8zM7 11.5c0-.5.5-1 1-1h4c.5 0 1 .5 1 1V13c0 .5-.5 1-1 1H8c-.5 0-1-.5-1-1v-1.5zM7.5 14.5c0-.5.5-1 1-1h3c.5 0 1 .5 1 1v1.5c0 .5-.5 1-1 1h-3c-.5 0-1-.5-1-1v-1.5zM8 17.5c0-.5.5-1 1-1h2c.5 0 1 .5 1 1v1c0 .5-.5 1-1 1H9c-.5 0-1-.5-1-1v-1z"/><path d="M15.5 10c0 0 .5-1.5 1-2.5.2-.4.6-.7 1-.7.5 0 .8.3.9.7.1.5-.1 1-.4 1.5h1c.6 0 1 .4 1 1v2c0 1.1-.9 2-2 2h-1c-.5.8-1.3 1.3-2.3 1.3-1.5 0-2.2-.8-2.2-1.8 0-.5.2-1 .5-1.3l-1.5-1.2v-1z"/><path d="M5.5 19.5c-3-2.5-4-6.5-2.5-10.5C4.5 5 8.5 2.5 12.5 3" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>' },
-  'diger': { name: 'Diğer & İçecek', icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 8h1a4 4 0 1 1 0 8h-1"/><path d="M3 8h14v9a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4V8z"/><line x1="6" y1="2" x2="6" y2="4"/><line x1="10" y1="2" x2="10" y2="4"/><line x1="14" y1="2" x2="14" y2="4"/></svg>' }
-};
+// (legacy category map removed — categories come from tenant DB data)
 
 let categoriesMap = {};
 
@@ -4513,12 +4717,7 @@ function getCategoryTranslatedName(key, lang) {
   if (!categoriesMap[key]) return '';
   const cat = categoriesMap[key];
   if (lang === 'en') {
-    const catTranslations = {
-      'Tantuni': 'Tantuni',
-      'Tavuk Döner': 'Chicken Doner',
-      'Et Döner': 'Beef Doner',
-      'Diğer & İçecek': 'Sides & Drinks'
-    };
+    const catTranslations = {};
     return catTranslations[cat.name] || cat.name;
   }
   return cat.name;
@@ -4841,12 +5040,7 @@ function renderCategoriesDropdown() {
     // Translate category name dynamically
     let catName = cat.name;
     if (window.currentLanguage === 'en') {
-      const catTranslations = {
-        'Tantuni': 'Tantuni',
-        'Tavuk Döner': 'Chicken Doner',
-        'Et Döner': 'Beef Doner',
-        'Diğer & İçecek': 'Sides & Drinks'
-      };
+      const catTranslations = {};
       catName = catTranslations[cat.name] || cat.name;
     }
     
@@ -4931,19 +5125,21 @@ async function loadMenuDatabase() {
     // Check initial hash for deep linking
     handleDeepLink();
     
-    // Auto-open admin panel if standalone page
+    // Standalone admin: go through the auth gate. openAdminLogin() validates any stored token via
+    // /api/auth/me and only then opens the panel; otherwise it shows the login modal. This prevents
+    // an unauthenticated visit from opening a blank panel whose data calls all 401.
     if (window.isStandaloneAdmin) {
-      openAdminPanel();
+      openAdminLogin();
     }
   } catch (error) {
     console.error('Error loading menu data:', error);
     window.menuData = window.menuData || [];
     if (window.isStandaloneAdmin) {
-      openAdminPanel();
+      openAdminLogin();
     }
     document.getElementById('menuCardsContainer').innerHTML = `
       <p style="text-align:center;color:var(--muted);grid-column:1/-1;padding:40px 0;">
-        ⚠️ Menü verileri yüklenemedi. Lütfen sunucu bağlantısını kontrol edin.
+        Menü verileri yüklenemedi. Lütfen sunucu bağlantısını kontrol edin.
       </p>
     `;
   }
@@ -5271,7 +5467,7 @@ function openFoodDetail(id, updateHash = true) {
     
     <div class="detail-menu-footer">
       <div class="detail-menu-footer-logo">My Restaurant</div>
-      <div class="detail-menu-footer-sub">Tantuni & Döner</div>
+      <div class="detail-menu-footer-sub" data-i18n="brand_name">My Restaurant</div>
       <div class="detail-menu-footer-tagline">${i18nData[lang].tagline}</div>
     </div>
   `;
@@ -5577,9 +5773,9 @@ async function sendRezervasyon() {
 
   if(!ad || !tel || !gun || !ay || !yil || !saat){
     msg.style.display='block';
-    msg.style.background='rgba(217,59,10,0.2)';
-    msg.style.color='#FF7043';
-    msg.style.border='1px solid rgba(217,59,10,0.3)';
+    msg.style.background='rgba(var(--fire-rgb),0.2)';
+    msg.style.color='var(--bad)';
+    msg.style.border='1px solid rgba(var(--fire-rgb),0.3)';
     msg.innerHTML='<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg> ' + (window.currentLanguage === 'tr' ? 'Lütfen tüm alanları doldurun.' : 'Please fill all fields.');
     return;
   }
@@ -5591,13 +5787,13 @@ async function sendRezervasyon() {
     : ['','January','February','March','April','May','June','July','August','September','October','November','December'];
   const tarihOku = parseInt(gun) + ' ' + ayIsim[parseInt(ay)] + ' ' + yil;
   const isTr = window.currentLanguage === 'tr';
-  const labelRez = isTr ? '🍽️ YENİ REZERVASYON' : '🍽️ NEW RESERVATION';
-  const labelAd = isTr ? '👤 Ad Soyad' : '👤 Full Name';
-  const labelTel = isTr ? '📞 Telefon' : '📞 Phone';
-  const labelTarih = isTr ? '📅 Tarih' : '📅 Date';
-  const labelSaat = isTr ? '🕐 Saat' : '🕐 Time';
-  const labelKisi = isTr ? '👥 Kişi' : '👥 Guests';
-  const labelNot = isTr ? '📝 Not' : '📝 Note';
+  const labelRez = isTr ? 'YENİ REZERVASYON' : 'NEW RESERVATION';
+  const labelAd = isTr ? 'Ad Soyad' : 'Full Name';
+  const labelTel = isTr ? 'Telefon' : 'Phone';
+  const labelTarih = isTr ? 'Tarih' : 'Date';
+  const labelSaat = isTr ? 'Saat' : 'Time';
+  const labelKisi = isTr ? 'Kişi' : 'Guests';
+  const labelNot = isTr ? 'Not' : 'Note';
   const labelSitesi = isTr ? '— My Restaurant Web Sitesi' : '— My Restaurant Web Site';
   
   const metin = `${labelRez}\n\n${labelAd}: ${ad}\n${labelTel}: ${tel}\n${labelTarih}: ${tarihOku}\n${labelSaat}: ${saat}\n${labelKisi}: ${seciliPax}${not_ ? `\n${labelNot}: ` + not_ : ''}\n\n${labelSitesi}`;
@@ -5674,9 +5870,9 @@ async function sendRezervasyon() {
     }
   } catch(e){
     msg.style.display='block';
-    msg.style.background='rgba(217,59,10,0.2)';
-    msg.style.color='#FF7043';
-    msg.style.border='1px solid rgba(217,59,10,0.3)';
+    msg.style.background='rgba(var(--fire-rgb),0.2)';
+    msg.style.color='var(--bad)';
+    msg.style.border='1px solid rgba(var(--fire-rgb),0.3)';
     msg.innerHTML='<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg> ' + (window.currentLanguage === 'tr' ? 'Bağlantı hatası. Lütfen telefonla arayın: 123 456 789' : 'Connection error. Please call: 123 456 789');
   }
   btn.disabled=false; btn.innerHTML='<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-3px"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg> ' + (window.currentLanguage === 'tr' ? 'Rezervasyon Yap' : 'Book Table');
@@ -5739,11 +5935,12 @@ function openAdminPanel() {
   document.getElementById('adminSearchInput').value = '';
   document.getElementById('adminPanelOverlay').classList.add('open');
   document.body.style.overflow = 'hidden';
-  
-  // Activate Products Tab by default
-  const prodTabBtn = document.getElementById('adminTabBtnProd');
-  if (prodTabBtn) switchAdminPanelTab(prodTabBtn, 0);
-  
+  apInitTheme(); // Phase 25: panel theme (scoped to the overlay; customer site untouched)
+
+  // Phase 25 REVISION: default landing view is the Dashboard (mirrors root.html's showShell())
+  showAdminView('dashboard');
+
+  // Eager loads that must run regardless of the active view (badges, live feed, cached config)
   renderAdminProductList();
   renderAdminRezList();
   updateAdminRezBadge();
@@ -5752,55 +5949,330 @@ function openAdminPanel() {
   if (typeof loadServiceRequests === 'function') loadServiceRequests();
   if (typeof connectAdminEvents === 'function') connectAdminEvents(); // real-time feed
   // Cache tenant branding so printed QR codes show the correct logo + name
-  fetch('/api/site-config').then(r => r.ok ? r.json() : null).then(cfg => { if (cfg) window.__siteConfig = cfg; }).catch(() => {});
+  fetch('/api/site-config').then(r => r.ok ? r.json() : null).then(cfg => {
+    if (cfg) window.__siteConfig = cfg;
+    // Phase 25.2: refresh the notification-preview brand slot as soon as tenant config lands,
+    // so the mock header shows the tenant's real name/logo even before the Bildirim view opens.
+    if (typeof updatePushPreview === 'function') { try { updatePushPreview(); } catch(e){} }
+    // Phase 31: "/" no longer automatically shows a tenant's site on a bare host — point View Site
+    // at this tenant explicitly so it keeps opening the right site regardless of host/theme.
+    const viewSiteLink = document.getElementById('adminViewSiteLink');
+    if (viewSiteLink && cfg && cfg.id) viewSiteLink.href = '/tenant/' + encodeURIComponent(cfg.id);
+  }).catch(() => {});
 }
 
-// ── ADMIN RESERVATIONS LOGIC & DRAG-DROP HANDLERS ──
-
-function switchAdminPanelTab(btn, idx) {
-  const container = btn.parentElement;
-  container.querySelectorAll('.admin-tab-btn').forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
-
-  // Percentage per tab is derived from the tab count, so adding/removing tabs stays correct.
-  const tabCount = container.querySelectorAll('.admin-tab-btn').length || 4;
-  const pct = 100 / tabCount;
-
-  // Slide indicator
-  const indicator = document.getElementById('adminTabIndicator');
-  if (indicator) {
-    indicator.style.left = (idx * pct) + '%';
-    indicator.style.width = pct + '%';
-  }
-
-  // Slide content
-  const slider = document.getElementById('adminTabSlider');
-  if (slider) {
-    slider.style.transform = `translateX(-${idx * pct}%)`;
-  }
-
-  // Toggle active-tab class for opacity
-  const panels = document.querySelectorAll('.admin-tab-content');
-  panels.forEach((p, i) => {
-    p.classList.toggle('active-tab', i === idx);
+// ── Phase 25 REVISION: sidebar-driven view switching (replaces switchAdminPanelTab) ──
+//
+// Maps a sidebar slug → the matching .view element ID + the lazy-load calls the old
+// switchAdminPanelTab used to do. All existing render/load functions are reused verbatim;
+// only the navigation trigger is new.
+const AP_VIEW_MAP = {
+  'dashboard':    { id: 'view-dashboard',           title: 'admin_nav_dashboard' },
+  'products':     { id: 'adminTabProducts',         title: 'admin_tab_prod' },
+  'orders':       { id: 'adminTabOrdersCont',       title: 'admin_tab_orders' },
+  'reservations': { id: 'adminTabRezCont',          title: 'admin_tab_rez' },
+  'tables':       { id: 'adminTabTablesCont',       title: 'admin_tab_tables' },
+  'table-orders': { id: 'adminTabTableOrdersCont',  title: 'admin_tab_tableorders' },
+  'push':         { id: 'adminTabPushCont',         title: 'admin_nav_push' },
+  'analytics':    { id: 'view-analytics',           title: 'admin_nav_analytics' },
+  'ai-assistant': { id: 'view-ai-assistant',         title: 'admin_nav_ai' },
+  'widgets':      { id: 'view-widgets',              title: 'admin_nav_widgets' },
+  'category-form':{ id: 'adminCategoryFormPanel',   title: 'admin_add_category_btn' },
+  'product-form': { id: 'adminFormPanel',           title: 'admin_lbl_edit_product' }
+};
+// Phase 27 Part A: the category/product forms used to be full-viewport overlays
+// (position:fixed;inset:0) living OUTSIDE #adminPanelOverlay. Relocate them (once) into
+// .app-content as ordinary .view panes so the sidebar/topbar stay visible while they're open —
+// same technique as every other section, zero change to their internal fields/save logic.
+(function relocateFormsIntoShell(){
+  const content = document.querySelector('#adminPanelOverlay .app-content');
+  if (!content) return;
+  ['adminCategoryFormPanel', 'adminFormPanel'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el && el.parentElement !== content) {
+      el.classList.add('view');
+      el.hidden = true;
+      content.appendChild(el);
+    }
   });
-
-  // Hide/Show Product/Category buttons based on tab
+})();
+function showAdminView(view) {
+  const spec = AP_VIEW_MAP[view] || AP_VIEW_MAP['dashboard'];
+  // Toggle all .view panes inside the shell
+  document.querySelectorAll('#adminPanelOverlay .view').forEach(el => {
+    el.hidden = (el.id !== spec.id);
+  });
+  // Nav item active state
+  document.querySelectorAll('#adminPanelOverlay .nav-item[data-view]').forEach(a => {
+    a.classList.toggle('active', a.getAttribute('data-view') === view);
+  });
+  // Topbar page title (i18n)
+  const pt = document.getElementById('adminPageTitle');
+  if (pt) {
+    pt.setAttribute('data-i18n', spec.title);
+    const t = (typeof i18nData !== 'undefined' && i18nData[window.currentLanguage||'tr'] && i18nData[window.currentLanguage||'tr'][spec.title]);
+    if (t) pt.textContent = t;
+  }
+  // Products' Add-Product / Add-Category buttons only relevant on the Products view
   const addBtn = document.getElementById('adminAddNewProductBtn');
   const addCatBtn = document.getElementById('adminAddNewCategoryBtn');
-  const isProdTab = (idx === 0);
-  if (addBtn) addBtn.style.display = isProdTab ? 'inline-block' : 'none';
-  if (addCatBtn) addCatBtn.style.display = isProdTab ? 'inline-block' : 'none';
-
-  if (idx === 2) {
-    loadOrders();          // Orders tab
-  } else if (idx === 3) {
-    loadPushDashboardData();  // Notifications tab
-  } else if (idx === 4) {
-    if (typeof loadTables === 'function') loadTables();          // Table Management
-  } else if (idx === 5) {
-    if (typeof loadTableOrders === 'function') loadTableOrders(); // Table Order Control
+  const isProd = (view === 'products');
+  if (addBtn) addBtn.style.display = isProd ? 'inline-block' : 'none';
+  if (addCatBtn) addCatBtn.style.display = isProd ? 'inline-block' : 'none';
+  // Lazy-load per view — same calls the old switchAdminPanelTab did, plus reservations
+  // which the Explore pass found was never called on tab-switch before (a real gap).
+  if (view === 'dashboard')       loadAdminDashboard();
+  else if (view === 'analytics')  loadAdminAnalytics();
+  else if (view === 'orders')     loadOrders();
+  else if (view === 'reservations' && typeof loadReservations === 'function') loadReservations();
+  else if (view === 'push')       loadPushDashboardData();
+  else if (view === 'tables') { if (typeof loadTables === 'function') loadTables(); if (typeof loadQrStyle === 'function') loadQrStyle(); }
+  else if (view === 'table-orders') {
+    if (typeof loadTableOrders === 'function') loadTableOrders();
     if (typeof loadServiceRequests === 'function') loadServiceRequests();
+  }
+  else if (view === 'widgets') loadTenantWidgets();
+  // Close the mobile drawer after navigating
+  apToggleSidebar(false);
+}
+
+// ── Sidebar / topbar helpers (ports of root.html's toggleSidebar/Collapse/ProfileMenu) ──
+function apToggleSidebar(force) {
+  const shell = document.getElementById('adminAppShell');
+  if (!shell) return;
+  const open = typeof force === 'boolean' ? force : !shell.classList.contains('drawer-open');
+  shell.classList.toggle('drawer-open', open);
+  const bd = document.getElementById('adminAppBackdrop');
+  if (bd) bd.classList.toggle('show', open);
+}
+function apToggleCollapse() {
+  const shell = document.getElementById('adminAppShell');
+  if (!shell) return;
+  const c = shell.classList.toggle('collapsed');
+  try { localStorage.setItem('hasaca_admin_panel_collapsed', c ? '1' : '0'); } catch (e) {}
+}
+function apToggleProfileMenu(e) {
+  if (e) e.stopPropagation();
+  const m = document.getElementById('adminProfileMenu');
+  if (m) m.classList.toggle('open');
+}
+document.addEventListener('click', (e) => {
+  const m = document.getElementById('adminProfileMenu');
+  if (m && m.classList.contains('open') && !e.target.closest('#adminProfile')) m.classList.remove('open');
+});
+
+// Real logout (Phase 25 REVISION): the old "Kapat" only navigated away, leaving the token valid.
+function adminLogout() {
+  try { setAdminToken(''); } catch (e) {}
+  window.location.href = '/';
+}
+
+// ── Dashboard + Analytics (reuse existing tenant-scoped endpoints) ──
+async function loadAdminDashboard() {
+  try {
+    const tok = (typeof getAdminToken === 'function' ? getAdminToken() : '');
+    if (!tok) return;
+    const a = await (await fetch('/api/admin/analytics?days=30', { headers: { 'Authorization': 'Bearer ' + tok } })).json();
+    const s = a.summary || {};
+    const lang = window.currentLanguage || 'tr';
+    const loc = lang === 'tr' ? 'tr-TR' : 'en-US';
+    const set = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
+    set('adDashOrders', (s.orders != null ? s.orders : 0).toLocaleString(loc));
+    set('adDashRevenue', '₺' + Math.round(s.revenue || 0).toLocaleString(loc));
+    set('adDashAvg', '₺' + Math.round(s.avgOrderValue || 0).toLocaleString(loc));
+    set('adDashRez', (s.reservations != null ? s.reservations : 0).toLocaleString(loc));
+  } catch (e) { console.warn('loadAdminDashboard:', e); }
+  // Recent activity (uses /api/admin/activity, tenant-scoped)
+  try {
+    const tok = (typeof getAdminToken === 'function' ? getAdminToken() : '');
+    if (!tok) return;
+    const d = await (await fetch('/api/admin/activity?limit=6', { headers: { 'Authorization': 'Bearer ' + tok } })).json();
+    const box = document.getElementById('adDashActivity'); if (!box) return;
+    const esc = x => String(x == null ? '' : x).replace(/[<>&]/g, c => ({'<':'&lt;','>':'&gt;','&':'&amp;'}[c]));
+    if (!d.items || !d.items.length) { box.innerHTML = '<div class="hint">—</div>'; return; }
+    const lang = window.currentLanguage || 'tr';
+    const loc = lang === 'tr' ? 'tr-TR' : 'en-US';
+    box.innerHTML = d.items.map(r => {
+      const when = new Date(Number(r.created_at)).toLocaleString(loc);
+      return '<div class="act-row"><span class="act-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 8v4l3 2"/></svg></span>' +
+        '<div class="act-main"><b>' + esc(r.action) + '</b> ' + esc(r.target || '') + '</div>' +
+        '<span class="act-when">' + esc(when) + '</span></div>';
+    }).join('');
+  } catch (e) { console.warn('loadAdminDashboard activity:', e); }
+}
+async function loadAdminAnalytics() {
+  try {
+    const tok = (typeof getAdminToken === 'function' ? getAdminToken() : '');
+    if (!tok) return;
+    const a = await (await fetch('/api/admin/analytics?days=30', { headers: { 'Authorization': 'Bearer ' + tok } })).json();
+    const s = a.summary || {}, ts = a.typeSplit || {};
+    const lang = window.currentLanguage || 'tr';
+    const loc = lang === 'tr' ? 'tr-TR' : 'en-US';
+    const set = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
+    set('adAnOrders', (s.orders != null ? s.orders : 0).toLocaleString(loc));
+    set('adAnRevenue', '₺' + Math.round(s.revenue || 0).toLocaleString(loc));
+    set('adAnAvg', '₺' + Math.round(s.avgOrderValue || 0).toLocaleString(loc));
+    set('adAnDinein', (ts.dinein != null ? ts.dinein : 0).toLocaleString(loc));
+    set('adAnDelivery', (ts.delivery != null ? ts.delivery : 0).toLocaleString(loc));
+    const top = document.getElementById('adAnTop');
+    const items = a.topProducts || [];
+    if (top) {
+      if (!items.length) { top.innerHTML = '<div class="hint">—</div>'; }
+      else {
+        const esc = x => String(x == null ? '' : x).replace(/[<>&]/g, c => ({'<':'&lt;','>':'&gt;','&':'&amp;'}[c]));
+        top.innerHTML = items.map(p => '<div class="act-row"><div class="act-main"><b>' + esc(p.name) + '</b></div><span class="act-when">' + p.qty + '×</span></div>').join('');
+      }
+    }
+  } catch (e) { console.warn('loadAdminAnalytics:', e); }
+}
+
+// ── AI Assistant (Phase 27) — thin UI over /api/admin/ai-assistant/plan|execute ──
+// Writes nothing until the admin clicks Confirm; the server re-validates tenant ownership
+// and applies through the exact same product/category update code the manual forms use.
+let aiAsstPlanId = null;
+function aiT(key, fallback) {
+  const lang = window.currentLanguage || 'tr';
+  return (typeof i18nData !== 'undefined' && i18nData[lang] && i18nData[lang][key]) || fallback;
+}
+function aiAsstEsc(x) { return String(x == null ? '' : x).replace(/[<>&]/g, c => ({'<':'&lt;','>':'&gt;','&':'&amp;'}[c])); }
+function aiAsstResolveLabel(a) {
+  try {
+    if (a.table === 'products' && Array.isArray(window.menuData)) {
+      const p = window.menuData.find(x => x.id === a.targetId);
+      if (p) return (p.name || a.targetId) + ' · ' + a.field;
+    }
+  } catch (e) {}
+  return (a.table ? a.table + '.' : '') + a.field;
+}
+async function aiAssistantSend() {
+  const input = document.getElementById('aiAsstInput');
+  const msg = (input.value || '').trim();
+  if (!msg) return;
+  const statusEl = document.getElementById('aiAsstStatus');
+  const sendBtn = document.getElementById('aiAsstSendBtn');
+  document.getElementById('aiAsstPlanCard').style.display = 'none';
+  document.getElementById('aiAsstResultCard').style.display = 'none';
+  statusEl.style.display = 'block';
+  statusEl.textContent = aiT('admin_ai_thinking', 'Düşünülüyor…');
+  sendBtn.disabled = true;
+  try {
+    const r = await fetch('/api/admin/ai-assistant/plan', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message: msg })
+    });
+    const data = await r.json();
+    sendBtn.disabled = false;
+    if (!r.ok) {
+      statusEl.textContent = data.error === 'ai_not_configured'
+        ? aiT('admin_ai_not_configured', 'AI asistanı henüz yapılandırılmadı.')
+        : aiT('admin_ai_error_generic', 'Bir hata oluştu.');
+      return;
+    }
+    if (!data.planId && !(data.actions && data.actions.length)) {
+      statusEl.textContent = data.summary || aiT('admin_ai_no_actions', 'Uygulanabilir bir değişiklik bulunamadı.');
+      if (data.unsupported && data.unsupported.length) aiAssistantRenderPlan(data);
+      return;
+    }
+    statusEl.style.display = 'none';
+    input.value = '';
+    aiAssistantRenderPlan(data);
+  } catch (e) {
+    sendBtn.disabled = false;
+    statusEl.textContent = aiT('admin_ai_conn_error', 'Bağlantı hatası.');
+  }
+}
+function aiAssistantRenderPlan(data) {
+  aiAsstPlanId = data.planId || null;
+  const planCard = document.getElementById('aiAsstPlanCard');
+  const summaryEl = document.getElementById('aiAsstSummary');
+  const actionsEl = document.getElementById('aiAsstActions');
+  const unsupEl = document.getElementById('aiAsstUnsupported');
+  const confirmBtn = document.getElementById('aiAsstConfirmBtn');
+  summaryEl.textContent = data.summary || '';
+  actionsEl.innerHTML = (data.actions || []).map(a =>
+    '<div class="act-row"><div class="act-main"><b>' + aiAsstEsc(aiAsstResolveLabel(a)) + '</b><br><span style="color:var(--ap-muted)">' +
+    aiAsstEsc(a.oldValue) + '</span> → <span>' + aiAsstEsc(a.newValue) + '</span></div></div>'
+  ).join('');
+  if (data.unsupported && data.unsupported.length) {
+    unsupEl.style.display = 'block';
+    unsupEl.innerHTML = '<b>' + aiT('admin_ai_unsupported', 'Desteklenmeyen istekler:') + '</b><br>' + data.unsupported.map(aiAsstEsc).join('<br>');
+  } else {
+    unsupEl.style.display = 'none';
+  }
+  confirmBtn.style.display = aiAsstPlanId ? 'inline-block' : 'none';
+  planCard.style.display = 'block';
+}
+async function aiAssistantConfirm() {
+  if (!aiAsstPlanId) return;
+  const confirmBtn = document.getElementById('aiAsstConfirmBtn');
+  confirmBtn.disabled = true;
+  try {
+    const r = await fetch('/api/admin/ai-assistant/execute', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ planId: aiAsstPlanId })
+    });
+    const data = await r.json();
+    confirmBtn.disabled = false;
+    if (!r.ok) {
+      const statusEl = document.getElementById('aiAsstStatus');
+      statusEl.style.display = 'block';
+      statusEl.textContent = aiT('admin_ai_error_generic', 'Bir hata oluştu.');
+      return;
+    }
+    document.getElementById('aiAsstPlanCard').style.display = 'none';
+    document.getElementById('aiAsstResultSummary').textContent = data.summary || '';
+    document.getElementById('aiAsstResultCard').style.display = 'block';
+    aiAsstPlanId = null;
+    if (typeof loadMenuDatabase === 'function') {
+      await loadMenuDatabase();
+      if (typeof renderAdminProductList === 'function') renderAdminProductList();
+    }
+  } catch (e) {
+    confirmBtn.disabled = false;
+  }
+}
+function aiAssistantCancel() {
+  aiAsstPlanId = null;
+  document.getElementById('aiAsstPlanCard').style.display = 'none';
+}
+
+// ── Widget Settings (Phase 28) — tenant self-service on/off for the customer-site widgets ──
+const TENANT_WIDGET_KEYS = ['whatsapp', 'instagram', 'facebook', 'twitter', 'tiktok', 'youtube', 'website', 'maps'];
+async function loadTenantWidgets() {
+  let cfg = window.__siteConfig;
+  if (!cfg) { try { cfg = await (await fetch('/api/site-config')).json(); window.__siteConfig = cfg; } catch (e) {} }
+  const widgets = (cfg && cfg.settings && cfg.settings.widgets) || {};
+  TENANT_WIDGET_KEYS.forEach(key => {
+    const el = document.getElementById('tw' + key.charAt(0).toUpperCase() + key.slice(1));
+    if (el) el.checked = widgets[key] !== false;
+  });
+}
+async function saveTenantWidgets() {
+  const btn = document.getElementById('tenantWidgetsSaveBtn');
+  const statusEl = document.getElementById('tenantWidgetsStatus');
+  const widgets = {};
+  TENANT_WIDGET_KEYS.forEach(key => {
+    const el = document.getElementById('tw' + key.charAt(0).toUpperCase() + key.slice(1));
+    if (el) widgets[key] = el.checked;
+  });
+  btn.disabled = true;
+  try {
+    const res = await fetch('/api/admin/site-widgets', {
+      method: 'PUT', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ widgets })
+    });
+    const data = await res.json();
+    btn.disabled = false;
+    statusEl.style.display = 'block';
+    if (!res.ok) { statusEl.textContent = data.error || 'Kaydedilemedi.'; return; }
+    if (window.__siteConfig && window.__siteConfig.settings) window.__siteConfig.settings.widgets = data.widgets;
+    statusEl.textContent = aiT('admin_widgets_saved', 'Kaydedildi.');
+  } catch (e) {
+    btn.disabled = false;
+    statusEl.style.display = 'block';
+    statusEl.textContent = aiT('admin_ai_conn_error', 'Bağlantı hatası.');
   }
 }
 
@@ -5862,6 +6334,7 @@ function ordDate(ts){
 }
 
 async function loadOrders(){
+  if (!getAdminToken()) return;   // not signed in yet — skip (avoids 401 noise before login)
   try {
     const res = await fetch('/api/orders', { headers: { 'Authorization': 'Bearer ' + getAdminToken() } });
     if (!res.ok) throw new Error('Failed to fetch orders');
@@ -6340,7 +6813,7 @@ function openAdminForm(id = null) {
   document.getElementById('formProductFile').value = '';
   { const st = document.getElementById('formProductImageStatus'); if (st) st.textContent = ''; }
   setAdminProductImagePreview('');
-  window.selectedFormProductCategory = 'tantuni';
+  window.selectedFormProductCategory = 'starters';
   document.getElementById('formProductDesc').value = '';
   document.getElementById('formProductPortion').value = '';
   document.getElementById('formProductEnergy').value = '';
@@ -6402,11 +6875,11 @@ function openAdminForm(id = null) {
   }
   
   updateFormCategoryOptions();
-  panel.classList.add('open');
+  showAdminView('product-form'); // Phase 27: in-shell view, not a full-screen overlay
 }
 
 function closeAdminForm() {
-  document.getElementById('adminFormPanel').classList.remove('open');
+  showAdminView('products'); // Phase 27: return to the Products view (was: hide the overlay)
 }
 
 // ── CATEGORY MANAGEMENT FUNCTIONS ──
@@ -6415,11 +6888,11 @@ function openCategoryForm() {
   document.getElementById('formCategoryName').value = '';
   document.getElementById('formCategorySlug').value = '';
   document.getElementById('formCategoryIcon').value = '';
-  document.getElementById('adminCategoryFormPanel').classList.add('open');
+  showAdminView('category-form'); // Phase 27: in-shell view, not a full-screen overlay
 }
 
 function closeCategoryForm() {
-  document.getElementById('adminCategoryFormPanel').classList.remove('open');
+  showAdminView('products'); // Phase 27: return to the Products view (was: hide the overlay)
 }
 
 async function saveAdminCategory() {
@@ -6611,7 +7084,7 @@ function showCustomAlert(message, title, type = 'info') {
       iconEl.innerHTML = `<svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--ember)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>`;
     } else {
       iconEl.className = 'custom-popup-icon warning';
-      iconEl.innerHTML = `<svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#FF7043" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>`;
+      iconEl.innerHTML = `<svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--ap-bad,#e5776b)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>`;
     }
     
     const okBtn = overlay.querySelector('.admin-btn');
@@ -6672,17 +7145,26 @@ function showCustomConfirm(message, title) {
 // ==========================================
 
 function updatePushPreview() {
-  const title = document.getElementById('pushTitle').value || 'Katık Lezzeti';
+  const title = document.getElementById('pushTitle').value || 'My Restaurant';
   const body = document.getElementById('pushBody').value || 'Kampanya mesajı detayları burada canlı olarak güncellenecektir.';
   const image = document.getElementById('pushImage').value;
   const icon = document.getElementById('pushIcon').value;
   const btnText = document.getElementById('pushBtnText').value;
   const type = document.getElementById('pushType').value;
-  
+
   // Update texts
   document.getElementById('phoneNotifTitlePreview').textContent = title;
   document.getElementById('phoneNotifBodyPreview').textContent = body;
   document.getElementById('phoneMockTypeBadge').textContent = '· ' + type;
+
+  // Phase 25.2: brand name + icon come from the CURRENT tenant, never hardcoded.
+  try {
+    const brand = (typeof restaurantBrand === 'function') ? restaurantBrand() : { name: 'Restaurant', logo: '/icons/placeholder-logo.svg' };
+    const nameEl = document.getElementById('phoneMockBrandName');
+    const iconMockEl = document.getElementById('phoneMockBrandIcon');
+    if (nameEl) nameEl.textContent = brand.name || 'Restaurant';
+    if (iconMockEl && brand.logo) iconMockEl.src = brand.logo;
+  } catch(e){}
   
   // Icon
   const iconEl = document.getElementById('phoneNotifIconPreview');
@@ -7141,9 +7623,9 @@ async function deletePush(id) {
   .floor-cell .fc-name{ font-weight:800; font-size:.82rem; color:var(--tbl-text); }
   .floor-cell .fc-status{ font-size:.62rem; margin-top:3px; font-weight:700; text-transform:uppercase; letter-spacing:.3px; }
   .floor-cell.available{ opacity:.55; }
-  .floor-cell.new_order{ border-color:var(--ember); background:rgba(255,87,34,.15); }
+  .floor-cell.new_order{ border-color:var(--ember); background:rgba(var(--ember-rgb),.15); }
   .floor-cell.new_order .fc-status{ color:var(--ember); }
-  .floor-cell.preparing{ border-color:var(--gold); background:rgba(255,167,38,.14); }
+  .floor-cell.preparing{ border-color:var(--gold); background:rgba(var(--amber-rgb),.14); }
   .floor-cell.preparing .fc-status{ color:var(--gold); }
   .floor-cell.ready{ border-color:#42A5F5; background:rgba(66,165,245,.14); }
   .floor-cell.ready .fc-status{ color:#42A5F5; }
@@ -7151,15 +7633,17 @@ async function deletePush(id) {
   .floor-cell.serving .fc-status{ color:#CE93D8; }
   .floor-cell.bill{ border-color:#66BB6A; background:rgba(102,187,106,.16); }
   .floor-cell.bill .fc-status{ color:#66BB6A; }
-  .floor-cell.waiter{ border-color:#FF7043; background:rgba(255,112,67,.18); animation:tblPulse 1.4s ease infinite; }
-  .floor-cell.waiter .fc-status{ color:#FF7043; }
-  @keyframes tblPulse{ 0%,100%{ box-shadow:0 0 0 rgba(255,112,67,0);} 50%{ box-shadow:0 0 0 3px rgba(255,112,67,.35);} }
+  /* Phase 25.2: waiter/service alert cues swapped from orange to neutral gold — same attention
+     value, matches the Root Panel palette. */
+  .floor-cell.waiter{ border-color:#d8b877; background:rgba(216,184,119,.16); animation:tblPulse 1.4s ease infinite; }
+  .floor-cell.waiter .fc-status{ color:#d8b877; }
+  @keyframes tblPulse{ 0%,100%{ box-shadow:0 0 0 rgba(216,184,119,0);} 50%{ box-shadow:0 0 0 3px rgba(216,184,119,.35);} }
 
   /* Service requests bar */
   .service-bar{ display:flex; flex-direction:column; gap:8px; margin-bottom:16px; }
-  .service-item{ display:flex; align-items:center; gap:10px; background:rgba(255,112,67,.12); border:1px solid rgba(255,112,67,.35); border-radius:12px; padding:10px 14px; }
+  .service-item{ display:flex; align-items:center; gap:10px; background:rgba(216,184,119,.12); border:1px solid rgba(216,184,119,.35); border-radius:12px; padding:10px 14px; }
   .service-item .si-txt{ flex:1; font-weight:700; font-size:.88rem; color:var(--tbl-text); }
-  .service-item .si-txt b{ color:#FF7043; }
+  .service-item .si-txt b{ color:#d8b877; }
 
   /* Dine-in order cards */
   .tbl-orders-list{ display:grid; grid-template-columns:repeat(auto-fill,minmax(300px,1fr)); gap:12px; margin-top:12px; }
@@ -7197,6 +7681,301 @@ async function deletePush(id) {
     .qr-print-card .pc-rest{ font-size:18px; font-weight:800; color:#111; margin:6px 0; }
     .qr-print-card .pc-table{ font-size:22px; font-weight:800; color:#000; margin-top:8px; }
     .qr-print-card .pc-hint{ font-size:12px; color:#555; margin-top:4px; }
+  }
+
+  /* ================================================================
+     PHASE 25 — Tenant Admin Panel reskin (scoped to #adminPanelOverlay)
+     Shares the same design language as panel.css but with independent
+     token names so it can NEVER collide with the customer-site tokens
+     (--fire/--card/--muted etc) or with body.theme-bw. Themes follow the
+     shared 'hasaca_panel_theme' key so Root + Admin stay in sync.
+     ================================================================ */
+  #adminPanelOverlay{
+    /* dark default */
+    --ap-bg:#0a0a0b; --ap-bg-2:#0e0e11; --ap-panel:#141418; --ap-card:#1b1b20; --ap-elev:#212127;
+    --ap-line:rgba(255,255,255,.09); --ap-line-2:rgba(255,255,255,.15);
+    --ap-text:#f4f4f6; --ap-muted:#a6a6b0; --ap-faint:#6c6c78;
+    --ap-gold:#d8b877; --ap-gold-2:#c9a253; --ap-gold-soft:rgba(216,184,119,.14);
+    --ap-ok:#7fd18f; --ap-ok-soft:rgba(127,209,143,.14);
+    --ap-bad:#e5776b; --ap-bad-soft:rgba(229,119,107,.14);
+    --ap-radius:16px; --ap-radius-sm:11px; --ap-radius-lg:22px;
+    --ap-shadow-sm:0 8px 24px -12px rgba(0,0,0,.7);
+    --ap-ease:cubic-bezier(.22,.61,.36,1);
+    --ap-t:.16s var(--ap-ease);
+
+    /* override customer-site tokens WITHIN the overlay only, so admin content
+       that still reads --dark/--card/etc. picks up panel-appropriate values */
+    --fire:var(--ap-gold); --ember:var(--ap-gold-2); --gold:var(--ap-gold); --amber:var(--ap-gold-2);
+    --cream:var(--ap-text); --dark:var(--ap-bg); --dark2:var(--ap-panel);
+    --card:var(--ap-card); --muted:var(--ap-muted); --white:var(--ap-text);
+
+    /* Orders + Tables tabs define their own --ord-*/--tbl-* families gated by body.theme-bw
+       (the CUSTOMER theme toggle). Remap them here so the admin panel follows the NEW panel
+       theme consistently instead of whatever theme the customer site currently has active. */
+    --ord-surface:var(--ap-panel); --ord-surface2:var(--ap-card); --ord-line:var(--ap-line);
+    --ord-text:var(--ap-text); --ord-muted:var(--ap-muted); --ord-chip:var(--ap-card);
+    --tbl-surface:var(--ap-panel); --tbl-surface2:var(--ap-card); --tbl-line:var(--ap-line);
+    --tbl-text:var(--ap-text); --tbl-muted:var(--ap-muted); --tbl-chip:var(--ap-card);
+
+    background:var(--ap-bg); color:var(--ap-text);
+    transition:background .25s var(--ap-ease), color .25s var(--ap-ease);
+  }
+  /* Light theme — only inside the overlay. body.theme-bw on the CUSTOMER page
+     is a separate engine and must remain untouched. */
+  html[data-theme="light"] #adminPanelOverlay{
+    --ap-bg:#f4f5f7; --ap-bg-2:#eceef2; --ap-panel:#ffffff; --ap-card:#ffffff; --ap-elev:#ffffff;
+    --ap-line:rgba(15,18,25,.10); --ap-line-2:rgba(15,18,25,.17);
+    --ap-text:#15171c; --ap-muted:#565c69; --ap-faint:#8b909c;
+    --ap-gold:#9a7526; --ap-gold-2:#7f5f1e; --ap-gold-soft:rgba(154,117,38,.12);
+    --ap-ok:#2f9e56; --ap-ok-soft:rgba(47,158,86,.12);
+    --ap-bad:#c0473b; --ap-bad-soft:rgba(192,71,59,.12);
+    --ap-shadow-sm:0 8px 24px -14px rgba(15,18,25,.20);
+    color-scheme:light;
+  }
+
+  /* ── HEADER ── */
+  .admin-panel-header{
+    border-bottom:1px solid var(--ap-line);
+    padding-bottom:16px; margin-bottom:20px;
+  }
+  html[data-theme="light"] .admin-panel-header{ border-bottom-color:var(--ap-line); }
+  .admin-panel-title{ color:var(--ap-text); font-family:'Syne',sans-serif; letter-spacing:-.01em; }
+  .admin-panel-actions{ align-items:center; }
+
+  /* Segmented theme switch — same visual language as the Root Panel */
+  #adminPanelOverlay .seg{ display:inline-flex; background:var(--ap-card); border:1px solid var(--ap-line); border-radius:999px; padding:3px; gap:2px; }
+  #adminPanelOverlay .seg button{ display:inline-flex; align-items:center; gap:6px; background:none; border:none; color:var(--ap-muted); font-size:12.5px; cursor:pointer; padding:6px 12px; border-radius:999px; transition:all var(--ap-t); font-family:inherit; }
+  #adminPanelOverlay .seg button svg{ width:15px; height:15px; }
+  #adminPanelOverlay .seg button.on{ background:var(--ap-panel); color:var(--ap-text); box-shadow:var(--ap-shadow-sm); }
+
+  /* ── BUTTONS ── (rescope colors, keep shapes) */
+  #adminPanelOverlay .admin-btn{
+    background:var(--ap-gold); color:#0a0a0b; border:1px solid transparent;
+    border-radius:11px; font-weight:700; transition:transform var(--ap-t), box-shadow var(--ap-t), background var(--ap-t);
+  }
+  #adminPanelOverlay .admin-btn:hover{ transform:translateY(-1px); box-shadow:0 10px 26px -12px var(--ap-gold); }
+  #adminPanelOverlay .admin-btn.secondary{ background:var(--ap-card); color:var(--ap-text); border-color:var(--ap-line); box-shadow:none; }
+  #adminPanelOverlay .admin-btn.secondary:hover{ background:var(--ap-elev); border-color:var(--ap-line-2); box-shadow:none; }
+
+  /* ── INPUTS ── */
+  #adminPanelOverlay .admin-input,
+  #adminPanelOverlay input:not([type=checkbox]):not([type=radio]):not([type=file]),
+  #adminPanelOverlay select, #adminPanelOverlay textarea{
+    background:var(--ap-bg-2); color:var(--ap-text); border:1px solid var(--ap-line);
+    border-radius:11px; transition:border-color var(--ap-t), box-shadow var(--ap-t);
+  }
+  #adminPanelOverlay .admin-input:focus,
+  #adminPanelOverlay input:focus:not([type=checkbox]):not([type=radio]):not([type=file]),
+  #adminPanelOverlay select:focus, #adminPanelOverlay textarea:focus{
+    outline:none; border-color:var(--ap-gold); box-shadow:0 0 0 3px var(--ap-gold-soft);
+  }
+  #adminPanelOverlay ::placeholder{ color:var(--ap-faint); }
+
+  /* Custom dropdown */
+  #adminPanelOverlay .custom-select-trigger{
+    background:var(--ap-bg-2); color:var(--ap-text); border:1px solid var(--ap-line); border-radius:11px;
+  }
+  #adminPanelOverlay .custom-select-trigger:hover{ border-color:var(--ap-line-2); }
+  #adminPanelOverlay .custom-select-options{
+    background:var(--ap-panel); border:1px solid var(--ap-line-2); border-radius:12px;
+    box-shadow:0 24px 60px -26px rgba(0,0,0,.6);
+  }
+
+  /* ── (Phase 25 REVISION) legacy .admin-panel-tabs/.admin-tab-btn/.admin-tab-indicator overrides
+        removed — the sidebar `.nav-item.active` styling replaces them. ── */
+
+  /* ── ROWS / CARDS ── */
+  #adminPanelOverlay .admin-product-row,
+  #adminPanelOverlay .admin-order-card,
+  #adminPanelOverlay .admin-reservation-card{
+    background:var(--ap-panel); border:1px solid var(--ap-line); border-radius:var(--ap-radius);
+    transition:transform var(--ap-t), border-color var(--ap-t);
+  }
+  #adminPanelOverlay .admin-product-row:hover,
+  #adminPanelOverlay .admin-order-card:hover,
+  #adminPanelOverlay .admin-reservation-card:hover{ border-color:var(--ap-line-2); }
+  html[data-theme="light"] .admin-product-row,
+  html[data-theme="light"] .admin-order-card,
+  html[data-theme="light"] .admin-reservation-card{ background:var(--ap-panel); border-color:var(--ap-line); }
+
+  /* Search row and inline helpers */
+  #adminPanelOverlay .admin-search-row{ gap:10px; }
+
+  /* Notification (push) table uses hardcoded near-white translucent overlays that only read
+     correctly on a dark background — rescope them to the panel tokens so light mode stays legible. */
+  #adminPanelOverlay .push-table th{ background:var(--ap-card); border-bottom:2px solid var(--ap-line); color:var(--ap-text); }
+  #adminPanelOverlay .push-table td{ border-bottom:1px solid var(--ap-line); color:var(--ap-text); }
+
+  /* Scrollbars inside the panel */
+  #adminPanelOverlay ::-webkit-scrollbar-thumb{ background:color-mix(in srgb, var(--ap-text) 22%, transparent); }
+  #adminPanelOverlay ::-webkit-scrollbar-thumb:hover{ background:color-mix(in srgb, var(--ap-text) 40%, transparent); }
+  /* Phase 25.2: Firefox scrollbar-color inside the panel — otherwise Firefox users fall back to
+     the OS default. On Chromium the ::-webkit-scrollbar-thumb rules above win. */
+  #adminPanelOverlay{ scrollbar-color:color-mix(in srgb, var(--ap-text) 22%, transparent) transparent; scrollbar-width:thin; }
+
+  @media (prefers-reduced-motion:reduce){
+    #adminPanelOverlay,
+    #adminPanelOverlay *{ transition:none !important; }
+  }
+
+  /* Phase 27 Part A: once relocated into .app-content, the category/product forms must stop
+     behaving as full-viewport fixed overlays and become ordinary in-flow .view panes. */
+  #adminPanelOverlay .app-content .admin-form-panel{
+    position:static; inset:auto; z-index:auto; padding:0; background:transparent;
+    height:auto; max-height:none; overflow:visible; display:block;
+  }
+
+  /* ================================================================
+     PHASE 25 REVISION — Sidebar shell scoped to #adminPanelOverlay.
+     A local port of panel.css's shell rules, using --ap-* tokens so it
+     never touches the customer site's :root palette. Every selector
+     lives under #adminPanelOverlay in the DOM, so no scoping prefix is
+     required on the class names themselves.
+     ================================================================ */
+  #adminPanelOverlay{
+    --ap-sidebar-w:252px; --ap-sidebar-collapsed:74px; --ap-topbar-h:62px;
+    --ap-radius-pill:999px;
+    /* override .admin-panel's own padding/height so the shell can fill the overlay */
+    padding:0 !important;
+    overflow:hidden !important;
+  }
+  /* The panel opens as a fullscreen fixed container; make room for the shell grid. */
+  #adminPanelOverlay.open{ height:100vh !important; max-height:100vh !important; padding:0 !important; overflow:hidden !important; }
+
+  #adminPanelOverlay .app-shell{ display:grid; grid-template-columns:var(--ap-sidebar-w) 1fr; height:100vh; overflow:hidden; }
+  #adminPanelOverlay .app-shell.collapsed{ grid-template-columns:var(--ap-sidebar-collapsed) 1fr; }
+
+  #adminPanelOverlay .app-sidebar{
+    height:100vh; overflow-y:auto; overflow-x:hidden;
+    background:var(--ap-bg-2); border-right:1px solid var(--ap-line);
+    display:flex; flex-direction:column; gap:2px; padding:16px 12px;
+    transition:transform .22s var(--ap-ease);
+  }
+  #adminPanelOverlay .side-brand{ display:flex; align-items:center; gap:11px; padding:6px 8px 16px; }
+  #adminPanelOverlay .side-brand .mark{ width:34px; height:34px; border-radius:10px; flex:none; display:grid; place-items:center;
+    background:linear-gradient(150deg,#2a2a30,#0c0c0e); border:1px solid var(--ap-line-2); box-shadow:inset 0 1px 0 rgba(255,255,255,.14); }
+  #adminPanelOverlay .side-brand .mark span{ font-size:16px; background:linear-gradient(135deg,#fff 0%,#c9c9d2 45%,#8f8f9c 100%); -webkit-background-clip:text; background-clip:text; color:transparent; }
+  #adminPanelOverlay .side-brand .txt{ display:flex; flex-direction:column; line-height:1.2; white-space:nowrap; overflow:hidden; }
+  #adminPanelOverlay .side-brand .txt b{ font-size:16px; color:var(--ap-text); }
+  #adminPanelOverlay .side-brand .txt small{ font-size:11px; color:var(--ap-faint); letter-spacing:.05em; }
+  #adminPanelOverlay .nav-group{ margin-top:14px; }
+  #adminPanelOverlay .nav-group > .lbl{ font-size:10.5px; letter-spacing:.13em; text-transform:uppercase; color:var(--ap-faint); padding:6px 12px 8px; white-space:nowrap; }
+  #adminPanelOverlay .nav-item{
+    width:100%; display:flex; align-items:center; gap:12px; padding:10px 12px; border-radius:11px;
+    background:none; border:1px solid transparent; color:var(--ap-muted); font-size:14px; text-align:left;
+    cursor:pointer; transition:background var(--ap-t), color var(--ap-t), border-color var(--ap-t); position:relative;
+    font-family:inherit; text-decoration:none;
+  }
+  #adminPanelOverlay .nav-item:hover{ background:var(--ap-card); color:var(--ap-text); }
+  #adminPanelOverlay .nav-item:focus-visible{ outline:none; border-color:var(--ap-gold); }
+  #adminPanelOverlay .nav-item.active{ background:var(--ap-gold-soft); color:var(--ap-text); }
+  #adminPanelOverlay .nav-item.active::before{ content:''; position:absolute; left:-12px; top:50%; transform:translateY(-50%); width:3px; height:20px; border-radius:0 3px 3px 0; background:var(--ap-gold); }
+  #adminPanelOverlay .nav-item .ic{ width:20px; height:20px; flex:none; display:grid; place-items:center; }
+  #adminPanelOverlay .nav-item .ic svg{ width:19px; height:19px; }
+  #adminPanelOverlay .nav-item .lbl{ flex:1; white-space:nowrap; overflow:hidden; }
+  #adminPanelOverlay .nav-item .nbadge{ min-width:20px; height:20px; padding:0 6px; border-radius:999px; background:var(--ap-gold); color:#0a0a0b; font-size:11px; font-weight:800; display:grid; place-items:center; }
+  #adminPanelOverlay .side-spacer{ flex:1; }
+  #adminPanelOverlay .side-foot{ padding:10px 4px 4px; border-top:1px solid var(--ap-line); margin-top:8px; }
+  #adminPanelOverlay .collapse-btn{ width:100%; display:flex; align-items:center; gap:12px; padding:10px 12px; border-radius:11px; background:none; border:1px solid var(--ap-line); color:var(--ap-muted); font-size:13px; cursor:pointer; transition:background var(--ap-t), color var(--ap-t); font-family:inherit; }
+  #adminPanelOverlay .collapse-btn:hover{ background:var(--ap-card); color:var(--ap-text); }
+  #adminPanelOverlay .collapse-btn svg{ width:18px; height:18px; transition:transform .22s var(--ap-ease); }
+  #adminPanelOverlay .app-shell.collapsed .side-brand .txt,
+  #adminPanelOverlay .app-shell.collapsed .nav-group > .lbl,
+  #adminPanelOverlay .app-shell.collapsed .nav-item .lbl,
+  #adminPanelOverlay .app-shell.collapsed .nav-item .nbadge,
+  #adminPanelOverlay .app-shell.collapsed .collapse-btn span{ display:none; }
+  #adminPanelOverlay .app-shell.collapsed .nav-item{ justify-content:center; }
+  #adminPanelOverlay .app-shell.collapsed .collapse-btn{ justify-content:center; }
+  #adminPanelOverlay .app-shell.collapsed .collapse-btn svg{ transform:rotate(180deg); }
+
+  #adminPanelOverlay .app-main{ height:100vh; display:flex; flex-direction:column; min-width:0; }
+  #adminPanelOverlay .app-topbar{
+    height:var(--ap-topbar-h); flex:none; display:flex; align-items:center; gap:12px; padding:0 22px;
+    border-bottom:1px solid var(--ap-line); background:color-mix(in srgb, var(--ap-bg) 82%, transparent);
+    backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px);
+  }
+  #adminPanelOverlay .app-topbar .page-title{ font-size:17px; font-weight:700; color:var(--ap-text); }
+  #adminPanelOverlay .app-topbar .spacer{ flex:1; }
+  #adminPanelOverlay .topbar-icon{ width:40px; height:40px; border-radius:11px; border:1px solid var(--ap-line); background:var(--ap-card); color:var(--ap-muted); display:grid; place-items:center; cursor:pointer; transition:all var(--ap-t); }
+  #adminPanelOverlay .topbar-icon:hover{ color:var(--ap-text); border-color:var(--ap-line-2); }
+  #adminPanelOverlay .topbar-icon svg{ width:19px; height:19px; }
+  #adminPanelOverlay .hamburger{ display:none; }
+  #adminPanelOverlay .topbar-lang{ margin-top:0; padding:8px 12px; }
+
+  #adminPanelOverlay .app-content{ flex:1; overflow-y:auto; padding:26px 22px 60px; -webkit-overflow-scrolling:touch; }
+  #adminPanelOverlay .app-content .view{ max-width:1180px; margin:0 auto; }
+  #adminPanelOverlay .app-content .view[hidden]{ display:none; }
+  /* Reparented .admin-tab-content panes now behave as ordinary .view panes (no slider sizing/opacity) */
+  #adminPanelOverlay .admin-tab-content{ width:auto; height:auto; opacity:1; padding-bottom:60px; overflow:visible; }
+
+  #adminPanelOverlay .app-backdrop{ position:fixed; inset:0; background:rgba(0,0,0,.5); z-index:90; display:none; }
+  #adminPanelOverlay .app-backdrop.show{ display:block; }
+
+  #adminPanelOverlay .profile{ position:relative; }
+  #adminPanelOverlay .profile-btn{ display:flex; align-items:center; gap:9px; background:var(--ap-card); border:1px solid var(--ap-line); border-radius:999px; padding:5px 12px 5px 5px; cursor:pointer; color:var(--ap-text); transition:border-color var(--ap-t); font-family:inherit; }
+  #adminPanelOverlay .profile-btn:hover{ border-color:var(--ap-line-2); }
+  #adminPanelOverlay .profile-btn .av{ width:30px; height:30px; border-radius:50%; background:linear-gradient(150deg,#2a2a30,#0c0c0e); border:1px solid var(--ap-line-2); display:grid; place-items:center; font-size:12px; color:var(--ap-gold); }
+  #adminPanelOverlay .profile-btn .nm{ font-size:13px; }
+  #adminPanelOverlay .profile-menu{ position:absolute; right:0; top:calc(100% + 8px); min-width:180px; background:var(--ap-panel); border:1px solid var(--ap-line-2); border-radius:14px; box-shadow:var(--ap-shadow-sm); padding:6px; display:none; z-index:120; }
+  #adminPanelOverlay .profile-menu.open{ display:block; }
+  #adminPanelOverlay .profile-menu button{ width:100%; display:flex; align-items:center; gap:10px; background:none; border:none; color:var(--ap-text); font-size:13.5px; text-align:left; padding:10px 12px; border-radius:9px; cursor:pointer; transition:background var(--ap-t); font-family:inherit; }
+  #adminPanelOverlay .profile-menu button:hover{ background:var(--ap-card); }
+  #adminPanelOverlay .profile-menu button svg{ width:16px; height:16px; }
+
+  #adminPanelOverlay .dash-grid{ display:grid; grid-template-columns:repeat(4,1fr); gap:16px; margin-bottom:22px; }
+  #adminPanelOverlay .stat-card{ background:var(--ap-panel); border:1px solid var(--ap-line); border-radius:var(--ap-radius); padding:20px; transition:transform var(--ap-t), border-color var(--ap-t); }
+  #adminPanelOverlay .stat-card:hover{ transform:translateY(-3px); border-color:var(--ap-line-2); }
+  #adminPanelOverlay .stat-card .st-top{ display:flex; align-items:center; justify-content:space-between; margin-bottom:14px; }
+  #adminPanelOverlay .stat-card .st-ic{ width:38px; height:38px; border-radius:11px; display:grid; place-items:center; background:var(--ap-gold-soft); color:var(--ap-gold); }
+  #adminPanelOverlay .stat-card .st-ic svg{ width:19px; height:19px; }
+  #adminPanelOverlay .stat-card .st-k{ font-size:12px; color:var(--ap-muted); text-transform:uppercase; letter-spacing:.06em; }
+  #adminPanelOverlay .stat-card .st-v{ font-size:30px; font-weight:800; letter-spacing:-.02em; margin-top:5px; color:var(--ap-text); }
+  #adminPanelOverlay .stat-card .st-sub{ font-size:12px; color:var(--ap-faint); margin-top:4px; }
+  #adminPanelOverlay .dash-row{ display:grid; grid-template-columns:1.5fr 1fr; gap:16px; }
+  #adminPanelOverlay .panel-card{ background:var(--ap-panel); border:1px solid var(--ap-line); border-radius:var(--ap-radius); padding:20px; }
+  #adminPanelOverlay .panel-card > h3{ font-size:15px; margin-bottom:14px; display:flex; align-items:center; justify-content:space-between; color:var(--ap-text); }
+  #adminPanelOverlay .ap-chk-lbl{ display:flex; align-items:center; gap:8px; padding:10px 12px; background:var(--ap-card); border:1px solid var(--ap-line); border-radius:10px; color:var(--ap-text); font-size:13px; font-weight:600; cursor:pointer; }
+  #adminPanelOverlay .ap-chk-lbl input[type="checkbox"]{ width:auto; flex:none; accent-color:var(--ap-gold); }
+  #adminPanelOverlay .quick-actions{ display:flex; flex-direction:column; gap:8px; }
+  #adminPanelOverlay .quick-actions button{ display:flex; align-items:center; gap:12px; width:100%; text-align:left; padding:13px 14px; border-radius:12px; background:var(--ap-card); border:1px solid var(--ap-line); color:var(--ap-text); font-size:14px; cursor:pointer; transition:all var(--ap-t); font-family:inherit; }
+  #adminPanelOverlay .quick-actions button:hover{ border-color:var(--ap-line-2); transform:translateX(2px); }
+  #adminPanelOverlay .quick-actions button svg{ width:18px; height:18px; color:var(--ap-gold); flex:none; }
+  #adminPanelOverlay .act-list{ display:flex; flex-direction:column; }
+  #adminPanelOverlay .act-row{ display:flex; align-items:center; gap:12px; padding:11px 2px; border-top:1px solid var(--ap-line); font-size:13px; color:var(--ap-text); }
+  #adminPanelOverlay .act-row:first-child{ border-top:none; }
+  #adminPanelOverlay .act-row .act-ic{ width:30px; height:30px; border-radius:9px; flex:none; display:grid; place-items:center; background:var(--ap-card); color:var(--ap-muted); }
+  #adminPanelOverlay .act-row .act-ic svg{ width:15px; height:15px; }
+  #adminPanelOverlay .act-row .act-main{ flex:1; min-width:0; }
+  #adminPanelOverlay .act-row .act-when{ font-size:11.5px; color:var(--ap-faint); white-space:nowrap; }
+  #adminPanelOverlay .hint{ color:var(--ap-muted); font-size:.85rem; }
+
+  @media (max-width:900px){
+    #adminPanelOverlay .app-shell{ grid-template-columns:1fr; }
+    #adminPanelOverlay .app-sidebar{ position:fixed; top:0; left:0; width:var(--ap-sidebar-w); z-index:100; transform:translateX(-100%); box-shadow:0 30px 80px -30px rgba(0,0,0,.85); }
+    #adminPanelOverlay .app-shell.drawer-open .app-sidebar{ transform:translateX(0); }
+    #adminPanelOverlay .hamburger{ display:grid; }
+    #adminPanelOverlay .app-shell.collapsed{ grid-template-columns:1fr; }
+    #adminPanelOverlay .app-shell.collapsed .side-brand .txt,
+    #adminPanelOverlay .app-shell.collapsed .nav-item .lbl,
+    #adminPanelOverlay .app-shell.collapsed .nav-group > .lbl,
+    #adminPanelOverlay .app-shell.collapsed .collapse-btn span{ display:inline; }
+    #adminPanelOverlay .app-shell.collapsed .nav-item{ justify-content:flex-start; }
+    #adminPanelOverlay .side-foot .collapse-btn{ display:none; }
+    #adminPanelOverlay .dash-row{ grid-template-columns:1fr; }
+    #adminPanelOverlay .dash-grid{ grid-template-columns:repeat(2,1fr); }
+    #adminPanelOverlay .profile-btn .nm{ display:none; }
+  }
+  @media (max-width:560px){
+    #adminPanelOverlay .app-content{ padding:18px 14px 50px; }
+    #adminPanelOverlay .app-topbar{ padding:0 12px; gap:7px; }
+    #adminPanelOverlay .app-topbar .page-title{ font-size:15px; }
+    #adminPanelOverlay .dash-grid{ grid-template-columns:1fr; }
+    #adminPanelOverlay .seg button span{ display:none; }
+    #adminPanelOverlay .seg button{ padding:7px 9px; }
+    #adminPanelOverlay .topbar-lang{ padding:6px 10px; }
+  }
+  @media (max-width:400px){
+    #adminPanelOverlay .app-topbar .page-title{ display:none; }
   }
 </style>
 
@@ -7379,8 +8158,51 @@ async function printAllQr(){
   } catch(e){ showCustomAlert(tblT('admin_tbl_err')); }
 }
 
+// ---------- QR Style (Phase 29) ----------
+async function loadQrStyle(){
+  let cfg = window.__siteConfig;
+  if (!cfg) { try { cfg = await (await fetch('/api/site-config')).json(); window.__siteConfig = cfg; } catch(e){} }
+  const q = (cfg && cfg.settings && cfg.settings.qr_style) || {};
+  document.getElementById('qrStyleFg').value = (q.fg || '#000000ff').slice(0, 7);
+  document.getElementById('qrStyleBg').value = (q.bg || '#ffffffff').slice(0, 7);
+  document.getElementById('qrStyleMargin').value = Number.isInteger(q.margin) ? q.margin : 1;
+  document.getElementById('qrStyleEcc').value = q.ecc || 'M';
+}
+async function saveQrStyle(){
+  const btn = document.getElementById('qrStyleSaveBtn');
+  const statusEl = document.getElementById('qrStyleStatus');
+  btn.disabled = true;
+  try {
+    const res = await fetch('/api/admin/qr-style', {
+      method: 'PUT', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ qr_style: {
+        fg: document.getElementById('qrStyleFg').value,
+        bg: document.getElementById('qrStyleBg').value,
+        margin: parseInt(document.getElementById('qrStyleMargin').value, 10),
+        ecc: document.getElementById('qrStyleEcc').value
+      }})
+    });
+    const data = await res.json();
+    btn.disabled = false;
+    statusEl.style.display = 'block';
+    if (!res.ok) { statusEl.textContent = data.error || tblT('admin_tbl_err'); return; }
+    if (window.__siteConfig && window.__siteConfig.settings) window.__siteConfig.settings.qr_style = data.qr_style;
+    statusEl.textContent = tblT('admin_qrstyle_saved');
+    if (Array.isArray(tablesData) && tablesData.length) {
+      const preview = document.getElementById('qrStylePreview');
+      const r = await fetch('/api/tables/' + tablesData[0].id + '/qr');
+      if (r.ok) { const d = await r.json(); preview.src = d.png; preview.style.display = 'inline-block'; }
+    }
+  } catch(e){
+    btn.disabled = false;
+    statusEl.style.display = 'block';
+    statusEl.textContent = tblT('admin_tbl_err');
+  }
+}
+
 // ---------- Table Order Control ----------
 async function loadTableOrders(){
+  if (!getAdminToken()) return;   // not signed in yet — skip
   try {
     const res = await fetch('/api/orders?type=dinein&archived=' + (dineinView === 'archived' ? '1' : '0'));
     if (!res.ok) throw new Error();
@@ -7490,6 +8312,7 @@ function renderFloorOverview(){
 
 // ---------- Service requests ----------
 async function loadServiceRequests(){
+  if (!getAdminToken()) return;   // not signed in yet — skip
   try {
     const res = await fetch('/api/service-requests');
     if (!res.ok) throw new Error();

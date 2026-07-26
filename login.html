@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Yönetici Girişi — HASACA</title>
+<meta name="description" content="HASACA yönetim paneline güvenli giriş yapın.">
+<meta name="robots" content="noindex,nofollow">
+<link rel="icon" href="/favicon.ico">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+@font-face{
+  font-family:'Samsung Sharp Sans';
+  src:url('/fonts/SamsungSharpSans-Bold.ttf') format('truetype');
+  font-weight:1 1000; font-style:normal; font-display:swap;
+}
+:root{
+  --font-primary:'Samsung Sharp Sans', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --bg:#0a0a0b; --bg-2:#0e0e11;
+  --surface:rgba(255,255,255,.03); --surface-2:rgba(255,255,255,.055);
+  --border:rgba(255,255,255,.08); --border-2:rgba(255,255,255,.14);
+  --text:#f4f4f6; --text-dim:#a6a6b0; --text-mute:#6c6c78;
+  --gold:#d8b877; --gold-soft:rgba(216,184,119,.14);
+  --shine:linear-gradient(135deg,#ffffff 0%,#c9c9d2 45%,#8f8f9c 100%);
+  --radius:22px; --ease:cubic-bezier(.22,.61,.36,1);
+}
+*{ font-family:var(--font-primary) !important; }
+body{
+  background:var(--bg); color:var(--text); min-height:100vh; line-height:1.55;
+  -webkit-font-smoothing:antialiased; display:grid; place-items:center;
+  padding:32px 20px; position:relative; overflow-x:hidden;
+}
+/* animated ambient background */
+.bg{ position:fixed; inset:0; z-index:0; pointer-events:none; overflow:hidden; }
+.bg i{ position:absolute; display:block; border-radius:50%; filter:blur(70px); opacity:.5; }
+.bg i:nth-child(1){ width:520px; height:520px; top:-160px; right:-120px; background:rgba(216,184,119,.16); animation:drift1 18s ease-in-out infinite; }
+.bg i:nth-child(2){ width:460px; height:460px; bottom:-180px; left:-140px; background:rgba(120,130,180,.14); animation:drift2 22s ease-in-out infinite; }
+.bg i:nth-child(3){ width:340px; height:340px; top:40%; left:52%; background:rgba(255,255,255,.05); animation:drift1 26s ease-in-out infinite reverse; }
+@keyframes drift1{ 0%,100%{ transform:translate(0,0) scale(1); } 50%{ transform:translate(-40px,50px) scale(1.12); } }
+@keyframes drift2{ 0%,100%{ transform:translate(0,0) scale(1); } 50%{ transform:translate(50px,-40px) scale(1.08); } }
+.grid-lines{ position:fixed; inset:0; z-index:0; pointer-events:none; opacity:.35;
+  background-image:linear-gradient(rgba(255,255,255,.03) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.03) 1px,transparent 1px);
+  background-size:64px 64px; mask-image:radial-gradient(ellipse 80% 60% at 50% 40%,#000 30%,transparent 75%);
+  -webkit-mask-image:radial-gradient(ellipse 80% 60% at 50% 40%,#000 30%,transparent 75%); }
+
+a{ color:inherit; text-decoration:none; }
+.shell{ position:relative; z-index:1; width:min(430px,100%); }
+
+.top{ text-align:center; margin-bottom:26px; }
+.brand{ display:inline-flex; align-items:center; gap:11px; font-size:22px; margin-bottom:18px; }
+.brand .mark{ width:38px; height:38px; border-radius:11px; display:grid; place-items:center;
+  background:linear-gradient(150deg,#2a2a30,#0c0c0e); border:1px solid var(--border-2);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.14); }
+.brand .mark span{ font-size:18px; background:var(--shine); -webkit-background-clip:text; background-clip:text; color:transparent; }
+.top h1{ font-size:27px; letter-spacing:-.02em; margin-bottom:8px; }
+.top p{ color:var(--text-dim); font-size:14.5px; }
+
+/* glass card */
+.card{
+  background:rgba(20,20,24,.55); backdrop-filter:blur(24px) saturate(1.4);
+  -webkit-backdrop-filter:blur(24px) saturate(1.4);
+  border:1px solid var(--border-2); border-radius:var(--radius); padding:30px 28px;
+  box-shadow:0 40px 90px -30px rgba(0,0,0,.9), inset 0 1px 0 rgba(255,255,255,.06);
+}
+.tabs{ display:flex; gap:4px; background:var(--surface); border:1px solid var(--border); border-radius:999px; padding:4px; margin-bottom:22px; }
+.tabs button{ flex:1; background:none; border:none; color:var(--text-mute); font-size:13px; cursor:pointer; padding:9px 8px; border-radius:999px; transition:all .16s var(--ease); }
+.tabs button.on{ background:var(--surface-2); color:var(--text); }
+
+.field{ margin-bottom:15px; }
+.field label{ display:block; font-size:12.5px; color:var(--text-dim); margin-bottom:7px; }
+.inp{ position:relative; display:flex; align-items:center; }
+.inp .ic{ position:absolute; left:14px; color:var(--text-mute); display:grid; place-items:center; pointer-events:none; }
+.inp .ic svg{ width:17px; height:17px; }
+.field input{
+  width:100%; background:var(--bg-2); border:1px solid var(--border); border-radius:13px;
+  padding:13px 14px 13px 42px; color:var(--text); font-size:14.5px;
+  transition:border-color .15s, box-shadow .15s;
+}
+.field input:focus{ outline:none; border-color:rgba(216,184,119,.55); box-shadow:0 0 0 3px var(--gold-soft); }
+.field.err input{ border-color:#c0463a; box-shadow:0 0 0 3px rgba(192,70,58,.18); }
+.eye{ position:absolute; right:8px; background:none; border:none; color:var(--text-mute); cursor:pointer; padding:8px; border-radius:8px; display:grid; place-items:center; }
+.eye:hover{ color:var(--text); }
+.eye svg{ width:17px; height:17px; }
+
+.row-between{ display:flex; align-items:center; justify-content:space-between; gap:12px; margin:4px 0 20px; flex-wrap:wrap; }
+.remember{ display:flex; align-items:center; gap:9px; font-size:13px; color:var(--text-dim); cursor:pointer; user-select:none; }
+.remember input{ position:absolute; opacity:0; width:0; height:0; }
+.box{ width:18px; height:18px; border-radius:6px; border:1px solid var(--border-2); background:var(--bg-2); display:grid; place-items:center; transition:all .15s; flex:none; }
+.box svg{ width:12px; height:12px; opacity:0; transform:scale(.6); transition:all .15s; color:#0a0a0b; }
+.remember input:checked + .box{ background:var(--gold); border-color:var(--gold); }
+.remember input:checked + .box svg{ opacity:1; transform:scale(1); }
+.remember input:focus-visible + .box{ box-shadow:0 0 0 3px var(--gold-soft); }
+.forgot{ font-size:13px; color:var(--gold); }
+.forgot:hover{ text-decoration:underline; }
+
+.btn{ width:100%; display:inline-flex; align-items:center; justify-content:center; gap:9px;
+  font-size:15px; padding:14px 24px; border-radius:999px; cursor:pointer; border:1px solid transparent;
+  background:#fff; color:#0a0a0b; box-shadow:0 10px 30px -8px rgba(255,255,255,.35);
+  transition:transform .16s var(--ease), box-shadow .16s var(--ease), opacity .16s; }
+.btn:hover:not(:disabled){ transform:translateY(-2px); box-shadow:0 16px 42px -8px rgba(255,255,255,.5); }
+.btn:disabled{ opacity:.6; cursor:not-allowed; }
+.btn svg{ width:16px; height:16px; }
+
+.msg{ padding:12px 14px; border-radius:12px; font-size:13.5px; margin-bottom:16px; display:none; }
+.msg.bad{ display:block; background:rgba(200,90,80,.1); border:1px solid rgba(200,90,80,.3); color:#e5a49c; }
+.msg.ok{ display:block; background:rgba(120,200,120,.1); border:1px solid rgba(120,200,120,.3); color:#a6e0a6; }
+
+.secure{ display:flex; align-items:flex-start; gap:10px; margin-top:20px; padding-top:18px; border-top:1px solid var(--border);
+  font-size:12px; color:var(--text-mute); line-height:1.5; }
+.secure svg{ width:15px; height:15px; flex:none; margin-top:1px; color:var(--gold); }
+
+.below{ text-align:center; margin-top:22px; display:flex; flex-direction:column; gap:12px; align-items:center; }
+.back{ display:inline-flex; align-items:center; gap:7px; font-size:13.5px; color:var(--text-dim); transition:color .15s; }
+.back:hover{ color:var(--text); }
+.back svg{ width:15px; height:15px; }
+.below .links{ font-size:12.5px; color:var(--text-mute); display:flex; gap:14px; flex-wrap:wrap; justify-content:center; }
+.below .links a:hover{ color:var(--text-dim); }
+.lang{ display:inline-flex; gap:2px; background:var(--surface); border:1px solid var(--border); border-radius:999px; padding:3px; }
+.lang button{ background:none; border:none; color:var(--text-mute); font-size:12px; cursor:pointer; padding:5px 11px; border-radius:999px; }
+.lang button.on{ background:var(--surface-2); color:var(--text); }
+
+@media (max-width:480px){
+  .card{ padding:24px 20px; }
+  .top h1{ font-size:23px; }
+}
+@media (prefers-reduced-motion:reduce){ .bg i{ animation:none; } }
+</style>
+</head>
+<body>
+<div class="bg"><i></i><i></i><i></i></div>
+<div class="grid-lines"></div>
+
+<div class="shell">
+  <div class="top">
+    <a href="/landing" class="brand"><span class="mark"><span>H</span></span> HASACA</a>
+    <h1 id="ttl">Yönetici Girişi</h1>
+    <p id="sub">Yönetim panelinize erişmek için giriş yapın.</p>
+  </div>
+
+  <div class="card">
+    <div class="tabs">
+      <button type="button" data-panel="tenant" class="on" onclick="setPanel('tenant')" id="tabTenant">Restoran</button>
+      <button type="button" data-panel="root" onclick="setPanel('root')" id="tabRoot">Root Panel</button>
+    </div>
+
+    <div class="msg" id="msg"></div>
+
+    <form id="loginForm" novalidate>
+      <div class="field" id="fUser">
+        <label id="lblUser">Kullanıcı Adı</label>
+        <div class="inp">
+          <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 2a5 5 0 0 1 5 5v1a5 5 0 0 1-10 0V7a5 5 0 0 1 5-5zM4 21a8 8 0 0 1 16 0"/></svg></span>
+          <input type="text" id="username" name="username" autocomplete="username" spellcheck="false" placeholder="kullanici_adi">
+        </div>
+      </div>
+
+      <div class="field" id="fPass">
+        <label id="lblPass">Şifre</label>
+        <div class="inp">
+          <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="10" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></span>
+          <input type="password" id="password" name="password" autocomplete="current-password" placeholder="••••••••">
+          <button type="button" class="eye" id="eyeBtn" onclick="togglePw()" aria-label="Göster/Gizle">
+            <svg id="eyeIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/><circle cx="12" cy="12" r="3"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <div class="row-between">
+        <label class="remember">
+          <input type="checkbox" id="remember" checked>
+          <span class="box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span>
+          <span id="lblRemember">Beni hatırla</span>
+        </label>
+        <a href="/destek" class="forgot" id="lblForgot">Şifremi unuttum</a>
+      </div>
+
+      <button type="submit" class="btn" id="submitBtn">
+        <span id="lblSubmit">Giriş Yap</span>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+      </button>
+    </form>
+
+    <div class="secure">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4"/></svg>
+      <span id="lblSecure">Bağlantınız şifrelidir. Şifreniz geri döndürülemez biçimde saklanır ve hiçbir zaman düz metin olarak tutulmaz.</span>
+    </div>
+  </div>
+
+  <div class="below">
+    <a href="/landing" class="back">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M11 18l-6-6 6-6"/></svg>
+      <span id="lblBack">Web sitesine dön</span>
+    </a>
+    <div class="links">
+      <a href="/destek" id="lnkSupport">Destek</a>
+      <a href="/gizlilik" id="lnkPrivacy">Gizlilik</a>
+      <a href="/kullanim-sartlari" id="lnkTerms">Kullanım Şartları</a>
+      <a href="/demo-talep" id="lnkDemo">Demo Talep Et</a>
+    </div>
+    <div class="lang">
+      <button data-lang="tr" class="on" onclick="setLang('tr')">TR</button>
+      <button data-lang="en" onclick="setLang('en')">EN</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ── i18n ── */
+const I = {
+  tr:{ ttlT:'Yönetici Girişi', ttlR:'Root Panel Girişi',
+    subT:'Restoran yönetim panelinize erişmek için giriş yapın.',
+    subR:'Platform yönetim paneline erişmek için giriş yapın.',
+    tabT:'Restoran', tabR:'Root Panel', user:'Kullanıcı Adı', pass:'Şifre',
+    remember:'Beni hatırla', forgot:'Şifremi unuttum', submit:'Giriş Yap', signing:'Giriş yapılıyor...',
+    secure:'Bağlantınız şifrelidir. Şifreniz geri döndürülemez biçimde saklanır ve hiçbir zaman düz metin olarak tutulmaz.',
+    back:'Web sitesine dön', support:'Destek', privacy:'Gizlilik', terms:'Kullanım Şartları', demo:'Demo Talep Et',
+    need:'Kullanıcı adı ve şifre gerekli.', wrong:'Kullanıcı adı veya şifre hatalı.',
+    err:'Giriş yapılamadı. Lütfen tekrar deneyin.', ok:'Giriş başarılı, yönlendiriliyorsunuz...',
+    noRoot:'Bu hesap Root paneline erişim yetkisine sahip değil.' },
+  en:{ ttlT:'Admin Login', ttlR:'Root Panel Login',
+    subT:'Sign in to reach your restaurant admin panel.',
+    subR:'Sign in to reach the platform admin panel.',
+    tabT:'Restaurant', tabR:'Root Panel', user:'Username', pass:'Password',
+    remember:'Remember me', forgot:'Forgot password', submit:'Sign In', signing:'Signing in...',
+    secure:'Your connection is encrypted. Your password is stored irreversibly and never kept in plain text.',
+    back:'Back to website', support:'Support', privacy:'Privacy', terms:'Terms of Use', demo:'Request a Demo',
+    need:'Username and password are required.', wrong:'Incorrect username or password.',
+    err:'Could not sign in. Please try again.', ok:'Signed in, redirecting...',
+    noRoot:'This account does not have access to the Root panel.' }
+};
+let LANG = 'tr';
+let PANEL = new URLSearchParams(location.search).get('panel') === 'root' ? 'root' : 'tenant';
+if (location.pathname.replace(/\/+$/,'') === '/root-girisi') PANEL = 'root';
+const T = k => (I[LANG] && I[LANG][k]) || I.tr[k] || k;
+
+function apply(){
+  document.documentElement.lang = LANG;
+  const isRoot = PANEL === 'root';
+  document.getElementById('ttl').textContent = T(isRoot ? 'ttlR' : 'ttlT');
+  document.getElementById('sub').textContent = T(isRoot ? 'subR' : 'subT');
+  document.title = T(isRoot ? 'ttlR' : 'ttlT') + ' — HASACA';
+  document.getElementById('tabTenant').textContent = T('tabT');
+  document.getElementById('tabRoot').textContent = T('tabR');
+  document.getElementById('lblUser').textContent = T('user');
+  document.getElementById('lblPass').textContent = T('pass');
+  document.getElementById('lblRemember').textContent = T('remember');
+  document.getElementById('lblForgot').textContent = T('forgot');
+  document.getElementById('lblSubmit').textContent = T('submit');
+  document.getElementById('lblSecure').textContent = T('secure');
+  document.getElementById('lblBack').textContent = T('back');
+  document.getElementById('lnkSupport').textContent = T('support');
+  document.getElementById('lnkPrivacy').textContent = T('privacy');
+  document.getElementById('lnkTerms').textContent = T('terms');
+  document.getElementById('lnkDemo').textContent = T('demo');
+  document.querySelectorAll('.tabs button').forEach(b=>b.classList.toggle('on', b.dataset.panel===PANEL));
+  document.querySelectorAll('.lang button').forEach(b=>b.classList.toggle('on', b.dataset.lang===LANG));
+}
+function setLang(l){ LANG=l; try{ localStorage.setItem('hasaca_landing_lang', l); }catch(e){} apply(); }
+function setPanel(p){ PANEL=p; hide(); apply(); }
+function togglePw(){
+  const i = document.getElementById('password');
+  const on = i.type === 'password';
+  i.type = on ? 'text' : 'password';
+  document.getElementById('eyeIcon').innerHTML = on
+    ? '<path d="M17.9 17.9A10.1 10.1 0 0 1 12 19c-7 0-11-7-11-7a18.5 18.5 0 0 1 5.1-5.9M9.9 4.2A10.1 10.1 0 0 1 12 4c7 0 11 7 11 7a18.5 18.5 0 0 1-2.2 3.2M1 1l22 22M9.9 9.9a3 3 0 0 0 4.2 4.2"/>'
+    : '<path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/><circle cx="12" cy="12" r="3"/>';
+}
+function show(kind, text){ const m=document.getElementById('msg'); m.className='msg '+kind; m.textContent=text; }
+function hide(){ const m=document.getElementById('msg'); m.className='msg'; m.textContent=''; }
+
+/* ── auth (uses the EXISTING /api/auth/login route; no auth logic changed) ── */
+document.getElementById('loginForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  hide();
+  const uEl = document.getElementById('username'), pEl = document.getElementById('password');
+  const username = uEl.value.trim(), password = pEl.value;
+  document.getElementById('fUser').classList.remove('err');
+  document.getElementById('fPass').classList.remove('err');
+  if (!username || !password) {
+    if (!username) document.getElementById('fUser').classList.add('err');
+    if (!password) document.getElementById('fPass').classList.add('err');
+    return show('bad', T('need'));
+  }
+  const btn = document.getElementById('submitBtn');
+  const lbl = document.getElementById('lblSubmit');
+  btn.disabled = true; const orig = lbl.textContent; lbl.textContent = T('signing');
+  try {
+    const r = await fetch('/api/auth/login', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username, password })
+    });
+    const d = await r.json().catch(() => ({}));
+    if (!r.ok || !d.token) {
+      document.getElementById('fPass').classList.add('err');
+      show('bad', T('wrong'));
+    } else if (PANEL === 'root' && d.role !== 'root') {
+      show('bad', T('noRoot'));
+    } else {
+      const isRoot = d.role === 'root' && PANEL === 'root';
+      const key = isRoot ? 'hasaca_root_token' : 'hasaca_admin_token';
+      const store = document.getElementById('remember').checked ? localStorage : sessionStorage;
+      try { store.setItem(key, d.token); } catch (err) {}
+      show('ok', T('ok'));
+      setTimeout(() => { location.href = isRoot ? '/root' : '/admin.html'; }, 500);
+      return;
+    }
+  } catch (err) {
+    show('bad', T('err'));
+  }
+  btn.disabled = false; lbl.textContent = orig;
+});
+
+try { const s = localStorage.getItem('hasaca_landing_lang'); if (s) LANG = s; } catch (e) {}
+apply();
+document.getElementById('username').focus();
+</script>
+</body>
+</html>

@@ -1,0 +1,9 @@
+/api/*       https://hasaca-api.onrender.com/api/:splat     200!
+/uploads/*   https://hasaca-api.onrender.com/uploads/:splat 200!
+/            /landing.html     200!
+/landing     /landing.html     200
+/login       /login.html       200
+/marketing   /marketing.html   200
+/root        /root.html        200
+/admin       /admin.html       200
+/menu        /index.html       200
