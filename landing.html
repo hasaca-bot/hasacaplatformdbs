@@ -888,7 +888,7 @@ const FEATURES = [
 ];
 const STEPS = ['s1','s2','s3','s4','s5','s6'];
 const CMP = [
-  ['cmp_commission','no_high','yes_zero'],
+  ['cmp_commission','yes_zero','no_high'],
   ['cmp_brand','yes','no'],
   ['cmp_data','yes','no'],
   ['cmp_website','yes','no'],
@@ -1140,6 +1140,8 @@ function cmpCell(v){
   if(v==='yes') return `<span class="yes">${ckSvg}</span>`;
   if(v==='no') return `<span class="no">${xSvg}</span>`;
   if(v==='partial') return `<span class="no" style="font-size:12px">${T('cmp_partial')||'Kısıtlı'}</span>`;
+  if(v==='yes_zero') return `<b class="yes" style="font-size:16px" data-i18n="${v}">${T(v)}</b>`;
+  if(v==='no_high') return `<b class="no" style="font-size:15px" data-i18n="${v}">${T(v)}</b>`;
   return `<b style="font-size:15px" data-i18n="${v}">${T(v)}</b>`;
 }
 function renderCmp(){
