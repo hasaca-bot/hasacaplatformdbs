@@ -57,6 +57,8 @@ Multi-tenant restaurant SaaS. Node.js + Express (`backend/server.js`), dual DB l
 | 31 | 6 | Root routing: "/" is host-aware — HASACA landing page on the bare host, tenant sites unchanged on real subdomains, `/tenant/:slug` + `/admin` + `/login` aliases | ✅ DONE |
 | 32 | 4 | Zero legacy orange platform-wide — B&W theme tokenised (index.html + admin.html), root.html dead-code fixed, seeded demo display_name genericised, unused legacy files deleted (user instruction) | ✅ DONE |
 | 33 | 7 | Production Deployment (Netlify + Render + Neon), Netlify Root Routing & SVG Logo Branding | ✅ DONE |
+| 34 | 10 | Production Fixes: Tenant Impersonation, Netlify 45 Marketing Sub-pages, Root Pwd Sync & SVG Logo | ✅ DONE |
+
 
 | 32+ | 5 | Backlog: fast-follows only (menu-generation wizard; QR logos/frames; widget permission tier; `/register` decision; unused legacy files flagged) | ⏭️ NEXT |
 
