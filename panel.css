@@ -48,6 +48,12 @@
 html{ scrollbar-color:var(--scroll-thumb) transparent; }
 body{ background:var(--bg); color:var(--text); transition:background .25s var(--ease), color .25s var(--ease); }
 
+/* Brand Mark SVG Logo Theme Adaptivity */
+.mark { color: var(--text, #ffffff); transition: color .25s var(--ease), background .25s var(--ease); }
+.mark svg, .hasaca-logo-svg { stroke: currentColor; display: block; }
+:root[data-theme="light"] .mark, body.theme-bw .mark, html.theme-bw .mark { color: var(--text, #15171c); }
+
+
 /* ----------------------------------------------------------------- SHELL -- */
 /* The old .shell wrapper (#shellView) becomes a full-height, non-scrolling
    frame; only .app-content scrolls. */

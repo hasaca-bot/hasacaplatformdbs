@@ -141,9 +141,13 @@ h1,h2,h3{ line-height:1.08; letter-spacing:-.02em; }
 .brand .mark{
   width:34px; height:34px; border-radius:10px; display:grid; place-items:center;
   background:linear-gradient(150deg,#2a2a30,#0c0c0e); border:1px solid var(--border-2);
-  box-shadow:inset 0 1px 0 rgba(255,255,255,.14);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.14); color:#ffffff;
+  transition: background .3s, color .3s, border-color .3s;
 }
-.brand .mark span{ font-size:16px; background:var(--shine); -webkit-background-clip:text; background-clip:text; color:transparent; }
+.brand .mark svg{ width:20px; height:20px; stroke:currentColor; display:block; }
+body.theme-bw .brand .mark, html.theme-bw .brand .mark, .theme-bw .brand .mark {
+  background:#f0f0f2; border-color:rgba(0,0,0,.15); box-shadow:inset 0 1px 0 rgba(255,255,255,.8); color:#0a0a0b;
+}
 .nav-links{ display:flex; gap:6px; margin-left:14px; }
 .nav-links a{ color:var(--text-dim); font-size:14.5px; padding:8px 14px; border-radius:10px; transition:color .15s, background .15s; }
 .nav-links a:hover{ color:var(--text); background:var(--surface); }
@@ -485,7 +489,7 @@ h1,h2,h3{ line-height:1.08; letter-spacing:-.02em; }
 <!-- ══════════ NAV ══════════ -->
 <nav class="nav" id="nav">
   <div class="nav-in">
-    <a href="#top" class="brand"><span class="mark"><span>H</span></span> HASACA</a>
+    <a href="#top" class="brand"><span class="mark"><svg class="hasaca-logo-svg" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 12l10 5 10-5"/><path d="M2 17l10 5 10-5"/></svg></span> HASACA</a>
     <div class="nav-links" id="navLinks">
       <a href="/ozellikler" data-i18n="nav_features">Özellikler</a>
       <a href="/cozumler" data-i18n="nav_solutions">Çözümler</a>
@@ -829,7 +833,7 @@ h1,h2,h3{ line-height:1.08; letter-spacing:-.02em; }
   <div class="wrap">
     <div class="foot-grid">
       <div class="foot-brand">
-        <a href="#top" class="brand"><span class="mark"><span>H</span></span> HASACA</a>
+        <a href="#top" class="brand"><span class="mark"><svg class="hasaca-logo-svg" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 12l10 5 10-5"/><path d="M2 17l10 5 10-5"/></svg></span> HASACA</a>
         <p data-i18n="ft_tagline">Restoranlar için komisyonsuz dijital işletim sistemi. Web sitesi, QR menü, sipariş, rezervasyon ve yapay zekâ — tek platformda.</p>
         <div class="foot-social">
           <a href="/iletisim" aria-label="Instagram"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="6"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/></svg></a>
