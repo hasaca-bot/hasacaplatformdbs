@@ -37,7 +37,7 @@
   button{font-family:inherit;cursor:pointer;}
   input,select,textarea{font-family:inherit;background:var(--panel);border:1px solid var(--line);color:var(--text);border-radius:10px;padding:10px 12px;font-size:.92rem;width:100%;}
   input:focus,textarea:focus{outline:none;border-color:var(--fire);}
-  .btn{border:none;border-radius:10px;padding:10px 16px;font-weight:700;font-size:.85rem;background:linear-gradient(135deg,var(--fire),var(--ember));color:#fff;transition:transform .12s ease;}
+  .btn{border:none;border-radius:10px;padding:10px 16px;font-weight:700;font-size:.85rem;background:linear-gradient(135deg,var(--fire),var(--ember));color:var(--fire-text) !important;transition:transform .12s ease;}
   .btn:hover{transform:translateY(-1px);}
   .btn.secondary{background:var(--card);border:1px solid var(--line);color:var(--text);}
   .btn.danger{background:rgba(255,82,82,.15);color:var(--bad);}
@@ -62,10 +62,10 @@
   .toolbar{display:flex;gap:10px;margin-bottom:18px;flex-wrap:wrap;align-items:center;}
   .toolbar input[type=text]{max-width:300px;}
   .chip{background:var(--card);border:1px solid var(--line);color:var(--muted);border-radius:999px;padding:8px 15px;font-size:.8rem;font-weight:700;}
-  .chip.active{background:linear-gradient(135deg,var(--fire),var(--ember));color:#fff;border-color:transparent;}
+  .chip.active{background:linear-gradient(135deg,var(--fire),var(--ember));color:var(--fire-text) !important;border-color:transparent;}
   /* Unread badge on the Landing Messages button */
   .lbadge{display:inline-block;margin-left:6px;min-width:18px;padding:1px 6px;border-radius:999px;
-    background:var(--fire);color:#fff;font-size:.7rem;line-height:1.5;text-align:center;}
+    background:var(--fire);color:var(--fire-text);font-size:.7rem;line-height:1.5;text-align:center;}
 
   /* Tenant cards */
   .tenant-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:14px;}

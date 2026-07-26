@@ -1,6 +1,6 @@
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
 :root{
-  --fire:#ffffff;
+  --fire:#ffffff; --fire-text:#0a0a0b;
   --ember:#f4f4f6;
   --gold:#d8b877;
   --amber:#c9a253;
@@ -14,7 +14,7 @@
 
 /* ── PREMIUM LIGHT THEME ── */
 body.theme-bw {
-  --fire:#ffffff;
+  --fire:#ffffff; --fire-text:#0a0a0b;
   --ember:#f4f4f6;
   --gold: #0a0a0b;
   --amber: #d8b877;
@@ -38,9 +38,9 @@ html{scroll-behavior:smooth;}
   transition:all 0.2s;-webkit-tap-highlight-color:transparent;
 }
 .pax-btn.active{
-  background:var(--fire);color:#fff;
-  border-color:var(--fire);
-  box-shadow:0 3px 12px rgba(255,255,255,0.35);
+  background:var(--fire) !important;color:var(--fire-text) !important;
+  border-color:var(--fire) !important;
+  box-shadow:0 3px 12px rgba(0,0,0,0.35);
 }
 
 body{
@@ -89,12 +89,12 @@ body.theme-bw .bottom-nav {
 .bnav-item.active,.bnav-item:hover{color:var(--ember);}
 .bnav-icon{font-size:1.4rem;line-height:1;}
 .bnav-cta{
-  background:var(--fire);color:#fff;
+  background:var(--fire) !important;color:var(--fire-text) !important;
   border-radius:50px;padding:10px 18px;
   display:flex;flex-direction:column;align-items:center;gap:2px;
   font-size:0.6rem;font-weight:700;letter-spacing:0.5px;text-transform:uppercase;
   text-decoration:none;
-  box-shadow:0 4px 20px rgba(255,255,255,0.5);
+  box-shadow:0 4px 20px rgba(0,0,0,0.4);
   -webkit-tap-highlight-color:transparent;
 }
 
@@ -163,8 +163,7 @@ body.theme-bw .menu-row {
   border-bottom-color: rgba(15,18,25, 0.08);
 }
 body.theme-bw .order-cta .btn-main {
-  background: var(--fire);
-  color: #fff;
+  background:var(--fire);color:var(--fire-text);
 }
 body.theme-bw .order-cta .btn-secondary {
   background: rgba(255,255,255, 0.08);
@@ -274,8 +273,7 @@ body.theme-bw .category-dropdown-option:hover {
   color: var(--cream);
 }
 body.theme-bw .category-dropdown-option.active {
-  background: var(--fire);
-  color: #FFFFFF;
+  background:var(--fire);color:var(--fire-text);
 }
 
 /* ── LIGHT THEME: Reservation Form styling ── */
@@ -314,9 +312,14 @@ body.theme-bw .bnav-item.active,
 body.theme-bw .bnav-item:hover {
   color: var(--ember);
 }
-body.theme-bw .bnav-cta {
-  background: var(--fire);
-  color: #FFFFFF;
+body.theme-bw .bnav-cta{
+  background:var(--fire) !important;color:var(--fire-text) !important;
+  border-radius:50px;padding:10px 18px;
+  display:flex;flex-direction:column;align-items:center;gap:2px;
+  font-size:0.6rem;font-weight:700;letter-spacing:0.5px;text-transform:uppercase;
+  text-decoration:none;
+  box-shadow:0 4px 20px rgba(0,0,0,0.4);
+  -webkit-tap-highlight-color:transparent;
 }
 
 /* ── THEME SWITCH (satyamchaudharydev at Uiverse.io) ── */
@@ -421,7 +424,7 @@ input:checked + .slider:before {
 .hero-btns{display:flex;flex-direction:column;gap:10px;}
 .btn-main{
   display:flex;align-items:center;justify-content:center;gap:10px;
-  background:var(--fire);color:#fff;
+  background:var(--fire);color:var(--fire-text);
   padding:16px 24px;border-radius:16px;
   font-weight:700;font-size:1rem;text-decoration:none;
   box-shadow:0 6px 24px rgba(255,255,255,0.45);
@@ -441,7 +444,7 @@ input:checked + .slider:before {
 /* ── STATS ── */
 .stats{
   display:grid;grid-template-columns:repeat(3,1fr);
-  background:var(--fire);
+  background:var(--fire);color:var(--fire-text);
 }
 .stat{
   padding:16px 8px;text-align:center;
@@ -608,8 +611,7 @@ body.theme-bw .category-dropdown-option:hover {
 }
 
 .category-dropdown-option.active {
-  background: var(--fire);
-  color: #fff;
+  background:var(--fire);color:var(--fire-text);
 }
 .menu-list{padding:0 20px;display:none;}
 .menu-list.active{display:flex;flex-direction:column;gap:2px;}
@@ -663,7 +665,7 @@ body.theme-bw .category-dropdown-option:hover {
 }
 .review-name{font-weight:700;font-size:0.85rem;}
 .review-score{
-  background:var(--fire);color:#fff;
+  background:var(--fire);color:var(--fire-text);
   padding:3px 9px;border-radius:20px;font-size:0.72rem;font-weight:700;
 }
 
@@ -958,8 +960,7 @@ footer p{font-size:0.75rem;color:var(--muted);}
   position: absolute;
   top: 4px;
   right: 4px;
-  background: var(--fire);
-  color: var(--white);
+  background:var(--fire);color:var(--fire-text);
   font-size: 0.65rem;
   font-weight: 700;
   border-radius: 10px;
@@ -1414,8 +1415,7 @@ body.theme-bw .admin-input {
 }
 .admin-btn {
   width: 100%;
-  background: var(--fire);
-  color: #fff;
+  background:var(--fire);color:var(--fire-text);
   border: none;
   border-radius: 12px;
   padding: 12px;
@@ -1558,8 +1558,7 @@ body.theme-bw .admin-prod-btn {
   color: var(--cream);
 }
 .admin-prod-btn:hover {
-  background: var(--fire);
-  color: #fff;
+  background:var(--fire);color:var(--fire-text);
   border-color: var(--fire);
 }
 .admin-prod-btn.delete:hover {
@@ -1703,7 +1702,7 @@ body.theme-bw .allergen-badge-btn.active {
   color: #0a0a0b;
 }
 .allergen-badge-btn.active .badge-status-dot {
-  background: var(--fire);
+  background:var(--fire);color:var(--fire-text);
   box-shadow: 0 0 8px var(--fire);
 }
 
@@ -1716,8 +1715,7 @@ body.theme-bw .allergen-badge-btn.active {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  background: var(--fire);
-  color: #FFFFFF;
+  background:var(--fire);color:var(--fire-text);
   border-radius: 12px;
   padding: 12px 18px;
   font-size: 0.85rem;
@@ -1820,8 +1818,7 @@ body.theme-bw .admin-panel-tabs {
   transition: left 0.35s cubic-bezier(0.25, 1, 0.5, 1), width 0.35s cubic-bezier(0.25, 1, 0.5, 1);
 }
 .admin-tab-btn .badge {
-  background: var(--fire);
-  color: #FFFFFF;
+  background:var(--fire);color:var(--fire-text);
   font-size: 0.7rem;
   padding: 2px 6px;
   border-radius: 10px;
@@ -2161,7 +2158,7 @@ body.theme-bw .custom-popup-actions-row .admin-btn.secondary {
   color: var(--cream);
 }
 .custom-select-option.active {
-  background: var(--fire);
+  background:var(--fire);color:var(--fire-text);
   color: #fff !important;
 }
 
