@@ -1,0 +1,29 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "hasaca-working",
+      "url": "http://localhost:17888",
+      "port": 17888
+    },
+    {
+      "name": "hasaca-backend",
+      "runtimeExecutable": "node",
+      "runtimeArgs": ["server.js"],
+      "cwd": "C:\\Users\\hasan_y4hfwna\\Desktop\\saas proje\\backend",
+      "port": 12999
+    },
+    {
+      "name": "qr-code-generator-hasaca",
+      "runtimeExecutable": "python",
+      "runtimeArgs": ["-m", "http.server", "4789", "--directory", "C:\\Users\\hasan_y4hfwna\\Desktop\\qr-code-generator-hasaca"],
+      "port": 4789
+    },
+    {
+      "name": "ambient-mixer",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["--prefix", "C:\\Users\\HASAN_~1\\Desktop\\SAASPR~1\\ambient-mixer", "run", "dev"],
+      "port": 3000
+    }
+  ]
+}

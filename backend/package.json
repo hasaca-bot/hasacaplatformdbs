@@ -1,0 +1,24 @@
+{
+  "name": "hasaca-backend",
+  "version": "3.0.0",
+  "description": "HASACA Multi-Tenant Restaurant SaaS — Express + PostgreSQL/SQLite",
+  "main": "server.js",
+  "type": "commonjs",
+  "engines": {
+    "node": ">=22.0.0"
+  },
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js",
+    "migrate": "node migrate.js",
+    "seed": "node seedDev.js",
+    "seed:force": "node seedDev.js --force"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.19.2",
+    "pg": "^8.13.1",
+    "qrcode": "^1.5.4",
+    "web-push": "^3.6.7"
+  }
+}

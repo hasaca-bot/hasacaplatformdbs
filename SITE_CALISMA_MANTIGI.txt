@@ -1,0 +1,209 @@
+DAYI KATIK WEB SİTESİ — ÇALIŞMA MANTIĞI VE MİMARİ ÖZETİ
+==========================================================
+Bu belge, bu klasördeki kodun (tek-restoran statik sitesi) nasıl çalıştığını
+ve SaaS'a (çok kiracılı / multi-tenant) dönüştürülürken nelere dikkat
+edilmesi gerektiğini özetler. Kod okunmadan önce genel resmi vermek için
+yazıldı; detaylar için ilgili dosyaya bakın.
+
+------------------------------------------------------------
+1) GENEL MİMARİ
+------------------------------------------------------------
+- Frontend: Derleme/bundler YOK. Saf HTML+CSS+JS, iki büyük tek-dosyalık
+  sayfa: index.html (müşteri yüzü) ve admin.html (yönetim paneli).
+  Her ikisi de kendi <style> ve <script> bloklarını taşır; admin.html
+  dışarıdan style.css YÜKLEMEZ (bilinçli olarak kendi içine gömülüdür).
+- Backend: Node.js + Express, tek dosya backend/server.js (~1000+ satır).
+  Statik dosyaları da bizzat kendisi servis eder (express.static ile proje
+  kök dizini) — yani frontend ve backend AYNI origin altında birlikte
+  yayınlanır (bkz. Bölüm 7 - Deploy).
+- Veritabanı: backend/db.js iki modu tek arayüz altında birleştirir:
+    * DATABASE_URL ortam değişkeni VARSA → PostgreSQL (üretim, Neon).
+    * YOKSA → yerel node:sqlite (backend/dayikatik.db) — sıfır kurulum
+      geliştirme modu.
+  Aynı SQL sorgusu iki lehçe arasında (sqliteToPgRevert vb.) çeviriliyor;
+  bu "tek kod, iki DB" yaklaşımı kırılgan — SaaS'ta muhtemelen tek bir
+  gerçek DB motoruna (PostgreSQL) sabitlenmeli.
+- Barındırma: Frontend statikleri Netlify'da, backend Render'da (ayrı
+  servisler). Aralarında CORS + API_BASE host-sniffing ile köprü kurulur
+  (bkz. Bölüm 7).
+
+------------------------------------------------------------
+2) KLASÖR YAPISI (bu kopyada bulunanlar)
+------------------------------------------------------------
+  index.html            Müşteri arayüzü (menü, rezervasyon, dil seçimi,
+                         push bildirim aboneliği, PWA kurulum banner'ı)
+  admin.html             Yönetim paneli (ürün/kategori CRUD, rezervasyonlar,
+                         çeviri yönetimi, push bildirim gönderme ekranı)
+  style.css              index.html için ortak stiller (admin.html KULLANMAZ)
+  service-worker.js      PWA cache + push bildirim event handler'ları
+  manifest.json          PWA manifest (Ana Ekrana Ekle için)
+  backend/
+    server.js            Express app + tüm REST API uç noktaları
+    db.js                PostgreSQL/SQLite çift modlu veri erişim katmanı
+    seedData.js           Varsayılan çeviri/ürün seed verisi
+    seedNewMenu.js         Menü seed script'i
+    package.json          Bağımlılıklar (express, pg, web-push, ...)
+  data/
+    menu.json             Kaynak menü verisi (seed'lerin okuduğu JSON)
+    menu_default.json      Menünün "fabrika ayarı" yedeği (reset için)
+  icons/, favicon*, logo.png, apple-touch-icon.png
+                         PWA/favicon ikon seti (gerçek alfa şeffaflığıyla)
+  render.yaml            Render.com deploy tanımı (referans - bu kopyada
+                         gerçek bir Render servisine BAĞLI DEĞİL)
+
+  NOT: Bu SaaS kopyasında .git, node_modules, backend/dayikatik.db,
+  data/vapid.json, .claude/, .idea/, backup_before_push_notifications/,
+  scratch/, admin/, yonetici/, logs/ klasörleri BİLİNÇLİ OLARAK
+  ALINMADI — bkz. Bölüm 8.
+
+------------------------------------------------------------
+3) VERİTABANI ŞEMASI (kavramsal)
+------------------------------------------------------------
+  categories        (id, name_tr, name_en, ...)
+  products          (id, category_id, name_tr, name_en, price, ...)
+  translations       (key, tr, en)                — dinamik i18n metinleri
+  reservations       (id, ad, telefon, tarih, saat, kisi_sayisi, not, ...)
+  subscriptions       (id, endpoint/token JSON, user_id, device, browser,
+                       platform, language, enabled, created_at)
+                       — Web Push abonelikleri
+  notifications       (id, title, body, image_url, target, status
+                       [pending/sent], scheduled_at, success_count,
+                       failed_count, created_at)
+                       — gönderilen/planlanan push bildirimleri
+
+  runSeeds() ilk açılışta categories/products/translations boşsa
+  data/menu.json'dan otomatik doldurur. resetDatabase() sadece
+  ürün/kategori/çeviriyi sıfırlar (rezervasyon/abonelik/bildirim
+  DOKUNULMAZ — kasıtlı, kullanıcı verisini korumak için).
+
+------------------------------------------------------------
+4) BACKEND API UÇ NOKTALARI (özet)
+------------------------------------------------------------
+  GET  /api/categories, /api/products, /api/translations
+  POST /api/reservations              (herkese açık - müşteri rezervasyonu)
+  GET  /api/reservations               (adminAuth gerekli)
+  POST /api/products/reset            (adminAuth - menüyü fabrika ayarına döndür)
+  GET  /api/notifications/vapid-public-key   (herkese açık)
+  POST /api/subscriptions             (herkese açık - push aboneliği kaydı)
+  GET  /api/subscriptions              (adminAuth)
+  POST /api/notifications/send         (adminAuth - anlık/planlı push gönder)
+  POST /api/notifications/test         (adminAuth - tek aboneye test push)
+  POST /api/notifications/upload-image (adminAuth - push görseli yükle,
+                                         /uploads/ altına kaydeder)
+  GET  /api/notifications              (adminAuth - geçmiş)
+  DELETE /api/notifications/:id        (adminAuth)
+
+  Kimlik doğrulama: adminAuth middleware'i tek bir sabit metni kontrol
+  eder: Authorization header === "Bearer <ADMIN_ŞİFRESİ>". Bu şifre bu
+  kopyada backend/server.js, index.html ve admin.html içinde
+  "CHANGE_THIS_PASSWORD" placeholder'ı ile değiştirildi (orijinalinde
+  gerçek, sabit-kodlanmış bir şifreydi). BU YAKLAŞIM SaaS İÇİN YETERSİZ:
+  gerçek kullanıcı hesapları + hash'li şifre + JWT/session bazlı,
+  kiracı (tenant) bazlı yetkilendirmeye geçilmeli.
+
+------------------------------------------------------------
+5) ÇOK DİLLİLİK (i18n)
+------------------------------------------------------------
+  Her HTML dosyasının başında i18nData = { tr: {...}, en: {...} } adında
+  global bir sözlük var. HTML elemanları data-i18n="anahtar" /
+  data-i18n-placeholder="..." / data-i18n-alt="..." attribute'leriyle
+  işaretlenir; applyLanguage(lang) fonksiyonu tüm sayfayı tarar ve
+  metinleri değiştirir. Ayrıca DB'den gelen /api/translations sonucu,
+  yerel i18nData'nın ÜZERİNE shallow-merge edilir (admin panelinden
+  çeviri güncellenebilsin diye). SaaS'ta bu, her kiracının kendi dil
+  paketini yönetebileceği bir yapıya genişletilebilir.
+
+------------------------------------------------------------
+6) PUSH BİLDİRİM SİSTEMİ
+------------------------------------------------------------
+  - VAPID anahtar çifti backend/data/vapid.json içinde saklanır (bu
+    kopyada YOK — web-push kütüphanesi ilk çalıştırmada otomatik
+    üretir, veya ortam değişkeni ile verilebilir).
+  - Müşteri tarafı: Notification.requestPermission() →
+    pushManager.subscribe() → POST /api/subscriptions.
+  - service-worker.js "push" event'inde bildirim gösterir; "badge"
+    alanı Android durum çubuğu ikonu için AYRI, GERÇEK ALFA ŞEFFAFLIĞI
+    olan küçük bir görsel olmalı (icons/badge.png) — aksi halde Android
+    boş bir kare kutu çizer (bu projede canlı ortamda tespit edilip
+    düzeltilmiş bir hata).
+  - Görsel ekleme: push payload'ı ~4KB sınırlıdır, bu yüzden görsel asla
+    payload'a gömülmez — önce /api/notifications/upload-image ile
+    sunucuya yüklenir, payload'a sadece barındırılan URL konur.
+  - Planlı gönderim: server.js içinde 30 saniyede bir çalışan bir
+    setInterval, status='pending' AND scheduled_at<=now olan
+    notifications satırlarını bulup gönderir.
+
+------------------------------------------------------------
+7) PWA / "ANA EKRANA EKLE"
+------------------------------------------------------------
+  manifest.json + service-worker.js standart PWA kurulumu sağlar.
+  Chrome/Android'de beforeinstallprompt event'i yakalanıp özel bir
+  banner gösterilir; iOS Safari bu event'i desteklemediği için User-Agent
+  sniffing ile "Paylaş > Ana Ekrana Ekle" talimatı içeren ayrı bir
+  banner gösterilir (isIOSDevice() fonksiyonu).
+
+------------------------------------------------------------
+8) BU KOPYADA BİLİNÇLİ OLARAK ÇIKARILAN / DEĞİŞTİRİLEN ŞEYLER
+   (SaaS geliştirmesine "temiz, bağımsız" başlamak için)
+------------------------------------------------------------
+  - .git klasörü ALINMADI → bu kopyadan yapılacak hiçbir "git push"
+    canlı GitHub reposuna / Render veya Netlify deploy'una ULAŞAMAZ.
+  - backend/server.js, index.html, admin.html içindeki GERÇEK admin
+    şifresi → "CHANGE_THIS_PASSWORD" ile değiştirildi (3 dosyada da
+    TUTARLI şekilde, panel kendi içinde hâlâ çalışır ama artık gerçek
+    siteninkiyle AYNI şifre değil).
+  - index.html + admin.html içindeki GERÇEK Telegram BOT_TOKEN ve
+    CHAT_ID → "YOUR_TELEGRAM_BOT_TOKEN" / "YOUR_TELEGRAM_CHAT_ID" ile
+    değiştirildi (Telegram bildirimi göndermeyi dener ama başarısız
+    olur, çünkü artık geçersiz bir token — kasıtlı).
+  - index.html + admin.html içindeki window.API_BASE, localhost DIŞINDA
+    otomatik olarak GERÇEK canlı backend'e (dayikatik-api.onrender.com)
+    bağlanacak şekilde kodlanmıştı. Bu kopyada o satır her zaman boş
+    string döndürecek şekilde değiştirildi — yani bu kopya artık HİÇBİR
+    KOŞULDA canlı Dayı Katık backend'ine otomatik bağlanamaz. Kendi
+    backend'inizi kurunca bu değeri kendi URL'nizle değiştirmeniz gerekir.
+  - data/vapid.json (gerçek VAPID anahtar çifti) ALINMADI.
+  - backend/dayikatik.db (yerel geliştirme SQLite dosyası) ALINMADI.
+  - backend/node_modules, .idea, .claude, .agents, .github, scratch/,
+    backup_before_push_notifications/, admin/, yonetici/, logs/
+    ALINMADI (gerekli değildi / kişisel araç ayarları / eski yedekler).
+
+  ÖNEMLİ: render.yaml ve README.md içinde canlı servis ADI (dayikatik-api)
+  ve canlı URL geçebilir — bunlar birer SIR DEĞİL (herkese açık, public
+  URL'ler), sadece DOKÜMANTASYON amaçlı referanslardır. Yeni SaaS
+  projesi kendi servis adını/URL'sini kullanacaktır.
+
+------------------------------------------------------------
+9) SaaS'A ÇEVİRİRKEN GÖZ ÖNÜNE ALINMASI GEREKENLER
+------------------------------------------------------------
+  - Çok kiracılı (multi-tenant) hale getirmek için en az şunlar gerekir:
+    restaurant/tenant tablosu, her tabloya tenant_id kolonu, subdomain
+    veya path bazlı kiracı tespiti, kiracı bazlı admin hesapları
+    (şu anki tek sabit şifre yerine).
+  - Admin kimlik doğrulaması tamamen yeniden tasarlanmalı (hash'li şifre,
+    oturum/JWT, rol bazlı yetki).
+  - Telegram entegrasyonu her kiracı için AYRI bot/chat olacak şekilde
+    veritabanına taşınmalı (şu an kodda sabit-kodlanmış).
+  - VAPID anahtarları da kiracı bazlı ayrılabilir ya da tek bir paylaşımlı
+    anahtar seti + kiracı bazlı abone listesi kullanılabilir.
+  - db.js'teki SQLite/PostgreSQL çift modlu yaklaşımı yerine SaaS'ta
+    muhtemelen tek bir gerçek üretim veritabanı motoru (PostgreSQL)
+    seçilip yerel geliştirme de aynı motorla (örn. Docker) yapılmalı —
+    iki lehçe arasında çeviri kodu bakım yükü ve hata riski taşır.
+  - Masaüstündeki C:\Users\hasan_y4hfwna\Desktop\
+    SaaS_QR_Menu_Proje_Baslangic_Promptu.txt dosyası, bu dönüşüm için
+    kullanıcının önceden yazdığı DETAYLI proje talimatını içerir (evreli
+    onay süreci, CHANGELOGS klasörü kuralı, "Neon/Render/GitHub Secrets/
+    DNS gerektiren işlemleri kendin yapma, bana adım adım söyle" kuralı
+    dahil). SaaS geliştirmesine başlamadan önce o dosya MUTLAKA
+    okunmalı ve oradaki süreç kurallarına uyulmalı.
+
+------------------------------------------------------------
+10) DEPLOY / CANLI ORTAM (sadece referans — bu kopya için geçerli DEĞİL)
+------------------------------------------------------------
+  - Netlify: GitHub reposundan otomatik deploy (frontend statikleri).
+  - Render: Aynı GitHub reposundan otomatik deploy (backend/, Node
+    servisi). DATABASE_URL ortam değişkeni Render Dashboard'da Neon
+    PostgreSQL bağlantı adresine ayarlanmıştır.
+  - Bu ikisi arasındaki köprü: index.html/admin.html'deki API_BASE
+    (Bölüm 8'de bu kopyada devre dışı bırakıldığı açıklandı).

@@ -1,0 +1,34 @@
+# Node.js
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Environment / secrets
+.env
+backend/.env
+data/secret.json
+data/root_credentials.json
+data/vapid.json
+
+# Databases
+backend/dayikatik.db
+backend/dayikatik.db.bak-*
+*.db
+
+# Uploaded push notification images (ephemeral, generated at runtime)
+/uploads/
+
+# OS Files
+desktop.ini
+thumbs.db
+.DS_Store
+
+# IDEs
+.idea/
+.vscode/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?

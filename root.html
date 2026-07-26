@@ -1,0 +1,768 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>HASACA Root Panel</title>
+<link rel="icon" href="/favicon.ico">
+<style>
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+  :root{
+    --fire:#D93B0A; --ember:#FF5722; --gold:#FFA726;
+    --bg:#14100D; --panel:#1E1712; --card:#28201A; --line:rgba(255,255,255,.09);
+    --text:#FFF8F0; --muted:#B09680; --ok:#66BB6A; --bad:#FF5252;
+  }
+  body{font-family:system-ui,-apple-system,'Segoe UI',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;}
+  a{color:var(--gold);text-decoration:none;}
+  button{font-family:inherit;cursor:pointer;}
+  input,select,textarea{font-family:inherit;background:var(--panel);border:1px solid var(--line);color:var(--text);border-radius:10px;padding:10px 12px;font-size:.92rem;width:100%;}
+  input:focus,textarea:focus{outline:none;border-color:var(--fire);}
+  .btn{border:none;border-radius:10px;padding:10px 16px;font-weight:700;font-size:.85rem;background:linear-gradient(135deg,var(--fire),var(--ember));color:#fff;transition:transform .12s ease;}
+  .btn:hover{transform:translateY(-1px);}
+  .btn.secondary{background:var(--card);border:1px solid var(--line);color:var(--text);}
+  .btn.danger{background:rgba(255,82,82,.15);color:var(--bad);}
+  .btn.small{padding:7px 12px;font-size:.78rem;}
+  .badge{display:inline-block;padding:3px 10px;border-radius:999px;font-size:.68rem;font-weight:800;text-transform:uppercase;letter-spacing:.5px;}
+  .badge.active{background:rgba(102,187,106,.15);color:var(--ok);}
+  .badge.disabled{background:rgba(255,82,82,.15);color:var(--bad);}
+
+  /* Login */
+  .login-wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;}
+  .login-card{width:min(380px,100%);background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:30px;}
+  .login-card h1{font-size:1.3rem;margin-bottom:4px;}
+  .login-card .sub{color:var(--muted);font-size:.82rem;margin-bottom:22px;}
+  .login-card label{display:block;font-size:.7rem;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;color:var(--fire);margin:14px 0 6px;}
+  .login-err{display:none;margin-top:12px;color:var(--bad);font-size:.82rem;font-weight:600;text-align:center;}
+
+  /* Shell */
+  .shell{display:none;max-width:1180px;margin:0 auto;padding:24px 20px 80px;}
+  .topbar{display:flex;align-items:center;gap:14px;margin-bottom:26px;flex-wrap:wrap;}
+  .topbar h1{font-size:1.25rem;flex:1;}
+  .topbar h1 span{color:var(--ember);}
+  .toolbar{display:flex;gap:10px;margin-bottom:18px;flex-wrap:wrap;align-items:center;}
+  .toolbar input[type=text]{max-width:300px;}
+  .chip{background:var(--card);border:1px solid var(--line);color:var(--muted);border-radius:999px;padding:8px 15px;font-size:.8rem;font-weight:700;}
+  .chip.active{background:linear-gradient(135deg,var(--fire),var(--ember));color:#fff;border-color:transparent;}
+
+  /* Tenant cards */
+  .tenant-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:14px;}
+  .tenant-card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:18px;}
+  .tc-head{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:8px;}
+  .tc-name{font-weight:800;font-size:1.05rem;}
+  .tc-slug{color:var(--muted);font-size:.78rem;font-family:ui-monospace,monospace;}
+  .tc-stats{display:flex;gap:14px;margin:10px 0;color:var(--muted);font-size:.78rem;}
+  .tc-stats b{color:var(--text);}
+  .tc-actions{display:flex;gap:6px;flex-wrap:wrap;margin-top:12px;}
+
+  /* Modal */
+  .overlay{position:fixed;inset:0;background:rgba(0,0,0,.65);display:none;align-items:center;justify-content:center;padding:18px;z-index:100;backdrop-filter:blur(3px);}
+  .overlay.open{display:flex;}
+  .modal{width:min(520px,100%);max-height:90vh;overflow-y:auto;background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:24px;}
+  .modal h2{font-size:1.05rem;margin-bottom:16px;}
+  .modal label{display:block;font-size:.68rem;font-weight:800;letter-spacing:1.2px;text-transform:uppercase;color:var(--fire);margin:12px 0 5px;}
+  .modal .row{display:flex;gap:16px;justify-content:flex-end;margin-top:20px;}
+  .cred-box{background:var(--card);border:1px dashed var(--gold);border-radius:12px;padding:14px;margin-top:14px;font-family:ui-monospace,monospace;font-size:.9rem;line-height:1.7;}
+  .hint{color:var(--muted);font-size:.75rem;margin-top:4px;}
+  .asset-field{display:flex;align-items:center;gap:10px;}
+  .asset-field .asset-url{flex:1;min-width:0;opacity:.7;cursor:default;font-size:.72rem;}
+  .asset-thumb{width:40px;height:40px;border-radius:8px;object-fit:cover;background:#1c1c1c;border:1px solid rgba(255,255,255,.12);display:none;flex-shrink:0;}
+  .detail-list{font-size:.85rem;line-height:1.8;color:var(--muted);}
+  .detail-list b{color:var(--text);}
+  .tbl{width:100%;border-collapse:collapse;font-size:.82rem;margin-top:8px;}
+  .tbl th,.tbl td{text-align:left;padding:7px 8px;border-bottom:1px solid var(--line);}
+  .tbl th{color:var(--muted);font-size:.68rem;text-transform:uppercase;letter-spacing:.5px;}
+  .toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%);background:var(--card);border:1px solid var(--line);color:var(--text);padding:12px 20px;border-radius:12px;font-weight:700;font-size:.85rem;opacity:0;pointer-events:none;transition:opacity .25s;z-index:200;}
+  .toast.show{opacity:1;}
+  .empty{color:var(--muted);text-align:center;padding:50px 0;grid-column:1/-1;}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div class="login-wrap" id="loginView">
+  <div class="login-card">
+    <img id="rootLoginLogo" src="/icons/placeholder-logo.svg" alt="" style="width:56px;height:56px;border-radius:12px;display:block;margin:0 auto 14px;">
+    <h1 style="text-align:center;"><span id="rootLoginName">HASACA</span> <span style="color:var(--ember)">Root</span></h1>
+    <div class="sub" data-i18n="root_sub">Platform Yönetim Paneli</div>
+    <label data-i18n="root_username">Kullanıcı Adı</label>
+    <input type="text" id="rootUser" autocomplete="username" onkeydown="if(event.key==='Enter')document.getElementById('rootPass').focus()">
+    <label data-i18n="root_password">Şifre</label>
+    <input type="password" id="rootPass" autocomplete="current-password" onkeydown="if(event.key==='Enter')rootLogin()">
+    <div style="margin-top:20px;"><button class="btn" style="width:100%;" onclick="rootLogin()" data-i18n="root_login_btn">Giriş Yap</button></div>
+    <div class="login-err" id="loginErr"></div>
+  </div>
+</div>
+
+<!-- SHELL -->
+<div class="shell" id="shellView">
+  <div class="topbar">
+    <h1><span id="rootHeaderName">HASACA</span> <span>Root</span> <span style="color:var(--muted);font-weight:400;font-size:.85rem;" data-i18n="root_tenant_mgmt">Restoran Yönetimi</span></h1>
+    <button class="btn small secondary" onclick="toggleRootLang()"><span id="rootLangBtn">EN</span></button>
+    <button class="btn small secondary" onclick="openBrandingModal()" data-i18n="root_branding">Marka</button>
+    <button class="btn small secondary" onclick="openAiSettingsModal()" data-i18n="root_ai_settings">AI Ayarları</button>
+    <button class="btn small" onclick="openCreateModal()" data-i18n="root_new_tenant">+ Yeni Restoran</button>
+    <button class="btn small danger" onclick="rootLogout()" data-i18n="root_logout">Çıkış</button>
+  </div>
+
+  <div class="toolbar">
+    <input type="text" id="searchInput" data-i18n-placeholder="root_search_ph" placeholder="Restoran ara..." oninput="renderTenants()">
+    <button class="chip active" data-f="all" onclick="setFilter('all',this)" data-i18n="root_filter_all">Tümü</button>
+    <button class="chip" data-f="active" onclick="setFilter('active',this)" data-i18n="root_filter_active">Aktif</button>
+    <button class="chip" data-f="disabled" onclick="setFilter('disabled',this)" data-i18n="root_filter_disabled">Devre Dışı</button>
+  </div>
+
+  <div class="tenant-grid" id="tenantGrid"></div>
+</div>
+
+<!-- CREATE MODAL -->
+<div class="overlay" id="createOverlay" onclick="if(event.target===this)closeModal('createOverlay')">
+  <div class="modal">
+    <h2 data-i18n="root_create_title">Yeni Restoran Oluştur</h2>
+    <label data-i18n="root_slug_lbl">Subdomain (slug)</label>
+    <input type="text" id="cSlug" placeholder="restaurant1">
+    <div class="hint" data-i18n="root_slug_hint">Küçük harf, rakam ve tire. Örn: restaurant1 → restaurant1.hasaca.com</div>
+    <label data-i18n="root_name_lbl">Restoran Adı</label>
+    <input type="text" id="cName" placeholder="My Restaurant">
+    <label data-i18n="root_phone_lbl">Telefon</label>
+    <input type="text" id="cPhone" placeholder="123456789">
+    <label data-i18n="root_email_lbl">E-posta</label>
+    <input type="text" id="cEmail" placeholder="example@email.com">
+    <label data-i18n="root_address_lbl">Adres</label>
+    <input type="text" id="cAddress" placeholder="Example Address">
+    <div id="createResult"></div>
+    <div class="row">
+      <button class="btn secondary" onclick="closeModal('createOverlay')" data-i18n="root_close">Kapat</button>
+      <button class="btn" id="createBtn" onclick="createTenant()" data-i18n="root_create_btn">Oluştur</button>
+    </div>
+  </div>
+</div>
+
+<!-- EDIT MODAL -->
+<div class="overlay" id="editOverlay" onclick="if(event.target===this)closeModal('editOverlay')">
+  <div class="modal">
+    <h2 data-i18n="root_edit_title">Restoranı Düzenle</h2>
+    <input type="hidden" id="eSlug">
+    <label data-i18n="root_name_lbl">Restoran Adı</label>
+    <input type="text" id="eName">
+    <label data-i18n="root_display_lbl">Görünen Ad</label>
+    <input type="text" id="eDisplay">
+    <label data-i18n="root_phone_lbl">Telefon</label>
+    <input type="text" id="ePhone">
+    <label data-i18n="root_email_lbl">E-posta</label>
+    <input type="text" id="eEmail">
+    <label data-i18n="root_address_lbl">Adres</label>
+    <input type="text" id="eAddress">
+    <div class="row">
+      <button class="btn secondary" onclick="closeModal('editOverlay')" data-i18n="root_cancel">Vazgeç</button>
+      <button class="btn" onclick="saveTenantEdit()" data-i18n="root_save">Kaydet</button>
+    </div>
+  </div>
+</div>
+
+<!-- BRANDING MODAL (root-controlled assets) -->
+<div class="overlay" id="brandOverlay" onclick="if(event.target===this)closeModal('brandOverlay')">
+  <div class="modal">
+    <h2 data-i18n="root_brand_title">Marka / Site İçeriği (Root)</h2>
+    <input type="hidden" id="bSlug">
+    <label data-i18n="root_brand_logo">Logo</label>
+    <div class="asset-field"><img class="asset-thumb" id="bLogo_thumb" alt=""><input type="text" id="bLogo" readonly class="asset-url" placeholder="/icons/placeholder-logo.svg"><button class="btn small secondary" onclick="uploadPlatformAsset('bLogo')" data-i18n="root_upload">Yükle</button></div>
+    <label data-i18n="root_brand_company">Şirket Adı</label>
+    <input type="text" id="bCompany">
+    <label>Hero Başlık (TR)</label>
+    <input type="text" id="bHeroTr">
+    <label>Hero Title (EN)</label>
+    <input type="text" id="bHeroEn">
+    <label>Hero Alt Metin (TR)</label>
+    <input type="text" id="bHeroSubTr">
+    <label>Hero Subtitle (EN)</label>
+    <input type="text" id="bHeroSubEn">
+    <label data-i18n="root_brand_footer">Footer Metni</label>
+    <input type="text" id="bFooter">
+    <label>SEO Title</label>
+    <input type="text" id="bSeoTitle">
+    <label>SEO Description</label>
+    <input type="text" id="bSeoDesc">
+    <div class="row">
+      <button class="btn secondary" onclick="closeModal('brandOverlay')" data-i18n="root_cancel">Vazgeç</button>
+      <button class="btn" onclick="saveBranding()" data-i18n="root_save">Kaydet</button>
+    </div>
+  </div>
+</div>
+
+<!-- DETAIL MODAL -->
+<div class="overlay" id="detailOverlay" onclick="if(event.target===this)closeModal('detailOverlay')">
+  <div class="modal" style="width:min(640px,100%);">
+    <h2 id="detailTitle"></h2>
+    <div class="detail-list" id="detailInfo"></div>
+    <h2 style="margin-top:18px;font-size:.9rem;" data-i18n="root_detail_tables">Masalar & QR Token'ları</h2>
+    <table class="tbl"><thead><tr><th data-i18n="root_tbl_name">Masa</th><th>Token</th><th data-i18n="root_tbl_created">Oluşturma</th></tr></thead><tbody id="detailTables"></tbody></table>
+    <div class="row">
+      <button class="btn secondary" onclick="closeModal('detailOverlay')" data-i18n="root_close">Kapat</button>
+    </div>
+  </div>
+</div>
+
+<!-- PLATFORM BRANDING MODAL -->
+<div class="overlay" id="brandingOverlay" onclick="if(event.target===this)closeModal('brandingOverlay')">
+  <div class="modal">
+    <h2 data-i18n="root_branding_title">Platform Markası</h2>
+    <p class="hint" data-i18n="root_branding_hint">Kod değiştirmeden platformun logosu, favicon'u ve giriş logosunu buradan ayarlayın.</p>
+    <label data-i18n="root_brand_platform_name">Platform Adı</label>
+    <input type="text" id="pfName">
+    <label data-i18n="root_brand_logo_url">Logo</label>
+    <div class="asset-field"><img class="asset-thumb" id="pfLogo_thumb" alt=""><input type="text" id="pfLogo" readonly class="asset-url"><button class="btn small secondary" onclick="uploadPlatformAsset('pfLogo')" data-i18n="root_upload">Yükle</button></div>
+    <label data-i18n="root_brand_login_logo">Giriş Logosu</label>
+    <div class="asset-field"><img class="asset-thumb" id="pfLoginLogo_thumb" alt=""><input type="text" id="pfLoginLogo" readonly class="asset-url"><button class="btn small secondary" onclick="uploadPlatformAsset('pfLoginLogo')" data-i18n="root_upload">Yükle</button></div>
+    <label data-i18n="root_brand_favicon">Favicon</label>
+    <div class="asset-field"><img class="asset-thumb" id="pfFavicon_thumb" alt=""><input type="text" id="pfFavicon" readonly class="asset-url"><button class="btn small secondary" onclick="uploadPlatformAsset('pfFavicon')" data-i18n="root_upload">Yükle</button></div>
+    <label data-i18n="root_brand_footer">Footer Markası</label>
+    <input type="text" id="pfFooter">
+    <div class="row">
+      <button class="btn secondary" onclick="closeModal('brandingOverlay')" data-i18n="root_cancel">Vazgeç</button>
+      <button class="btn" onclick="savePlatformBranding()" data-i18n="root_save">Kaydet</button>
+    </div>
+  </div>
+</div>
+
+<!-- AI SETTINGS MODAL (Phase G) -->
+<div class="overlay" id="aiOverlay" onclick="if(event.target===this)closeModal('aiOverlay')">
+  <div class="modal">
+    <h2 data-i18n="root_ai_title">AI Ayarları (Gemini)</h2>
+    <p class="hint" data-i18n="root_ai_hint">Tek bir platform anahtarı. Restoran sahipleri anahtar girmez. Anahtar yalnız sunucuda saklanır.</p>
+    <label style="display:flex;align-items:center;gap:8px;text-transform:none;letter-spacing:0;color:var(--text);font-weight:600;">
+      <input type="checkbox" id="aiEnabled" style="width:auto;"> <span data-i18n="root_ai_enable">AI özelliklerini etkinleştir</span>
+    </label>
+    <label data-i18n="root_ai_key">API Anahtarı</label>
+    <input type="password" id="aiKey" autocomplete="off" placeholder="AIza...">
+    <div class="hint" id="aiKeyStatus"></div>
+    <label data-i18n="root_ai_model">Varsayılan Model</label>
+    <input type="text" id="aiModel" placeholder="gemini-2.0-flash">
+    <div id="aiTestResult" style="margin-top:10px;font-size:.85rem;"></div>
+    <div class="row">
+      <button class="btn secondary" onclick="testAiConnection()" data-i18n="root_ai_test">Bağlantıyı Test Et</button>
+      <button class="btn secondary" onclick="closeModal('aiOverlay')" data-i18n="root_cancel">Vazgeç</button>
+      <button class="btn" onclick="saveAiSettings()" data-i18n="root_save">Kaydet</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ── i18n (same data-i18n / applyLanguage pattern as the rest of the platform) ──
+const i18nData = {
+  tr: {
+    root_sub: "Platform Yönetim Paneli",
+    root_username: "Kullanıcı Adı", root_password: "Şifre", root_login_btn: "Giriş Yap",
+    root_branding: "Marka", root_ai_settings: "AI Ayarları", root_upload: "Yükle",
+    root_branding_title: "Platform Markası",
+    root_branding_hint: "Kod değiştirmeden platformun logosu, favicon'u ve giriş logosunu buradan ayarlayın.",
+    root_brand_platform_name: "Platform Adı", root_brand_logo_url: "Logo",
+    root_brand_login_logo: "Giriş Logosu", root_brand_favicon: "Favicon", root_brand_footer: "Footer Markası",
+    root_ai_title: "AI Ayarları (Gemini)",
+    root_ai_hint: "Tek bir platform anahtarı. Restoran sahipleri anahtar girmez. Anahtar yalnız sunucuda saklanır.",
+    root_ai_enable: "AI özelliklerini etkinleştir", root_ai_key: "API Anahtarı",
+    root_ai_model: "Varsayılan Model", root_ai_test: "Bağlantıyı Test Et",
+    root_ai_key_set: "Anahtar ayarlı ✓", root_ai_key_unset: "Henüz anahtar ayarlanmadı",
+    root_test_ok: "Bağlantı başarılı ✓", root_test_fail: "Bağlantı başarısız",
+    root_login_wrong: "Giriş başarısız. Bilgileri kontrol edin.",
+    root_not_root: "Bu hesap root yetkisine sahip değil.",
+    root_tenant_mgmt: "Restoran Yönetimi",
+    root_new_tenant: "+ Yeni Restoran", root_logout: "Çıkış",
+    root_search_ph: "Restoran ara...",
+    root_filter_all: "Tümü", root_filter_active: "Aktif", root_filter_disabled: "Devre Dışı",
+    root_create_title: "Yeni Restoran Oluştur",
+    root_slug_lbl: "Subdomain (slug)",
+    root_slug_hint: "Küçük harf, rakam ve tire. Örn: restaurant1 → restaurant1.hasaca.com",
+    root_name_lbl: "Restoran Adı", root_display_lbl: "Görünen Ad",
+    root_phone_lbl: "Telefon", root_email_lbl: "E-posta", root_address_lbl: "Adres",
+    root_create_btn: "Oluştur", root_creating: "Oluşturuluyor...",
+    root_created_ok: "Restoran oluşturuldu! Giriş bilgilerini şimdi kaydedin — bir daha gösterilmez:",
+    root_close: "Kapat", root_cancel: "Vazgeç", root_save: "Kaydet",
+    root_edit_title: "Restoranı Düzenle",
+    root_brand_title: "Marka / Site İçeriği (Root)",
+    root_brand_logo: "Logo", root_brand_company: "Şirket Adı", root_brand_footer: "Footer Metni",
+    root_detail_tables: "Masalar & QR Token'ları",
+    root_tbl_name: "Masa", root_tbl_created: "Oluşturma",
+    root_act_site: "Siteyi Aç", root_act_admin: "Tenant Girişi", root_act_edit: "Düzenle",
+    root_act_brand: "Marka", root_act_detail: "Detay",
+    root_act_disable: "Devre Dışı", root_act_enable: "Aktifleştir", root_act_delete: "Sil",
+    root_act_resetpwd: "Şifre Sıfırla",
+    root_confirm_delete: "Bu restoranı ve TÜM verilerini kalıcı olarak silmek istediğinize emin misiniz? Bu işlem geri alınamaz!",
+    root_confirm_disable: "Bu restoran sitesi devre dışı bırakılsın mı? Site ziyaretçilere kapatılır.",
+    root_deleted: "Restoran silindi", root_saved: "Kaydedildi", root_updated: "Güncellendi",
+    root_stats_products: "ürün", root_stats_tables: "masa", root_stats_orders: "sipariş",
+    root_no_tenants: "Kayıt bulunamadı.",
+    root_pwd_reset_ok: "Yeni şifre (şimdi kaydedin):",
+    root_err: "İşlem başarısız oldu."
+  },
+  en: {
+    root_sub: "Platform Management Panel",
+    root_username: "Username", root_password: "Password", root_login_btn: "Sign In",
+    root_branding: "Branding", root_ai_settings: "AI Settings", root_upload: "Upload",
+    root_branding_title: "Platform Branding",
+    root_branding_hint: "Set the platform logo, favicon and login logo here — no code changes needed.",
+    root_brand_platform_name: "Platform Name", root_brand_logo_url: "Logo",
+    root_brand_login_logo: "Login Logo", root_brand_favicon: "Favicon", root_brand_footer: "Footer Brand",
+    root_ai_title: "AI Settings (Gemini)",
+    root_ai_hint: "One shared platform key. Restaurant owners never enter keys. The key is stored on the backend only.",
+    root_ai_enable: "Enable AI features", root_ai_key: "API Key",
+    root_ai_model: "Default Model", root_ai_test: "Test Connection",
+    root_ai_key_set: "Key configured ✓", root_ai_key_unset: "No key configured yet",
+    root_test_ok: "Connection successful ✓", root_test_fail: "Connection failed",
+    root_login_wrong: "Login failed. Check your credentials.",
+    root_not_root: "This account does not have root access.",
+    root_tenant_mgmt: "Tenant Management",
+    root_new_tenant: "+ New Restaurant", root_logout: "Logout",
+    root_search_ph: "Search restaurants...",
+    root_filter_all: "All", root_filter_active: "Active", root_filter_disabled: "Disabled",
+    root_create_title: "Create New Restaurant",
+    root_slug_lbl: "Subdomain (slug)",
+    root_slug_hint: "Lowercase letters, digits, hyphens. E.g. restaurant1 → restaurant1.hasaca.com",
+    root_name_lbl: "Restaurant Name", root_display_lbl: "Display Name",
+    root_phone_lbl: "Phone", root_email_lbl: "Email", root_address_lbl: "Address",
+    root_create_btn: "Create", root_creating: "Creating...",
+    root_created_ok: "Restaurant created! Save these credentials now — they will not be shown again:",
+    root_close: "Close", root_cancel: "Cancel", root_save: "Save",
+    root_edit_title: "Edit Restaurant",
+    root_brand_title: "Branding / Site Content (Root)",
+    root_brand_logo: "Logo", root_brand_company: "Company Name", root_brand_footer: "Footer Text",
+    root_detail_tables: "Tables & QR Tokens",
+    root_tbl_name: "Table", root_tbl_created: "Created",
+    root_act_site: "Open Site", root_act_admin: "Login as Tenant", root_act_edit: "Edit",
+    root_act_brand: "Branding", root_act_detail: "Details",
+    root_act_disable: "Disable", root_act_enable: "Enable", root_act_delete: "Delete",
+    root_act_resetpwd: "Reset Password",
+    root_confirm_delete: "Are you sure you want to permanently delete this restaurant and ALL of its data? This cannot be undone!",
+    root_confirm_disable: "Disable this restaurant site? It will be closed to visitors.",
+    root_deleted: "Restaurant deleted", root_saved: "Saved", root_updated: "Updated",
+    root_stats_products: "products", root_stats_tables: "tables", root_stats_orders: "orders",
+    root_no_tenants: "No records found.",
+    root_pwd_reset_ok: "New password (save it now):",
+    root_err: "Operation failed."
+  }
+};
+let lang = localStorage.getItem('hasaca_root_lang') || 'tr';
+function T(k){ return (i18nData[lang] && i18nData[lang][k]) || i18nData.tr[k] || k; }
+function applyRootLanguage(){
+  document.documentElement.lang = lang;
+  document.querySelectorAll('[data-i18n]').forEach(el => { if (i18nData[lang][el.getAttribute('data-i18n')]) el.textContent = i18nData[lang][el.getAttribute('data-i18n')]; });
+  document.querySelectorAll('[data-i18n-placeholder]').forEach(el => { const k = el.getAttribute('data-i18n-placeholder'); if (i18nData[lang][k]) el.placeholder = i18nData[lang][k]; });
+  document.getElementById('rootLangBtn').textContent = lang === 'tr' ? 'EN' : 'TR';
+  renderTenants();
+}
+function toggleRootLang(){ lang = lang === 'tr' ? 'en' : 'tr'; localStorage.setItem('hasaca_root_lang', lang); applyRootLanguage(); }
+
+// ── auth ──
+function rootToken(){ try { return localStorage.getItem('hasaca_root_token') || ''; } catch(e){ return ''; } }
+function setRootToken(t){ try { t ? localStorage.setItem('hasaca_root_token', t) : localStorage.removeItem('hasaca_root_token'); } catch(e){} }
+
+async function rootFetch(path, opts = {}){
+  opts.headers = Object.assign({ 'Authorization': 'Bearer ' + rootToken() }, opts.headers || {});
+  const res = await fetch(path, opts);
+  if (res.status === 401 || res.status === 403) { showLogin(); throw new Error('unauthorized'); }
+  return res;
+}
+
+async function rootLogin(){
+  const err = document.getElementById('loginErr');
+  err.style.display = 'none';
+  try {
+    const res = await fetch('/api/auth/login', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username: document.getElementById('rootUser').value.trim(), password: document.getElementById('rootPass').value })
+    });
+    if (!res.ok) throw new Error('bad');
+    const data = await res.json();
+    if (data.role !== 'root') { err.textContent = T('root_not_root'); err.style.display = 'block'; return; }
+    setRootToken(data.token);
+    showShell();
+  } catch(e) {
+    err.textContent = T('root_login_wrong'); err.style.display = 'block';
+  }
+}
+function rootLogout(){ setRootToken(''); showLogin(); }
+function showLogin(){ document.getElementById('loginView').style.display = 'flex'; document.getElementById('shellView').style.display = 'none'; }
+function showShell(){ document.getElementById('loginView').style.display = 'none'; document.getElementById('shellView').style.display = 'block'; loadTenants(); }
+
+// ── tenants ──
+let tenants = [];
+let filter = 'all';
+
+async function loadTenants(){
+  try {
+    const res = await rootFetch('/api/root/tenants');
+    tenants = await res.json();
+    renderTenants();
+  } catch(e){ console.error(e); }
+}
+
+function setFilter(f, btn){
+  filter = f;
+  document.querySelectorAll('.chip[data-f]').forEach(c => c.classList.remove('active'));
+  btn.classList.add('active');
+  renderTenants();
+}
+
+function esc(s){ return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+function tenantBase(){
+  const loc = window.location;
+  const parts = loc.hostname.split('.');
+  return parts.length > 2 ? parts.slice(1).join('.') : loc.hostname;
+}
+function tenantSiteUrl(slug){
+  const loc = window.location;
+  if (loc.hostname === 'localhost' || loc.hostname === '127.0.0.1') return loc.protocol + '//' + loc.host + '/?tenant=' + slug;
+  return loc.protocol + '//' + slug + '.' + tenantBase() + (loc.port ? ':' + loc.port : '');
+}
+function tenantAdminUrl(slug, impToken){
+  const loc = window.location;
+  const hash = impToken ? '#imp=' + encodeURIComponent(impToken) : '';
+  if (loc.hostname === 'localhost' || loc.hostname === '127.0.0.1') return loc.protocol + '//' + loc.host + '/admin.html?tenant=' + slug + hash;
+  return loc.protocol + '//' + slug + '.' + tenantBase() + (loc.port ? ':' + loc.port : '') + '/admin.html' + hash;
+}
+
+function renderTenants(){
+  const grid = document.getElementById('tenantGrid');
+  if (!grid) return;
+  const q = (document.getElementById('searchInput').value || '').toLowerCase();
+  let list = tenants.slice();
+  if (filter !== 'all') list = list.filter(t => t.status === filter);
+  if (q) list = list.filter(t => (t.name||'').toLowerCase().includes(q) || t.id.includes(q) || (t.display_name||'').toLowerCase().includes(q));
+
+  if (!list.length){ grid.innerHTML = '<div class="empty">' + T('root_no_tenants') + '</div>'; return; }
+
+  grid.innerHTML = list.map(t => `
+    <div class="tenant-card">
+      <div class="tc-head">
+        <div>
+          <div class="tc-name">${esc(t.display_name || t.name)}</div>
+          <div class="tc-slug">${esc(t.id)}${t.id==='default'?'':'.' + esc(tenantBase() === 'localhost' ? 'localhost' : tenantBase())}</div>
+        </div>
+        <span class="badge ${t.status}">${t.status === 'active' ? T('root_filter_active') : T('root_filter_disabled')}</span>
+      </div>
+      <div class="tc-stats">
+        <span><b>${t.product_count}</b> ${T('root_stats_products')}</span>
+        <span><b>${t.table_count}</b> ${T('root_stats_tables')}</span>
+        <span><b>${t.order_count}</b> ${T('root_stats_orders')}</span>
+      </div>
+      <div class="tc-actions">
+        <a class="btn small secondary" href="${tenantSiteUrl(t.id)}" target="_blank">${T('root_act_site')}</a>
+        <button class="btn small secondary" onclick="impersonate('${t.id}')">${T('root_act_admin')}</button>
+        <button class="btn small secondary" onclick="openEditModal('${t.id}')">${T('root_act_edit')}</button>
+        <button class="btn small secondary" onclick="openBrandModal('${t.id}')">${T('root_act_brand')}</button>
+        <button class="btn small secondary" onclick="openDetailModal('${t.id}')">${T('root_act_detail')}</button>
+        <button class="btn small secondary" onclick="resetTenantPassword('${t.id}')">${T('root_act_resetpwd')}</button>
+        ${t.id !== 'default' ? `
+          <button class="btn small ${t.status==='active'?'danger':''}" onclick="toggleStatus('${t.id}','${t.status}')">${t.status==='active'?T('root_act_disable'):T('root_act_enable')}</button>
+          <button class="btn small danger" onclick="deleteTenant('${t.id}')">${T('root_act_delete')}</button>
+        ` : ''}
+      </div>
+    </div>
+  `).join('');
+}
+
+// ── create ──
+function openCreateModal(){
+  ['cSlug','cName','cPhone','cEmail','cAddress'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('createResult').innerHTML = '';
+  document.getElementById('createBtn').style.display = '';
+  document.getElementById('createOverlay').classList.add('open');
+}
+function closeModal(id){ document.getElementById(id).classList.remove('open'); }
+
+async function createTenant(){
+  const btn = document.getElementById('createBtn');
+  btn.disabled = true; btn.textContent = T('root_creating');
+  try {
+    const res = await rootFetch('/api/root/tenants', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        slug: document.getElementById('cSlug').value.trim().toLowerCase(),
+        name: document.getElementById('cName').value.trim(),
+        display_name: document.getElementById('cName').value.trim(),
+        contact_phone: document.getElementById('cPhone').value.trim(),
+        contact_email: document.getElementById('cEmail').value.trim(),
+        address: document.getElementById('cAddress').value.trim()
+      })
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || T('root_err'));
+    document.getElementById('createResult').innerHTML = `
+      <div class="cred-box">
+        <div style="color:var(--gold);font-weight:800;margin-bottom:6px;font-family:inherit;">${T('root_created_ok')}</div>
+        <div><b>URL:</b> ${esc(tenantSiteUrl(data.tenant.id))}</div>
+        <div><b>Admin:</b> ${esc(data.admin.username)}</div>
+        <div><b>Pass:</b> ${esc(data.admin.password)}</div>
+      </div>`;
+    document.getElementById('createBtn').style.display = 'none';
+    loadTenants();
+  } catch(e) {
+    document.getElementById('createResult').innerHTML = `<div class="cred-box" style="border-color:var(--bad);color:var(--bad);">${esc(e.message)}</div>`;
+  } finally {
+    btn.disabled = false; btn.textContent = T('root_create_btn');
+  }
+}
+
+// ── edit ──
+function openEditModal(slug){
+  const t = tenants.find(x => x.id === slug); if (!t) return;
+  document.getElementById('eSlug').value = slug;
+  document.getElementById('eName').value = t.name || '';
+  document.getElementById('eDisplay').value = t.display_name || '';
+  document.getElementById('ePhone').value = t.contact_phone || '';
+  document.getElementById('eEmail').value = t.contact_email || '';
+  document.getElementById('eAddress').value = t.address || '';
+  document.getElementById('editOverlay').classList.add('open');
+}
+async function saveTenantEdit(){
+  const slug = document.getElementById('eSlug').value;
+  try {
+    const res = await rootFetch('/api/root/tenants/' + slug, {
+      method: 'PUT', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        name: document.getElementById('eName').value.trim(),
+        display_name: document.getElementById('eDisplay').value.trim(),
+        contact_phone: document.getElementById('ePhone').value.trim(),
+        contact_email: document.getElementById('eEmail').value.trim(),
+        address: document.getElementById('eAddress').value.trim()
+      })
+    });
+    if (!res.ok) throw new Error();
+    closeModal('editOverlay'); toast(T('root_updated')); loadTenants();
+  } catch(e){ toast(T('root_err')); }
+}
+
+// ── branding ──
+function openBrandModal(slug){
+  const t = tenants.find(x => x.id === slug); if (!t) return;
+  const s = t.settings || {};
+  document.getElementById('bSlug').value = slug;
+  document.getElementById('bLogo').value = s.logo_url || '';
+  document.getElementById('bCompany').value = s.company_name || '';
+  document.getElementById('bHeroTr').value = s.hero_title_tr || '';
+  document.getElementById('bHeroEn').value = s.hero_title_en || '';
+  document.getElementById('bHeroSubTr').value = s.hero_sub_tr || '';
+  document.getElementById('bHeroSubEn').value = s.hero_sub_en || '';
+  document.getElementById('bFooter').value = s.footer_text || '';
+  document.getElementById('bSeoTitle').value = s.seo_title || '';
+  document.getElementById('bSeoDesc').value = s.seo_description || '';
+  refreshAssetThumb('bLogo');
+  document.getElementById('brandOverlay').classList.add('open');
+}
+async function saveBranding(){
+  const slug = document.getElementById('bSlug').value;
+  try {
+    const res = await rootFetch('/api/root/tenants/' + slug + '/branding', {
+      method: 'PUT', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        logo_url: document.getElementById('bLogo').value.trim(),
+        company_name: document.getElementById('bCompany').value.trim(),
+        hero_title_tr: document.getElementById('bHeroTr').value,
+        hero_title_en: document.getElementById('bHeroEn').value,
+        hero_sub_tr: document.getElementById('bHeroSubTr').value,
+        hero_sub_en: document.getElementById('bHeroSubEn').value,
+        footer_text: document.getElementById('bFooter').value.trim(),
+        seo_title: document.getElementById('bSeoTitle').value.trim(),
+        seo_description: document.getElementById('bSeoDesc').value.trim()
+      })
+    });
+    if (!res.ok) throw new Error();
+    closeModal('brandOverlay'); toast(T('root_saved')); loadTenants();
+  } catch(e){ toast(T('root_err')); }
+}
+
+// ── detail ──
+async function openDetailModal(slug){
+  try {
+    const [tRes, tablesRes] = await Promise.all([
+      rootFetch('/api/root/tenants/' + slug),
+      rootFetch('/api/root/tenants/' + slug + '/tables')
+    ]);
+    const t = await tRes.json();
+    const tables = await tablesRes.json();
+    document.getElementById('detailTitle').textContent = t.display_name || t.name;
+    document.getElementById('detailInfo').innerHTML = `
+      <div><b>Slug:</b> ${esc(t.id)} &nbsp; <b>Status:</b> ${esc(t.status)}</div>
+      <div><b>Tel:</b> ${esc(t.contact_phone||'-')} &nbsp; <b>Email:</b> ${esc(t.contact_email||'-')}</div>
+      <div><b>Adres:</b> ${esc(t.address||'-')}</div>
+      <div><b>Admins:</b> ${(t.admins||[]).map(a=>esc(a.username)).join(', ')||'-'}</div>`;
+    document.getElementById('detailTables').innerHTML = tables.map(tb =>
+      `<tr><td>${esc(tb.name)}</td><td style="font-family:ui-monospace,monospace;">${esc(tb.token)}</td><td>${tb.created_at ? new Date(Number(tb.created_at)).toLocaleDateString() : '-'}</td></tr>`
+    ).join('') || '<tr><td colspan="3">-</td></tr>';
+    document.getElementById('detailOverlay').classList.add('open');
+  } catch(e){ toast(T('root_err')); }
+}
+
+// ── actions ──
+async function impersonate(slug){
+  try {
+    const res = await rootFetch('/api/root/tenants/' + slug + '/impersonate', { method: 'POST' });
+    const data = await res.json();
+    window.open(tenantAdminUrl(slug, data.token), '_blank');
+  } catch(e){ toast(T('root_err')); }
+}
+async function toggleStatus(slug, current){
+  if (current === 'active' && !confirm(T('root_confirm_disable'))) return;
+  try {
+    await rootFetch('/api/root/tenants/' + slug + '/status', {
+      method: 'PUT', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ status: current === 'active' ? 'disabled' : 'active' })
+    });
+    toast(T('root_updated')); loadTenants();
+  } catch(e){ toast(T('root_err')); }
+}
+async function deleteTenant(slug){
+  if (!confirm(T('root_confirm_delete'))) return;
+  try {
+    const res = await rootFetch('/api/root/tenants/' + slug, { method: 'DELETE' });
+    if (!res.ok) throw new Error();
+    toast(T('root_deleted')); loadTenants();
+  } catch(e){ toast(T('root_err')); }
+}
+async function resetTenantPassword(slug){
+  try {
+    const res = await rootFetch('/api/root/tenants/' + slug + '/reset-admin-password', { method: 'POST' });
+    const data = await res.json();
+    if (!res.ok) throw new Error();
+    alert(T('root_pwd_reset_ok') + '\n\n' + data.username + ' / ' + data.password);
+  } catch(e){ toast(T('root_err')); }
+}
+
+function toast(msg){
+  const el = document.getElementById('toast');
+  el.textContent = msg; el.classList.add('show');
+  clearTimeout(window.__t); window.__t = setTimeout(() => el.classList.remove('show'), 2200);
+}
+
+// ── platform branding (white-label) ──
+let platformCfg = {};
+async function applyPlatformConfig(){
+  try {
+    const cfg = await (await fetch('/api/platform-config')).json();
+    platformCfg = cfg || {};
+    const name = cfg.platform_name || 'HASACA';
+    document.getElementById('rootLoginName').textContent = name;
+    document.getElementById('rootHeaderName').textContent = name;
+    const logo = cfg.login_logo_url || cfg.logo_url;
+    if (logo) document.getElementById('rootLoginLogo').src = logo;
+    if (cfg.favicon_url) { let f = document.querySelector('link[rel="icon"]'); if (f) f.href = cfg.favicon_url; }
+    document.title = name + ' Root Panel';
+  } catch(e){}
+}
+
+async function openBrandingModal(){
+  try {
+    const p = await (await rootFetch('/api/root/platform-settings')).json();
+    document.getElementById('pfName').value = p.platform_name || '';
+    document.getElementById('pfLogo').value = p.logo_url || '';
+    document.getElementById('pfLoginLogo').value = p.login_logo_url || '';
+    document.getElementById('pfFavicon').value = p.favicon_url || '';
+    document.getElementById('pfFooter').value = p.footer_brand || '';
+    refreshAssetThumb('pfLogo'); refreshAssetThumb('pfLoginLogo'); refreshAssetThumb('pfFavicon');
+    document.getElementById('brandingOverlay').classList.add('open');
+  } catch(e){ toast(T('root_err')); }
+}
+async function savePlatformBranding(){
+  try {
+    const res = await rootFetch('/api/root/platform-settings', {
+      method:'PUT', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({
+        platform_name: document.getElementById('pfName').value.trim(),
+        logo_url: document.getElementById('pfLogo').value.trim(),
+        login_logo_url: document.getElementById('pfLoginLogo').value.trim(),
+        favicon_url: document.getElementById('pfFavicon').value.trim(),
+        footer_brand: document.getElementById('pfFooter').value.trim()
+      })
+    });
+    if (!res.ok) throw new Error();
+    closeModal('brandingOverlay'); toast(T('root_saved')); applyPlatformConfig();
+  } catch(e){ toast(T('root_err')); }
+}
+// Upload an image and put its hosted URL into the given input field
+function uploadPlatformAsset(targetId){
+  const inp = document.createElement('input');
+  inp.type = 'file'; inp.accept = 'image/png,image/jpeg,image/webp,image/svg+xml,image/x-icon';
+  inp.onchange = () => {
+    const file = inp.files[0]; if (!file) return;
+    const reader = new FileReader();
+    reader.onload = async () => {
+      try {
+        const res = await rootFetch('/api/root/upload-asset', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ image: reader.result }) });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || '');
+        document.getElementById(targetId).value = data.url;
+        refreshAssetThumb(targetId);
+        toast(T('root_saved'));
+      } catch(e){ toast(T('root_err')); }
+    };
+    reader.readAsDataURL(file);
+  };
+  inp.click();
+}
+
+// Keep an asset field's preview thumbnail in sync with its (readonly) URL value.
+function refreshAssetThumb(targetId){
+  const inp = document.getElementById(targetId);
+  const thumb = document.getElementById(targetId + '_thumb');
+  if (!inp || !thumb) return;
+  const url = (inp.value || '').trim();
+  if (url) { thumb.src = url; thumb.style.display = 'inline-block'; }
+  else { thumb.removeAttribute('src'); thumb.style.display = 'none'; }
+}
+
+// ── AI settings (Gemini) ──
+async function openAiSettingsModal(){
+  try {
+    const s = await (await rootFetch('/api/root/ai-settings')).json();
+    document.getElementById('aiEnabled').checked = !!s.ai_enabled;
+    document.getElementById('aiModel').value = s.ai_model || 'gemini-2.0-flash';
+    document.getElementById('aiKey').value = '';
+    document.getElementById('aiKeyStatus').textContent = s.key_set ? T('root_ai_key_set') : T('root_ai_key_unset');
+    document.getElementById('aiTestResult').textContent = '';
+    document.getElementById('aiOverlay').classList.add('open');
+  } catch(e){ toast(T('root_err')); }
+}
+async function saveAiSettings(){
+  try {
+    const body = {
+      ai_enabled: document.getElementById('aiEnabled').checked,
+      ai_model: document.getElementById('aiModel').value.trim()
+    };
+    const key = document.getElementById('aiKey').value.trim();
+    if (key) body.ai_key = key;
+    const res = await rootFetch('/api/root/ai-settings', { method:'PUT', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body) });
+    if (!res.ok) throw new Error();
+    closeModal('aiOverlay'); toast(T('root_saved')); applyPlatformConfig();
+  } catch(e){ toast(T('root_err')); }
+}
+async function testAiConnection(){
+  const el = document.getElementById('aiTestResult');
+  el.textContent = '...'; el.style.color = 'var(--muted)';
+  try {
+    const key = document.getElementById('aiKey').value.trim();
+    const res = await rootFetch('/api/root/ai-settings/test', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ ai_key: key || undefined, ai_model: document.getElementById('aiModel').value.trim() }) });
+    const data = await res.json();
+    if (res.ok && data.ok) { el.textContent = T('root_test_ok'); el.style.color = 'var(--ok)'; }
+    else { el.textContent = T('root_test_fail') + (data.error ? ': ' + data.error : ''); el.style.color = 'var(--bad)'; }
+  } catch(e){ el.textContent = T('root_test_fail'); el.style.color = 'var(--bad)'; }
+}
+
+// ── boot ──
+applyRootLanguage();
+applyPlatformConfig();
+(async () => {
+  if (rootToken()){
+    try {
+      const res = await fetch('/api/auth/me', { headers: { 'Authorization': 'Bearer ' + rootToken() } });
+      if (res.ok){ const me = await res.json(); if (me.role === 'root') { showShell(); return; } }
+    } catch(e){}
+    setRootToken('');
+  }
+  showLogin();
+})();
+</script>
+</body>
+</html>
