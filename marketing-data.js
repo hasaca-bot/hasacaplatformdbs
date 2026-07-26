@@ -524,7 +524,7 @@
     x('HASACA platformunun tüm modülleri için kullanım kılavuzu.', 'Usage guides for every HASACA module.'), [
     hero(x('Dokümantasyon', 'Documentation'), x('Platformu uçtan uca öğrenin', 'Learn the platform end to end'),
       x('Kurulumdan ileri düzey ayarlara kadar tüm modüllerin kullanım rehberleri.',
-        'Guides for every module, from setup to advanced configuration.'), [{ label: x('API Dokümantasyonu', 'API Docs'), href: '/api', primary: true }, { label: x('Yardım Merkezi', 'Help Center'), href: '/yardim' }]),
+        'Guides for every module, from setup to advanced configuration.'), [{ label: x('API Dokümantasyonu', 'API Docs'), href: '/api-docs', primary: true }, { label: x('Yardım Merkezi', 'Help Center'), href: '/yardim' }]),
     cards(x('Başlangıç', 'Getting started'), null, [
       [x('Hesap oluşturma', 'Creating an account'), x('Restoranınızı platformda açmanın ilk adımları.', 'The first steps to opening your restaurant on the platform.')],
       [x('Marka ayarları', 'Brand settings'), x('Logo, favicon, renk ve marka adı yönetimi.', 'Manage logo, favicon, colors and brand name.')],
@@ -545,7 +545,7 @@
     ])
   ]);
 
-  def('api', x('API Dokümantasyonu', 'API Documentation'),
+  def('api-docs', x('API Dokümantasyonu', 'API Documentation'),
     x('HASACA REST API — Kurumsal plan için genel bakış.', 'The HASACA REST API — an overview for the Enterprise plan.'), [
     hero(x('API', 'API'), x('Kendi sistemlerinizle konuşun', 'Talk to your own systems'),
       x('Kurumsal planda REST API ile sipariş, ürün ve rezervasyon verinize programatik erişin. Bu sayfa genel bir tanıtımdır; erişim anahtarları hesabınıza özel verilir.',

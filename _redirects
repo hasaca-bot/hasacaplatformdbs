@@ -1,9 +1,65 @@
+# Backend API & Upload Proxies (Render API Web Service)
 /api/*       https://hasaca-api.onrender.com/api/:splat     200!
 /uploads/*   https://hasaca-api.onrender.com/uploads/:splat 200!
-/            /landing.html     200!
-/landing     /landing.html     200
-/login       /login.html       200
-/marketing   /marketing.html   200
+
+# Platform Core Entry Points
 /root        /root.html        200
 /admin       /admin.html       200
 /menu        /index.html       200
+/login       /login.html       200
+/giris       /login.html       200
+/root-girisi /login.html       200
+/landing     /landing.html     200
+/hasaca      /landing.html     200
+
+# Dynamic Marketing Sub-pages (served by marketing.html)
+/qr-menu               /marketing.html 200
+/online-siparis        /marketing.html 200
+/rezervasyon           /marketing.html 200
+/garson-cagirma        /marketing.html 200
+/mutfak-ekrani         /marketing.html 200
+/masa-yonetimi         /marketing.html 200
+/paket-servis          /marketing.html 200
+/analitik              /marketing.html 200
+/coklu-sube            /marketing.html 200
+/tema-sistemi          /marketing.html 200
+/white-label           /marketing.html 200
+/seo                   /marketing.html 200
+/bildirim-sistemi      /marketing.html 200
+/yapay-zeka            /marketing.html 200
+/ozellikler            /marketing.html 200
+/cozumler              /marketing.html 200
+/fiyatlandirma         /marketing.html 200
+/neden-hasaca          /marketing.html 200
+/karsilastirma         /marketing.html 200
+/entegrasyonlar        /marketing.html 200
+/hakkimizda            /marketing.html 200
+/kariyer               /marketing.html 200
+/referanslar           /marketing.html 200
+/basari-hikayeleri      /marketing.html 200
+/partner-programi      /marketing.html 200
+/bayilik               /marketing.html 200
+/destek                /marketing.html 200
+/yardim                /marketing.html 200
+/dokumantasyon         /marketing.html 200
+/api-docs              /marketing.html 200
+/blog                  /marketing.html 200
+/demo-talep            /marketing.html 200
+/teklif-al             /marketing.html 200
+/satis-ekibi           /marketing.html 200
+/iletisim              /marketing.html 200
+/durum                 /marketing.html 200
+/yol-haritasi          /marketing.html 200
+/surum-notlari         /marketing.html 200
+/sss                   /marketing.html 200
+/guvenlik              /marketing.html 200
+/gizlilik              /marketing.html 200
+/kvkk                  /marketing.html 200
+/cerez-politikasi      /marketing.html 200
+/kullanim-sartlari     /marketing.html 200
+/hizmet-sozlesmesi     /marketing.html 200
+/gizlilik-politikasi   /marketing.html 200
+/kvkk-aydinlatma-metni /marketing.html 200
+
+# Home Page Fallback
+/            /landing.html     200!
