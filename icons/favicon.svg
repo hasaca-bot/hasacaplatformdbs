@@ -1,5 +1,16 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="32" height="32" fill="none" stroke="#d93b0a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-  <path d="M12 2L2 7l10 5 10-5-10-5z"/>
-  <path d="M2 12l10 5 10-5"/>
-  <path d="M2 17l10 5 10-5"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="32" height="32">
+  <style>
+    .bg { fill: #0a0a0b; }
+    .mark { stroke: #ffffff; }
+    @media (prefers-color-scheme: light) {
+      .bg { fill: #ffffff; }
+      .mark { stroke: #0a0a0b; }
+    }
+  </style>
+  <rect class="bg" width="24" height="24" rx="6"/>
+  <g class="mark" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M12 3L3 7.5l9 4.5 9-4.5-9-4.5z"/>
+    <path d="M3 12l9 4.5 9-4.5"/>
+    <path d="M3 16.5l9 4.5 9-4.5"/>
+  </g>
 </svg>
