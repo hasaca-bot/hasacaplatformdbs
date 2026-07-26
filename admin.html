@@ -3753,8 +3753,6 @@ function setAdminToken(t) {
 // Local development only: ?tenant=slug override carried onto every API call
 window.__devTenant = (() => {
   try {
-    const h = window.location.hostname;
-    if (h !== 'localhost' && h !== '127.0.0.1') return '';
     return new URLSearchParams(window.location.search).get('tenant') || '';
   } catch (e) { return ''; }
 })();

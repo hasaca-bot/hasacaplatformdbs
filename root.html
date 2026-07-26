@@ -1018,14 +1018,30 @@ function tenantBase(){
 }
 function tenantSiteUrl(slug){
   const loc = window.location;
-  if (loc.hostname === 'localhost' || loc.hostname === '127.0.0.1') return loc.protocol + '//' + loc.host + '/?tenant=' + slug;
+  if (loc.hostname === 'localhost' || loc.hostname === '127.0.0.1' || loc.hostname.endsWith('netlify.app') || loc.hostname.endsWith('onrender.com')) {
+    return loc.protocol + '//' + loc.host + '/menu?tenant=' + slug;
+  }
   return loc.protocol + '//' + slug + '.' + tenantBase() + (loc.port ? ':' + loc.port : '');
 }
 function tenantAdminUrl(slug, impToken){
   const loc = window.location;
   const hash = impToken ? '#imp=' + encodeURIComponent(impToken) : '';
-  if (loc.hostname === 'localhost' || loc.hostname === '127.0.0.1') return loc.protocol + '//' + loc.host + '/admin.html?tenant=' + slug + hash;
+  if (loc.hostname === 'localhost' || loc.hostname === '127.0.0.1' || loc.hostname.endsWith('netlify.app') || loc.hostname.endsWith('onrender.com')) {
+    return loc.protocol + '//' + loc.host + '/admin?tenant=' + slug + hash;
+  }
   return loc.protocol + '//' + slug + '.' + tenantBase() + (loc.port ? ':' + loc.port : '') + '/admin.html' + hash;
+}
+
+async function impersonate(slug){
+  try {
+    const res = await rootFetch('/api/root/tenants/' + slug + '/impersonate', { method: 'POST' });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || T('root_err'));
+    const targetUrl = tenantAdminUrl(slug, data.token);
+    window.open(targetUrl, '_blank');
+  } catch(e) {
+    toast(e.message || T('root_err'));
+  }
 }
 
 function renderTenants(){
