@@ -296,12 +296,18 @@ document.getElementById('loginForm').addEventListener('submit', async (e) => {
     } else if (PANEL === 'root' && d.role !== 'root') {
       show('bad', T('noRoot'));
     } else {
-      const isRoot = d.role === 'root' && PANEL === 'root';
-      const key = isRoot ? 'hasaca_root_token' : 'hasaca_admin_token';
+      const isRoot = d.role === 'root';
       const store = document.getElementById('remember').checked ? localStorage : sessionStorage;
-      try { store.setItem(key, d.token); } catch (err) {}
+      try {
+        if (d.role === 'root') {
+          store.setItem('hasaca_root_token', d.token);
+          store.setItem('hasaca_admin_token', d.token);
+        } else {
+          store.setItem('hasaca_admin_token', d.token);
+        }
+      } catch (err) {}
       show('ok', T('ok'));
-      setTimeout(() => { location.href = isRoot ? '/root' : '/admin.html'; }, 500);
+      setTimeout(() => { location.href = (isRoot && PANEL === 'root') ? '/root' : '/admin'; }, 500);
       return;
     }
   } catch (err) {

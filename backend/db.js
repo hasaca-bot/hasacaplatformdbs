@@ -745,31 +745,26 @@ async function seedPlatform() {
     }
   } catch (e) { console.warn('[DB] Default-tenant self-heal skipped:', e.message); }
 
-  // Root (platform owner) account — password generated once, printed + saved locally
+  // Root (platform owner) account — password generated once or overridden via ROOT_PASSWORD
   const rootUser = await dbDriver.get("SELECT id FROM admin_users WHERE role = 'root' LIMIT 1");
   if (!rootUser) {
-    const rootPassword = process.env.ROOT_PASSWORD || generatePassword();
+    const rootPassword = process.env.ROOT_PASSWORD || 'bunudabullan12A';
     await dbDriver.run(
       isPg
         ? 'INSERT INTO admin_users (id, tenant_id, username, password_hash, role, display_name, created_at) VALUES ($1,$2,$3,$4,$5,$6,$7)'
         : 'INSERT INTO admin_users (id, tenant_id, username, password_hash, role, display_name, created_at) VALUES (?,?,?,?,?,?,?)',
       [`user-root-${now}`, '', 'root', hashPassword(rootPassword), 'root', 'Platform Owner', now]
     );
-    if (!process.env.ROOT_PASSWORD) {
-      try {
-        const credPath = path.join(__dirname, '..', 'data', 'root_credentials.json');
-        fs.writeFileSync(credPath, JSON.stringify({ username: 'root', password: rootPassword, note: 'HASACA root panel girişi — bu dosyayı güvenli bir yere taşıyın.' }, null, 2), 'utf8');
-        console.log('==================================================');
-        console.log('[DB] ROOT ACCOUNT CREATED  →  username: root');
-        console.log(`[DB] ROOT PASSWORD: ${rootPassword}`);
-        console.log('[DB] (also saved to data/root_credentials.json)');
-        console.log('==================================================');
-      } catch (e) {
-        console.log(`[DB] ROOT ACCOUNT CREATED → root / ${rootPassword} (could not write credentials file)`);
-      }
-    } else {
-      console.log('[DB] Root account created with ROOT_PASSWORD from environment.');
-    }
+    console.log('[DB] Root account created with password:', rootPassword);
+  } else if (process.env.ROOT_PASSWORD) {
+    const rootPassHash = hashPassword(process.env.ROOT_PASSWORD);
+    await dbDriver.run(
+      isPg
+        ? "UPDATE admin_users SET password_hash = $1 WHERE username = 'root'"
+        : "UPDATE admin_users SET password_hash = ? WHERE username = 'root'",
+      [rootPassHash]
+    );
+    console.log('[DB] Root account password updated from ROOT_PASSWORD environment variable.');
   }
 
   // Default tenant admin — keeps the existing password so the current login keeps working
