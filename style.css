@@ -2517,3 +2517,237 @@ body.theme-bw .topbar:not(.scrolled) .lang-toggle-btn {
   background: rgba(255, 255, 255, 0.15);
   border-color: rgba(255, 255, 255, 0.3);
 }
+
+/* ── COMPREHENSIVE LIGHT THEME CONTRAST & ACCESSIBILITY OVERRIDES ── */
+body.theme-bw label,
+body.theme-bw #rezervasyon label,
+body.theme-bw .co-field label {
+  color: #0a0a0b !important;
+  font-weight: 700 !important;
+}
+
+body.theme-bw .co-field label .opt {
+  color: #565c69 !important;
+}
+
+body.theme-bw .co-input,
+body.theme-bw #rezervasyon input,
+body.theme-bw #rezervasyon select,
+body.theme-bw #rezervasyon textarea {
+  background: #FFFFFF !important;
+  border-color: rgba(15,18,25, 0.15) !important;
+  color: #0a0a0b !important;
+}
+
+body.theme-bw .co-input:focus,
+body.theme-bw #rezervasyon input:focus,
+body.theme-bw #rezervasyon select:focus,
+body.theme-bw #rezervasyon textarea:focus {
+  border-color: #0a0a0b !important;
+}
+
+body.theme-bw .checkout-card,
+body.theme-bw .dt-card,
+body.theme-bw .custom-popup-card {
+  background: #FFFFFF !important;
+  color: #0a0a0b !important;
+  border: 1px solid rgba(15,18,25, 0.12) !important;
+}
+
+body.theme-bw .checkout-head h3,
+body.theme-bw .checkout-head svg,
+body.theme-bw .dt-head h3,
+body.theme-bw .dt-head button,
+body.theme-bw .custom-popup-title,
+body.theme-bw .custom-popup-message {
+  color: #0a0a0b !important;
+}
+
+body.theme-bw .checkout-back,
+body.theme-bw .dt-head button {
+  background: rgba(15,18,25, 0.06) !important;
+  color: #0a0a0b !important;
+}
+
+body.theme-bw .co-pay {
+  background: #f4f5f7 !important;
+  border-color: rgba(15,18,25, 0.15) !important;
+  color: #0a0a0b !important;
+}
+
+body.theme-bw .co-pay:has(input:checked) {
+  border-color: #0a0a0b !important;
+  background: rgba(15,18,25, 0.06) !important;
+}
+
+body.theme-bw .co-pay input {
+  accent-color: #0a0a0b !important;
+}
+
+body.theme-bw .checkout-order-summary {
+  background: #f4f5f7 !important;
+  border-color: rgba(15,18,25, 0.12) !important;
+}
+
+body.theme-bw .co-sum-row {
+  color: #565c69 !important;
+}
+
+body.theme-bw .co-sum-row.co-sum-total {
+  color: #0a0a0b !important;
+  border-top-color: rgba(15,18,25, 0.15) !important;
+}
+
+body.theme-bw .dt-status {
+  color: #0a0a0b !important;
+  font-weight: 800 !important;
+}
+
+body.theme-bw .dt-bar {
+  background: rgba(15,18,25, 0.1) !important;
+}
+
+body.theme-bw .dt-fill {
+  background: #0a0a0b !important;
+}
+
+body.theme-bw .dt-steps {
+  color: #565c69 !important;
+}
+
+body.theme-bw .dt-step.done {
+  color: #0a0a0b !important;
+  font-weight: 800 !important;
+}
+
+body.theme-bw .dt-neworder {
+  background: #0a0a0b !important;
+  color: #ffffff !important;
+}
+
+body.theme-bw .dt-neworder:hover {
+  background: #222222 !important;
+  color: #ffffff !important;
+}
+
+body.theme-bw .cart-drawer {
+  background: #FFFFFF !important;
+  color: #0a0a0b !important;
+}
+
+body.theme-bw .cart-drawer-head h3,
+body.theme-bw .cart-drawer-head svg {
+  color: #0a0a0b !important;
+}
+
+body.theme-bw .cart-drawer-close {
+  background: rgba(15,18,25, 0.06) !important;
+  color: #0a0a0b !important;
+}
+
+body.theme-bw .cart-empty p,
+body.theme-bw .cart-empty span {
+  color: #565c69 !important;
+}
+
+body.theme-bw .cart-item {
+  background: #f4f5f7 !important;
+  border-color: rgba(15,18,25, 0.1) !important;
+}
+
+body.theme-bw .cart-item-name,
+body.theme-bw .cart-item-price {
+  color: #0a0a0b !important;
+}
+
+body.theme-bw .qty-ctrl {
+  background: rgba(15,18,25, 0.08) !important;
+}
+
+body.theme-bw .qty-ctrl button,
+body.theme-bw .qty-ctrl span {
+  color: #0a0a0b !important;
+}
+
+body.theme-bw .cart-summary {
+  background: #FFFFFF !important;
+  border-top-color: rgba(15,18,25, 0.1) !important;
+}
+
+body.theme-bw .cart-row {
+  color: #565c69 !important;
+}
+
+body.theme-bw .cart-row.cart-total {
+  color: #0a0a0b !important;
+  border-top-color: rgba(15,18,25, 0.15) !important;
+}
+
+body.theme-bw .cart-clear-btn {
+  border-color: rgba(15,18,25, 0.15) !important;
+  color: #565c69 !important;
+}
+
+body.theme-bw .dk-toast {
+  background: #FFFFFF !important;
+  color: #0a0a0b !important;
+  border-color: rgba(15,18,25, 0.15) !important;
+  box-shadow: 0 8px 26px rgba(0,0,0, 0.15) !important;
+}
+
+body.theme-bw .bnav-item.active,
+body.theme-bw .bnav-item:hover {
+  color: #0a0a0b !important;
+  font-weight: 800 !important;
+}
+
+body.theme-bw .chip {
+  background: #f4f5f7 !important;
+  border-color: rgba(15,18,25, 0.15) !important;
+  color: #565c69 !important;
+}
+
+body.theme-bw .chip.active {
+  background: #0a0a0b !important;
+  color: #ffffff !important;
+  border-color: #0a0a0b !important;
+}
+
+body.theme-bw .custom-select-option.active {
+  background: #0a0a0b !important;
+  color: #ffffff !important;
+}
+
+body.theme-bw .pax-btn {
+  background: #f4f5f7 !important;
+  border-color: rgba(15,18,25, 0.15) !important;
+  color: #565c69 !important;
+}
+
+body.theme-bw .pax-btn.active {
+  background: #0a0a0b !important;
+  color: #ffffff !important;
+  border-color: #0a0a0b !important;
+}
+
+body.theme-bw .btn-main,
+body.theme-bw .order-cta .btn-main,
+body.theme-bw .bnav-cta {
+  background: #0a0a0b !important;
+  color: #ffffff !important;
+}
+
+body.theme-bw .dinein-badge {
+  background: #0a0a0b !important;
+  color: #ffffff !important;
+}
+
+body.theme-bw .dinein-actions {
+  background: rgba(255,255,255, 0.95) !important;
+  border-color: rgba(15,18,25, 0.15) !important;
+}
+
+body.theme-bw .dinein-actions button.primary {
+  background: #0a0a0b !important;
+  color: #ffffff !important;
+}
