@@ -2022,13 +2022,14 @@ body.theme-bw .admin-file-upload-btn {
 }
 .phone-notification-card {
   margin: 12px;
-  background: rgba(255, 255, 255, 0.85);
+  background: rgba(24, 24, 28, 0.95);
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: 20px;
   padding: 16px;
-  color: #1a1a1a;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  color: #f4f4f6;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.4);
   animation: slideInNotif 0.5s cubic-bezier(0.16, 1, 0.3, 1);
 }
 @keyframes slideInNotif {
@@ -2041,7 +2042,7 @@ body.theme-bw .admin-file-upload-btn {
   gap: 8px;
   font-size: 0.7rem;
   margin-bottom: 8px;
-  color: #444;
+  color: #a6a6b0;
 }
 .phone-notif-header img {
   width: 18px;
@@ -2055,10 +2056,12 @@ body.theme-bw .admin-file-upload-btn {
   font-weight: 800;
   font-size: 0.9rem;
   margin-bottom: 2px;
+  color: #ffffff;
 }
 .phone-notif-body {
   font-size: 0.8rem;
   line-height: 1.4;
+  color: #d1d1d6;
 }
 .phone-notif-icon-small {
   width: 44px;
@@ -2086,11 +2089,30 @@ body.theme-bw .admin-file-upload-btn {
   margin-top: 12px;
   padding: 8px;
   text-align: center;
-  background: rgba(0,0,0,0.05);
+  background: rgba(255, 255, 255, 0.1);
   border-radius: 10px;
   font-weight: 700;
   font-size: 0.75rem;
-  color: #1a1a1a;
+  color: #ffffff;
+}
+
+body.theme-bw .phone-notification-card {
+  background: rgba(255, 255, 255, 0.95) !important;
+  border: 1px solid rgba(15, 18, 25, 0.12) !important;
+  color: #0a0a0b !important;
+}
+body.theme-bw .phone-notif-header {
+  color: #565c69 !important;
+}
+body.theme-bw .phone-notif-title {
+  color: #0a0a0b !important;
+}
+body.theme-bw .phone-notif-body {
+  color: #15171c !important;
+}
+body.theme-bw .phone-notif-action-btn {
+  background: rgba(15, 18, 25, 0.06) !important;
+  color: #0a0a0b !important;
 }
 .push-history-card {
   background: rgba(244,244,246, 0.02);
