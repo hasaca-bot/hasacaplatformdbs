@@ -218,6 +218,12 @@ body.theme-bw .detail-title-row h3 {
 body.theme-bw .detail-desc {
   color: var(--muted);
 }
+body.theme-bw .food-card-price,
+body.theme-bw .menu-row-price,
+body.theme-bw .cart-item-price,
+body.theme-bw .detail-price {
+  color: #0a0a0b !important;
+}
 body.theme-bw .detail-tab-btn {
   color: var(--muted);
 }
@@ -225,7 +231,11 @@ body.theme-bw .detail-tab-btn:hover {
   color: var(--cream);
 }
 body.theme-bw .detail-tab-btn.active {
-  color: var(--ember);
+  color: #0a0a0b !important;
+  font-weight: 800 !important;
+}
+body.theme-bw .detail-tab-indicator {
+  background: #0a0a0b !important;
 }
 body.theme-bw .detail-tabs {
   border-bottom-color: rgba(15,18,25, 0.1);
@@ -2468,6 +2478,35 @@ body.theme-bw .lang-toggle-btn {
   background: rgba(15,18,25, 0.04);
   border-color: rgba(15,18,25, 0.12);
   color: var(--cream);
+}
+
+/* ── LIGHT THEME OVERRIDES ── */
+body.theme-bw .food-card-price,
+body.theme-bw .menu-row-price,
+body.theme-bw .cart-item-price,
+body.theme-bw .detail-price {
+  color: #0a0a0b !important;
+}
+body.theme-bw .cart-fab-badge {
+  background: #0a0a0b !important;
+  color: #ffffff !important;
+  border-color: #ffffff !important;
+}
+body.theme-bw .detail-tab-btn.active {
+  color: #0a0a0b !important;
+  font-weight: 800 !important;
+}
+body.theme-bw .detail-tab-indicator {
+  background: #0a0a0b !important;
+}
+body.theme-bw .allergen-badge-btn.active {
+  background: rgba(15, 18, 25, 0.08) !important;
+  border-color: #0a0a0b !important;
+  color: #0a0a0b !important;
+}
+body.theme-bw .allergen-badge-btn.active .badge-status-dot {
+  background: #0a0a0b !important;
+  box-shadow: 0 0 6px rgba(0,0,0,0.2) !important;
 }
 body.theme-bw .lang-toggle-btn:hover {
   background: rgba(255,255,255, 0.08);

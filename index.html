@@ -388,6 +388,12 @@ body.theme-bw .detail-title-row h3 {
 body.theme-bw .detail-desc {
   color: var(--muted);
 }
+body.theme-bw .food-card-price,
+body.theme-bw .menu-row-price,
+body.theme-bw .cart-item-price,
+body.theme-bw .detail-price {
+  color: #0a0a0b !important;
+}
 body.theme-bw .detail-tab-btn {
   color: var(--muted);
 }
@@ -395,7 +401,11 @@ body.theme-bw .detail-tab-btn:hover {
   color: var(--cream);
 }
 body.theme-bw .detail-tab-btn.active {
-  color: var(--ember);
+  color: #0a0a0b !important;
+  font-weight: 800 !important;
+}
+body.theme-bw .detail-tab-indicator {
+  background: #0a0a0b !important;
 }
 body.theme-bw .detail-tabs {
   border-bottom-color: rgba(15,18,25, 0.1);
@@ -1893,9 +1903,13 @@ body.theme-bw .allergen-badge-btn .badge-status-dot {
   color: var(--bad);
 }
 body.theme-bw .allergen-badge-btn.active {
-  background: rgba(var(--fire-rgb), 0.06);
-  border-color: rgba(var(--fire-rgb), 0.25);
-  color: var(--fire);
+  background: rgba(15, 18, 25, 0.08) !important;
+  border-color: #0a0a0b !important;
+  color: #0a0a0b !important;
+}
+body.theme-bw .allergen-badge-btn.active .badge-status-dot {
+  background: #0a0a0b !important;
+  box-shadow: 0 0 6px rgba(0,0,0,0.2) !important;
 }
 .allergen-badge-btn.active .badge-status-dot {
   background:var(--fire);color:var(--fire-text);
@@ -6216,7 +6230,7 @@ window.addEventListener('appinstalled', () => {
     border-radius:11px; background:var(--gold); color:#18181c; font-weight:800; font-size:.78rem;
     display:flex; align-items:center; justify-content:center; border:2px solid var(--dark);
   }
-  body.theme-bw .cart-fab-badge{ border-color:#fff; }
+  body.theme-bw .cart-fab-badge{ background:#0a0a0b !important; color:#ffffff !important; border-color:#ffffff !important; }
   @media(min-width:768px){ .cart-fab{ right:28px; bottom:calc(28px + var(--safe-bottom)); width:64px; height:64px; } }
 
   /* Cart drawer + backdrop */
