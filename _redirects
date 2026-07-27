@@ -6,6 +6,7 @@
 /root        /root.html        200
 /admin       /admin.html       200
 /menu        /index.html       200
+/tenant/*    /index.html       200
 /login       /login.html       200
 /giris       /login.html       200
 /root-girisi /login.html       200

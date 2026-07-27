@@ -2974,7 +2974,7 @@ body.theme-bw .rez-select-trigger:hover {
 
       <div class="nav-group">
         <div class="lbl" data-i18n="admin_nav_grp_site">Web Sitesi</div>
-        <a class="nav-item" id="adminViewSiteLink" href="/" target="_blank" rel="noopener">
+        <a class="nav-item" id="adminViewSiteLink" href="/menu" target="_blank" rel="noopener">
           <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg></span>
           <span class="lbl" data-i18n="admin_nav_view_site">Siteyi Görüntüle</span>
         </a>
@@ -5950,10 +5950,20 @@ function openAdminPanel() {
     // Phase 25.2: refresh the notification-preview brand slot as soon as tenant config lands,
     // so the mock header shows the tenant's real name/logo even before the Bildirim view opens.
     if (typeof updatePushPreview === 'function') { try { updatePushPreview(); } catch(e){} }
-    // Phase 31: "/" no longer automatically shows a tenant's site on a bare host — point View Site
-    // at this tenant explicitly so it keeps opening the right site regardless of host/theme.
     const viewSiteLink = document.getElementById('adminViewSiteLink');
-    if (viewSiteLink && cfg && cfg.id) viewSiteLink.href = '/tenant/' + encodeURIComponent(cfg.id);
+    if (viewSiteLink) {
+      const slug = (cfg && cfg.id) || new URLSearchParams(window.location.search).get('tenant') || '';
+      const loc = window.location;
+      if (!slug) {
+        viewSiteLink.href = '/menu';
+      } else if (loc.hostname === 'localhost' || loc.hostname === '127.0.0.1' || loc.hostname.endsWith('netlify.app') || loc.hostname.endsWith('onrender.com')) {
+        viewSiteLink.href = '/menu?tenant=' + encodeURIComponent(slug);
+      } else {
+        const parts = loc.hostname.split('.');
+        const base = parts.length > 2 ? parts.slice(1).join('.') : loc.hostname;
+        viewSiteLink.href = loc.protocol + '//' + encodeURIComponent(slug) + '.' + base + (loc.port ? ':' + loc.port : '');
+      }
+    }
   }).catch(() => {});
 }
 
