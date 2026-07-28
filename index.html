@@ -7004,14 +7004,7 @@ function dkRenderDineinActions(){
 }
 
 async function dkCallService(type){
-  if (!window.dkDineinToken) {
-    const msg = (window.currentLanguage === 'en')
-      ? 'Please scan a table QR code or select a table first.'
-      : 'Lütfen masadaki QR kodu okutun veya masa seçin.';
-    if (typeof dkToast === 'function') dkToast(msg);
-    else alert(msg);
-    return;
-  }
+  if (!window.dkDineinToken) return;
   try {
     const res = await fetch('/api/t/' + window.dkDineinToken + '/service', { method:'POST', headers:{ 'Content-Type':'application/json' }, body: JSON.stringify({ type }) });
     if (!res.ok) throw new Error();
