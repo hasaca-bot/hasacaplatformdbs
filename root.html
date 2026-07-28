@@ -1269,11 +1269,23 @@ async function openDetailModal(slug){
 
 // ── actions ──
 async function impersonate(slug){
+  // Open the window synchronously (in the click handler) before any await.
+  // Modern browsers block window.open() called after an await as an unsolicited popup.
+  const win = window.open('about:blank', '_blank');
   try {
     const res = await rootFetch('/api/root/tenants/' + slug + '/impersonate', { method: 'POST' });
     const data = await res.json();
-    window.open(tenantAdminUrl(slug, data.token), '_blank');
-  } catch(e){ toast(T('root_err')); }
+    if (!res.ok) throw new Error(data.error || T('root_err'));
+    const targetUrl = tenantAdminUrl(slug, data.token);
+    if (win) {
+      win.location.href = targetUrl;
+    } else {
+      window.location.href = targetUrl; // fallback if popup was blocked despite best effort
+    }
+  } catch(e) {
+    if (win) win.close();
+    toast(e.message || T('root_err'));
+  }
 }
 async function toggleStatus(slug, current){
   if (current === 'active' && !confirm(T('root_confirm_disable'))) return;

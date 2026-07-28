@@ -1000,8 +1000,14 @@ function adminAuth(req, res, next) {
   if (!payload) {
     return res.status(401).json({ error: 'Unauthorized: Admin authentication required.' });
   }
-  if (payload.role !== 'root' && payload.tenant_id !== req.tenantId) {
-    return res.status(401).json({ error: 'Unauthorized: wrong tenant.' });
+  if (payload.role !== 'root') {
+    // On single-domain deployments (Netlify/Render) the host always resolves to 'default'.
+    // If the JWT carries a specific tenant_id, trust it over the host-derived default.
+    if (payload.tenant_id && (req.tenantId === 'default' || !req.tenantId)) {
+      req.tenantId = payload.tenant_id;
+    } else if (payload.tenant_id && payload.tenant_id !== req.tenantId) {
+      return res.status(401).json({ error: 'Unauthorized: wrong tenant.' });
+    }
   }
   req.auth = payload;
   next();
