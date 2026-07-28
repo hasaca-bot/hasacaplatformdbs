@@ -6930,7 +6930,7 @@ async function placeOrder(){
     }
   } catch(err){
     console.error('[ORDER] placeOrder failed:', err);
-    msg.style.display = 'block'; msg.className = 'checkout-msg error'; msg.textContent = dkT('co_error');
+    msg.style.display = 'block'; msg.className = 'checkout-msg error'; msg.textContent = (err && err.message) || dkT('co_error');
   } finally {
     dkSubmitting = false;
     btn.disabled = false;
@@ -6953,16 +6953,24 @@ if (document.readyState === 'loading') document.addEventListener('DOMContentLoad
 else refreshCartUI();
 
 // ===================== QR TABLE ORDERING (dine-in) =====================
-// Activated when the page is opened via /t/<token> (a scanned table QR).
+// Activated when the page is opened via /t/<token> or ?table=<token> (a scanned table QR).
 window.dkDineinToken = null;
 window.dkDineinTable = null;
 
 async function dkInitDinein(){
-  const m = /^\/t\/([A-Za-z0-9]+)/.exec(window.location.pathname);
-  if (!m) return;
-  const token = m[1];
+  let token = '';
+  const m = /^\/t\/([A-Za-z0-9_-]+)/.exec(window.location.pathname);
+  if (m) {
+    token = m[1];
+  } else {
+    try {
+      const sp = new URLSearchParams(window.location.search);
+      token = sp.get('table') || sp.get('table_token') || sp.get('t') || '';
+    } catch(e){}
+  }
+  if (!token) return;
   try {
-    const res = await fetch('/api/t/' + token + '/context');
+    const res = await fetch('/api/t/' + encodeURIComponent(token) + '/context');
     if (!res.ok) return; // invalid/foreign token -> behaves like the normal site
     const ctx = await res.json();
     window.dkDineinToken = ctx.token;
