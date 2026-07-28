@@ -6962,7 +6962,8 @@ async function dkInitDinein(){
   if (!m) return;
   const token = m[1];
   try {
-    const res = await fetch('/api/t/' + token + '/context');
+    const apiBase = window.API_BASE || '';
+    const res = await fetch(apiBase + '/api/t/' + token + '/context');
     if (!res.ok) return; // invalid/foreign token -> behaves like the normal site
     const ctx = await res.json();
     window.dkDineinToken = ctx.token;
@@ -7004,12 +7005,25 @@ function dkRenderDineinActions(){
 }
 
 async function dkCallService(type){
-  if (!window.dkDineinToken) return;
+  if (!window.dkDineinToken) {
+    const msg = (window.currentLanguage === 'en')
+      ? 'Please scan the table QR code first.'
+      : 'Lütfen masa QR kodunu okutun.';
+    if (typeof dkToast === 'function') dkToast(msg);
+    return;
+  }
   try {
-    const res = await fetch('/api/t/' + window.dkDineinToken + '/service', { method:'POST', headers:{ 'Content-Type':'application/json' }, body: JSON.stringify({ type }) });
+    const apiBase = window.API_BASE || '';
+    const res = await fetch(apiBase + '/api/t/' + window.dkDineinToken + '/service', {
+      method:'POST',
+      headers:{ 'Content-Type':'application/json' },
+      body: JSON.stringify({ type })
+    });
     if (!res.ok) throw new Error();
     dkToast(dkT(type === 'bill' ? 'dinein_bill_requested' : 'dinein_waiter_called'));
-  } catch(e){ dkToast(dkT('co_error')); }
+  } catch(e){
+    dkToast(window.currentLanguage === 'en' ? 'Request failed. Please try again.' : 'İstek gönderilemedi. Tekrar deneyin.');
+  }
 }
 
 // ── Live order tracking (SSE, no page refresh) ──

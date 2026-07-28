@@ -196,14 +196,15 @@ module.exports = function createTablesRouter({ db, isPg, events, adminAuth, rate
   // ---------- CUSTOMER TABLE CONTEXT (public) ----------
 
   // GET /api/t/:token/context — resolve the scanned table within the current tenant.
-  // Cross-tenant isolation: the token must belong to the tenant resolved from the host/override.
+  // On single-domain deployments (Netlify) req.tenantId may be 'default';
+  // we look up the table by token alone and derive the real tenant from it.
   router.get('/t/:token/context', async (req, res) => {
     try {
       const t = await db.get(
-        `SELECT * FROM tables WHERE token = ${P(1)} AND tenant_id = ${P(2)}`, [req.params.token, req.tenantId]
+        `SELECT * FROM tables WHERE token = ${P(1)}`, [req.params.token]
       );
       if (!t || !(t.active === 1 || t.active === true)) return res.status(404).json({ error: 'Table not found' });
-      res.json({ tenant_id: req.tenantId, table_id: t.id, table_name: t.name, token: t.token });
+      res.json({ tenant_id: t.tenant_id, table_id: t.id, table_name: t.name, token: t.token });
     } catch (err) {
       console.error('[API ERROR] GET /api/t/:token/context:', err);
       res.status(500).json({ error: err.message });
@@ -211,18 +212,20 @@ module.exports = function createTablesRouter({ db, isPg, events, adminAuth, rate
   });
 
   // POST /api/t/:token/service — customer calls waiter / requests bill
+  // On single-domain deployments the table token is globally unique; derive tenant from table.
   router.post('/t/:token/service', rateLimiter(20), async (req, res) => {
     try {
       const type = (req.body && req.body.type) === 'bill' ? 'bill' : 'waiter';
       const t = await db.get(
-        `SELECT * FROM tables WHERE token = ${P(1)} AND tenant_id = ${P(2)}`, [req.params.token, req.tenantId]
+        `SELECT * FROM tables WHERE token = ${P(1)}`, [req.params.token]
       );
       if (!t) return res.status(404).json({ error: 'Table not found' });
+      const tenantId = t.tenant_id; // always correct, regardless of host
 
       // Collapse duplicate open requests of the same type for the same table
       const open = await db.get(
         `SELECT id FROM service_requests WHERE tenant_id = ${P(1)} AND table_id = ${P(2)} AND type = ${P(3)} AND status = 'open'`,
-        [req.tenantId, t.id, type]
+        [tenantId, t.id, type]
       );
       if (open) return res.json({ success: true, deduped: true });
 
@@ -230,9 +233,9 @@ module.exports = function createTablesRouter({ db, isPg, events, adminAuth, rate
       await db.run(
         `INSERT INTO service_requests (id, tenant_id, table_id, type, status, created_at)
          VALUES (${P(1)},${P(2)},${P(3)},${P(4)},'open',${P(5)})`,
-        [id, req.tenantId, t.id, type, now()]
+        [id, tenantId, t.id, type, now()]
       );
-      events.publishToAdmin(req.tenantId, 'service_request', { id, table_id: t.id, table_name: t.name, type, created_at: now() });
+      events.publishToAdmin(tenantId, 'service_request', { id, table_id: t.id, table_name: t.name, type, created_at: now() });
       res.status(201).json({ success: true, id });
     } catch (err) {
       console.error('[API ERROR] POST /api/t/:token/service:', err);

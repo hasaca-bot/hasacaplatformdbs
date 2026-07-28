@@ -660,7 +660,6 @@ const DINEIN_STATUSES = ['received', 'preparing', 'ready', 'serving', 'delivered
 app.post('/api/orders', rateLimiter(30), async (req, res) => {
   try {
     const body = req.body || {};
-    const tenantId = req.tenantId;
 
     const customer_name = String(body.name || '').trim();
     const phone = String(body.phone || '').trim();
@@ -676,13 +675,17 @@ app.post('/api/orders', rateLimiter(30), async (req, res) => {
     // ── Dine-in (QR table) vs delivery ──
     // A valid table_token turns this into a dine-in order: no address is required,
     // the table is resolved server-side, and the status uses the dine-in workflow.
+    // IMPORTANT: On single-domain deployments (Netlify) req.tenantId may be 'default'.
+    // For dine-in, we look up the table by token alone and derive the tenant from it.
     let orderType = 'delivery';
     let tableId = null;
     let tableName = null;
+    let effectiveTenantId = req.tenantId;
     if (body.table_token) {
+      // Look up by token only — the token itself is globally unique (10-char base62)
       const table = await db.get(
-        isPg ? 'SELECT * FROM tables WHERE token = $1 AND tenant_id = $2' : 'SELECT * FROM tables WHERE token = ? AND tenant_id = ?',
-        [String(body.table_token), tenantId]
+        isPg ? 'SELECT * FROM tables WHERE token = $1' : 'SELECT * FROM tables WHERE token = ?',
+        [String(body.table_token)]
       );
       if (!table || !(table.active === 1 || table.active === true)) {
         return res.status(400).json({ error: 'Invalid table' });
@@ -690,6 +693,7 @@ app.post('/api/orders', rateLimiter(30), async (req, res) => {
       orderType = 'dinein';
       tableId = table.id;
       tableName = table.name;
+      effectiveTenantId = table.tenant_id; // always correct, regardless of host
     }
 
     const items = Array.isArray(body.items) ? body.items : [];
@@ -717,8 +721,8 @@ app.post('/api/orders', rateLimiter(30), async (req, res) => {
       if (!productId) continue;
 
       const product = await db.get(
-        isPg ? 'SELECT * FROM products WHERE id = $1' : 'SELECT * FROM products WHERE id = ?',
-        [productId]
+        isPg ? 'SELECT * FROM products WHERE id = $1 AND tenant_id = $2' : 'SELECT * FROM products WHERE id = ? AND tenant_id = ?',
+        [productId, effectiveTenantId]
       );
       if (!product) {
         return res.status(400).json({ error: `Unknown product: ${productId}` });
@@ -754,12 +758,12 @@ app.post('/api/orders', rateLimiter(30), async (req, res) => {
       await db.run(`
         INSERT INTO orders (id, tenant_id, customer_name, phone, address, address_detail, address_notes, order_notes, payment_method, subtotal, tax, delivery_fee, total, status, order_type, table_id, table_name, archived, created_at, updated_at)
         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,0,$18,$19)
-      `, [id, tenantId, customer_name, phone, address, address_detail, address_notes, order_notes, payment_method, subtotal, tax, delivery_fee, total, initialStatus, orderType, tableId, tableName, now, now]);
+      `, [id, effectiveTenantId, customer_name, phone, address, address_detail, address_notes, order_notes, payment_method, subtotal, tax, delivery_fee, total, initialStatus, orderType, tableId, tableName, now, now]);
     } else {
       await db.run(`
         INSERT INTO orders (id, tenant_id, customer_name, phone, address, address_detail, address_notes, order_notes, payment_method, subtotal, tax, delivery_fee, total, status, order_type, table_id, table_name, archived, created_at, updated_at)
         VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,0,?,?)
-      `, [id, tenantId, customer_name, phone, address, address_detail, address_notes, order_notes, payment_method, subtotal, tax, delivery_fee, total, initialStatus, orderType, tableId, tableName, now, now]);
+      `, [id, effectiveTenantId, customer_name, phone, address, address_detail, address_notes, order_notes, payment_method, subtotal, tax, delivery_fee, total, initialStatus, orderType, tableId, tableName, now, now]);
     }
 
     // Insert items; if any fail, roll back the just-created order to avoid an item-less order.
@@ -769,12 +773,12 @@ app.post('/api/orders', rateLimiter(30), async (req, res) => {
           await db.run(`
             INSERT INTO order_items (id, order_id, tenant_id, product_id, product_name, unit_price, quantity, line_total)
             VALUES ($1,$2,$3,$4,$5,$6,$7,$8)
-          `, [it.id, id, tenantId, it.product_id, it.product_name, it.unit_price, it.quantity, it.line_total]);
+          `, [it.id, id, effectiveTenantId, it.product_id, it.product_name, it.unit_price, it.quantity, it.line_total]);
         } else {
           await db.run(`
             INSERT INTO order_items (id, order_id, tenant_id, product_id, product_name, unit_price, quantity, line_total)
             VALUES (?,?,?,?,?,?,?,?)
-          `, [it.id, id, tenantId, it.product_id, it.product_name, it.unit_price, it.quantity, it.line_total]);
+          `, [it.id, id, effectiveTenantId, it.product_id, it.product_name, it.unit_price, it.quantity, it.line_total]);
         }
       }
     } catch (itemErr) {
@@ -787,7 +791,7 @@ app.post('/api/orders', rateLimiter(30), async (req, res) => {
     const itemRows = await db.all(isPg ? 'SELECT * FROM order_items WHERE order_id = $1' : 'SELECT * FROM order_items WHERE order_id = ?', [id]);
     const mapped = mapOrderRow(orderRow, itemRows);
     // Notify the admin dashboard in real time (both delivery and dine-in).
-    platformEvents.publishToAdmin(tenantId, 'order_new', mapped);
+    platformEvents.publishToAdmin(effectiveTenantId, 'order_new', mapped);
     res.status(201).json(mapped);
   } catch (err) {
     console.error('[API ERROR] POST /api/orders:', err);
