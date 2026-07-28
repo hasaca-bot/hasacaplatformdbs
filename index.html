@@ -6604,12 +6604,21 @@ window.addEventListener('appinstalled', () => {
   }
   .dinein-badge b{ font-weight:800; }
   .dinein-actions{
-    position:fixed; left:0; right:0; bottom:0; z-index:var(--z-dinein-actions); display:flex; gap:8px;
+    position:fixed; left:0; right:0; bottom:0; z-index:10000 !important; display:flex; gap:8px;
     padding:10px 12px calc(10px + var(--safe-bottom)); background:var(--cart-surface);
     border-top:1px solid var(--cart-line); box-shadow:0 -6px 20px rgba(0,0,0,.25);
+    border-radius:20px 20px 0 0;
   }
   /* dine-in has its own bottom action bar → hide the browsing dock to avoid a double bottom bar */
-  body.dinein-mode .bottom-nav{ display:none !important; }
+  body.dinein-mode .bottom-nav,
+  body.dinein-mode .bnav-item,
+  #dineinActions ~ .bottom-nav,
+  body:has(#dineinActions) .bottom-nav {
+    display:none !important;
+    visibility:hidden !important;
+    opacity:0 !important;
+    pointer-events:none !important;
+  }
   .dinein-actions button{
     flex:1; display:flex; flex-direction:column; align-items:center; gap:3px; padding:9px 4px;
     background:var(--cart-chip); border:1px solid var(--cart-line); color:var(--cart-text);
@@ -7000,6 +7009,7 @@ function dkRenderTableBadge(){
 
 function dkRenderDineinActions(){
   if (document.getElementById('dineinActions')) return;
+  document.body.classList.add('dinein-mode');
   const bar = document.createElement('div');
   bar.id = 'dineinActions';
   bar.className = 'dinein-actions';

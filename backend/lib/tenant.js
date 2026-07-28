@@ -71,13 +71,14 @@ function errorPageHtml(titleTr, titleEn, bodyTr, bodyEn) {
 
 // Factory: bind to the shared db driver + dialect flag from server.js
 function createTenantResolver(db, isPg) {
-  const allowQueryOverride = !process.env.DATABASE_URL; // local dev only
-
   async function resolveTenant(req, res, next) {
     try {
       let slug = slugFromHost(req.headers['x-forwarded-host'] || req.headers.host);
-      if (allowQueryOverride && req.query && typeof req.query.tenant === 'string' && req.query.tenant) {
+      // Query param or header override (essential for single-domain deployments like Netlify/Render)
+      if (req.query && typeof req.query.tenant === 'string' && req.query.tenant) {
         slug = req.query.tenant.toLowerCase();
+      } else if (req.headers && req.headers['x-tenant-id']) {
+        slug = String(req.headers['x-tenant-id']).toLowerCase();
       }
 
       let tenant = cacheGet(slug);

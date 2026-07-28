@@ -1000,8 +1000,12 @@ function adminAuth(req, res, next) {
   if (!payload) {
     return res.status(401).json({ error: 'Unauthorized: Admin authentication required.' });
   }
-  if (payload.role !== 'root' && payload.tenant_id !== req.tenantId) {
-    return res.status(401).json({ error: 'Unauthorized: wrong tenant.' });
+  if (payload.role !== 'root') {
+    if (payload.tenant_id && (req.tenantId === 'default' || !req.tenantId)) {
+      req.tenantId = payload.tenant_id;
+    } else if (payload.tenant_id && payload.tenant_id !== req.tenantId) {
+      return res.status(401).json({ error: 'Unauthorized: wrong tenant.' });
+    }
   }
   req.auth = payload;
   next();
