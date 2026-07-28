@@ -98,7 +98,7 @@ app.use((req, res, next) => {
 
 // Health check endpoint for zero-downtime deployment monitoring
 app.get('/api/health', (req, res) => {
-  res.json({ status: 'ok', timestamp: new Date().toISOString(), db: process.env.DATABASE_URL ? 'postgresql' : 'sqlite' });
+  res.json({ status: 'ok', timestamp: new Date().toISOString(), db: process.env.DATABASE_URL ? 'postgresql' : 'sqlite', version: '2026-07-28-tenant-fix' });
 });
 
 
