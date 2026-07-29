@@ -6977,10 +6977,21 @@ async function dkInitDinein(){
     const apiBase = window.API_BASE || '';
     // Pass tenant param so both new and old backend can resolve the table correctly
     const tenantSuffix = window.__devTenant ? '?tenant=' + encodeURIComponent(window.__devTenant) : '';
-    const res = await fetch(apiBase + '/api/t/' + token + '/context' + tenantSuffix);
-    if (!res.ok) {
-      // Invalid/unknown token — load menu without dine-in mode
+    // Retry up to 3 times to handle Render cold-start delays (~30-60s on free tier)
+    let res;
+    for (let attempt = 0; attempt < 3; attempt++) {
+      try {
+        res = await fetch(apiBase + '/api/t/' + token + '/context' + tenantSuffix);
+        if (res.ok) break;
+      } catch (fetchErr) {
+        console.warn('[DINEIN] context fetch attempt', attempt + 1, 'failed:', fetchErr.message);
+      }
+      if (attempt < 2) await new Promise(r => setTimeout(r, 3000));
+    }
+    if (!res || !res.ok) {
+      // Invalid/unknown token — load menu & branding without dine-in mode
       loadMenuDatabase();
+      applySiteConfig();
       return;
     }
     const ctx = await res.json();
@@ -6993,8 +7004,9 @@ async function dkInitDinein(){
     document.body.classList.add('dinein-mode');
     dkRenderTableBadge();
     dkRenderDineinActions();
-    // Now that __devTenant is set, load the menu with the correct tenant
+    // Now that __devTenant is set, load the menu AND branding with the correct tenant
     loadMenuDatabase();
+    applySiteConfig();
     // Dine-in checkout does not collect an address — hide those fields.
     ['coName','coPhone','coAddress'].forEach(id => {
       const el = document.getElementById(id); if (el && el.closest('.co-field')) el.closest('.co-field').style.display = 'none';
@@ -7005,10 +7017,12 @@ async function dkInitDinein(){
     const payGroup = document.querySelector('.co-pay-group'); if (payGroup && payGroup.closest('.co-field')) payGroup.closest('.co-field').style.display = 'none';
   } catch(e){
     console.error('[DINEIN] init failed', e);
-    // On any error, still load the menu so the page isn't blank
-    if (window.__dkDeferMenuLoad) loadMenuDatabase();
+    // On any error, still load the menu & branding so the page isn't blank
+    loadMenuDatabase();
+    applySiteConfig();
   }
 }
+
 
 function dkRenderTableBadge(){
   if (document.getElementById('dineinTableBadge')) return;
@@ -7267,8 +7281,13 @@ async function applySiteConfig() {
     console.error('[SITE-CONFIG] Failed to apply tenant branding:', e);
   }
 }
-if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', applySiteConfig);
-else applySiteConfig();
+// On /t/ QR paths, applySiteConfig is deferred to dkInitDinein() which sets __devTenant first.
+if (/^\/t\/[A-Za-z0-9]/.test(window.location.pathname)) {
+  // dkInitDinein() will call applySiteConfig() after resolving the tenant
+} else {
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', applySiteConfig);
+  else applySiteConfig();
+}
 </script>
 </body>
 </html>
