@@ -4939,7 +4939,14 @@ function handleDeepLink() {
 window.addEventListener('hashchange', handleDeepLink);
 
 // Initial database loading
-loadMenuDatabase();
+// On /t/:token QR paths we wait for dkInitDinein() to resolve the tenant first.
+// On all other paths we load immediately.
+if (/^\/t\/[A-Za-z0-9]/.test(window.location.pathname)) {
+  // dkInitDinein() will call loadMenuDatabase() once __devTenant is known
+  window.__dkDeferMenuLoad = true;
+} else {
+  loadMenuDatabase();
+}
 
 // Dropdown toggle
 function toggleCategoryDropdown(event) {
@@ -6971,7 +6978,11 @@ async function dkInitDinein(){
     // Pass tenant param so both new and old backend can resolve the table correctly
     const tenantSuffix = window.__devTenant ? '?tenant=' + encodeURIComponent(window.__devTenant) : '';
     const res = await fetch(apiBase + '/api/t/' + token + '/context' + tenantSuffix);
-    if (!res.ok) return; // invalid/foreign token -> behaves like the normal site
+    if (!res.ok) {
+      // Invalid/unknown token — load menu without dine-in mode
+      loadMenuDatabase();
+      return;
+    }
     const ctx = await res.json();
     window.dkDineinToken = ctx.token;
     window.dkDineinTable = ctx.table_name;
@@ -6982,6 +6993,8 @@ async function dkInitDinein(){
     document.body.classList.add('dinein-mode');
     dkRenderTableBadge();
     dkRenderDineinActions();
+    // Now that __devTenant is set, load the menu with the correct tenant
+    loadMenuDatabase();
     // Dine-in checkout does not collect an address — hide those fields.
     ['coName','coPhone','coAddress'].forEach(id => {
       const el = document.getElementById(id); if (el && el.closest('.co-field')) el.closest('.co-field').style.display = 'none';
@@ -6990,7 +7003,11 @@ async function dkInitDinein(){
       const el = document.getElementById(id); if (el && el.closest('.co-field')) el.closest('.co-field').style.display = 'none';
     });
     const payGroup = document.querySelector('.co-pay-group'); if (payGroup && payGroup.closest('.co-field')) payGroup.closest('.co-field').style.display = 'none';
-  } catch(e){ console.error('[DINEIN] init failed', e); }
+  } catch(e){
+    console.error('[DINEIN] init failed', e);
+    // On any error, still load the menu so the page isn't blank
+    if (window.__dkDeferMenuLoad) loadMenuDatabase();
+  }
 }
 
 function dkRenderTableBadge(){
