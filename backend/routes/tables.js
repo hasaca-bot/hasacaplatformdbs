@@ -23,20 +23,18 @@ module.exports = function createTablesRouter({ db, isPg, events, adminAuth, rate
   }
 
   // Build the customer-facing QR URL for a table.
-  // Production: https://<slug>.<platform>/t/<token>  (host resolves the tenant)
-  // Local dev:  http://<host>/t/<token>?tenant=<slug> (query override resolves the tenant)
+  // Always includes ?tenant= so single-domain deployments (Netlify → Render) route correctly.
   function buildTableUrl(req, tenantId, token) {
     const origin = process.env.PLATFORM_ORIGIN; // e.g. https://hasaca.com
+    const tenantParam = (tenantId && tenantId !== 'default') ? ('?tenant=' + tenantId) : '';
     if (origin) {
-      if (tenantId && tenantId !== 'default') {
-        return origin.replace(/:\/\//, '://' + tenantId + '.') + '/t/' + token;
-      }
-      return origin.replace(/\/+$/, '') + '/t/' + token;
+      // On custom-domain multi-tenant setups the subdomain carries the tenant;
+      // add ?tenant= as well so single-domain proxies also work.
+      return origin.replace(/\/+$/, '') + '/t/' + token + tenantParam;
     }
     const proto = req.headers['x-forwarded-proto'] || req.protocol;
     const host = req.headers['x-forwarded-host'] || req.headers.host;
-    const suffix = (tenantId && tenantId !== 'default') ? ('?tenant=' + tenantId) : '';
-    return `${proto}://${host}/t/${token}${suffix}`;
+    return `${proto}://${host}/t/${token}${tenantParam}`;
   }
 
   // ---------- TABLE MANAGEMENT (admin) ----------
