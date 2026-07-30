@@ -3736,6 +3736,13 @@ body.theme-bw .rez-select-trigger:hover {
 </div>
 
 <script>
+  function safeGetSessItem(key) { try { return safeGetSessItem(key); } catch(e) { return null; } }
+  function safeSetSessItem(key, val) { try { safeSetSessItem(key, val); } catch(e) {} }
+
+  function safeGetItem(key) { try { return safeGetItem(key); } catch(e) { return null; } }
+  function safeSetItem(key, val) { try { safeSetItem(key, val); } catch(e) {} }
+  function safeRemoveItem(key) { try { safeRemoveItem(key); } catch(e) {} }
+
 window.isStandaloneAdmin = true;
 
 // ── API BASE URL CONFIGURATION ──
@@ -3751,12 +3758,12 @@ window.API_BASE = (() => {
 // Admin session token (multi-tenant auth)
 function getAdminToken() {
   // sessionStorage is used when the login page's "Beni hatırla" is unchecked.
-  try { return localStorage.getItem('hasaca_admin_token') || sessionStorage.getItem('hasaca_admin_token') || ''; } catch (e) { return ''; }
+  try { return safeGetItem('hasaca_admin_token') || safeGetSessItem('hasaca_admin_token') || ''; } catch (e) { return ''; }
 }
 function setAdminToken(t) {
   try {
-    if (t) localStorage.setItem('hasaca_admin_token', t);
-    else { localStorage.removeItem('hasaca_admin_token'); sessionStorage.removeItem('hasaca_admin_token'); }
+    if (t) safeSetItem('hasaca_admin_token', t);
+    else { safeRemoveItem('hasaca_admin_token'); sessionStorage.removeItem('hasaca_admin_token'); }
   } catch (e) {}
 }
 
@@ -3798,7 +3805,7 @@ window.__devTenant = (() => {
 
 // Small translation helper: current language → Turkish fallback → the key itself.
 function adminT(key) {
-  const lang = window.currentLanguage || localStorage.getItem('lang') || 'tr';
+  const lang = window.currentLanguage || safeGetItem('lang') || 'tr';
   if (typeof i18nData !== 'undefined') {
     if (i18nData[lang] && i18nData[lang][key] != null) return i18nData[lang][key];
     if (i18nData.tr && i18nData.tr[key] != null) return i18nData.tr[key];
@@ -3811,11 +3818,11 @@ window.adminT = adminT;
 window.menuData = [];
 
 // Global translation system configuration
-let detectedLang = localStorage.getItem('lang');
+let detectedLang = safeGetItem('lang');
 if (!detectedLang) {
   const browserLang = navigator.language || navigator.userLanguage || 'en';
   detectedLang = browserLang.toLowerCase().startsWith('tr') ? 'tr' : 'en';
-  localStorage.setItem('lang', detectedLang);
+  safeSetItem('lang', detectedLang);
 }
 window.currentLanguage = detectedLang;
 
@@ -4557,24 +4564,24 @@ const AP_THEME_MQ = window.matchMedia('(prefers-color-scheme: dark)');
 function apResolveTheme(mode){ return mode === 'system' ? (AP_THEME_MQ.matches ? 'dark' : 'light') : mode; }
 function apApplyThemeAttr(mode){ document.documentElement.setAttribute('data-theme', apResolveTheme(mode)); }
 function apSetTheme(mode){
-  try { localStorage.setItem('hasaca_panel_theme', mode); } catch(e){}
+  try { safeSetItem('hasaca_panel_theme', mode); } catch(e){}
   apApplyThemeAttr(mode);
   document.querySelectorAll('#adminThemeSeg button').forEach(b => b.classList.toggle('on', b.getAttribute('data-theme-mode') === mode));
 }
 function apInitTheme(){
   let mode = 'system';
-  try { mode = localStorage.getItem('hasaca_panel_theme') || 'system'; } catch(e){}
+  try { mode = safeGetItem('hasaca_panel_theme') || 'system'; } catch(e){}
   apSetTheme(mode);
 }
 AP_THEME_MQ.addEventListener('change', () => {
-  let m = 'system'; try { m = localStorage.getItem('hasaca_panel_theme') || 'system'; } catch(e){}
+  let m = 'system'; try { m = safeGetItem('hasaca_panel_theme') || 'system'; } catch(e){}
   if (m === 'system') apApplyThemeAttr('system');
 });
 
 function applyLanguage(lang) {
   window.currentLanguage = lang;
   document.documentElement.lang = lang;
-  localStorage.setItem('lang', lang);
+  safeSetItem('lang', lang);
   document.title = 'My Restaurant';
 
   // Update top bar language button text
@@ -5611,7 +5618,7 @@ function applyTheme(themeName) {
 
 function toggleMonochromeTheme(checkbox) {
   const themeName = checkbox.checked ? 'light' : 'dark';
-  localStorage.setItem('theme', themeName);
+  safeSetItem('theme', themeName);
   applyTheme(themeName);
 }
 
@@ -5620,7 +5627,7 @@ function initializeApp() {
   // Apply saved or default language
   applyLanguage(window.currentLanguage);
 
-  const savedTheme = localStorage.getItem('theme');
+  const savedTheme = safeGetItem('theme');
   if (savedTheme) {
     applyTheme(savedTheme);
   } else {
@@ -5638,7 +5645,7 @@ function initializeApp() {
   
   // OS color scheme listener disabled to prevent unexpected site color changes
   /* window.matchMedia('(prefers-color-scheme: light)').addEventListener('change', (e) => {
-    if (!localStorage.getItem('theme')) {
+    if (!safeGetItem('theme')) {
       applyTheme(e.matches ? 'light' : 'dark');
     }
   }); */
@@ -6077,7 +6084,7 @@ function apToggleCollapse() {
   const shell = document.getElementById('adminAppShell');
   if (!shell) return;
   const c = shell.classList.toggle('collapsed');
-  try { localStorage.setItem('hasaca_admin_panel_collapsed', c ? '1' : '0'); } catch (e) {}
+  try { safeSetItem('hasaca_admin_panel_collapsed', c ? '1' : '0'); } catch (e) {}
 }
 function apToggleProfileMenu(e) {
   if (e) e.stopPropagation();

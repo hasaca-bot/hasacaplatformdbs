@@ -50,6 +50,7 @@ if (VAPID_PUBLIC_KEY && VAPID_PRIVATE_KEY) {
 }
 
 const app = express();
+app.set('trust proxy', 1);
 const PORT = process.env.PORT || 17888;
 
 // Enable CORS with robust origin support for Netlify subdomains, previews, and local development
@@ -985,7 +986,8 @@ setInterval(() => {
 
 function rateLimiter(limit = 60) {
   return (req, res, next) => {
-    const ip = req.ip || req.headers['x-forwarded-for'] || req.socket.remoteAddress;
+    const xff = String(req.headers['x-forwarded-for'] || '').split(',')[0].trim();
+    const ip = req.ip || xff || req.socket.remoteAddress || 'unknown';
     ipCounts[ip] = (ipCounts[ip] || 0) + 1;
     if (ipCounts[ip] > limit) {
       return res.status(429).json({ error: 'Too many requests. Please try again later.' });

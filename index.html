@@ -3385,6 +3385,13 @@ body.theme-bw .dinein-actions button.primary {
 </div>
 
 <script>
+  function safeGetSessItem(key) { try { return safeGetSessItem(key); } catch(e) { return null; } }
+  function safeSetSessItem(key, val) { try { safeSetSessItem(key, val); } catch(e) {} }
+
+  function safeGetItem(key) { try { return safeGetItem(key); } catch(e) { return null; } }
+  function safeSetItem(key, val) { try { safeSetItem(key, val); } catch(e) {} }
+  function safeRemoveItem(key) { try { safeRemoveItem(key); } catch(e) {} }
+
 window.isStandaloneAdmin = false;
 
 // ── API BASE URL CONFIGURATION ──
@@ -3399,10 +3406,10 @@ window.API_BASE = (() => {
 
 // Admin session token (multi-tenant auth)
 function getAdminToken() {
-  try { return localStorage.getItem('hasaca_admin_token') || ''; } catch (e) { return ''; }
+  try { return safeGetItem('hasaca_admin_token') || ''; } catch (e) { return ''; }
 }
 function setAdminToken(t) {
-  try { if (t) localStorage.setItem('hasaca_admin_token', t); else localStorage.removeItem('hasaca_admin_token'); } catch (e) {}
+  try { if (t) safeSetItem('hasaca_admin_token', t); else safeRemoveItem('hasaca_admin_token'); } catch (e) {}
 }
 
 // Tenant override: read ?tenant= from the URL query string on all environments.
@@ -3448,11 +3455,11 @@ window.__devTenant = (() => {
 window.menuData = [];
 
 // Global translation system configuration
-let detectedLang = localStorage.getItem('lang');
+let detectedLang = safeGetItem('lang');
 if (!detectedLang) {
   const browserLang = navigator.language || navigator.userLanguage || 'en';
   detectedLang = browserLang.toLowerCase().startsWith('tr') ? 'tr' : 'en';
-  localStorage.setItem('lang', detectedLang);
+  safeSetItem('lang', detectedLang);
 }
 window.currentLanguage = detectedLang;
 
@@ -3971,7 +3978,7 @@ function toggleLanguage() {
 function applyLanguage(lang) {
   window.currentLanguage = lang;
   document.documentElement.lang = lang;
-  localStorage.setItem('lang', lang);
+  safeSetItem('lang', lang);
   document.title = window.__siteTitle || 'My Restaurant';
 
   // Update top bar language button text
@@ -5014,7 +5021,7 @@ function applyTheme(themeName) {
 
 function toggleMonochromeTheme(checkbox) {
   const themeName = checkbox.checked ? 'light' : 'dark';
-  localStorage.setItem('theme', themeName);
+  safeSetItem('theme', themeName);
   applyTheme(themeName);
 }
 
@@ -5023,7 +5030,7 @@ function initializeApp() {
   // Apply saved or default language
   applyLanguage(window.currentLanguage);
 
-  const savedTheme = localStorage.getItem('theme');
+  const savedTheme = safeGetItem('theme');
   if (savedTheme) {
     applyTheme(savedTheme);
   } else {
@@ -5041,7 +5048,7 @@ function initializeApp() {
   
   // OS color scheme listener disabled to prevent unexpected site color changes
   /* window.matchMedia('(prefers-color-scheme: light)').addEventListener('change', (e) => {
-    if (!localStorage.getItem('theme')) {
+    if (!safeGetItem('theme')) {
       applyTheme(e.matches ? 'light' : 'dark');
     }
   }); */
@@ -6200,7 +6207,7 @@ function checkPushSubscription() {
     return;
   }
   
-  const promptDismissed = localStorage.getItem('push_prompt_dismissed');
+  const promptDismissed = safeGetItem('push_prompt_dismissed');
   if (promptDismissed) {
     const elapsed = Date.now() - parseInt(promptDismissed);
     if (elapsed < 2 * 24 * 60 * 60 * 1000) {
@@ -6230,7 +6237,7 @@ function closePushPrompt(dismiss = false) {
     }, 300);
   }
   if (dismiss) {
-    localStorage.setItem('push_prompt_dismissed', Date.now().toString());
+    safeSetItem('push_prompt_dismissed', Date.now().toString());
   }
 }
 
@@ -6244,7 +6251,7 @@ async function acceptPushPrompt() {
       await subscribeUserToPush();
     } else {
       console.log('[PUSH] Permission denied or dismissed.');
-      localStorage.setItem('push_prompt_dismissed', Date.now().toString());
+      safeSetItem('push_prompt_dismissed', Date.now().toString());
     }
   } catch (err) {
     console.error('[PUSH ERROR] Error requesting permission:', err);
@@ -6267,7 +6274,7 @@ async function subscribeUserToPush() {
     const { browser, platform } = getBrowserInfo();
     const payload = {
       token: subscription,
-      user_id: localStorage.getItem('user_id') || 'guest',
+      user_id: safeGetItem('user_id') || 'guest',
       device: navigator.userAgent.substring(0, 100),
       browser: browser,
       platform: platform,
@@ -6304,7 +6311,7 @@ async function syncPushSubscriptionSilently() {
     const { browser, platform } = getBrowserInfo();
     const payload = {
       token: subscription,
-      user_id: localStorage.getItem('user_id') || 'guest',
+      user_id: safeGetItem('user_id') || 'guest',
       device: navigator.userAgent.substring(0, 100),
       browser: browser,
       platform: platform,
@@ -6336,7 +6343,7 @@ function isAppStandalone() {
   return window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
 }
 function isInstallDismissed() {
-  const ts = localStorage.getItem(INSTALL_DISMISS_KEY);
+  const ts = safeGetItem(INSTALL_DISMISS_KEY);
   return ts && (Date.now() - parseInt(ts) < INSTALL_DISMISS_MS);
 }
 function isIOSDevice() {
@@ -6393,13 +6400,13 @@ async function handleInstallBannerAction() {
 function dismissInstallBanner() {
   const el = document.getElementById('installBanner');
   if (el) el.style.display = 'none';
-  localStorage.setItem(INSTALL_DISMISS_KEY, Date.now().toString());
+  safeSetItem(INSTALL_DISMISS_KEY, Date.now().toString());
 }
 
 window.addEventListener('appinstalled', () => {
   const el = document.getElementById('installBanner');
   if (el) el.style.display = 'none';
-  localStorage.setItem(INSTALL_DISMISS_KEY, Date.now().toString());
+  safeSetItem(INSTALL_DISMISS_KEY, Date.now().toString());
   deferredInstallPrompt = null;
   console.log('[PWA] App installed');
 });
@@ -6769,10 +6776,10 @@ function dkFormatPrice(n){
 }
 
 function dkLoadCart(){
-  try { const raw = localStorage.getItem(dkGetCartKey()); dkCart = raw ? JSON.parse(raw) : []; if (!Array.isArray(dkCart)) dkCart = []; }
+  try { const raw = safeGetItem(dkGetCartKey()); dkCart = raw ? JSON.parse(raw) : []; if (!Array.isArray(dkCart)) dkCart = []; }
   catch(e){ dkCart = []; }
 }
-function dkSaveCart(){ try { localStorage.setItem(dkGetCartKey(), JSON.stringify(dkCart)); } catch(e){} }
+function dkSaveCart(){ try { safeSetItem(dkGetCartKey(), JSON.stringify(dkCart)); } catch(e){} }
 
 function dkValidateCart() {
   dkLoadCart(); // Fetch the current tenant's cart first
@@ -6902,15 +6909,25 @@ function dkRenderCheckoutSummary(){
 
 function dkPrefillCustomer(){
   let saved = {};
-  try { saved = JSON.parse(localStorage.getItem(dkGetCustomerKey()) || '{}') || {}; } catch(e){}
+  try { saved = JSON.parse(safeGetItem(dkGetCustomerKey()) || '{}') || {}; } catch(e){}
   const map = { coName:'name', coPhone:'phone', coAddress:'address', coAddressDetail:'address_detail', coAddressNotes:'address_notes' };
   Object.keys(map).forEach(elId => { const el = document.getElementById(elId); if (el && !el.value && saved[map[elId]]) el.value = saved[map[elId]]; });
 }
 
 async function placeOrder(){
-  if (dkSubmitting) return;
-  const dinein = !!window.dkDineinToken;
-  const name = document.getElementById('coName').value.trim();
+    if (dkSubmitting) return;
+    
+    if (window.dkDineinReady) {
+      await window.dkDineinReady;
+    }
+    const dinein = !!window.dkDineinToken;
+    if (!dinein && /^\/t\//.test(window.location.pathname)) {
+      dkToast(window.currentLanguage === 'tr'
+        ? 'Masa bilgisi yüklenemedi. Lütfen sayfayı yenileyin veya QR kodu tekrar okutun.'
+        : "Couldn't load this table. Please refresh or rescan the QR code.");
+      return;
+    }
+    const name = document.getElementById('coName').value.trim();
   const phone = document.getElementById('coPhone').value.trim();
   const address = document.getElementById('coAddress').value.trim();
   const addressDetail = document.getElementById('coAddressDetail').value.trim();
@@ -6958,7 +6975,7 @@ async function placeOrder(){
       dkToast(dkT('dinein_placed'));
     } else {
       // Persist delivery customer info on this device only after a real submission.
-      try { localStorage.setItem(dkGetCustomerKey(), JSON.stringify({ name, phone, address, address_detail: addressDetail, address_notes: addressNotes })); } catch(e){}
+      try { safeSetItem(dkGetCustomerKey(), JSON.stringify({ name, phone, address, address_detail: addressDetail, address_notes: addressNotes })); } catch(e){}
       if (typeof showCustomAlert === 'function') showCustomAlert(dkT('co_success_msg'), dkT('co_success_title'), 'info');
     }
   } catch(err){
@@ -6991,16 +7008,80 @@ else refreshCartUI();
 // ===================== QR TABLE ORDERING (dine-in) =====================
 // Activated when the page is opened via /t/<token> (a scanned table QR).
 window.dkDineinToken = null;
-window.dkDineinTable = null;
+  window.dkDineinTable = null;
+  window.dkDineinReady = null;
 
-async function dkInitDinein(){
-  const m = /^\/t\/([A-Za-z0-9]+)/.exec(window.location.pathname);
-  if (!m) return;
-  const token = m[1];
-  // If ?tenant= is already in the URL (from QR code), use it immediately
-  const urlTenant = new URLSearchParams(window.location.search).get('tenant') || '';
-  if (urlTenant && urlTenant !== 'default') {
-    window.__devTenant = urlTenant;
+  function dkSetOrderingLocked(locked, state) {
+    const btn = document.getElementById('placeOrderBtn');
+    if (!btn) return;
+    if (locked) {
+      btn.disabled = true;
+      if (state === 'loading') {
+        btn.innerHTML = '<span class="spinner"></span> ' + (window.currentLanguage === 'tr' ? 'Masa yükleniyor...' : 'Loading table...');
+      } else if (state === 'error') {
+        btn.innerHTML = window.currentLanguage === 'tr' ? 'Masa Bulunamadı' : 'Table Not Found';
+      }
+    } else {
+      btn.disabled = false;
+      btn.innerHTML = '<span data-i18n="co_place_order">' + (window.currentLanguage === 'tr' ? 'Siparişi Onayla' : 'Place Order') + '</span>';
+    }
+  }
+
+  async function dkInitDinein(){
+    const m = /^\/t\/([A-Za-z0-9]+)/.exec(window.location.pathname);
+    if (!m) { window.dkDineinReady = Promise.resolve(false); return; }
+    const token = m[1];
+    
+    // If ?tenant= is already in the URL (from QR code), use it immediately
+    const urlTenant = new URLSearchParams(window.location.search).get('tenant') || '';
+    if (urlTenant) {
+      window.__devTenant = urlTenant;
+    }
+
+    window.dkDineinReady = (async () => {
+      dkSetOrderingLocked(true, 'loading');
+      const apiBase = window.API_BASE || '';
+      const MAX_ATTEMPTS = 3;
+      
+      for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
+        try {
+          const tenantSuffix = window.__devTenant ? '?tenant=' + encodeURIComponent(window.__devTenant) : '';
+          const res = await fetch(apiBase + '/api/t/' + token + '/context' + tenantSuffix);
+          if (!res.ok) throw new Error('context_http_' + res.status);
+          const ctx = await res.json();
+          
+          window.dkDineinToken = ctx.token;
+          window.dkDineinTable = ctx.table_name;
+          if (ctx.tenant_id) {
+            window.__devTenant = ctx.tenant_id;
+          }
+          
+          document.body.classList.add('dinein-mode');
+          dkRenderTableBadge();
+          dkRenderDineinActions();
+          
+          loadMenuDatabase();
+          applySiteConfig();
+          
+          ['coName','coPhone','coAddress','coAddressDetail','coAddressNotes'].forEach(id => {
+            const el = document.getElementById(id); if (el && el.closest('.co-field')) el.closest('.co-field').style.display = 'none';
+          });
+          const payGroup = document.querySelector('.co-pay-group'); if (payGroup && payGroup.closest('.co-field')) payGroup.closest('.co-field').style.display = 'none';
+          
+          dkSetOrderingLocked(false);
+          return true;
+        } catch (e) {
+          console.warn('[DINEIN] context fetch attempt ' + attempt + ' failed:', e);
+          if (attempt === MAX_ATTEMPTS) {
+            dkSetOrderingLocked(true, 'error');
+            loadMenuDatabase();
+            applySiteConfig();
+            return false;
+          }
+          await new Promise(r => setTimeout(r, 1000 * attempt));
+        }
+      }
+    })();
   }
   try {
     const apiBase = window.API_BASE || '';
@@ -7169,7 +7250,7 @@ async function applySiteConfig() {
     const displayName = cfg.display_name || cfg.name || '';
 
     // Per-tenant default theme (only if the visitor hasn't chosen one themselves)
-    if (s.theme && !localStorage.getItem('theme') && typeof applyTheme === 'function') {
+    if (s.theme && !safeGetItem('theme') && typeof applyTheme === 'function') {
       applyTheme(s.theme);
     }
 
