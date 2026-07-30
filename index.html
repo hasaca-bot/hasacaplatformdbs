@@ -3419,9 +3419,20 @@ window.__devTenant = (() => {
 (function() {
   const _fetch = window.fetch;
   window.fetch = function(url, options) {
-    if (typeof url === 'string' && url.startsWith('/api/')) {
-      url = window.API_BASE + url;
-      if (window.__devTenant) url += (url.includes('?') ? '&' : '?') + 'tenant=' + encodeURIComponent(window.__devTenant);
+    let isApiCall = false;
+    if (typeof url === 'string') {
+      if (url.startsWith('/api/')) {
+        url = window.API_BASE + url;
+        isApiCall = true;
+      } else if (window.API_BASE && url.startsWith(window.API_BASE + '/api/')) {
+        isApiCall = true;
+      }
+    }
+
+    if (isApiCall) {
+      if (window.__devTenant && !url.includes('tenant=')) {
+        url += (url.includes('?') ? '&' : '?') + 'tenant=' + encodeURIComponent(window.__devTenant);
+      }
       const token = getAdminToken();
       if (token) {
         options = options || {};
@@ -4520,6 +4531,9 @@ async function loadMenuDatabase() {
     if (window.isStandaloneAdmin) {
       openAdminPanel();
     }
+    
+    // Validate cart against the loaded menu (filters out old/cross-tenant products)
+    if (typeof dkValidateCart === 'function') dkValidateCart();
   } catch (error) {
     console.error('Error loading menu data:', error);
     window.menuData = window.menuData || [];
@@ -6732,8 +6746,9 @@ window.addEventListener('appinstalled', () => {
 <script>
 // ===================== FOOD ORDERING SYSTEM =====================
 // Cart state persists on the customer's own device (localStorage).
-const DK_CART_KEY = 'dk_cart_v1';
-const DK_CUSTOMER_KEY = 'dk_customer_v1';
+function dkGetCartKey(){ return 'dk_cart_v1_' + (window.__devTenant || 'default'); }
+function dkGetCustomerKey(){ return 'dk_customer_v1_' + (window.__devTenant || 'default'); }
+
 let dkCart = [];
 let dkSubmitting = false;
 
@@ -6754,10 +6769,21 @@ function dkFormatPrice(n){
 }
 
 function dkLoadCart(){
-  try { const raw = localStorage.getItem(DK_CART_KEY); dkCart = raw ? JSON.parse(raw) : []; if (!Array.isArray(dkCart)) dkCart = []; }
+  try { const raw = localStorage.getItem(dkGetCartKey()); dkCart = raw ? JSON.parse(raw) : []; if (!Array.isArray(dkCart)) dkCart = []; }
   catch(e){ dkCart = []; }
 }
-function dkSaveCart(){ try { localStorage.setItem(DK_CART_KEY, JSON.stringify(dkCart)); } catch(e){} }
+function dkSaveCart(){ try { localStorage.setItem(dkGetCartKey(), JSON.stringify(dkCart)); } catch(e){} }
+
+function dkValidateCart() {
+  dkLoadCart(); // Fetch the current tenant's cart first
+  if (!window.menuData) return;
+  const originalLength = dkCart.length;
+  dkCart = dkCart.filter(item => window.menuData.some(m => m.id === item.id));
+  if (dkCart.length !== originalLength) {
+    dkSaveCart();
+    refreshCartUI();
+  }
+}
 
 function dkItemName(entry){
   const lang = window.currentLanguage || 'tr';
@@ -6876,7 +6902,7 @@ function dkRenderCheckoutSummary(){
 
 function dkPrefillCustomer(){
   let saved = {};
-  try { saved = JSON.parse(localStorage.getItem(DK_CUSTOMER_KEY) || '{}') || {}; } catch(e){}
+  try { saved = JSON.parse(localStorage.getItem(dkGetCustomerKey()) || '{}') || {}; } catch(e){}
   const map = { coName:'name', coPhone:'phone', coAddress:'address', coAddressDetail:'address_detail', coAddressNotes:'address_notes' };
   Object.keys(map).forEach(elId => { const el = document.getElementById(elId); if (el && !el.value && saved[map[elId]]) el.value = saved[map[elId]]; });
 }
@@ -6932,12 +6958,15 @@ async function placeOrder(){
       dkToast(dkT('dinein_placed'));
     } else {
       // Persist delivery customer info on this device only after a real submission.
-      try { localStorage.setItem(DK_CUSTOMER_KEY, JSON.stringify({ name, phone, address, address_detail: addressDetail, address_notes: addressNotes })); } catch(e){}
+      try { localStorage.setItem(dkGetCustomerKey(), JSON.stringify({ name, phone, address, address_detail: addressDetail, address_notes: addressNotes })); } catch(e){}
       if (typeof showCustomAlert === 'function') showCustomAlert(dkT('co_success_msg'), dkT('co_success_title'), 'info');
     }
   } catch(err){
     console.error('[ORDER] placeOrder failed:', err);
-    msg.style.display = 'block'; msg.className = 'checkout-msg error'; msg.textContent = dkT('co_error');
+    msg.style.display = 'block'; 
+    msg.className = 'checkout-msg error'; 
+    const isSpecificError = err.message && err.message !== 'failed';
+    msg.textContent = isSpecificError ? (dkT('co_error') + ': ' + err.message) : dkT('co_error');
   } finally {
     dkSubmitting = false;
     btn.disabled = false;
