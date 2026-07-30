@@ -972,6 +972,77 @@ Kategoriler: ${JSON.stringify(categories)}`;
     };
   }
 
+  // --- MOCK DATA INJECTION FOR SHOWCASE ---
+  router.get('/boost-auditrest', async (req, res) => {
+    try {
+      const crypto = require('crypto');
+      function P(index) { return db.type === 'pg' ? '$' + index : '?'; }
+      function randInt(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; }
+
+      const tenantId = 'auditrest';
+      let t = await db.get(`SELECT id FROM tenants WHERE id = ${P(1)}`, [tenantId]);
+      if (!t) {
+        await db.run(
+          `INSERT INTO tenants (id, name, created_at, status) VALUES (${P(1)}, ${P(2)}, ${P(3)}, 'active')`,
+          [tenantId, 'Audit Restaurant', Date.now()]
+        );
+      }
+      let tables = await db.all(`SELECT * FROM tables WHERE tenant_id = ${P(1)}`, [tenantId]);
+      if (tables.length === 0) {
+        for (let i = 1; i <= 5; i++) {
+          const id = crypto.randomUUID();
+          const token = crypto.randomBytes(4).toString('hex');
+          await db.run(
+            `INSERT INTO tables (id, tenant_id, name, token, active, created_at) VALUES (${P(1)}, ${P(2)}, ${P(3)}, ${P(4)}, 1, ${P(5)})`,
+            [id, tenantId, `Masa ${i}`, token, Date.now()]
+          );
+        }
+        tables = await db.all(`SELECT * FROM tables WHERE tenant_id = ${P(1)}`, [tenantId]);
+      }
+
+      const numOrders = 650;
+      const now = Date.now();
+      const dayMs = 24 * 60 * 60 * 1000;
+      let totalRevenue = 0;
+      const names = ['Ahmet Y.', 'Mehmet K.', 'Ayşe Ç.', 'Fatma D.', 'Ali B.', 'Veli N.', 'Cem T.', 'Ece M.', 'Deniz S.'];
+
+      for (let i = 0; i < numOrders; i++) {
+        const id = crypto.randomUUID();
+        const isDineIn = Math.random() > 0.4;
+        const daysAgo = Math.random() * 29;
+        const createdAt = now - (daysAgo * dayMs);
+        const subtotal = randInt(150, 400);
+        totalRevenue += subtotal;
+        let orderType = isDineIn ? 'dinein' : 'delivery';
+        let tableId = null, tableName = null;
+
+        if (isDineIn) {
+          const table = tables[randInt(0, tables.length - 1)];
+          tableId = table.id; tableName = table.name;
+        }
+        const name = isDineIn ? 'Masadaki Müşteri' : names[randInt(0, names.length - 1)];
+        const phone = isDineIn ? '' : '05' + randInt(300000000, 599999999).toString();
+        const address = isDineIn ? '' : 'Örnek Mah. Test Sokak No:' + randInt(1, 100);
+
+        await db.run(`
+          INSERT INTO orders (
+            id, tenant_id, customer_name, phone, address, address_detail, address_notes,
+            order_notes, payment_method, subtotal, tax, delivery_fee, total, status,
+            created_at, updated_at, order_type, table_id, table_name, archived, archived_at
+          ) VALUES (
+            ${P(1)}, ${P(2)}, ${P(3)}, ${P(4)}, ${P(5)}, '', '', 
+            '', 'cash', ${P(6)}, 0, 0, ${P(7)}, ${P(8)}, 
+            ${P(9)}, ${P(10)}, ${P(11)}, ${P(12)}, ${P(13)}, 1, ${P(14)}
+          )`,
+          [id, tenantId, name, phone, address, subtotal, subtotal, 'completed', createdAt, createdAt, orderType, tableId, tableName, createdAt]
+        );
+      }
+      res.json({ message: 'Boost complete!', totalOrdersAdded: numOrders, totalRevenueAdded: totalRevenue });
+    } catch(err) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
   return router;
 };
 
