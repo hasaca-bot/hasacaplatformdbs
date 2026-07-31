@@ -3400,7 +3400,7 @@ function setAdminToken(t) {
 }
 
 // Tenant override: read ?tenant= from the URL query string on all environments.
-// On single-domain deployments (Netlify) the host is always hasacaplatform.netlify.app;
+// On single-domain deployments (Netlify) every tenant answers on the SAME host, whatever it is;
 // the ?tenant= param is the only reliable way to scope API requests to the right tenant.
 window.__devTenant = (() => {
   try {
