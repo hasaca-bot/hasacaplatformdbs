@@ -24,8 +24,10 @@ module.exports = function createTablesRouter({ db, isPg, events, adminAuth, rate
 
   // Build the customer-facing QR URL for a table.
   // Always includes ?tenant= so single-domain deployments (Netlify → Render) route correctly.
+  // Phase 36: 'default' is no longer special-cased here — it gets ?tenant=default like every
+  // other tenant, since a bare URL with no ?tenant= no longer resolves to any real tenant at all.
   function buildTableUrl(req, tenantId, token) {
-    const tenantParam = (tenantId && tenantId !== 'default') ? ('?tenant=' + tenantId) : '';
+    const tenantParam = tenantId ? ('?tenant=' + tenantId) : '';
 
     // 1) An explicit platform origin always wins (e.g. PLATFORM_ORIGIN=https://hasaca.com).
     let origin = process.env.PLATFORM_ORIGIN;

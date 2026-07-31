@@ -3,7 +3,7 @@
 > Living status doc. Any AI/dev can resume by reading this + the phase files in `/development-logs`.
 > Release changelog lives in `README.md` (§ DEĞİŞİKLİK GÜNLÜĞÜ). This folder tracks in-progress phased work.
 
-**Last updated:** 2026-07-31 (after Phase 35)
+**Last updated:** 2026-07-31 (after Phase 36)
 
 > A living **AI-CONTEXT.txt** hand-off file is maintained in this folder (overwritten every phase).
 
@@ -60,6 +60,7 @@ Multi-tenant restaurant SaaS. Node.js + Express (`backend/server.js`), dual DB l
 | 33 | 7 | Production Deployment (Netlify + Render + Neon), Netlify Root Routing & SVG Logo Branding | ✅ DONE |
 | 34 | 10 | Production Fixes: Tenant Impersonation, Netlify 45 Marketing Sub-pages, Root Pwd Sync & SVG Logo | ✅ DONE |
 | 35 | 10 | Production hotfixes (QR-ordering SyntaxError, recursive storage guards, admin login modal, single-domain tenant login, single sign-in page) + Hero Image Management & plain-text Hero editor | ✅ DONE |
+| 36 | 10 | Tenant-less `/admin`/bare-site routes no longer fall back to the `'default'` tenant; `'default'` is now a fully normal, deletable tenant like any other (Root panel + QR URL symmetry) | ✅ DONE |
 
 
 | 32+ | 5 | Backlog: fast-follows only (menu-generation wizard; QR logos/frames; widget permission tier; `/register` decision; unused legacy files flagged) | ⏭️ NEXT |
@@ -90,6 +91,12 @@ Default/light themes unaffected (byte-identical before/after, verified via compu
   *every* call with no idempotency check, and mutates data from a `GET`. Showcase-only code.
 - Phase 33/34 production work is documented in their phase files but was never folded into this
   status doc at the time; Phase 35 is the first entry to catch up.
+- **Breaking change from Phase 36**: any QR code/bookmark printed for the `'default'` tenant that
+  relied on the old bare-URL fallback now shows "Restaurant Not Found." Needs `?tenant=default`
+  appended or reprinting from the admin panel.
+- A full monochrome color pass (removes gold/amber platform-wide except `landing.html`/
+  `marketing.html`) is done locally but **not pushed** — awaiting the user's go-ahead. Not yet its
+  own phase log.
 
 ## Credentials (dev fork)
 - Root: `root` / `bunudabullan12A`. Tenant admin: `dayikatik` / `dayikatik123` (reset in P04).

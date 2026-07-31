@@ -232,12 +232,15 @@ module.exports = function createRootRouter({ db, isPg, invalidateTenantCache, si
       await db.run(`DELETE FROM tenants WHERE id = ${P(1)}`, [id]);
       invalidateTenantCache(id);
 
-      // Never leave the platform without a tenant, and never without a `default`.
+      // Never leave the platform with zero tenants at all (an empty table breaks tenant
+      // resolution for the whole platform). 'default' is no longer treated as special here —
+      // Phase 36: deleting it behaves exactly like deleting any other tenant, and it is only
+      // regenerated if it happened to be the very last tenant remaining, same as any other id
+      // would trigger this same recovery.
       const cntRow = await db.get(isPg ? 'SELECT COUNT(*)::int AS c FROM tenants' : 'SELECT COUNT(*) AS c FROM tenants');
       const remaining = cntRow ? Number(cntRow.c) : 0;
-      const hasDefault = await db.get(`SELECT id FROM tenants WHERE id = ${P(1)}`, ['default']);
       let regeneratedDefault = false;
-      if (remaining === 0 || !hasDefault) {
+      if (remaining === 0) {
         await regenerateDefaultTenant();
         invalidateTenantCache('default');
         regeneratedDefault = true;

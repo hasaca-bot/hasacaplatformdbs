@@ -1052,10 +1052,8 @@ function renderTenants(){
         <button class="btn small secondary" onclick="openBrandModal('${t.id}')">${T('root_act_brand')}</button>
         <button class="btn small secondary" onclick="openDetailModal('${t.id}')">${T('root_act_detail')}</button>
         <button class="btn small secondary" onclick="resetTenantPassword('${t.id}')">${T('root_act_resetpwd')}</button>
-        ${t.id !== 'default' ? `
-          <button class="btn small ${t.status==='active'?'danger':''}" onclick="toggleStatus('${t.id}','${t.status}')">${t.status==='active'?T('root_act_disable'):T('root_act_enable')}</button>
-          <button class="btn small danger" onclick="deleteTenant('${t.id}')">${T('root_act_delete')}</button>
-        ` : ''}
+        <button class="btn small ${t.status==='active'?'danger':''}" onclick="toggleStatus('${t.id}','${t.status}')">${t.status==='active'?T('root_act_disable'):T('root_act_enable')}</button>
+        <button class="btn small danger" onclick="deleteTenant('${t.id}')">${T('root_act_delete')}</button>
       </div>
     </div>
   `).join('');

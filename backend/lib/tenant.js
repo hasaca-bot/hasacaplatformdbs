@@ -3,9 +3,15 @@
 // Resolves the tenant (restaurant) from the request host:
 //   restaurant1.hasaca.com      -> 'restaurant1'
 //   restaurant1.localhost:12000 -> 'restaurant1'  (local dev, no setup needed)
-//   localhost / IP / base host  -> 'default'
-// Local dev only: ?tenant=slug query override.
-// Unknown slug -> 404, disabled tenant -> 403.
+//   localhost / IP / bare platform host -> null (no tenant guessed — see below)
+// ?tenant=slug query param / x-tenant-id header override the host on every environment
+// (needed for Netlify/Render single-domain hosting, and to test either param locally).
+// slugFromHost() returns null (not a guessed id) whenever the host genuinely carries no
+// tenant slug — resolveTenant() then does NOT substitute any real tenant; it leaves
+// req.tenantId = null and lets the caller decide (most static routes just render their
+// tenant-agnostic shell; /admin and the customer catch-all show "no restaurant" instead
+// of silently exposing whichever tenant used to be the host-fallback default).
+// Unknown/explicit slug -> 404, disabled tenant -> 403.
 // =============================================
 
 const CACHE_TTL_MS = 5 * 60 * 1000;
@@ -24,33 +30,38 @@ function invalidateTenantCache(slug) {
   else cache.clear();
 }
 
+// Returns a real tenant slug when (and only when) the host itself genuinely carries one
+// (a subdomain). Returns null — never a guessed/default id — for every case where the host
+// carries no tenant information at all: bare host, IP, the platform's own apex/base domain,
+// or a hosting provider's own base domain. Applies identically in local dev and production —
+// there is no dev-only carve-out, so local testing reflects what production actually does.
 function slugFromHost(rawHost) {
   const host = String(rawHost || '').split(':')[0].toLowerCase();
-  if (!host || host === 'localhost' || /^\d+\.\d+\.\d+\.\d+$/.test(host)) return 'default';
+  if (!host || host === 'localhost' || /^\d+\.\d+\.\d+\.\d+$/.test(host)) return null;
 
   // *.localhost — modern browsers resolve these to loopback with zero setup
   if (host.endsWith('.localhost')) {
     const s = host.slice(0, -'.localhost'.length);
-    return s && s !== 'www' ? s : 'default';
+    return s && s !== 'www' ? s : null;
   }
 
   // Explicit platform domain (e.g. PLATFORM_DOMAIN=hasaca.com -> restaurant1.hasaca.com)
   const platformDomain = (process.env.PLATFORM_DOMAIN || '').toLowerCase();
   if (platformDomain) {
-    if (host === platformDomain || host === 'www.' + platformDomain) return 'default';
+    if (host === platformDomain || host === 'www.' + platformDomain) return null;
     if (host.endsWith('.' + platformDomain)) {
       const s = host.slice(0, -(platformDomain.length + 1));
-      return s && s !== 'www' && !s.includes('.') ? s : 'default';
+      return s && s !== 'www' && !s.includes('.') ? s : null;
     }
   }
 
   // Hosting base domains: app-name.onrender.com / site.netlify.app are the app itself, not a tenant
-  if (host.endsWith('.onrender.com') || host.endsWith('.netlify.app')) return 'default';
+  if (host.endsWith('.onrender.com') || host.endsWith('.netlify.app')) return null;
 
   // Generic custom domain: sub.domain.tld -> 'sub'
   const parts = host.split('.');
   if (parts.length > 2 && parts[0] && parts[0] !== 'www') return parts[0];
-  return 'default';
+  return null;
 }
 
 function wantsHtml(req) {
@@ -81,6 +92,20 @@ function createTenantResolver(db, isPg) {
         slug = String(req.headers['x-tenant-id']).toLowerCase();
       }
 
+      // Root panel + root APIs + auth operate across tenants; never block them on host resolution.
+      const isRootPath = req.path === '/root' || req.path === '/root.html' || req.path.startsWith('/api/root');
+
+      // No tenant was specified at all — not a query param, not a header, and the host itself
+      // carried no slug. Do NOT substitute any real tenant here (that used to silently expose
+      // whichever tenant happened to own the fallback id). Leave req.tenantId = null; it is up
+      // to each route to decide what "no tenant" means for it (most render fine regardless;
+      // /admin and the customer catch-all explicitly check for null and show "no restaurant").
+      if (slug === null) {
+        if (isRootPath) { req.tenant = null; req.tenantId = 'default'; return next(); }
+        req.tenant = null; req.tenantId = null;
+        return next();
+      }
+
       let tenant = cacheGet(slug);
       if (!tenant) {
         tenant = await db.get(
@@ -89,9 +114,6 @@ function createTenantResolver(db, isPg) {
         );
         if (tenant) cache.set(slug, { tenant, ts: Date.now() });
       }
-
-      // Root panel + root APIs + auth operate across tenants; never block them on host resolution.
-      const isRootPath = req.path === '/root' || req.path === '/root.html' || req.path.startsWith('/api/root');
 
       if (!tenant) {
         if (isRootPath) { req.tenant = null; req.tenantId = 'default'; return next(); }
@@ -130,4 +152,4 @@ function createTenantResolver(db, isPg) {
   return { resolveTenant, invalidateTenantCache, slugFromHost };
 }
 
-module.exports = { createTenantResolver, invalidateTenantCache, slugFromHost };
+module.exports = { createTenantResolver, invalidateTenantCache, slugFromHost, errorPageHtml };

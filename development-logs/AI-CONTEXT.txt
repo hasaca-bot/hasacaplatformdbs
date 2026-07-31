@@ -2,7 +2,7 @@
 HASACA PLATFORM — AI CONTINUATION CONTEXT
 (Overwrite this file at the END of every phase. Written for an AI that has
 never seen this project. Companion to development-status.md + phase-XX.md.)
-Last updated: 2026-07-31 (after Phase 35)
+Last updated: 2026-07-31 (after Phase 36)
 ======================================================================
 
 # PROJECT SUMMARY
@@ -718,10 +718,19 @@ branding, manual image-URL inputs, or emojis. Work ONLY in
 backend/.env now correctly carries PORT=17888).
 
 ## Auth / tenancy on the single-domain deployment (read before touching either)
-Every restaurant answers on hasacaplatform.netlify.app, so the host NEVER identifies the tenant.
-- `resolveTenant` (lib/tenant.js) reads `?tenant=` or the `x-tenant-id` header on ALL environments,
-  falling back to 'default'.
-- `adminAuth` trusts the JWT's `tenant_id` when the host resolved to 'default', so once a user is
+Every restaurant answers on the same Netlify domain, so the host NEVER identifies the tenant.
+- `resolveTenant` (lib/tenant.js) reads `?tenant=` or the `x-tenant-id` header on ALL environments.
+  **Phase 36**: when NONE of those are present AND the host itself carries no real subdomain slug,
+  `req.tenantId` is `null` — it does NOT fall back to a real tenant anymore (it used to silently
+  fall back to `'default'`, a fully real seeded restaurant, exposing its admin/menu to anyone on
+  the bare domain). `/admin`, `/admin.html`, bare `/`, and the catch-all all check
+  `req.tenantId === null` and show "Restaurant Not Found" instead of real content.
+  `/t/:token` and `/login`+aliases are NOT gated this way — `/t/:token` resolves its tenant purely
+  from the table token (`GET /api/t/:token/context`, token-only DB lookup), and `/login` is just a
+  form; the real lookup happens at submit time. `'default'` is no longer special in any way — it's
+  a normal, fully deletable tenant, and its QR/site URLs always carry `?tenant=default` like any
+  other tenant's (no more implicit-fallback dependency).
+- `adminAuth` trusts the JWT's `tenant_id` regardless of what the host resolved to, so once a user is
   logged in every request is correctly scoped BY THE TOKEN — no `?tenant=` needed anywhere.
 - `POST /api/auth/login` is the only place the tenant cannot come from a token. It tries the
   scoped lookup first; if no explicit `?tenant=` was given and that misses, it accepts the account
@@ -773,19 +782,19 @@ isolation unless the phase's explicit goal is to extend them safely; TR+EN for a
 only; 0 console errors / 0 overflow; then write phase-XX.md + update development-status.md + OVERWRITE this file.
 
 # NEXT TASK (exact step)
-1. **Verify a real dine-in order in production.** The deployed frontend is confirmed repaired
-   (menu loads on /t/ paths, `placeOrder` defined, invalid tables lock the button correctly) and
-   the whole flow passes end-to-end locally — a dine-in order lands in `orders` with
-   `order_type='dinein'` and the right `table_name`. What is NOT yet proven is a real order against
-   Neon, because that needs a valid production table token (admin auth required to list tables).
-   Ask the user for one table's QR URL (`/t/<token>?tenant=<slug>`) — it is a public customer URL,
-   not a credential — then run scan -> add item -> checkout and confirm the order appears in the
-   admin Orders list.
-2. Two flagged items awaiting a user decision (do NOT action unilaterally): the hardcoded Telegram
-   `BOT_TOKEN` in client-visible JS in index.html (should be rotated + moved server-side), and
-   `GET /api/root/boost-auditrest`, which inserts 650 fabricated orders on every call with no
+1. Live dine-in order against production has been VERIFIED (POST /api/orders -> 201 against a real
+   table on hasacaplatform.netlify.app, confirmed pre-domain-move). The domain has since changed to
+   platformhasaca.netlify.app (Phase 36-adjacent user action, not a code phase) — worth re-verifying
+   once Render is confirmed current there, since Render was previously found running stale code and
+   was never explicitly confirmed re-deployed after that.
+2. A full monochrome color pass (removes gold/amber accent across admin.html/root.html/login.html/
+   index.html/panel.css, landing.html+marketing.html deliberately untouched) is done LOCALLY ONLY,
+   not pushed — user has not yet said to deploy it. Do not push it unilaterally.
+3. Two flagged items still awaiting a user decision (do NOT action unilaterally): the hardcoded
+   Telegram `BOT_TOKEN` in client-visible JS in index.html (should be rotated + moved server-side),
+   and `GET /api/root/boost-auditrest`, which inserts 650 fabricated orders on every call with no
    idempotency check and mutates state from a GET.
-3. Then: no major backlog item remains. Do NOT pick a fast-follow unilaterally; ask the user which
+4. Then: no major backlog item remains. Do NOT pick a fast-follow unilaterally; ask the user which
    direction they want (the numbered list above is the menu). Note #7 (Gemini quota) is not code work but currently blocks any real
 end-to-end test of the AI features — worth raising before building more AI surface on an unexercised
 path. If verifying ANY theme-dependent styling in this environment, read the new KNOWN ISSUES entry

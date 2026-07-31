@@ -8,7 +8,7 @@ const fs = require('fs');
 const { db, initDatabase, resetDatabase, logActivity } = require('./db');
 const webpush = require('web-push');
 const { hashPassword, verifyPassword, signToken, verifyToken, generatePassword } = require('./lib/auth');
-const { createTenantResolver, slugFromHost } = require('./lib/tenant');
+const { createTenantResolver, slugFromHost, errorPageHtml } = require('./lib/tenant');
 const platformEvents = require('./lib/events');
 
 // Generate or load VAPID keys
@@ -1974,27 +1974,30 @@ app.use((req, res, next) => {
   next();
 });
 
-// Phase 31: "/" is host-aware, not tenant-aware. A real tenant subdomain (restaurant1.hasaca.com,
-// restaurant1.localhost:17888) still resolves to that tenant's own site here, unchanged. Only the
-// bare-host fallback case (localhost, an IP, the platform's own apex domain, *.onrender.com/
-// *.netlify.app, or anything else slugFromHost() can't match to a subdomain) changes: it used to
-// silently render the 'default' demo tenant; it now renders the HASACA landing page instead. Checking
-// the raw host (not req.tenantId) is deliberate — req.tenantId can't tell "true bare-host fallback"
-// apart from an actual tenant whose id happens to be 'default'.
-// The dev-only ?tenant= override (same gate as lib/tenant.js's allowQueryOverride) is honored here
-// too — /tenant/:slug redirects into it, and an explicit override always means "show that tenant",
-// even when the requested slug happens to be 'default'.
-const allowTenantQueryOverride = !process.env.DATABASE_URL;
+// Phase 31/36: "/" is host-aware, not tenant-aware. A real tenant subdomain (restaurant1.hasaca.com,
+// restaurant1.localhost:17888), or an explicit ?tenant=/x-tenant-id, still resolves to that tenant's
+// own site here, unchanged — resolveTenant() (mounted globally, runs before this handler) already
+// read all of that and set req.tenantId accordingly. Only the genuine "nothing was specified at all"
+// case changes: it used to silently render a real tenant's site (whichever one happened to own the
+// host-fallback id); it now renders the HASACA landing page instead. req.tenantId === null is the
+// single source of truth for that case — resolveTenant() only ever sets it to null when no tenant was
+// specified by any means, so this replaces the old duplicate, dev-only-gated host re-derivation.
 app.get('/', (req, res) => {
-  if (allowTenantQueryOverride && req.query && typeof req.query.tenant === 'string' && req.query.tenant) {
-    return res.sendFile(path.join(rootDir, 'index.html'));
-  }
-  const host = req.headers['x-forwarded-host'] || req.headers.host;
-  if (slugFromHost(host) === 'default') return res.sendFile(path.join(rootDir, 'landing.html'));
+  if (req.tenantId === null) return res.sendFile(path.join(rootDir, 'landing.html'));
   res.sendFile(path.join(rootDir, 'index.html'));
 });
 
+// Phase 36: no tenant specified at all (bare host, no ?tenant=/x-tenant-id) must not silently expose
+// any real restaurant's admin panel — show "no restaurant" instead. An explicit ?tenant=<slug>
+// (including ?tenant=default) still works normally; only the implicit fallback is gone.
 app.get(['/admin.html', '/admin'], (req, res) => {
+  if (req.tenantId === null) {
+    return res.status(404).send(errorPageHtml(
+      'Restoran Bulunamadı', 'Restaurant Not Found',
+      'Bu adres belirli bir restorana ait değil. Yönetim paneline erişmek için restoranınızın bağlantısını kullanın.',
+      'This address is not tied to a specific restaurant. Use your restaurant\'s own link to reach the admin panel.'
+    ));
+  }
   res.sendFile(path.join(rootDir, 'admin.html'));
 });
 
@@ -2088,7 +2091,18 @@ app.get('/sitemap.xml', (req, res) => {
 
 app.use(express.static(rootDir));
 
+// Phase 36: same rule as bare '/' and '/admin' — an unmatched path with no tenant specified must
+// not silently render any real restaurant's site. (The exact bare '/' path is handled separately,
+// above, and shows the HASACA landing page for this same no-tenant case — this catch-all covers
+// every other unmatched path, where landing.html would not make sense.)
 app.get('*', (req, res) => {
+  if (req.tenantId === null) {
+    return res.status(404).send(errorPageHtml(
+      'Restoran Bulunamadı', 'Restaurant Not Found',
+      'Bu adres belirli bir restorana ait değil.',
+      'This address is not tied to a specific restaurant.'
+    ));
+  }
   res.sendFile(path.join(rootDir, 'index.html'));
 });
 
