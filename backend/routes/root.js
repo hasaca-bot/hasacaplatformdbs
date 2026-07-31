@@ -534,15 +534,18 @@ module.exports = function createRootRouter({ db, isPg, invalidateTenantCache, si
       let revenue = 0, delivery = 0, dinein = 0; const byDay = {}, byTenant = {};
       for (const o of orders) {
         const t = Number(o.total) || 0; revenue += t;
-        if (o.order_type === 'dinein') dinein++; else delivery++;
+        const isDinein = o.order_type === 'dinein';
+        if (isDinein) dinein++; else delivery++;
         const key = new Date(Number(o.created_at)).toISOString().slice(0, 10);
-        (byDay[key] = byDay[key] || { date: key, orders: 0, revenue: 0 }).orders++; byDay[key].revenue += t;
+        const day = (byDay[key] = byDay[key] || { date: key, orders: 0, revenue: 0, delivery: 0, dinein: 0 });
+        day.orders++; day.revenue += t;
+        if (isDinein) day.dinein++; else day.delivery++;
         (byTenant[o.tenant_id] = byTenant[o.tenant_id] || { tenant: o.tenant_id, orders: 0, revenue: 0 }).orders++; byTenant[o.tenant_id].revenue += t;
       }
       const series = [];
       for (let i = days - 1; i >= 0; i--) {
         const key = new Date(Date.now() - i * 86400000).toISOString().slice(0, 10);
-        series.push(byDay[key] || { date: key, orders: 0, revenue: 0 });
+        series.push(byDay[key] || { date: key, orders: 0, revenue: 0, delivery: 0, dinein: 0 });
       }
       const topTenants = Object.values(byTenant).sort((a, b) => b.orders - a.orders).slice(0, 8).map(t => ({ tenant: t.tenant, orders: t.orders, revenue: +t.revenue.toFixed(2) }));
       const tenantsRow = await db.get('SELECT COUNT(*) c FROM tenants');

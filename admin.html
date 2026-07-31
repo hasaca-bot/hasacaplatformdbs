@@ -96,14 +96,14 @@ code,pre,kbd,samp,.cred-box,[class*="mono"],[style*="monospace"]{ font-family:ui
 :root{
   --fire:#ffffff; --fire-text:#0a0a0b;
   --ember:#f4f4f6;
-  --gold:#d8b877;
-  --amber:#c9a253;
+  --gold:#ffffff;
+  --amber:#e6e6ea;
   /* RGB triplets for rgba() forms that can't interpolate a hex custom property (Phase 32).
      This embedded customer-site block is unconditionally display:none on admin.html (verified live —
      html.admin-page hides it), so this is a pure de-hardcoding refactor with no visual outcome. */
   --fire-rgb:255,255,255;
   --ember-rgb:229,229,235;
-  --amber-rgb:255,167,38;
+  --amber-rgb:230,230,234;
   --bad:#FF7043;
   --bad-rgb:255,112,67;
   --cream:#f4f4f6;
@@ -127,10 +127,10 @@ code,pre,kbd,samp,.cred-box,[class*="mono"],[style*="monospace"]{ font-family:ui
    cascades to these values automatically — no per-component rewrites.
    ================================================================ */
 html.admin-page{
-  --fire:#d8b877;             /* was #0a0a0b (orange) → neutral gold */
-  --ember:#c9a253;            /* was #f4f4f6 (orange) → deeper gold */
-  --gold:#d8b877;             /* was #d8b877 → same gold */
-  --amber:#c9a253;            /* was #c9a253 → deeper gold */
+  --fire:#ffffff;             /* monochrome rebrand: gold accent → white */
+  --ember:#e6e6ea;            /* monochrome rebrand: gold-2 → light grey */
+  --gold:#ffffff;
+  --amber:#e6e6ea;
   --cream:#f4f4f6;            /* was #f4f4f6 (warm off-white) → cool white */
   --dark:#0a0a0b;             /* was #0a0a0b (deep brown) → panel bg */
   --dark2:#141418;            /* was #0e0e11 (brown) → panel surface */
@@ -144,7 +144,7 @@ html.admin-page{
   --ap-bg:#0a0a0b; --ap-bg-2:#0e0e11; --ap-panel:#141418; --ap-card:#1b1b20; --ap-elev:#212127;
   --ap-line:rgba(255,255,255,.09); --ap-line-2:rgba(255,255,255,.15);
   --ap-text:#f4f4f6; --ap-muted:#a6a6b0; --ap-faint:#6c6c78;
-  --ap-gold:#d8b877; --ap-gold-2:#c9a253; --ap-gold-soft:rgba(216,184,119,.14);
+  --ap-gold:#ffffff; --ap-gold-2:#e6e6ea; --ap-gold-soft:rgba(255,255,255,.14); --ap-gold-text:#0a0a0b;
   --ap-bad:#e5776b; --ap-bad-soft:rgba(229,119,107,.14);
   color-scheme:dark;
   scrollbar-color:var(--scroll-thumb) transparent;
@@ -153,13 +153,13 @@ html.admin-page{
 html.admin-page[data-theme="light"]{
   --dark:#f4f5f7; --dark2:#eceef2; --card:#ffffff;
   --cream:#15171c; --muted:#565c69; --white:#ffffff;
-  --fire:#9a7526; --ember:#7f5f1e; --gold:#9a7526; --amber:#7f5f1e;
+  --fire:#15171c; --ember:#565c69; --gold:#15171c; --amber:#565c69; --fire-text:#ffffff;
   --scroll-thumb:rgba(15,18,25,.22);
   --scroll-thumb-hover:rgba(15,18,25,.4);
   --ap-bg:#f4f5f7; --ap-bg-2:#eceef2; --ap-panel:#ffffff; --ap-card:#ffffff; --ap-elev:#ffffff;
   --ap-line:rgba(15,18,25,.10); --ap-line-2:rgba(15,18,25,.17);
   --ap-text:#15171c; --ap-muted:#565c69; --ap-faint:#8b909c;
-  --ap-gold:#9a7526; --ap-gold-2:#7f5f1e; --ap-gold-soft:rgba(154,117,38,.12);
+  --ap-gold:#15171c; --ap-gold-2:#565c69; --ap-gold-soft:rgba(21,23,28,.12); --ap-gold-text:#ffffff;
   color-scheme:light;
 }
 /* body.theme-bw is the CUSTOMER site's own theme engine — on admin.html the
@@ -168,7 +168,7 @@ html.admin-page[data-theme="light"]{
 html.admin-page body.theme-bw{
   --dark:#f4f5f7; --dark2:#eceef2; --card:#ffffff;
   --cream:#15171c; --muted:#565c69;
-  --fire:#9a7526; --ember:#7f5f1e; --gold:#9a7526; --amber:#7f5f1e;
+  --fire:#15171c; --ember:#565c69; --gold:#15171c; --amber:#565c69;
 }
 
 /* ── CUSTOM SCROLLBAR — thin, rounded, subtle (Chromium + Firefox) ── */
@@ -183,7 +183,7 @@ body.theme-bw {
   --fire:#ffffff; --fire-text:#0a0a0b;
   --ember:#f4f4f6;
   --gold: #0a0a0b;
-  --amber: #d8b877;
+  --amber: #565c69;
   --cream: #15171c;      /* Dark espresso text color */
   --dark: #f4f5f7;       /* Warm light cream background color */
   --dark2: #eceef2;      /* Light warm beige card/header background */
@@ -3249,13 +3249,13 @@ body.theme-bw .rez-select-trigger:hover {
           .admin-order-card{ background:var(--ord-surface); border:1px solid var(--ord-line); border-left:4px solid var(--fire); border-radius:14px; padding:14px; margin-bottom:12px; }
           .admin-order-card.read{ border-left-color:var(--ord-line); opacity:.82; }
           .admin-order-card.flash{ animation:orderFlash 1.3s ease; }
-          @keyframes orderFlash{ 0%,100%{ box-shadow:0 0 0 rgba(216,184,119,0); } 30%{ box-shadow:0 0 0 3px rgba(216,184,119,.5); } }
+          @keyframes orderFlash{ 0%,100%{ box-shadow:0 0 0 rgba(230,230,234,0); } 30%{ box-shadow:0 0 0 3px rgba(230,230,234,.5); } }
           .aoc-top{ display:flex; align-items:flex-start; justify-content:space-between; gap:10px; margin-bottom:8px; }
           .aoc-name{ font-weight:800; font-size:1rem; color:var(--ord-text); }
           .aoc-phone{ font-size:0.82rem; color:var(--ord-muted); margin-top:2px; }
           .aoc-phone a{ color:var(--ord-muted); text-decoration:none; }
           .aoc-badge{ font-size:0.66rem; font-weight:800; text-transform:uppercase; letter-spacing:.5px; padding:4px 9px; border-radius:999px; white-space:nowrap; }
-          .aoc-badge.new{ background:rgba(216,184,119,.16); color:var(--ember); }
+          .aoc-badge.new{ background:rgba(230,230,234,.16); color:var(--ember); }
           .aoc-badge.read{ background:var(--ord-chip); color:var(--ord-muted); }
           .aoc-section{ font-size:0.85rem; color:var(--ord-text); margin:6px 0; line-height:1.4; }
           .aoc-section .lbl{ color:var(--ord-muted); font-weight:700; text-transform:uppercase; font-size:0.64rem; letter-spacing:.5px; display:block; margin-bottom:2px; }
@@ -5429,10 +5429,10 @@ function openFoodDetail(id, updateHash = true) {
           <div>
             <div class="progress-row-info">
               <span>${lang === 'tr' ? 'Karbonhidrat' : 'Carbs'}</span>
-              <span style="font-weight:700; color: #c9a253;">${item.makrolar.karbonhidrat.deger} g (%${item.makrolar.karbonhidrat.yuzde})</span>
+              <span style="font-weight:700; color: #9a9a9a;">${item.makrolar.karbonhidrat.deger} g (%${item.makrolar.karbonhidrat.yuzde})</span>
             </div>
             <div class="progress-bar-bg">
-              <div class="progress-bar-fill" style="background:#c9a253; width: ${item.makrolar.karbonhidrat.yuzde}%"></div>
+              <div class="progress-bar-fill" style="background:#9a9a9a; width: ${item.makrolar.karbonhidrat.yuzde}%"></div>
             </div>
           </div>
           <div>
@@ -5458,7 +5458,7 @@ function openFoodDetail(id, updateHash = true) {
               <circle cx="21" cy="21" r="15.915" fill="transparent"></circle>
               <circle cx="21" cy="21" r="15.915" fill="transparent" stroke="rgba(244,244,246,0.06)" stroke-width="4"></circle>
               <circle cx="21" cy="21" r="15.915" fill="transparent" stroke="#81C784" stroke-width="4" stroke-dasharray="${pDash} ${100-pDash}" stroke-dashoffset="${pOffset}"></circle>
-              <circle cx="21" cy="21" r="15.915" fill="transparent" stroke="#c9a253" stroke-width="4" stroke-dasharray="${cDash} ${100-cDash}" stroke-dashoffset="${cOffset}"></circle>
+              <circle cx="21" cy="21" r="15.915" fill="transparent" stroke="#9a9a9a" stroke-width="4" stroke-dasharray="${cDash} ${100-cDash}" stroke-dashoffset="${cOffset}"></circle>
               <circle cx="21" cy="21" r="15.915" fill="transparent" stroke="#f4f4f6" stroke-width="4" stroke-dasharray="${fDash} ${100-fDash}" stroke-dashoffset="${fOffset}"></circle>
             </svg>
             <div class="donut-text">
@@ -5476,7 +5476,7 @@ function openFoodDetail(id, updateHash = true) {
             </div>
             <div class="macro-legend-item">
               <div class="legend-label-group">
-                <span class="legend-dot" style="background:#c9a253"></span>
+                <span class="legend-dot" style="background:#9a9a9a"></span>
                 <span>${lang === 'tr' ? 'Karbonhidrat' : 'Carbohydrates'}</span>
               </div>
               <span class="legend-pct">%${item.makrolar.karbonhidrat.yuzde}</span>
@@ -6482,7 +6482,7 @@ function updateAdminRezBadge() {
   const unreadCount = rezList.filter(r => !r.read).length;
   if (unreadCount > 0) {
     badge.textContent = unreadCount;
-    badge.style.display = 'inline-block';
+    badge.style.display = 'flex';
   } else {
     badge.style.display = 'none';
   }
@@ -6561,7 +6561,7 @@ function updateAdminOrdersBadge(){
   const badge = document.getElementById('adminOrdersBadge');
   if (!badge) return;
   const count = (window.ordersData || []).filter(o => !o.read).length;
-  if (count > 0){ badge.textContent = count; badge.style.display = 'inline-block'; }
+  if (count > 0){ badge.textContent = count; badge.style.display = 'flex'; }
   else badge.style.display = 'none';
 }
 
@@ -7832,17 +7832,16 @@ async function deletePush(id) {
   .floor-cell.serving .fc-status{ color:#CE93D8; }
   .floor-cell.bill{ border-color:#66BB6A; background:rgba(102,187,106,.16); }
   .floor-cell.bill .fc-status{ color:#66BB6A; }
-  /* Phase 25.2: waiter/service alert cues swapped from orange to neutral gold — same attention
-     value, matches the Root Panel palette. */
-  .floor-cell.waiter{ border-color:#d8b877; background:rgba(216,184,119,.16); animation:tblPulse 1.4s ease infinite; }
-  .floor-cell.waiter .fc-status{ color:#d8b877; }
-  @keyframes tblPulse{ 0%,100%{ box-shadow:0 0 0 rgba(216,184,119,0);} 50%{ box-shadow:0 0 0 3px rgba(216,184,119,.35);} }
+  /* Monochrome rebrand: waiter/service alert cue is now a light-grey pulse instead of gold. */
+  .floor-cell.waiter{ border-color:#e6e6ea; background:rgba(230,230,234,.16); animation:tblPulse 1.4s ease infinite; }
+  .floor-cell.waiter .fc-status{ color:#e6e6ea; }
+  @keyframes tblPulse{ 0%,100%{ box-shadow:0 0 0 rgba(230,230,234,0);} 50%{ box-shadow:0 0 0 3px rgba(230,230,234,.35);} }
 
   /* Service requests bar */
   .service-bar{ display:flex; flex-direction:column; gap:8px; margin-bottom:16px; }
-  .service-item{ display:flex; align-items:center; gap:10px; background:rgba(216,184,119,.12); border:1px solid rgba(216,184,119,.35); border-radius:12px; padding:10px 14px; }
+  .service-item{ display:flex; align-items:center; gap:10px; background:rgba(230,230,234,.12); border:1px solid rgba(230,230,234,.35); border-radius:12px; padding:10px 14px; }
   .service-item .si-txt{ flex:1; font-weight:700; font-size:.88rem; color:var(--tbl-text); }
-  .service-item .si-txt b{ color:#d8b877; }
+  .service-item .si-txt b{ color:#e6e6ea; }
 
   /* Dine-in order cards */
   .tbl-orders-list{ display:grid; grid-template-columns:repeat(auto-fill,minmax(300px,1fr)); gap:12px; margin-top:12px; }
@@ -7894,7 +7893,7 @@ async function deletePush(id) {
     --ap-bg:#0a0a0b; --ap-bg-2:#0e0e11; --ap-panel:#141418; --ap-card:#1b1b20; --ap-elev:#212127;
     --ap-line:rgba(255,255,255,.09); --ap-line-2:rgba(255,255,255,.15);
     --ap-text:#f4f4f6; --ap-muted:#a6a6b0; --ap-faint:#6c6c78;
-    --ap-gold:#d8b877; --ap-gold-2:#c9a253; --ap-gold-soft:rgba(216,184,119,.14);
+    --ap-gold:#ffffff; --ap-gold-2:#e6e6ea; --ap-gold-soft:rgba(255,255,255,.14); --ap-gold-text:#0a0a0b;
     --ap-ok:#7fd18f; --ap-ok-soft:rgba(127,209,143,.14);
     --ap-bad:#e5776b; --ap-bad-soft:rgba(229,119,107,.14);
     --ap-radius:16px; --ap-radius-sm:11px; --ap-radius-lg:22px;
@@ -7925,7 +7924,7 @@ async function deletePush(id) {
     --ap-bg:#f4f5f7; --ap-bg-2:#eceef2; --ap-panel:#ffffff; --ap-card:#ffffff; --ap-elev:#ffffff;
     --ap-line:rgba(15,18,25,.10); --ap-line-2:rgba(15,18,25,.17);
     --ap-text:#15171c; --ap-muted:#565c69; --ap-faint:#8b909c;
-    --ap-gold:#9a7526; --ap-gold-2:#7f5f1e; --ap-gold-soft:rgba(154,117,38,.12);
+    --ap-gold:#15171c; --ap-gold-2:#565c69; --ap-gold-soft:rgba(21,23,28,.12); --ap-gold-text:#ffffff;
     --ap-ok:#2f9e56; --ap-ok-soft:rgba(47,158,86,.12);
     --ap-bad:#c0473b; --ap-bad-soft:rgba(192,71,59,.12);
     --ap-shadow-sm:0 8px 24px -14px rgba(15,18,25,.20);
@@ -7949,7 +7948,7 @@ async function deletePush(id) {
 
   /* ── BUTTONS ── (rescope colors, keep shapes) */
   #adminPanelOverlay .admin-btn{
-    background:var(--ap-gold); color:#0a0a0b; border:1px solid transparent;
+    background:var(--ap-gold); color:var(--ap-gold-text); border:1px solid transparent;
     border-radius:11px; font-weight:700; transition:transform var(--ap-t), box-shadow var(--ap-t), background var(--ap-t);
   }
   #adminPanelOverlay .admin-btn:hover{ transform:translateY(-1px); box-shadow:0 10px 26px -12px var(--ap-gold); }
@@ -8072,7 +8071,7 @@ async function deletePush(id) {
   #adminPanelOverlay .nav-item .ic{ width:20px; height:20px; flex:none; display:grid; place-items:center; }
   #adminPanelOverlay .nav-item .ic svg{ width:19px; height:19px; }
   #adminPanelOverlay .nav-item .lbl{ flex:1; white-space:nowrap; overflow:hidden; }
-  #adminPanelOverlay .nav-item .nbadge{ min-width:20px; height:20px; padding:0 6px; border-radius:999px; background:var(--ap-gold); color:#0a0a0b; font-size:11px; font-weight:800; display:grid; place-items:center; }
+  #adminPanelOverlay .nav-item .nbadge{ min-width:20px; height:20px; padding:0 6px; border-radius:999px; background:#fff; color:#0a0a0b; font-size:11px; font-weight:800; line-height:1; display:flex; align-items:center; justify-content:center; }
   #adminPanelOverlay .side-spacer{ flex:1; }
   #adminPanelOverlay .side-foot{ padding:10px 4px 4px; border-top:1px solid var(--ap-line); margin-top:8px; }
   #adminPanelOverlay .collapse-btn{ width:100%; display:flex; align-items:center; gap:12px; padding:10px 12px; border-radius:11px; background:none; border:1px solid var(--ap-line); color:var(--ap-muted); font-size:13px; cursor:pointer; transition:background var(--ap-t), color var(--ap-t); font-family:inherit; }
@@ -8425,7 +8424,7 @@ function updateTableOrdersBadge(){
   if (!badge) return;
   // Count of active (non-archived) dine-in orders not yet delivered + open service requests
   const n = (dineinView === 'active' ? dineinOrders.length : 0) + serviceRequests.length;
-  if (n > 0){ badge.textContent = n; badge.style.display = 'inline-block'; } else badge.style.display = 'none';
+  if (n > 0){ badge.textContent = n; badge.style.display = 'flex'; } else badge.style.display = 'none';
 }
 
 function setDineinView(v){

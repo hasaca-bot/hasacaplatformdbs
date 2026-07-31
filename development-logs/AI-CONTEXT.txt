@@ -2,7 +2,7 @@
 HASACA PLATFORM — AI CONTINUATION CONTEXT
 (Overwrite this file at the END of every phase. Written for an AI that has
 never seen this project. Companion to development-status.md + phase-XX.md.)
-Last updated: 2026-07-31 (after Phase 36)
+Last updated: 2026-07-31 (after Phase 37)
 ======================================================================
 
 # PROJECT SUMMARY
@@ -782,24 +782,45 @@ isolation unless the phase's explicit goal is to extend them safely; TR+EN for a
 only; 0 console errors / 0 overflow; then write phase-XX.md + update development-status.md + OVERWRITE this file.
 
 # NEXT TASK (exact step)
-1. Live dine-in order against production has been VERIFIED (POST /api/orders -> 201 against a real
+1. **AI Assistant — user reports it's not working.** Not yet investigated. The user wants: the
+   assistant to know the current editable values as an automatic system prompt (so it can match a
+   plain-language request to the right field and save it directly), and the chatbot UI visually
+   modernized to match the current site design. A Gemini API key was pasted in chat mid-session —
+   treat it as compromised, do not use it; the user was told to rotate it at
+   aistudio.google.com/apikey and enter the new one directly in the Root panel's AI setup screen
+   (`/api/root/ai-settings`), never through chat. Start by finding out WHY it's "not working" (check
+   whether an API key is configured at all, check `/api/root/ai-settings`/`/test`, check browser
+   console on the AI Assistant view) before redesigning anything.
+2. **User-reported, not reproduced**: hero image edits not appearing updated locally. Phase 37
+   re-tested the full upload/reorder/remove/save/reload cycle through the actual admin.html UI
+   functions (not just curl) on the `default` tenant with a fresh server restart — everything
+   worked correctly both admin-side and customer-side. Get exact repro steps (tenant, exact action
+   sequence, hard-refresh tried?) before assuming a code bug.
+3. Live dine-in order against production has been VERIFIED (POST /api/orders -> 201 against a real
    table on hasacaplatform.netlify.app, confirmed pre-domain-move). The domain has since changed to
-   platformhasaca.netlify.app (Phase 36-adjacent user action, not a code phase) — worth re-verifying
-   once Render is confirmed current there, since Render was previously found running stale code and
-   was never explicitly confirmed re-deployed after that.
-2. A full monochrome color pass (removes gold/amber accent across admin.html/root.html/login.html/
-   index.html/panel.css, landing.html+marketing.html deliberately untouched) is done LOCALLY ONLY,
-   not pushed — user has not yet said to deploy it. Do not push it unilaterally.
-3. Two flagged items still awaiting a user decision (do NOT action unilaterally): the hardcoded
+   platformhasaca.netlify.app — worth re-verifying once Render is confirmed current there, since
+   Render was previously found running stale code and repeatedly needed manual attention to deploy.
+4. Two flagged items still awaiting a user decision (do NOT action unilaterally): the hardcoded
    Telegram `BOT_TOKEN` in client-visible JS in index.html (should be rotated + moved server-side),
    and `GET /api/root/boost-auditrest`, which inserts 650 fabricated orders on every call with no
    idempotency check and mutates state from a GET.
-4. Then: no major backlog item remains. Do NOT pick a fast-follow unilaterally; ask the user which
+5. Then: no major backlog item remains. Do NOT pick a fast-follow unilaterally; ask the user which
    direction they want (the numbered list above is the menu). Note #7 (Gemini quota) is not code work but currently blocks any real
 end-to-end test of the AI features — worth raising before building more AI surface on an unexercised
 path. If verifying ANY theme-dependent styling in this environment, read the new KNOWN ISSUES entry
 about `document.visibilityState==='hidden'` staleness FIRST — set the theme via `localStorage` before
 navigating, never switch themes at runtime and trust an immediate computed-style read.
+
+## Contrast-checking method (Phase 37)
+When investigating a color-legibility complaint, don't read CSS by eye — inject a live-DOM contrast
+checker (walk every visible text node, compute actual `getComputedStyle` color vs. the nearest
+opaque ancestor background, flag ratios below ~4.5:1 for normal text / 3:1 for large-bold) and run it
+across every view/theme. It reliably finds real bugs (found `root.html`'s duplicate `.chip.active`
+rule this way — near-black text on a near-black background, ratio 1.0) but has a real blind spot:
+it can't read `background-image` gradients, so it walks past them to a distant ancestor and produces
+false positives. Always verify a hit with a direct `getComputedStyle(el).backgroundImage` check (or
+just a screenshot) before treating it as real — several flagged items this phase turned out to be
+perfectly legible gradient buttons the checker simply couldn't see.
 --- superseded panel-redesign notes (Phases 24-25, already done) ---
 Root: token layer (`:root` + `[data-theme]`) at the top of root.html's
 <style> and map the existing `--bg/--panel/--card/--line/--text/--muted/--fire/--gold` variables onto

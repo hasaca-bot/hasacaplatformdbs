@@ -17,14 +17,13 @@
   *{ font-family:'Samsung Sharp Sans', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif !important; }
   code,pre,kbd,samp,.cred-box,[class*="mono"],[style*="monospace"]{ font-family:ui-monospace,'SFMono-Regular',Menlo,monospace !important; }
   :root{
-    /* Phase 32: these 3 + the scroll-thumb pair are fully overridden by panel.css (linked last in
-       <head>, redeclares the same var names) — verified inert. Updated to match its gold values
-       anyway so this fallback block has zero literal legacy-orange text and stays consistent should
-       panel.css ever fail to load. */
-    --fire:#d8b877; --ember:#c9a253; --gold:#d8b877;
+    /* Phase 32/36: these 3 + the scroll-thumb pair are fully overridden by panel.css (linked last
+       in <head>, redeclares the same var names) — verified inert. Updated to match its monochrome
+       values anyway so this fallback block stays consistent should panel.css ever fail to load. */
+    --fire:#ffffff; --ember:#e6e6ea; --gold:#ffffff;
     --bg:#14100D; --panel:#1E1712; --card:#28201A; --line:rgba(255,255,255,.09);
     --text:#f4f4f6; --muted:#a6a6b0; --ok:#66BB6A; --bad:#FF5252;
-    --scroll-thumb:rgba(216,184,119,.4); --scroll-thumb-hover:rgba(216,184,119,.7);
+    --scroll-thumb:rgba(255,255,255,.4); --scroll-thumb-hover:rgba(255,255,255,.7);
   }
   /* Custom scrollbar — thin, rounded, subtle (Chromium + Firefox) */
   html{ scrollbar-width:thin; scrollbar-color:var(--scroll-thumb) transparent; }
@@ -39,8 +38,8 @@
   input:focus,textarea:focus{outline:none;border-color:var(--fire);}
   .btn{border:none;border-radius:10px;padding:10px 16px;font-weight:700;font-size:.85rem;background:linear-gradient(135deg,var(--fire),var(--ember));color:var(--fire-text) !important;transition:transform .12s ease;}
   .btn:hover{transform:translateY(-1px);}
-  .btn.secondary{background:var(--card);border:1px solid var(--line);color:var(--text);}
-  .btn.danger{background:rgba(255,82,82,.15);color:var(--bad);}
+  .btn.secondary{background:var(--card);border:1px solid var(--line);color:var(--text) !important;}
+  .btn.danger{background:rgba(255,82,82,.15);color:var(--bad) !important;}
   .btn.small{padding:7px 12px;font-size:.78rem;}
   .badge{display:inline-block;padding:3px 10px;border-radius:999px;font-size:.68rem;font-weight:800;text-transform:uppercase;letter-spacing:.5px;}
   .badge.active{background:rgba(102,187,106,.15);color:var(--ok);}
@@ -61,8 +60,9 @@
   .topbar h1 span{color:var(--ember);}
   .toolbar{display:flex;gap:10px;margin-bottom:18px;flex-wrap:wrap;align-items:center;}
   .toolbar input[type=text]{max-width:300px;}
-  .chip{background:var(--card);border:1px solid var(--line);color:var(--muted);border-radius:999px;padding:8px 15px;font-size:.8rem;font-weight:700;}
-  .chip.active{background:linear-gradient(135deg,var(--fire),var(--ember));color:var(--fire-text) !important;border-color:transparent;}
+  /* .chip / .chip.active: intentionally NOT redefined here — panel.css (linked last, authoritative)
+     already styles them. This file used to duplicate them with a color:...!important that fought
+     panel.css's --text and produced near-invisible text on the active filter chip. */
   /* Unread badge on the Landing Messages button */
   .lbadge{display:inline-block;margin-left:6px;min-width:18px;padding:1px 6px;border-radius:999px;
     background:var(--fire);color:var(--fire-text);font-size:.7rem;line-height:1.5;text-align:center;}
@@ -267,8 +267,18 @@
         </div>
         <div class="dash-row">
           <div class="panel-card">
-            <h3><span data-i18n="dash_recent">Son Aktivite</span><a onclick="openActivityModal()" data-i18n="dash_viewall">Tümü</a></h3>
-            <div class="act-list" id="dashActivity"><div class="hint" data-i18n="dash_loading">Yükleniyor…</div></div>
+            <h3><span data-i18n="root_analytics">Analitik</span>
+              <select id="dashAnRange" onchange="loadDashboardAnalytics()" style="max-width:100px; font-size:.78rem; padding:5px 8px;">
+                <option value="7" data-i18n="root_an_range_7">7 gün</option>
+                <option value="30" selected data-i18n="root_an_range_30">30 gün</option>
+                <option value="90" data-i18n="root_an_range_90">90 gün</option>
+              </select>
+            </h3>
+            <div class="dash-chart-legend">
+              <span class="lg-item"><span class="lg-dot" style="background:var(--gold);"></span><span data-i18n="root_an_dinein">Masa</span></span>
+              <span class="lg-item"><span class="lg-dot" style="background:var(--muted);"></span><span data-i18n="root_an_delivery">Paket</span></span>
+            </div>
+            <div class="dash-chart-wrap" id="dashChartWrap"><div class="hint" data-i18n="dash_loading">Yükleniyor…</div></div>
           </div>
           <div class="panel-card">
             <h3 data-i18n="dash_quick">Hızlı İşlemler</h3>
@@ -692,6 +702,7 @@ const i18nData = {
     root_activity_action: "İşlem", root_activity_target: "Hedef", root_activity_empty: "Kayıt yok.",
     root_analytics: "Analitik", root_analytics_title: "Platform Analitiği",
     root_analytics_hint: "Tüm restoranların toplamı. Restoran sahipleri yalnızca kendi verilerini görür.",
+    root_an_range_7: "7 gün", root_an_range_30: "30 gün", root_an_range_90: "90 gün",
     root_an_days: "gün", root_an_orders: "Sipariş", root_an_revenue: "Ciro", root_an_avg: "Ort. Sepet",
     root_an_reservations: "Rezervasyon", root_an_delivery: "Paket", root_an_dinein: "Masa",
     root_an_orders_by_day: "Günlük Sipariş", root_an_top_tenants: "En Çok Sipariş Alan Restoranlar",
@@ -796,6 +807,7 @@ const i18nData = {
     root_activity_action: "Action", root_activity_target: "Target", root_activity_empty: "No records.",
     root_analytics: "Analytics", root_analytics_title: "Platform Analytics",
     root_analytics_hint: "Aggregate across all restaurants. Restaurant owners see only their own data.",
+    root_an_range_7: "7 days", root_an_range_30: "30 days", root_an_range_90: "90 days",
     root_an_days: "days", root_an_orders: "Orders", root_an_revenue: "Revenue", root_an_avg: "Avg Order",
     root_an_reservations: "Reservations", root_an_delivery: "Delivery", root_an_dinein: "Dine-in",
     root_an_orders_by_day: "Orders by Day", root_an_top_tenants: "Top Restaurants by Orders",
@@ -944,19 +956,129 @@ async function loadDashboard(){
     document.getElementById('dashOrders').textContent = (s.orders != null ? s.orders : 0).toLocaleString(lang === 'tr' ? 'tr-TR' : 'en-US');
     document.getElementById('dashRevenue').textContent = '₺' + Math.round(s.revenue || 0).toLocaleString(lang === 'tr' ? 'tr-TR' : 'en-US');
   } catch(e){}
-  // recent activity
+  // dashboard analytics chart (replaces the old recent-activity card — Phase 37)
+  loadDashboardAnalytics();
+}
+
+// ── Dashboard analytics chart (Phase 37) — dependency-free SVG area chart. ──
+async function loadDashboardAnalytics(){
+  const wrap = document.getElementById('dashChartWrap');
+  const rangeEl = document.getElementById('dashAnRange');
+  const days = rangeEl ? rangeEl.value : '30';
   try {
-    const d = await (await rootFetch('/api/root/activity?limit=6')).json();
-    const box = document.getElementById('dashActivity');
-    const esc = x => String(x == null ? '' : x).replace(/[<>&]/g, c => ({'<':'&lt;','>':'&gt;','&':'&amp;'}[c]));
-    if (!d.items || !d.items.length) { box.innerHTML = '<div class="hint">' + T('dash_empty') + '</div>'; return; }
-    box.innerHTML = d.items.map(r => {
-      const when = new Date(Number(r.created_at)).toLocaleString(lang === 'tr' ? 'tr-TR' : 'en-US');
-      return `<div class="act-row"><span class="act-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 8v4l3 2"/></svg></span>
-        <div class="act-main"><b>${esc(r.action)}</b> ${esc(r.target) || ''} <span style="color:var(--faint)">${esc(r.tenant_id) || ''}</span></div>
-        <span class="act-when">${esc(when)}</span></div>`;
-    }).join('');
-  } catch(e){}
+    const a = await (await rootFetch('/api/root/analytics?days=' + days)).json();
+    const series = a.ordersByDay || [];
+    if (!series.length || !series.some(d => (d.dinein || 0) + (d.delivery || 0) > 0)) {
+      wrap.innerHTML = '<div class="hint" style="padding-top:64px;text-align:center;">' + T('dash_empty') + '</div>';
+      return;
+    }
+    renderDashAreaChart(wrap, series);
+  } catch (e) {
+    wrap.innerHTML = '<div class="hint" style="color:var(--bad);">' + T('root_err') + '</div>';
+  }
+}
+
+// Catmull-Rom -> cubic-bezier smoothing, converted to an SVG path string.
+function dcSmoothPath(points){
+  if (!points.length) return '';
+  if (points.length === 1) return `M${points[0].x},${points[0].y}`;
+  let d = `M${points[0].x.toFixed(2)},${points[0].y.toFixed(2)}`;
+  for (let i = 0; i < points.length - 1; i++) {
+    const p0 = points[i - 1] || points[i];
+    const p1 = points[i];
+    const p2 = points[i + 1];
+    const p3 = points[i + 2] || p2;
+    const c1x = p1.x + (p2.x - p0.x) / 6, c1y = p1.y + (p2.y - p0.y) / 6;
+    const c2x = p2.x - (p3.x - p1.x) / 6, c2y = p2.y - (p3.y - p1.y) / 6;
+    d += ` C${c1x.toFixed(2)},${c1y.toFixed(2)} ${c2x.toFixed(2)},${c2y.toFixed(2)} ${p2.x.toFixed(2)},${p2.y.toFixed(2)}`;
+  }
+  return d;
+}
+// Closed area between a smooth "top" curve and a smooth "bottom" curve (same x positions).
+function dcAreaPath(topPoints, bottomPoints){
+  const top = dcSmoothPath(topPoints);
+  const bottom = dcSmoothPath(bottomPoints.slice().reverse());
+  return top + ' L' + bottom.slice(1) + ' Z';
+}
+
+function renderDashAreaChart(wrapEl, series){
+  const width = wrapEl.clientWidth || 400;
+  const height = wrapEl.clientHeight || 180;
+  const padTop = 14, padBottom = 22, padSide = 2;
+  const plotW = width - padSide * 2, plotH = height - padTop - padBottom;
+  const n = series.length;
+  const maxTotal = Math.max(1, ...series.map(d => (d.dinein || 0) + (d.delivery || 0)));
+
+  const xAt = i => padSide + (n <= 1 ? plotW / 2 : (i / (n - 1)) * plotW);
+  const yAt = v => padTop + plotH - (v / maxTotal) * plotH;
+
+  const dineinTop = series.map((d, i) => ({ x: xAt(i), y: yAt(d.dinein || 0) }));
+  const baseline = series.map((d, i) => ({ x: xAt(i), y: yAt(0) }));
+  const stackedTop = series.map((d, i) => ({ x: xAt(i), y: yAt((d.dinein || 0) + (d.delivery || 0)) }));
+
+  const dineinArea = dcAreaPath(dineinTop, baseline);
+  const deliveryArea = dcAreaPath(stackedTop, dineinTop);
+  const dineinLine = dcSmoothPath(dineinTop);
+  const deliveryLine = dcSmoothPath(stackedTop);
+
+  const labelCount = width < 380 ? 3 : (width < 600 ? 4 : 6);
+  const step = Math.max(1, Math.round((n - 1) / Math.max(1, labelCount - 1)));
+  const labelIdx = [];
+  for (let i = 0; i < n; i += step) labelIdx.push(i);
+  if (labelIdx[labelIdx.length - 1] !== n - 1) labelIdx.push(n - 1);
+
+  const fmtDate = dateStr => new Date(dateStr + 'T00:00:00')
+    .toLocaleDateString(lang === 'tr' ? 'tr-TR' : 'en-US', { month: 'short', day: 'numeric' });
+
+  const uid = 'dc' + Math.random().toString(36).slice(2, 8);
+
+  wrapEl.innerHTML = `
+    <svg viewBox="0 0 ${width} ${height}" preserveAspectRatio="none">
+      <defs>
+        <linearGradient id="${uid}-a" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="5%" stop-color="var(--gold)" stop-opacity="0.55"/>
+          <stop offset="95%" stop-color="var(--gold)" stop-opacity="0.04"/>
+        </linearGradient>
+        <linearGradient id="${uid}-b" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="5%" stop-color="var(--muted)" stop-opacity="0.45"/>
+          <stop offset="95%" stop-color="var(--muted)" stop-opacity="0.02"/>
+        </linearGradient>
+      </defs>
+      <path d="${deliveryArea}" fill="url(#${uid}-b)" stroke="none"></path>
+      <path d="${deliveryLine}" fill="none" stroke="var(--muted)" stroke-width="1.75"></path>
+      <path d="${dineinArea}" fill="url(#${uid}-a)" stroke="none"></path>
+      <path d="${dineinLine}" fill="none" stroke="var(--gold)" stroke-width="1.75"></path>
+      <line class="dc-guide" x1="0" y1="${padTop}" x2="0" y2="${padTop + plotH}" style="opacity:0;"></line>
+      <g class="dc-axis">${labelIdx.map(i =>
+        `<text x="${xAt(i)}" y="${height - 5}" text-anchor="${i === 0 ? 'start' : (i === n - 1 ? 'end' : 'middle')}">${fmtDate(series[i].date)}</text>`
+      ).join('')}</g>
+      <rect x="0" y="0" width="${width}" height="${height}" fill="transparent" style="cursor:crosshair;"></rect>
+    </svg>
+    <div class="dash-chart-tooltip"></div>`;
+
+  const svg = wrapEl.querySelector('svg');
+  const hitbox = wrapEl.querySelector('rect');
+  const guide = wrapEl.querySelector('.dc-guide');
+  const tip = wrapEl.querySelector('.dash-chart-tooltip');
+
+  hitbox.addEventListener('mousemove', e => {
+    const rect = svg.getBoundingClientRect();
+    const svgX = (e.clientX - rect.left) / rect.width * width;
+    const relX = (svgX - padSide) / plotW;
+    const idx = Math.max(0, Math.min(n - 1, Math.round(relX * (n - 1))));
+    const d = series[idx];
+    const px = xAt(idx);
+    guide.setAttribute('x1', px); guide.setAttribute('x2', px);
+    guide.style.opacity = '1';
+    const wrapRect = wrapEl.getBoundingClientRect();
+    tip.style.left = (wrapRect.width * (px / width)) + 'px';
+    tip.style.top = '4px';
+    tip.classList.add('show');
+    tip.innerHTML = `<div class="dct-date">${fmtDate(d.date)}</div>
+      <div class="dct-row"><span class="dct-dot" style="background:var(--gold)"></span>${T('root_an_dinein')}<b>${d.dinein || 0}</b></div>
+      <div class="dct-row"><span class="dct-dot" style="background:var(--muted)"></span>${T('root_an_delivery')}<b>${d.delivery || 0}</b></div>`;
+  });
+  hitbox.addEventListener('mouseleave', () => { guide.style.opacity = '0'; tip.classList.remove('show'); });
 }
 // Unread landing-message count for the topbar badge (cheap, no modal render).
 async function refreshLandingBadge(){
@@ -1507,7 +1629,7 @@ function viewLandingMessage(id){
       <b>${esc(r.name)}</b><span class="hint">${esc(r.restaurant)} ${r.country ? '· ' + esc(r.country) : ''}</span></div>
     <p style="margin:8px 0;white-space:pre-wrap;font-size:.86rem;">${esc(r.message)}</p>
     <div class="hint" style="font-size:.75rem;">
-      <a href="mailto:${esc(r.email)}" style="color:var(--gold,#d8b877);">${esc(r.email)}</a>
+      <a href="mailto:${esc(r.email)}" style="color:var(--gold,#ffffff);">${esc(r.email)}</a>
       ${r.phone ? ' · ' + esc(r.phone) : ''}${r.ip ? ' · IP ' + esc(r.ip) : ''}
     </div>`;
   if (r.status === 'unread') setLandingStatus(id, 'read', true);
