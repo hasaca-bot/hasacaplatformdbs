@@ -62,7 +62,7 @@ Multi-tenant restaurant SaaS. Node.js + Express (`backend/server.js`), dual DB l
 | 35 | 10 | Production hotfixes (QR-ordering SyntaxError, recursive storage guards, admin login modal, single-domain tenant login, single sign-in page) + Hero Image Management & plain-text Hero editor | ✅ DONE |
 | 36 | 10 | Tenant-less `/admin`/bare-site routes no longer fall back to the `'default'` tenant; `'default'` is now a fully normal, deletable tenant like any other (Root panel + QR URL symmetry) | ✅ DONE |
 | 37 | 10 | Monochrome rebrand shipped (was held back); Root dashboard "Son Aktivite" replaced with an interactive analytics chart (vanilla SVG, no dependency); contrast bug found+fixed | ✅ DONE |
-| 38 | 10 | AI Assistant swapped from Gemini to Groq — Gemini's real generation quota needs billing linked even for the "free tier" and the user has no card; Groq needs none. Same plan/execute contract, only the HTTP call changed | ✅ DONE (real-key end-to-end check pending) |
+| 38 | 10 | AI Assistant swapped from Gemini to Groq — Gemini's real generation quota needs billing linked even for the "free tier" and the user has no card; Groq needs none. Same plan/execute contract, only the HTTP call changed. Same-phase addendum: Admin panel dashboard "Son Aktivite" → analytics chart, same treatment as Root panel (Phase 37), verified on two real tenants | ✅ DONE (real-key end-to-end check + Render deploy confirmation pending) |
 
 
 | 32+ | 5 | Backlog: fast-follows only (menu-generation wizard; QR logos/frames; widget permission tier; `/register` decision; unused legacy files flagged) | ⏭️ NEXT |
@@ -108,12 +108,14 @@ Default/light themes unaffected (byte-identical before/after, verified via compu
   treated as compromised/rotated; the user was told each time to enter credentials only in the
   Root panel's AI setup screen, never through chat. Real-key end-to-end generation not yet
   confirmed — verify once the user's Groq key is saved.
-- Admin panel dashboard "Son Aktivite" → analytics chart (same treatment as Root panel, Phase 37)
-  — explicitly deferred by the user to a later session. `GET /api/admin/analytics` already has the
-  per-day delivery/dinein split it will need (landed in Phase 38); the admin.html UI port itself
-  has not started.
+- ~~Admin panel dashboard chart~~ **RESOLVED (Phase 38 addendum)**: same treatment as Root panel
+  (Phase 37), verified working on two real tenants (empty-state + real-data cases), 0 console
+  errors.
 - Root panel chatbot/AI Assistant UI modernization requested (align visually with current site UI) —
-  not yet started.
+  not yet started, intentionally held until AI generation is confirmed working end-to-end.
+- **Render deploy pending** for Phase 38's commits — pushed but not yet confirmed live at time of
+  writing. Should complete on its own now that the health-check-path misconfiguration is fixed;
+  worth a dashboard check if it's taking more than a few minutes.
 
 ## Credentials (dev fork)
 - Root: `root` / `bunudabullan12A`. Tenant admin: `dayikatik` / `dayikatik123` (reset in P04).

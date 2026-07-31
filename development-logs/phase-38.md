@@ -56,11 +56,48 @@ and untouched.
   entered their key directly in the Root panel (never shared with the assistant), and this needs
   a follow-up check once deployed.
 
-## Not done this phase (explicitly deferred by the user — "tomorrow")
-- Porting the Root dashboard analytics chart to the tenant Admin panel (same "Son Aktivite" →
-  chart treatment). One prerequisite step already landed: `GET /api/admin/analytics` now also
-  breaks `ordersByDay` down by `delivery`/`dinein` per day (previously totals only), matching the
-  same backend change already made for Root's endpoint in Phase 37. The admin.html HTML/CSS/JS
-  port itself has not started.
-- Chatbot UI modernization.
-- Confirming a real Groq response end-to-end once the user's key is saved.
+## Addendum — Admin panel dashboard chart (same session, continued)
+Ported the Root dashboard analytics chart (Phase 37) to the tenant Admin panel — same "Son
+Aktivite" → chart treatment, tenant-scoped instead of platform-wide.
+- `admin.html` — the dashboard's "Son Aktivite" `panel-card` (`#adDashActivity`) replaced with an
+  "Analitik" card: 7/30/90-day range `<select>`, a Masa/Paket legend (reusing the existing
+  `admin_analytics_dinein`/`admin_analytics_delivery` i18n keys already used elsewhere in this
+  file), and the chart mount point (`#adDashChartWrap`).
+- `renderDashAreaChart()`/`dcSmoothPath()`/`dcAreaPath()` ported verbatim from root.html — these
+  were written generically in Phase 37 (no root-specific assumptions baked in) except for which
+  CSS custom properties they read for color. Added a `tokenPrefix` parameter (`'ap'` here vs `''`
+  on root.html) so the same function works against admin.html's independent `--ap-gold`/
+  `--ap-muted` token system instead of root.html's plain `--gold`/`--muted`.
+  `loadAdminDashboardAnalytics()` calls the tenant-scoped `/api/admin/analytics` (its per-day
+  delivery/dinein split landed earlier in this same phase) instead of Root's platform-wide
+  endpoint.
+- New CSS: `.dash-chart-*` classes duplicated into admin.html's own `#adminPanelOverlay`-scoped
+  stylesheet (admin.html does not link `panel.css`, so root.html's chart CSS isn't reachable here
+  — same reason the two files needed the `tokenPrefix` parameter above).
+- Two new i18n keys added: `admin_dash_empty`, `admin_dash_err` (the chart's own empty/error
+  states — `dash_empty`/`root_err` don't exist in admin.html's i18n table, those are root.html
+  keys, caught and fixed before commit).
+
+### Verification
+- All four HTML files' inline scripts pass `node --check` (only the pre-existing JSON-LD false
+  positive).
+- Logged in as two different tenants through the real admin UI (not direct API calls):
+  - `default` (no recent orders in range) → chart renders its empty-safe state correctly, legend
+    and range selector present, 0 console errors.
+  - `hacimustafa` (has real dine-in/delivery orders from earlier in this session) → chart renders
+    with real data; hovering found a real day showing `Masa: 2, Paket: 2`, matching actual orders
+    in the local DB.
+- Range selector (7/30/90) re-fetches and re-renders correctly on both tenants.
+- 0 console errors in both cases.
+
+## Still open
+- **Not yet verified**: an actual successful generation with the user's real Groq key. The user
+  entered their key directly in the Root panel (never shared with the assistant) — needs a
+  follow-up check once Render finishes deploying this phase's commits.
+- **Render deploy pending** at time of writing — pushed but `hasaca-api.onrender.com` was still
+  serving pre-Phase-38 code when last checked. The Render health-check-path misconfiguration from
+  earlier this session (`/api/healt` missing the h) was already fixed by the user, so this is
+  expected to complete on its own; worth a quick dashboard check if it's been more than a few
+  minutes.
+- Chatbot UI modernization — still not started; intentionally held until AI generation is
+  confirmed working end-to-end, so the redesign fits real response shapes.
