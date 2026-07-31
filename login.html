@@ -231,6 +231,10 @@ const I = {
 let LANG = 'tr';
 let PANEL = new URLSearchParams(location.search).get('panel') === 'root' ? 'root' : 'tenant';
 if (location.pathname.replace(/\/+$/,'') === '/root-girisi') PANEL = 'root';
+// Single-domain deployments (Netlify -> Render) always report the same host, so the
+// backend resolves the tenant to 'default' unless ?tenant= is forwarded explicitly.
+// Without this, a non-default tenant admin can never authenticate online.
+const TENANT = new URLSearchParams(location.search).get('tenant') || '';
 const T = k => (I[LANG] && I[LANG][k]) || I.tr[k] || k;
 
 function apply(){
@@ -285,7 +289,7 @@ document.getElementById('loginForm').addEventListener('submit', async (e) => {
   const lbl = document.getElementById('lblSubmit');
   btn.disabled = true; const orig = lbl.textContent; lbl.textContent = T('signing');
   try {
-    const r = await fetch('/api/auth/login', {
+    const r = await fetch('/api/auth/login' + (TENANT ? '?tenant=' + encodeURIComponent(TENANT) : ''), {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ username, password })
     });
@@ -307,7 +311,13 @@ document.getElementById('loginForm').addEventListener('submit', async (e) => {
         }
       } catch (err) {}
       show('ok', T('ok'));
-      setTimeout(() => { location.href = (isRoot && PANEL === 'root') ? '/root' : '/admin'; }, 500);
+      // Carry the tenant into the panel URL. The server-issued tenant_id is authoritative,
+      // so the admin panel scopes its API calls to the right restaurant on single-domain hosts.
+      const slug = (!isRoot && d.tenant_id && d.tenant_id !== 'default') ? d.tenant_id : '';
+      const dest = (isRoot && PANEL === 'root')
+        ? '/root'
+        : '/admin' + (slug ? '?tenant=' + encodeURIComponent(slug) : '');
+      setTimeout(() => { location.href = dest; }, 500);
       return;
     }
   } catch (err) {

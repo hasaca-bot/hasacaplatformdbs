@@ -2568,7 +2568,11 @@ body.theme-bw .rez-select-trigger:hover {
     overflow: hidden !important;
     z-index: 1 !important;
   }
-  #adminLoginBackdrop {
+  /* Keep the login modal hidden while closed, but let openAdminLogin() show it.
+     The unscoped `#adminLoginBackdrop { display:none }` used to win on specificity
+     over `.admin-modal-backdrop.open`, so the modal could never appear and a direct
+     visit to /admin rendered a blank (black) page. */
+  #adminLoginBackdrop:not(.open) {
     display: none !important;
   }
 </style>
