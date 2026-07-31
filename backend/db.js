@@ -671,8 +671,8 @@ async function seedPlatform() {
       landing_subtitle: 'Restaurant Platform',
       footer_brand: 'HASACA',
       ai_enabled: false,
-      ai_provider: 'gemini',
-      ai_model: 'gemini-2.0-flash'
+      ai_provider: 'groq',
+      ai_model: 'llama-3.3-70b-versatile'
     };
     await dbDriver.run(
       isPg ? 'INSERT INTO platform_settings (id, settings, updated_at) VALUES ($1,$2,$3)' : 'INSERT INTO platform_settings (id, settings, updated_at) VALUES (?,?,?)',

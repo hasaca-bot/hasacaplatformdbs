@@ -3,7 +3,7 @@
 > Living status doc. Any AI/dev can resume by reading this + the phase files in `/development-logs`.
 > Release changelog lives in `README.md` (§ DEĞİŞİKLİK GÜNLÜĞÜ). This folder tracks in-progress phased work.
 
-**Last updated:** 2026-07-31 (after Phase 37)
+**Last updated:** 2026-08-01 (after Phase 38)
 
 > A living **AI-CONTEXT.txt** hand-off file is maintained in this folder (overwritten every phase).
 
@@ -62,6 +62,7 @@ Multi-tenant restaurant SaaS. Node.js + Express (`backend/server.js`), dual DB l
 | 35 | 10 | Production hotfixes (QR-ordering SyntaxError, recursive storage guards, admin login modal, single-domain tenant login, single sign-in page) + Hero Image Management & plain-text Hero editor | ✅ DONE |
 | 36 | 10 | Tenant-less `/admin`/bare-site routes no longer fall back to the `'default'` tenant; `'default'` is now a fully normal, deletable tenant like any other (Root panel + QR URL symmetry) | ✅ DONE |
 | 37 | 10 | Monochrome rebrand shipped (was held back); Root dashboard "Son Aktivite" replaced with an interactive analytics chart (vanilla SVG, no dependency); contrast bug found+fixed | ✅ DONE |
+| 38 | 10 | AI Assistant swapped from Gemini to Groq — Gemini's real generation quota needs billing linked even for the "free tier" and the user has no card; Groq needs none. Same plan/execute contract, only the HTTP call changed | ✅ DONE (real-key end-to-end check pending) |
 
 
 | 32+ | 5 | Backlog: fast-follows only (menu-generation wizard; QR logos/frames; widget permission tier; `/register` decision; unused legacy files flagged) | ⏭️ NEXT |
@@ -100,10 +101,17 @@ Default/light themes unaffected (byte-identical before/after, verified via compu
 - **User-reported, not yet reproduced**: hero image edits (Website Editor) not appearing updated
   locally. Full cycle (upload/reorder/remove/save/reload, admin + customer site) re-verified working
   via the actual admin UI in Phase 37 — could not reproduce. Needs exact repro steps.
-- **AI Assistant reported not working** — not yet investigated (Phase 37+). A Gemini API key was
-  pasted in chat and must be treated as compromised; the user was told to rotate it at
-  aistudio.google.com/apikey and enter the new one directly in the Root panel's AI setup screen,
-  never through chat.
+- ~~AI Assistant reported not working~~ **RESOLVED (Phase 38)**: root cause was Gemini's real
+  generation quota requiring billing linked to the key's Google Cloud project, which the user
+  can't do (no credit card). Swapped the provider to Groq (genuinely free, no card ever). Two
+  different Gemini keys and one Groq key were pasted in chat during diagnosis — all must be
+  treated as compromised/rotated; the user was told each time to enter credentials only in the
+  Root panel's AI setup screen, never through chat. Real-key end-to-end generation not yet
+  confirmed — verify once the user's Groq key is saved.
+- Admin panel dashboard "Son Aktivite" → analytics chart (same treatment as Root panel, Phase 37)
+  — explicitly deferred by the user to a later session. `GET /api/admin/analytics` already has the
+  per-day delivery/dinein split it will need (landed in Phase 38); the admin.html UI port itself
+  has not started.
 - Root panel chatbot/AI Assistant UI modernization requested (align visually with current site UI) —
   not yet started.
 

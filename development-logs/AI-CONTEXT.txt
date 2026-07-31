@@ -2,7 +2,7 @@
 HASACA PLATFORM — AI CONTINUATION CONTEXT
 (Overwrite this file at the END of every phase. Written for an AI that has
 never seen this project. Companion to development-status.md + phase-XX.md.)
-Last updated: 2026-07-31 (after Phase 37)
+Last updated: 2026-08-01 (after Phase 38)
 ======================================================================
 
 # PROJECT SUMMARY
@@ -782,34 +782,54 @@ isolation unless the phase's explicit goal is to extend them safely; TR+EN for a
 only; 0 console errors / 0 overflow; then write phase-XX.md + update development-status.md + OVERWRITE this file.
 
 # NEXT TASK (exact step)
-1. **AI Assistant — user reports it's not working.** Not yet investigated. The user wants: the
-   assistant to know the current editable values as an automatic system prompt (so it can match a
-   plain-language request to the right field and save it directly), and the chatbot UI visually
-   modernized to match the current site design. A Gemini API key was pasted in chat mid-session —
-   treat it as compromised, do not use it; the user was told to rotate it at
-   aistudio.google.com/apikey and enter the new one directly in the Root panel's AI setup screen
-   (`/api/root/ai-settings`), never through chat. Start by finding out WHY it's "not working" (check
-   whether an API key is configured at all, check `/api/root/ai-settings`/`/test`, check browser
-   console on the AI Assistant view) before redesigning anything.
-2. **User-reported, not reproduced**: hero image edits not appearing updated locally. Phase 37
+1. **Confirm a real Groq generation end-to-end.** Phase 38 swapped the AI Assistant from Gemini to
+   Groq (see that phase log for the full why — Gemini needs billing linked to get real generation
+   quota, even for "free tier"; user has no card; Groq needs no card ever). Code is deployed-ready
+   and structurally verified (a fake key correctly gets rejected BY Groq's real API, proving the
+   request format is right), but no successful real generation has been confirmed yet — the user's
+   real key was entered directly in the Root panel, never seen by the assistant. Once the user
+   confirms it's saved, POST a real message to `/api/root/ai-assistant/plan` and confirm you get
+   back actual `actions`, not an error.
+2. **Port the dashboard analytics chart to the tenant Admin panel** (admin.html) — same treatment
+   Root got in Phase 37 ("Son Aktivite" card replaced with the vanilla-SVG area chart). Explicitly
+   deferred by the user to continue "tomorrow" (now: today). The backend prerequisite already
+   landed in Phase 38: `GET /api/admin/analytics` returns per-day `delivery`/`dinein` split, same
+   shape as Root's endpoint. Reuse `renderDashAreaChart()`/`dcSmoothPath()`/`dcAreaPath()` from
+   root.html directly — they're generic, not root-specific, just copy them into admin.html's script
+   block and wire a `loadAdminDashboardAnalytics()` calling `/api/admin/analytics` instead of
+   `/api/root/analytics`. Admin dashboard card is at admin.html's `#adDashActivity` /
+   `admin_dash_recent` (~line 3086) — same swap pattern as root.html's `#dashChartWrap`.
+3. **User-reported, not reproduced**: hero image edits not appearing updated locally. Phase 37
    re-tested the full upload/reorder/remove/save/reload cycle through the actual admin.html UI
    functions (not just curl) on the `default` tenant with a fresh server restart — everything
    worked correctly both admin-side and customer-side. Get exact repro steps (tenant, exact action
    sequence, hard-refresh tried?) before assuming a code bug.
-3. Live dine-in order against production has been VERIFIED (POST /api/orders -> 201 against a real
+4. Chatbot UI modernization (visually align with current site design) — requested, not started.
+   Hold off until #1 is confirmed working end-to-end, so the redesign fits real content/response
+   shapes rather than a guess.
+5. Live dine-in order against production has been VERIFIED (POST /api/orders -> 201 against a real
    table on hasacaplatform.netlify.app, confirmed pre-domain-move). The domain has since changed to
-   platformhasaca.netlify.app — worth re-verifying once Render is confirmed current there, since
-   Render was previously found running stale code and repeatedly needed manual attention to deploy.
-4. Two flagged items still awaiting a user decision (do NOT action unilaterally): the hardcoded
+   platformhasaca.netlify.app — worth re-verifying once Render is confirmed current there. Render
+   has repeatedly needed manual attention to deploy this whole session — root cause found and fixed
+   Phase 37/38-adjacent (user action, not code): Render's Health Check Path was misconfigured as
+   `/api/healt` (missing the h) so deploys built successfully but never passed health check and
+   never went live. Fixed to `/api/health` — deploys should complete normally now.
+6. Two flagged items still awaiting a user decision (do NOT action unilaterally): the hardcoded
    Telegram `BOT_TOKEN` in client-visible JS in index.html (should be rotated + moved server-side),
    and `GET /api/root/boost-auditrest`, which inserts 650 fabricated orders on every call with no
    idempotency check and mutates state from a GET.
-5. Then: no major backlog item remains. Do NOT pick a fast-follow unilaterally; ask the user which
-   direction they want (the numbered list above is the menu). Note #7 (Gemini quota) is not code work but currently blocks any real
-end-to-end test of the AI features — worth raising before building more AI surface on an unexercised
-path. If verifying ANY theme-dependent styling in this environment, read the new KNOWN ISSUES entry
-about `document.visibilityState==='hidden'` staleness FIRST — set the theme via `localStorage` before
-navigating, never switch themes at runtime and trust an immediate computed-style read.
+7. Then: no major backlog item remains. Do NOT pick a fast-follow unilaterally; ask the user which
+   direction they want (the numbered list above is the menu). If verifying ANY theme-dependent
+   styling in this environment, read the KNOWN ISSUES entry about
+   `document.visibilityState==='hidden'` staleness FIRST — set the theme via `localStorage` before
+   navigating, never switch themes at runtime and trust an immediate computed-style read.
+
+## Credential hygiene this session (read before assuming any key/password still works)
+Multiple secrets were pasted directly in chat during this session and treated as compromised on
+sight (never typed into any file, form, or commit by the assistant): the root panel password, two
+different Gemini API keys, and one Groq API key. Each time, the user was told to rotate/regenerate
+it and enter the replacement only through the actual UI (Root panel settings), never through chat.
+Do not assume any specific credential value from earlier in a session transcript is still valid.
 
 ## Contrast-checking method (Phase 37)
 When investigating a color-legibility complaint, don't read CSS by eye — inject a live-DOM contrast

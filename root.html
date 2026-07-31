@@ -508,16 +508,16 @@
 <!-- AI SETTINGS MODAL (Phase G) -->
 <div class="overlay" id="aiOverlay" onclick="if(event.target===this)closeModal('aiOverlay')">
   <div class="modal">
-    <h2 data-i18n="root_ai_title">AI Ayarları (Gemini)</h2>
+    <h2 data-i18n="root_ai_title">AI Ayarları (Groq)</h2>
     <p class="hint" data-i18n="root_ai_hint">Tek bir platform anahtarı. Restoran sahipleri anahtar girmez. Anahtar yalnız sunucuda saklanır.</p>
     <label style="display:flex;align-items:center;gap:8px;text-transform:none;letter-spacing:0;color:var(--text);font-weight:600;">
       <input type="checkbox" id="aiEnabled" style="width:auto;"> <span data-i18n="root_ai_enable">AI özelliklerini etkinleştir</span>
     </label>
     <label data-i18n="root_ai_key">API Anahtarı</label>
-    <input type="password" id="aiKey" autocomplete="off" placeholder="AIza...">
+    <input type="password" id="aiKey" autocomplete="off" placeholder="gsk_...">
     <div class="hint" id="aiKeyStatus"></div>
     <label data-i18n="root_ai_model">Varsayılan Model</label>
-    <input type="text" id="aiModel" placeholder="gemini-2.0-flash">
+    <input type="text" id="aiModel" placeholder="llama-3.3-70b-versatile">
     <div id="aiTestResult" style="margin-top:10px;font-size:.85rem;"></div>
     <div class="row">
       <button class="btn secondary" onclick="testAiConnection()" data-i18n="root_ai_test">Bağlantıyı Test Et</button>
@@ -657,7 +657,7 @@ const i18nData = {
     root_branding_hint: "Kod değiştirmeden platformun logosu, favicon'u ve giriş logosunu buradan ayarlayın.",
     root_brand_platform_name: "Platform Adı", root_brand_logo_url: "Logo",
     root_brand_login_logo: "Giriş Logosu", root_brand_favicon: "Favicon", root_brand_footer: "Footer Markası",
-    root_ai_title: "AI Ayarları (Gemini)",
+    root_ai_title: "AI Ayarları (Groq)",
     root_ai_hint: "Tek bir platform anahtarı. Restoran sahipleri anahtar girmez. Anahtar yalnız sunucuda saklanır.",
     root_ai_enable: "AI özelliklerini etkinleştir", root_ai_key: "API Anahtarı",
     root_ai_model: "Varsayılan Model", root_ai_test: "Bağlantıyı Test Et",
@@ -762,7 +762,7 @@ const i18nData = {
     root_branding_hint: "Set the platform logo, favicon and login logo here — no code changes needed.",
     root_brand_platform_name: "Platform Name", root_brand_logo_url: "Logo",
     root_brand_login_logo: "Login Logo", root_brand_favicon: "Favicon", root_brand_footer: "Footer Brand",
-    root_ai_title: "AI Settings (Gemini)",
+    root_ai_title: "AI Settings (Groq)",
     root_ai_hint: "One shared platform key. Restaurant owners never enter keys. The key is stored on the backend only.",
     root_ai_enable: "Enable AI features", root_ai_key: "API Key",
     root_ai_model: "Default Model", root_ai_test: "Test Connection",
@@ -1744,12 +1744,12 @@ async function loadNotifyHistory(){
   } catch(e){ tbody.innerHTML = '<tr><td colspan="4" class="hint" style="color:var(--bad);">'+T('root_err')+'</td></tr>'; }
 }
 
-// ── AI settings (Gemini) ──
+// ── AI settings (Groq) ──
 async function openAiSettingsModal(){
   try {
     const s = await (await rootFetch('/api/root/ai-settings')).json();
     document.getElementById('aiEnabled').checked = !!s.ai_enabled;
-    document.getElementById('aiModel').value = s.ai_model || 'gemini-2.0-flash';
+    document.getElementById('aiModel').value = s.ai_model || 'llama-3.3-70b-versatile';
     document.getElementById('aiKey').value = '';
     document.getElementById('aiKeyStatus').textContent = s.key_set ? T('root_ai_key_set') : T('root_ai_key_unset');
     document.getElementById('aiTestResult').textContent = '';

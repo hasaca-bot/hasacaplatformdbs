@@ -649,19 +649,26 @@ module.exports = function createRootRouter({ db, isPg, invalidateTenantCache, si
     }
   });
 
-  // ---------- Gemini AI Setup Assistant (Phase 26) ----------
+  // ---------- Groq AI Setup Assistant (Phase 26, provider swapped Phase 38) ----------
   // Reuses getPlatform/savePlatform — ai_key lives inside the same platform_settings JSON blob
   // (the "never leak ai_key" mask already existed at GET /platform-settings, line ~321, written
   // in anticipation of this). The key is NEVER sent to the frontend — only key_set:boolean.
-  const DEFAULT_AI_MODEL = 'gemini-2.0-flash';
+  // Swapped from Gemini to Groq (Phase 38): Gemini's generateContent quota needs a billing account
+  // linked to the underlying Google Cloud project even to use the nominal "free tier" — a key can
+  // pass a cheap validation call but every real generation request 404s with "limit: 0" without
+  // billing. Groq's free tier needs no card. Groq's API is OpenAI-compatible.
+  const DEFAULT_AI_MODEL = 'llama-3.3-70b-versatile';
+  // A value saved before the Phase 38 Groq swap ("gemini-...") is not a valid Groq model — treat
+  // it as unset so old installs fall through to the new default instead of sending a doomed request.
+  const cleanAiModel = m => (m && !/^gemini/i.test(m)) ? m : '';
 
   router.get('/ai-settings', async (req, res) => {
     try {
       const p = await getPlatform();
       res.json({
         ai_enabled: !!p.ai_enabled,
-        ai_provider: 'gemini',
-        ai_model: p.ai_model || DEFAULT_AI_MODEL,
+        ai_provider: 'groq',
+        ai_model: cleanAiModel(p.ai_model) || DEFAULT_AI_MODEL,
         key_set: !!p.ai_key
       });
     } catch (err) {
@@ -676,7 +683,7 @@ module.exports = function createRootRouter({ db, isPg, invalidateTenantCache, si
       const b = req.body || {};
       p.ai_enabled = !!b.ai_enabled;
       p.ai_model = String(b.ai_model || DEFAULT_AI_MODEL).trim().slice(0, 60);
-      p.ai_provider = 'gemini';
+      p.ai_provider = 'groq';
       // Only overwrite the stored key if a non-empty one was submitted (leaves it untouched
       // when the admin saves other fields without retyping the key).
       if (typeof b.ai_key === 'string' && b.ai_key.trim()) {
@@ -691,18 +698,16 @@ module.exports = function createRootRouter({ db, isPg, invalidateTenantCache, si
     }
   });
 
-  // POST /api/root/ai-settings/test — validates a Gemini key/model with a cheap models.get call
+  // POST /api/root/ai-settings/test — validates a Groq key with a cheap model-list call
   // (no content generation, no quota spent). Tests the submitted key, or falls back to the saved one.
   router.post('/ai-settings/test', async (req, res) => {
     try {
       const b = req.body || {};
-      const model = String(b.ai_model || DEFAULT_AI_MODEL).trim().slice(0, 60);
       let key = typeof b.ai_key === 'string' ? b.ai_key.trim() : '';
       if (!key) { const p = await getPlatform(); key = p.ai_key || ''; }
       if (!key) return res.json({ ok: false, error: 'no_key_configured' });
 
-      const url = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}?key=${encodeURIComponent(key)}`;
-      const r = await fetch(url, { method: 'GET' });
+      const r = await fetch('https://api.groq.com/openai/v1/models', { headers: { 'Authorization': 'Bearer ' + key } });
       if (r.ok) return res.json({ ok: true });
       const errBody = await r.json().catch(() => ({}));
       return res.json({ ok: false, error: (errBody.error && errBody.error.message) || ('http_' + r.status) });
@@ -726,13 +731,22 @@ module.exports = function createRootRouter({ db, isPg, invalidateTenantCache, si
     categories: ['name_tr', 'name_en']
   };
 
-  async function callGeminiJSONRoot(key, model, systemPrompt, userMessage) {
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent?key=${encodeURIComponent(key)}`;
-    const body = { contents: [{ role: 'user', parts: [{ text: systemPrompt + '\n\nİstek: ' + userMessage }] }], generationConfig: { responseMimeType: 'application/json' } };
-    const r = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+  // OpenAI-compatible: Bearer auth, messages array, response_format json_object. See server.js's
+  // callAiJSON for the tenant-side twin of this function (identical shape, different call sites).
+  async function callAiJSONRoot(key, model, systemPrompt, userMessage) {
+    const url = 'https://api.groq.com/openai/v1/chat/completions';
+    const body = {
+      model,
+      messages: [
+        { role: 'system', content: systemPrompt },
+        { role: 'user', content: userMessage }
+      ],
+      response_format: { type: 'json_object' }
+    };
+    const r = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + key }, body: JSON.stringify(body) });
     const data = await r.json();
     if (!r.ok) throw new Error((data.error && data.error.message) || ('http_' + r.status));
-    const text = data.candidates && data.candidates[0] && data.candidates[0].content && data.candidates[0].content.parts && data.candidates[0].content.parts[0] && data.candidates[0].content.parts[0].text;
+    const text = data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content;
     if (!text) throw new Error('empty_response');
     return JSON.parse(text);
   }
@@ -802,7 +816,7 @@ Kategoriler: ${JSON.stringify(categories)}`;
       }
 
       let plan;
-      try { plan = await callGeminiJSONRoot(p.ai_key, p.ai_model || 'gemini-2.0-flash', systemPrompt, message); }
+      try { plan = await callAiJSONRoot(p.ai_key, cleanAiModel(p.ai_model) || DEFAULT_AI_MODEL, systemPrompt, message); }
       catch (e) { return res.json({ planId: null, summary: '', actions: [], unsupported: [], error: e.message }); }
 
       const unsupported = Array.isArray(plan.unsupported) ? plan.unsupported.slice(0, 20) : [];

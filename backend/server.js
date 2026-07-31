@@ -1594,16 +1594,18 @@ app.get('/api/admin/analytics', adminAuth, async (req, res) => {
     let revenue = 0, delivery = 0, dinein = 0; const byDay = {}, statusB = {};
     for (const o of orders) {
       const t = Number(o.total) || 0; revenue += t;
-      if (o.order_type === 'dinein') dinein++; else delivery++;
+      const isDinein = o.order_type === 'dinein';
+      if (isDinein) dinein++; else delivery++;
       statusB[o.status || 'new'] = (statusB[o.status || 'new'] || 0) + 1;
       const key = new Date(Number(o.created_at)).toISOString().slice(0, 10);
-      (byDay[key] = byDay[key] || { date: key, orders: 0, revenue: 0 }).orders++;
-      byDay[key].revenue += t;
+      const day = (byDay[key] = byDay[key] || { date: key, orders: 0, revenue: 0, delivery: 0, dinein: 0 });
+      day.orders++; day.revenue += t;
+      if (isDinein) day.dinein++; else day.delivery++;
     }
     const series = [];
     for (let i = days - 1; i >= 0; i--) {
       const key = new Date(Date.now() - i * 86400000).toISOString().slice(0, 10);
-      series.push(byDay[key] || { date: key, orders: 0, revenue: 0 });
+      series.push(byDay[key] || { date: key, orders: 0, revenue: 0, delivery: 0, dinein: 0 });
     }
     const items = await db.all(
       `SELECT product_name, SUM(quantity) q FROM order_items WHERE tenant_id = ${p(1)} GROUP BY product_name ORDER BY q DESC LIMIT 8`,
@@ -1629,8 +1631,14 @@ app.get('/api/admin/analytics', adminAuth, async (req, res) => {
   }
 });
 
-// ---------- AI Assistant (Phase 27) — tenant-scoped ----------
-// Reuses the shared Gemini key/model from platform_settings (Phase 26's /api/root/ai-settings).
+// ---------- AI Assistant (Phase 27, provider swapped Phase 38) — tenant-scoped ----------
+// Reuses the shared Groq key/model from platform_settings (Phase 26's /api/root/ai-settings).
+// Swapped from Gemini to Groq (Phase 38): Gemini's real generateContent quota requires a billing
+// account linked to the underlying Google Cloud project even to use the nominal "free tier" — a
+// prepaid/no-card account can validate a key (cheap metadata call) but every real generation call
+// 404s with "limit: 0". Groq's free tier needs no card, ever. Groq exposes an OpenAI-compatible
+// REST API, so only the request/response shape changes — the systemPrompt/JSON-schema contract
+// this file builds is provider-agnostic and untouched.
 // The assistant only ever sets whitelisted fields on rows already scoped to req.tenantId — the
 // exact same tenant_id-guarded UPDATE pattern as PUT /api/products/:id and /api/categories/:id
 // above. Plans are held in-memory (never persisted) and are single-use + tenant-locked.
@@ -1641,22 +1649,35 @@ const AI_FIELD_WHITELIST = {
   categories: ['name_tr', 'name_en']
 };
 
+const DEFAULT_AI_MODEL = 'llama-3.3-70b-versatile';
+
+// A value saved before the Phase 38 Groq swap ("gemini-...") is not a valid Groq model — treat it
+// as unset so old installs fall through to the new default instead of sending a doomed request.
+function cleanAiModel(m) { return (m && !/^gemini/i.test(m)) ? m : ''; }
+
 async function getAiConfig() {
   const row = await db.get(isPg ? 'SELECT settings FROM platform_settings WHERE id = $1' : 'SELECT settings FROM platform_settings WHERE id = ?', ['platform']);
   let s = {}; try { s = JSON.parse((row && row.settings) || '{}') || {}; } catch (e) {}
-  return { ai_enabled: !!s.ai_enabled, ai_model: s.ai_model || 'gemini-2.0-flash', ai_key: s.ai_key || '' };
+  return { ai_enabled: !!s.ai_enabled, ai_model: cleanAiModel(s.ai_model) || DEFAULT_AI_MODEL, ai_key: s.ai_key || '' };
 }
 
-async function callGeminiJSON(key, model, systemPrompt, userMessage) {
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent?key=${encodeURIComponent(key)}`;
+// Groq's chat completions endpoint is OpenAI-compatible: Bearer auth, messages array,
+// response_format:{type:"json_object"} for JSON mode. The generated text lives at
+// choices[0].message.content (a string) — parsed the same way the old Gemini path did.
+async function callAiJSON(key, model, systemPrompt, userMessage) {
+  const url = 'https://api.groq.com/openai/v1/chat/completions';
   const body = {
-    contents: [{ role: 'user', parts: [{ text: systemPrompt + '\n\nKullanıcı isteği: ' + userMessage }] }],
-    generationConfig: { responseMimeType: 'application/json' }
+    model,
+    messages: [
+      { role: 'system', content: systemPrompt },
+      { role: 'user', content: userMessage }
+    ],
+    response_format: { type: 'json_object' }
   };
-  const r = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+  const r = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + key }, body: JSON.stringify(body) });
   const data = await r.json();
   if (!r.ok) throw new Error((data.error && data.error.message) || ('http_' + r.status));
-  const text = data.candidates && data.candidates[0] && data.candidates[0].content && data.candidates[0].content.parts && data.candidates[0].content.parts[0] && data.candidates[0].content.parts[0].text;
+  const text = data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content;
   if (!text) throw new Error('empty_response');
   return JSON.parse(text);
 }
@@ -1696,7 +1717,7 @@ Kategoriler: ${JSON.stringify(categories)}`;
 
     let plan;
     try {
-      plan = await callGeminiJSON(cfg.ai_key, cfg.ai_model, systemPrompt, message);
+      plan = await callAiJSON(cfg.ai_key, cfg.ai_model, systemPrompt, message);
     } catch (e) {
       return res.json({ planId: null, summary: '', actions: [], unsupported: [], error: e.message });
     }
