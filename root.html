@@ -126,20 +126,8 @@
 </head>
 <body>
 
-<!-- LOGIN -->
-<div class="login-wrap" id="loginView">
-  <div class="login-card">
-    <img id="rootLoginLogo" src="/icons/placeholder-logo.svg" alt="" style="width:56px;height:56px;border-radius:12px;display:block;margin:0 auto 14px;">
-    <h1 style="text-align:center;"><span id="rootLoginName">HASACA</span> <span style="color:var(--ember)">Root</span></h1>
-    <div class="sub" data-i18n="root_sub">Platform Yönetim Paneli</div>
-    <label data-i18n="root_username">Kullanıcı Adı</label>
-    <input type="text" id="rootUser" autocomplete="username" onkeydown="if(event.key==='Enter')document.getElementById('rootPass').focus()">
-    <label data-i18n="root_password">Şifre</label>
-    <input type="password" id="rootPass" autocomplete="current-password" onkeydown="if(event.key==='Enter')rootLogin()">
-    <div style="margin-top:20px;"><button class="btn" style="width:100%;" onclick="rootLogin()" data-i18n="root_login_btn">Giriş Yap</button></div>
-    <div class="login-err" id="loginErr"></div>
-  </div>
-</div>
+<!-- Root has no login screen of its own: /giris is the single sign-in page for both the
+     restaurant panel and the root panel. An unauthenticated visit here redirects there. -->
 
 <!-- SHELL -->
 <div class="shell" id="shellView">
@@ -883,26 +871,15 @@ async function rootFetch(path, opts = {}){
   return res;
 }
 
-async function rootLogin(){
-  const err = document.getElementById('loginErr');
-  err.style.display = 'none';
-  try {
-    const res = await fetch('/api/auth/login', {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ username: document.getElementById('rootUser').value.trim(), password: document.getElementById('rootPass').value })
-    });
-    if (!res.ok) throw new Error('bad');
-    const data = await res.json();
-    if (data.role !== 'root') { err.textContent = T('root_not_root'); err.style.display = 'block'; return; }
-    setRootToken(data.token);
-    showShell();
-  } catch(e) {
-    err.textContent = T('root_login_wrong'); err.style.display = 'block';
-  }
-}
 function rootLogout(){ setRootToken(''); showLogin(); }
-function showLogin(){ document.getElementById('loginView').style.display = 'flex'; document.getElementById('shellView').style.display = 'none'; }
-async function showShell(){ document.getElementById('loginView').style.display = 'none'; document.getElementById('shellView').style.display = 'block'; refreshLandingBadge(); showView('dashboard'); await loadTenants(); loadDashboard(); }
+// Single sign-in page for the whole platform. /giris already offers both the restaurant
+// and the root panel, so root.html never renders a second login form of its own.
+function showLogin(){
+  const shell = document.getElementById('shellView');
+  if (shell) shell.style.display = 'none';
+  window.location.href = '/giris?panel=root';
+}
+async function showShell(){ document.getElementById('shellView').style.display = 'block'; refreshLandingBadge(); showView('dashboard'); await loadTenants(); loadDashboard(); }
 
 // ── Desktop shell: view switching, sidebar, dashboard (Phase 24, presentation only) ──
 function showView(name){
@@ -1334,10 +1311,7 @@ async function applyPlatformConfig(){
     const cfg = await (await fetch('/api/platform-config')).json();
     platformCfg = cfg || {};
     const name = cfg.platform_name || 'HASACA';
-    document.getElementById('rootLoginName').textContent = name;
     const sbn = document.getElementById('sideBrandName'); if (sbn) sbn.textContent = name;
-    const logo = cfg.login_logo_url || cfg.logo_url;
-    if (logo) document.getElementById('rootLoginLogo').src = logo;
     if (cfg.favicon_url) { let f = document.querySelector('link[rel="icon"]'); if (f) f.href = cfg.favicon_url; }
     document.title = name + ' Root Panel';
   } catch(e){}
