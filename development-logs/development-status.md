@@ -79,10 +79,11 @@ Default/light themes unaffected (byte-identical before/after, verified via compu
 > Contact & Social in P13, analytics in P18, Widget Mgmt in P28, QR Designer in P29.
 
 ## Known bugs (open)
-- **Live QR order not yet verified in production.** The deployed frontend is confirmed repaired
-  (menu loads on `/t/` paths, `placeOrder` defined, invalid tables degrade cleanly) and the flow
-  passes end-to-end locally, but no real dine-in order has been placed against Neon yet — that
-  needs a valid production table token.
+- ~~Live QR order unverified~~ **RESOLVED**: verified end-to-end on production against table
+  "Test2" — POST /api/orders returned 201, tracking card rendered, 0 console errors.
+- `PLATFORM_ORIGIN` is not set on Render, so QR URLs rely on the Referer fallback. Existing
+  printed QR codes still encode the old `hasaca-api.onrender.com` host (they work, but are
+  unbranded and cold-start prone) and would need reprinting.
 - **Hardcoded Telegram `BOT_TOKEN` in `index.html`**, in client-visible JS. Anyone can read it.
   Should be rotated and moved server-side.
 - **`GET /api/root/boost-auditrest`** (`backend/routes/root.js`) inserts 650 fabricated orders on

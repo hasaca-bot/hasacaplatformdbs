@@ -261,10 +261,53 @@ requested format character for character.
 - `backend/server.js` — new `PUT /api/admin/website-content`; single-domain login fallback.
 - `icons/hero-default-1..7.jpg` — new (extracted defaults).
 
+---
+
+## 1f. HOTFIX — printed QR codes pointed customers at the API domain
+
+The user supplied a real QR link to test with: `https://hasaca-api.onrender.com/t/FLFmrfM1dS`.
+That is the **API** host, not the customer site — surfacing a sixth defect.
+
+`buildTableUrl()` derived the URL from `x-forwarded-host || host`. Netlify's proxy does **not**
+forward the original host to Render, so the API only ever sees its own hostname and encoded it into
+every generated QR. Customers scanning a printed QR landed on the raw API domain: unbranded,
+subject to Render free-tier cold starts (~30–60 s), and permanently baked into printed material
+that would break if the API ever moves or is locked down.
+
+`Origin`/`Referer` *do* survive the proxy and carry the site the admin is actually browsing, so
+resolution order is now: `PLATFORM_ORIGIN` → request `Origin`/`Referer` → request host.
+
+Verified all three precedence cases:
+
+| Case | Result |
+|---|---|
+| `Referer: netlify` + `X-Forwarded-Host: onrender` | `https://hasacaplatform.netlify.app/t/…` ✅ |
+| No Referer (local dev / same-origin) | `http://localhost:17888/t/…` ✅ |
+| `PLATFORM_ORIGIN=https://hasaca.com` | overrides both ✅ |
+
+Setting `PLATFORM_ORIGIN` on Render remains the durable fix, since it does not depend on the
+browser sending a `Referer`.
+
+---
+
+## PRODUCTION VERIFICATION — the reported bug is fixed
+
+Ran the full customer journey against `hasacaplatform.netlify.app` using table **"Test2"**
+(`/t/FLFmrfM1dS`, tenant `default`):
+
+1. Scanned the QR path → table resolved, badge rendered **"Masa: Test2"**, dine-in mode active,
+   **11 menu items loaded** (was 0 before the fix), order button enabled.
+2. `addToCart()` → `openCheckout()` → `placeOrder()`.
+3. **`POST /api/orders?tenant=default → 201 Created`**
+4. Cart cleared, no error message, live tracking card appeared showing *"Siparişiniz Alındı"* with
+   the dine-in status workflow.
+
+0 console errors on the deployed customer site.
+
 ## Still open
-- **Live QR order not yet verified.** The production frontend is confirmed repaired (menu loads,
-  `placeOrder` defined, invalid tables degrade correctly), but placing a real dine-in order online
-  needs a valid production table token, which requires admin access. Local end-to-end passes.
+- `PLATFORM_ORIGIN` is not set on Render. The Referer fallback covers it, but setting it is the
+  durable fix. Existing printed QR codes still encode the old `onrender.com` URL and would need
+  reprinting to benefit (they do still function).
 - Local dev DB (`backend/dayikatik.db`, gitignored) was modified for testing: passwords reset for
   `dayikatik` and `hacimustafa`. Production/Neon untouched.
 
