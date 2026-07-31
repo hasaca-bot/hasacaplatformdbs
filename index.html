@@ -7210,7 +7210,9 @@ function formatHeroTitle(text, name) {
   if (text.includes('<')) return text;
   if (name && text.includes(name)) {
     const i = text.lastIndexOf(name);
-    return text.slice(0, i) + '<br><em>' + name + '</em>' + text.slice(i + name.length);
+    // Drop the space that separated the name from the preceding words: the <br> replaces it,
+    // so "Welcome to My Restaurant" becomes "Welcome to<br><em>My Restaurant</em>" exactly.
+    return text.slice(0, i).replace(/\s+$/, '') + '<br><em>' + name + '</em>' + text.slice(i + name.length);
   }
   const words = text.trim().split(/\s+/);
   if (words.length < 2) return text;

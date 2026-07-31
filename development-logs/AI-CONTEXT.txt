@@ -2,7 +2,7 @@
 HASACA PLATFORM — AI CONTINUATION CONTEXT
 (Overwrite this file at the END of every phase. Written for an AI that has
 never seen this project. Companion to development-status.md + phase-XX.md.)
-Last updated: 2026-07-26 (after Phase 32)
+Last updated: 2026-07-31 (after Phase 35)
 ======================================================================
 
 # PROJECT SUMMARY
@@ -15,7 +15,11 @@ Panel manages all tenants. As of Phase 22 there is ALSO a public marketing site 
   Node built-in `node:sqlite`) OR PostgreSQL (prod, `pg`) chosen by `DATABASE_URL`. Frontend = FOUR
   static HTML pages, NO bundler, NO React — each page has its own embedded `<style>` and `<script>`
   and an inline `i18nData` object. `web-push` for notifications, `qrcode` for QR.
-- Folder structure (working copy = `C:\Users\hasan_y4hfwna\Desktop\hasaca-platform`):
+- Folder structure (working copy = `C:\Users\hasan_y4hfwna\Desktop\saas proje` — the git checkout of
+  github.com/hasaca-bot/hasacaplatformdbs, branch `main`. This is now the SINGLE SOURCE OF TRUTH;
+  the old `hasaca-platform` fork is stale and must not be used. Production is Netlify (static
+  frontend) + Render (Express API at hasaca-api.onrender.com) + Neon (Postgres). Netlify proxies
+  /api/* and /uploads/* to Render via `_redirects`, so the API is same-origin from the browser):
     index.html        → a tenant's restaurant website. Served at `/` ONLY on a real tenant subdomain
                         (restaurant1.hasaca.com, restaurant1.localhost:PORT). On the bare host (plain
                         localhost, an IP, the platform apex domain) `/` now serves landing.html instead
@@ -686,11 +690,44 @@ adapter → P26/P27; Widget Management → P28; QR Designer → P29.)
   reply-to-lead from the Root panel.
 
 # NEXT AI INSTRUCTIONS  (read me first)
+
+## !! PHASE 35 LESSON — VERIFY THAT SHIPPED JS ACTUALLY PARSES !!
+Phase 35 began as a feature request and turned into four production hotfixes, three of them
+introduced by a single earlier commit (`c4d5263`) that was never verified in a browser:
+  1. A dangling code block left `await` at top level in index.html's last <script>. A SyntaxError
+     kills the WHOLE block, so `placeOrder`, `dkInitDinein`, `applySiteConfig`, `dkCallService`
+     and `dkToast` were all `undefined` in production. QR ordering was impossible AND the menu
+     never loaded on /t/ paths (the menu load is deliberately deferred to `dkInitDinein`).
+  2. The localStorage guards called THEMSELVES (`function safeGetItem(k){try{return safeGetItem(k)}
+     catch(e){return null}}`) — infinite recursion, swallowed by the catch, every read returned
+     null. The admin panel therefore never sent an Authorization header.
+  3. `#adminLoginBackdrop { display:none !important }` (specificity 100) beat
+     `.admin-modal-backdrop.open` (20), so the login modal could never render — blank black /admin.
+  4. `POST /api/auth/login` scoped to the host-derived tenant only; on a single-domain deployment
+     that is always 'default', so correct passwords were rejected for every other restaurant.
+None of these produce a console error you can see by glancing at the page — a SyntaxError happens
+before any of your code runs. ALWAYS, after editing an inline <script>, extract every script block
+and run `node --check` on it, and probe `typeof <fn>` in the live browser. Do the same against the
+DEPLOYED file (curl the Netlify URL), not just the local copy — that is how these were found.
+
+## Standing rules
 CONTINUE the backlog. Do NOT modify authentication, tenant isolation, the DB schema of existing
 tables, or the master-template model. Do NOT reintroduce any Dayı Katık/Tantuni/Safranbolu/Getir
-branding, manual image-URL inputs, or emojis. Work ONLY in the fork
-`C:\Users\hasan_y4hfwna\Desktop\hasaca-platform` on PORT 17888 (start: `cd backend && node server.js` —
-backend/.env now correctly carries PORT=17888). Push (P20), SEO Center (P21), the Landing site + lead
+branding, manual image-URL inputs, or emojis. Work ONLY in
+`C:\Users\hasan_y4hfwna\Desktop\saas proje` on PORT 17888 (start: `cd backend && node server.js` —
+backend/.env now correctly carries PORT=17888).
+
+## Auth / tenancy on the single-domain deployment (read before touching either)
+Every restaurant answers on hasacaplatform.netlify.app, so the host NEVER identifies the tenant.
+- `resolveTenant` (lib/tenant.js) reads `?tenant=` or the `x-tenant-id` header on ALL environments,
+  falling back to 'default'.
+- `adminAuth` trusts the JWT's `tenant_id` when the host resolved to 'default', so once a user is
+  logged in every request is correctly scoped BY THE TOKEN — no `?tenant=` needed anywhere.
+- `POST /api/auth/login` is the only place the tenant cannot come from a token. It tries the
+  scoped lookup first; if no explicit `?tenant=` was given and that misses, it accepts the account
+  only when EXACTLY ONE account platform-wide has that username (ambiguous usernames are refused).
+- `/giris` is the single sign-in page for both panels (tenant + root tabs). `root.html` has no
+  login form of its own; an unauthenticated `/root` redirects to `/giris?panel=root`. Push (P20), SEO Center (P21), the Landing site + lead
 inbox (P22), both panel redesigns (P24/P25/P25.2), the Gemini AI backend (P26), the in-shell
 Category/Product forms + AI Assistant (P27), Widget Management (P28), QR Designer (P29), the
 tenant-targeted Root AI assistant (P30), the root-routing fix (P31 — `/` is the HASACA landing page on
@@ -736,8 +773,20 @@ isolation unless the phase's explicit goal is to extend them safely; TR+EN for a
 only; 0 console errors / 0 overflow; then write phase-XX.md + update development-status.md + OVERWRITE this file.
 
 # NEXT TASK (exact step)
-None assigned. Do NOT pick a fast-follow unilaterally; ask the user which direction they want (the
-numbered list above is the menu). Note #7 (Gemini quota) is not code work but currently blocks any real
+1. **Verify a real dine-in order in production.** The deployed frontend is confirmed repaired
+   (menu loads on /t/ paths, `placeOrder` defined, invalid tables lock the button correctly) and
+   the whole flow passes end-to-end locally — a dine-in order lands in `orders` with
+   `order_type='dinein'` and the right `table_name`. What is NOT yet proven is a real order against
+   Neon, because that needs a valid production table token (admin auth required to list tables).
+   Ask the user for one table's QR URL (`/t/<token>?tenant=<slug>`) — it is a public customer URL,
+   not a credential — then run scan -> add item -> checkout and confirm the order appears in the
+   admin Orders list.
+2. Two flagged items awaiting a user decision (do NOT action unilaterally): the hardcoded Telegram
+   `BOT_TOKEN` in client-visible JS in index.html (should be rotated + moved server-side), and
+   `GET /api/root/boost-auditrest`, which inserts 650 fabricated orders on every call with no
+   idempotency check and mutates state from a GET.
+3. Then: no major backlog item remains. Do NOT pick a fast-follow unilaterally; ask the user which
+   direction they want (the numbered list above is the menu). Note #7 (Gemini quota) is not code work but currently blocks any real
 end-to-end test of the AI features — worth raising before building more AI surface on an unexercised
 path. If verifying ANY theme-dependent styling in this environment, read the new KNOWN ISSUES entry
 about `document.visibilityState==='hidden'` staleness FIRST — set the theme via `localStorage` before

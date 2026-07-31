@@ -3,13 +3,14 @@
 > Living status doc. Any AI/dev can resume by reading this + the phase files in `/development-logs`.
 > Release changelog lives in `README.md` (§ DEĞİŞİKLİK GÜNLÜĞÜ). This folder tracks in-progress phased work.
 
-**Last updated:** 2026-07-26 (after Phase 32)
+**Last updated:** 2026-07-31 (after Phase 35)
 
 > A living **AI-CONTEXT.txt** hand-off file is maintained in this folder (overwritten every phase).
 
-> **Workspace:** active work happens in the fork **`C:\Users\hasan_y4hfwna\Desktop\hasaca-platform`**
-> running on **port 17888**. The original `saas proje` folder is the frozen rollback. Full roadmap
-> lives in the approved plan (`.claude/plans/zesty-swimming-stardust.md`).
+> **Workspace:** active work happens in **`C:\Users\hasan_y4hfwna\Desktop\saas proje`**, which is
+> the git checkout of `github.com/hasaca-bot/hasacaplatformdbs` (branch `main`) and the single source
+> of truth. Local dev runs on **port 17888**. The old `hasaca-platform` fork is stale and unused.
+> Production = Netlify (static) + Render (API) + Neon (Postgres).
 
 ## Overall progress: ~76% of the new multi-wave scope (Wave 5/6 in progress)
 
@@ -58,6 +59,7 @@ Multi-tenant restaurant SaaS. Node.js + Express (`backend/server.js`), dual DB l
 | 32 | 4 | Zero legacy orange platform-wide — B&W theme tokenised (index.html + admin.html), root.html dead-code fixed, seeded demo display_name genericised, unused legacy files deleted (user instruction) | ✅ DONE |
 | 33 | 7 | Production Deployment (Netlify + Render + Neon), Netlify Root Routing & SVG Logo Branding | ✅ DONE |
 | 34 | 10 | Production Fixes: Tenant Impersonation, Netlify 45 Marketing Sub-pages, Root Pwd Sync & SVG Logo | ✅ DONE |
+| 35 | 10 | Production hotfixes (QR-ordering SyntaxError, recursive storage guards, admin login modal, single-domain tenant login, single sign-in page) + Hero Image Management & plain-text Hero editor | ✅ DONE |
 
 
 | 32+ | 5 | Backlog: fast-follows only (menu-generation wizard; QR logos/frames; widget permission tier; `/register` decision; unused legacy files flagged) | ⏭️ NEXT |
@@ -70,14 +72,23 @@ Default/light themes unaffected (byte-identical before/after, verified via compu
 ### Still open from the original wave plan
 | Phase | Wave | Title | Status |
 |-------|------|-------|--------|
-| 08 | 2 | Dynamic content model + Tenant-Admin "Website Content" editor | TODO |
+| 08 | 2 | Dynamic content model + Tenant-Admin "Website Content" editor | 🟡 PARTIAL (P35 shipped hero images + hero text; other sections TODO) |
 | 09 | 2 | Hide technical values from Tenant Admin | TODO |
 
 > Old rows 10–14 were superseded: push/Notification Center shipped in P20, theme engine in P15,
 > Contact & Social in P13, analytics in P18, Widget Mgmt in P28, QR Designer in P29.
 
 ## Known bugs (open)
-- _(none blocking)_ — blank-admin + startup polling race resolved in P06.
+- **Live QR order not yet verified in production.** The deployed frontend is confirmed repaired
+  (menu loads on `/t/` paths, `placeOrder` defined, invalid tables degrade cleanly) and the flow
+  passes end-to-end locally, but no real dine-in order has been placed against Neon yet — that
+  needs a valid production table token.
+- **Hardcoded Telegram `BOT_TOKEN` in `index.html`**, in client-visible JS. Anyone can read it.
+  Should be rotated and moved server-side.
+- **`GET /api/root/boost-auditrest`** (`backend/routes/root.js`) inserts 650 fabricated orders on
+  *every* call with no idempotency check, and mutates data from a `GET`. Showcase-only code.
+- Phase 33/34 production work is documented in their phase files but was never folded into this
+  status doc at the time; Phase 35 is the first entry to catch up.
 
 ## Credentials (dev fork)
 - Root: `root` / `bunudabullan12A`. Tenant admin: `dayikatik` / `dayikatik123` (reset in P04).
