@@ -1824,6 +1824,58 @@ app.put('/api/admin/qr-style', adminAuth, async (req, res) => {
   }
 });
 
+// ---------- Website Editor (Phase 35) — hero images + plain-text hero title/subtitle ----------
+// Same narrow shape as site-widgets/qr-style: reads settings, merges ONLY these keys, writes back.
+// Images: same-origin paths only (what /api/admin/upload-image or the shipped defaults produce) —
+// this endpoint never stores an arbitrary external URL. Text: HTML-stripped server-side so "the
+// admin panel always saves clean plain text" holds even if something pastes formatted text in;
+// the actual <br><em> formatting is generated at RENDER time in index.html (formatHeroTitle),
+// never stored. Root's existing raw-HTML-capable branding endpoint (routes/root.js) is untouched.
+const HERO_TEXT_KEYS = ['hero_title_tr', 'hero_title_en', 'hero_sub_tr', 'hero_sub_en'];
+const MAX_HERO_IMAGES = 10;
+function stripHtmlTags(v) { return String(v == null ? '' : v).replace(/<[^>]*>/g, '').trim(); }
+app.put('/api/admin/website-content', adminAuth, async (req, res) => {
+  try {
+    const body = req.body || {};
+    const patch = {};
+
+    if (body.hero_images !== undefined) {
+      if (!Array.isArray(body.hero_images)) return res.status(400).json({ error: 'invalid_hero_images' });
+      if (body.hero_images.length > MAX_HERO_IMAGES) return res.status(400).json({ error: 'too_many_hero_images' });
+      const images = [];
+      for (const url of body.hero_images) {
+        if (typeof url !== 'string' || !(url.startsWith('/uploads/') || url.startsWith('/icons/'))) {
+          return res.status(400).json({ error: 'invalid_hero_image_url' });
+        }
+        images.push(url);
+      }
+      patch.hero_images = images;
+    }
+    for (const key of HERO_TEXT_KEYS) {
+      if (body[key] !== undefined) patch[key] = stripHtmlTags(body[key]).slice(0, 200);
+    }
+    if (!Object.keys(patch).length) return res.status(400).json({ error: 'no_changes' });
+
+    const row = await db.get(
+      isPg ? 'SELECT settings FROM tenants WHERE id = $1' : 'SELECT settings FROM tenants WHERE id = ?',
+      [req.tenantId]
+    );
+    if (!row) return res.status(404).json({ error: 'tenant_not_found' });
+    let settings = {}; try { settings = JSON.parse(row.settings || '{}') || {}; } catch (e) {}
+    Object.assign(settings, patch);
+    await db.run(
+      isPg ? 'UPDATE tenants SET settings = $1, updated_at = $2 WHERE id = $3' : 'UPDATE tenants SET settings = ?, updated_at = ? WHERE id = ?',
+      [JSON.stringify(settings), Date.now(), req.tenantId]
+    );
+    invalidateTenantCache(req.tenantId);
+    logActivity({ tenantId: req.tenantId, actor: (req.auth && req.auth.username) || 'admin', role: 'tenant_admin', action: 'website_content_updated', target: req.tenantId, details: Object.keys(patch).join(','), ip: (req.headers['x-forwarded-for'] || '').split(',')[0].trim() || req.socket?.remoteAddress || '' });
+    res.json({ success: true, ...patch });
+  } catch (err) {
+    console.error('[API ERROR] PUT /api/admin/website-content:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
 app.post('/api/admin/upload-image', adminAuth, rateLimiter(30), async (req, res) => {
   try {
     const image = req.body && req.body.image;
