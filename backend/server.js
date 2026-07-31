@@ -1043,12 +1043,28 @@ app.post('/api/auth/login', rateLimiter(15), async (req, res) => {
       return res.status(400).json({ error: 'Username and password are required' });
     }
 
-    const user = await db.get(
+    let user = await db.get(
       isPg
         ? "SELECT * FROM admin_users WHERE username = $1 AND (role = 'root' OR tenant_id = $2)"
         : "SELECT * FROM admin_users WHERE username = ? AND (role = 'root' OR tenant_id = ?)",
       [username, req.tenantId]
     );
+
+    // Single-domain fallback (Netlify -> Render): every restaurant answers on the same
+    // host, so req.tenantId is 'default' and the lookup above rejects a *correct*
+    // password for any other tenant. When no tenant was requested explicitly, accept the
+    // account only if exactly ONE account platform-wide carries this username; an
+    // ambiguous username is refused so a login can never land in the wrong restaurant.
+    // The password is still verified normally below, and the failure response is
+    // identical either way so this leaks no information about which usernames exist.
+    const explicitTenant = !!((req.query && req.query.tenant) || (req.headers && req.headers['x-tenant-id']));
+    if (!user && !explicitTenant) {
+      const matches = await db.all(
+        isPg ? 'SELECT * FROM admin_users WHERE username = $1' : 'SELECT * FROM admin_users WHERE username = ?',
+        [username]
+      );
+      if (matches.length === 1) user = matches[0];
+    }
 
     if (!user || !verifyPassword(password, user.password_hash)) {
       return res.status(401).json({ error: 'Invalid credentials' });

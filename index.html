@@ -3368,12 +3368,16 @@ body.theme-bw .dinein-actions button.primary {
 </div>
 
 <script>
-  function safeGetSessItem(key) { try { return safeGetSessItem(key); } catch(e) { return null; } }
-  function safeSetSessItem(key, val) { try { safeSetSessItem(key, val); } catch(e) {} }
+  // Storage guards: Safari private mode throws on localStorage access, so every read/write
+  // goes through these. They must call the real storage API — an earlier version called
+  // themselves, which blew the stack, was swallowed by the catch, and made every read
+  // return null (so the cart, theme and language choices never persisted).
+  function safeGetSessItem(key) { try { return sessionStorage.getItem(key); } catch(e) { return null; } }
+  function safeSetSessItem(key, val) { try { sessionStorage.setItem(key, val); } catch(e) {} }
 
-  function safeGetItem(key) { try { return safeGetItem(key); } catch(e) { return null; } }
-  function safeSetItem(key, val) { try { safeSetItem(key, val); } catch(e) {} }
-  function safeRemoveItem(key) { try { safeRemoveItem(key); } catch(e) {} }
+  function safeGetItem(key) { try { return localStorage.getItem(key); } catch(e) { return null; } }
+  function safeSetItem(key, val) { try { localStorage.setItem(key, val); } catch(e) {} }
+  function safeRemoveItem(key) { try { localStorage.removeItem(key); } catch(e) {} }
 
 window.isStandaloneAdmin = false;
 
