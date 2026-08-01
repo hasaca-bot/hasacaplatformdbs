@@ -551,6 +551,14 @@ async function runPlatformMigrations() {
       updated_at BIGINT
     );
   `);
+
+  // 6) Google Sign-In identity fields on admin_users (additive; existing password-only rows keep
+  // these NULL). google_sub is globally unique (not scoped per tenant) so a Google account can
+  // never end up owning more than one tenant.
+  await ensureColumn('admin_users', 'email', 'TEXT');
+  await ensureColumn('admin_users', 'google_sub', 'TEXT');
+  await ensureColumn('admin_users', 'avatar_url', 'TEXT');
+  await dbDriver.exec(`CREATE UNIQUE INDEX IF NOT EXISTS idx_admin_users_google_sub ON admin_users(google_sub) WHERE google_sub IS NOT NULL;`);
 }
 
 // Seed the master-template menu (generic "My Restaurant" demo) into a tenant.

@@ -42,7 +42,9 @@ function defaultSettings(displayName) {
     hero_sub_en: 'Delicious food, a warm atmosphere. Edit the content from your admin panel.',
     footer_text: name,
     seo_title: name + ' | HASACA',
-    seo_description: 'A restaurant website powered by the HASACA platform.'
+    seo_description: 'A restaurant website powered by the HASACA platform.',
+    subscription_status: 'active',
+    self_paused: false
   };
 }
 

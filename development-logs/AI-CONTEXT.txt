@@ -2,7 +2,7 @@
 HASACA PLATFORM — AI CONTINUATION CONTEXT
 (Overwrite this file at the END of every phase. Written for an AI that has
 never seen this project. Companion to development-status.md + phase-XX.md.)
-Last updated: 2026-08-01 (after Phase 41)
+Last updated: 2026-08-01 (after Phase 42, Google Sign-In feature IN PROGRESS)
 ======================================================================
 
 # PROJECT SUMMARY
@@ -49,7 +49,41 @@ Panel manages all tenants. As of Phase 22 there is ALSO a public marketing site 
     development-logs/  → development-status.md, phase-00..22.md, THIS FILE
 
 # CURRENT STATUS
-- Last completed phase: Phase 41 — Admin (tenant) panel's AI Assistant redesigned as a chat UI,
+- **IN PROGRESS, multi-phase, plan approved**: Google Sign-In + tenant self-service signup/panel. Full
+  approved plan lives at `C:\Users\hasan_y4hfwna\.claude\plans\evet-plan-haz-rla-composed-walrus.md`
+  (also mirrored in this project's memory system as `project_google_signin_plan.md`) — READ IT IN FULL
+  before continuing this work, it has the exact design decisions and file targets for every remaining
+  phase. Summary: existing tenant admins can log in with Google; someone with NO account gets a
+  brand-new tenant auto-provisioned on first Google sign-in (named from their Google first name, e.g.
+  "Ahmet'in Restoranı"); one Google account can only ever own one tenant (DB-enforced); that tenant then
+  gets NEW self-service full-screen views (never modals) mirroring what Root can already edit for any
+  tenant (restaurant info + full branding); a self-service "Geçici Kapat" (temporary pause) toggle that is
+  DELIBERATELY SEPARATE from Root's existing `tenants.status` field (that field also blocks the tenant's
+  own login — the user explicitly wants self-pausing to be self-reversible, so it's a new
+  `settings.self_paused` flag instead); a self-delete button; a real Google-photo profile avatar
+  (admin.html's top-right corner is currently 100% hardcoded "A"/"Yönetici", never populated by any JS).
+  User has already obtained a real Google OAuth Client ID (see the plan/memory file — safe to use, Client
+  IDs are not secret) and wants this built **"parça parça"** (piece by piece, phase by phase, to manage
+  token usage) — do NOT try to build the whole thing in one pass unless explicitly told to.
+  **Phase 42 (Phase A of the plan) is DONE**: `admin_users` gained `email`/`google_sub`/`avatar_url`
+  columns + a unique index on `google_sub` (this IS the "one Google account, one tenant" enforcement
+  mechanism); `masterTemplate.js`'s `defaultSettings()` gained `subscription_status:'active'` (future
+  billing placeholder, read-only for now) and `self_paused:false`; Root's private
+  `createTenantWithDemoContent` closure was extracted into a new shared module
+  `backend/lib/tenantProvisioning.js` (factory `createTenantProvisioner({db,isPg,hashPassword,
+  generatePassword})`), which `routes/root.js` now consumes instead of defining locally — Root's own
+  manual tenant creation is 100% behavior-preserved (re-verified via a real create→impersonate→add-table→
+  delete cycle through the actual API). The module also exports an as-yet-UNUSED `generateSlugCandidate()`
+  and an `adminOverride` parameter on `createTenantWithDemoContent` (for a Google-linked admin row instead
+  of a random password) — both exist now so Phase B (the actual `POST /api/auth/google` route) can call
+  them without touching this shared module again. See `development-logs/phase-42.md` for full detail.
+  **NEXT TASK**: Phase B — `POST /api/auth/google` (verify Google's ID token via `google-auth-library`,
+  find-or-provision via the module above, issue a normal session token via the EXISTING `signToken()` in
+  `lib/auth.js` — nothing about the app's own auth format changes), extend `GET /api/auth/me` to return
+  `display_name`/`email`/`avatar_url`, add the Google button to `login.html`'s "Restoran" tab only (never
+  the Root tab) and to `admin.html`'s embedded login modal. Needs a new dependency
+  (`google-auth-library`) and a new env var `GOOGLE_CLIENT_ID`.
+- Last completed phase (prior, unrelated): Phase 41 — Admin (tenant) panel's AI Assistant redesigned as a chat UI,
   matching root.html's Phase 39 redesign. Before this, admin.html's `#view-ai-assistant` was still
   the ORIGINAL Phase 27 single-turn form (one textarea, a plan card wiped on every send, no
   history) — visually inconsistent with Root's already-redesigned chat interface. Ported Phase

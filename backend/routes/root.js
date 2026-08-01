@@ -7,28 +7,18 @@
 // =============================================
 
 const express = require('express');
-const crypto = require('crypto');
 const fs = require('fs');
 const path = require('path');
-const tpl = require('../masterTemplate');
 const { regenerateDefaultTenant, logActivity } = require('../db');
+const createTenantProvisioner = require('../lib/tenantProvisioning');
 const clientIp = (req) => (req.headers['x-forwarded-for'] || '').split(',')[0].trim() || req.socket?.remoteAddress || '';
-
-const RESERVED_SLUGS = ['www', 'api', 'root', 'admin', 'app', 'mail', 'ftp', 'static', 'cdn', 'localhost', 'default'];
-const SLUG_RE = /^[a-z0-9][a-z0-9-]{1,30}$/;
-
-// 10-char base62 token — permanent per table, never derived from the table number
-function generateTableToken() {
-  const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-  const bytes = crypto.randomBytes(10);
-  let out = '';
-  for (let i = 0; i < 10; i++) out += alphabet[bytes[i] % alphabet.length];
-  return out;
-}
 
 module.exports = function createRootRouter({ db, isPg, invalidateTenantCache, signToken, hashPassword, generatePassword, sendPush }) {
   const router = express.Router();
   const P = (n) => (isPg ? `$${n}` : '?');
+  // Shared with the Google Sign-In self-signup flow (server.js) — one tested tenant-creation
+  // code path, not two. See backend/lib/tenantProvisioning.js.
+  const { createTenantWithDemoContent, RESERVED_SLUGS, SLUG_RE } = createTenantProvisioner({ db, isPg, hashPassword, generatePassword });
 
   // ---------- tenant CRUD ----------
 
@@ -893,105 +883,6 @@ Kategoriler: ${JSON.stringify(categories)}`;
     }
   });
 
-  // ---------- tenant generation service ----------
-
-  // Every new tenant is a CLONE of the `default` master template — its categories,
-  // products, translations and settings — so the template is the single source of truth
-  // and any edits the owner makes to `default` flow into future tenants.
-  async function createTenantWithDemoContent({ slug, name, display_name, body }) {
-    const now = Date.now();
-    const settings = tpl.defaultSettings(display_name || name);
-
-    await db.run(
-      `INSERT INTO tenants (id, name, display_name, status, contact_phone, contact_email, address, settings, created_at, updated_at)
-       VALUES (${P(1)},${P(2)},${P(3)},${P(4)},${P(5)},${P(6)},${P(7)},${P(8)},${P(9)},${P(10)})`,
-      [slug, name, display_name, 'active',
-       body.contact_phone || '123456789',
-       body.contact_email || 'example@email.com',
-       body.address || 'Example Address',
-       JSON.stringify(settings), now, now]
-    );
-
-    // 1) Clone UI translations from the default template
-    const baseTranslations = await db.all(
-      `SELECT key, tr, en FROM translations WHERE tenant_id = ${P(1)}`, ['default']
-    );
-    let i = 1;
-    for (const row of baseTranslations) {
-      await db.run(
-        `INSERT INTO translations (id, tenant_id, key, tr, en) VALUES (${P(1)},${P(2)},${P(3)},${P(4)},${P(5)})`,
-        [`trans-${slug}-${i++}`, slug, row.key, row.tr, row.en]
-      );
-    }
-
-    // 2) Clone categories (ids remapped per-tenant)
-    const baseCats = await db.all(
-      `SELECT * FROM categories WHERE tenant_id = ${P(1)} ORDER BY sort_order ASC`, ['default']
-    );
-    const catIdMap = {};
-    let sort = 1;
-    for (const c of baseCats) {
-      const newId = `${c.id}-${slug}`;
-      catIdMap[c.id] = newId;
-      await db.run(
-        `INSERT INTO categories (id, tenant_id, name_tr, name_en, sort_order, icon) VALUES (${P(1)},${P(2)},${P(3)},${P(4)},${P(5)},${P(6)})`,
-        [newId, slug, c.name_tr, c.name_en, sort++, c.icon || '']
-      );
-    }
-
-    // 3) Clone products (ids + category remapped; images/prices/nutrition preserved)
-    const baseProducts = await db.all(
-      `SELECT * FROM products WHERE tenant_id = ${P(1)}`, ['default']
-    );
-    for (const pr of baseProducts) {
-      const newId = `${pr.id}-${slug}`;
-      const category = catIdMap[pr.category] || pr.category;
-      await db.run(
-        `INSERT INTO products (id, tenant_id, name_tr, name_en, description_tr, description_en, category, price, image,
-          portion_tr, portion_en, ingredients_tr, ingredients_en, calories, protein, carbs, fat,
-          saturated_fat, sugars, fiber, salt, allergens, katki_maddesi_icermez)
-         VALUES (${P(1)},${P(2)},${P(3)},${P(4)},${P(5)},${P(6)},${P(7)},${P(8)},${P(9)},${P(10)},${P(11)},${P(12)},${P(13)},${P(14)},${P(15)},${P(16)},${P(17)},${P(18)},${P(19)},${P(20)},${P(21)},${P(22)},${P(23)})`,
-        [newId, slug, pr.name_tr, pr.name_en, pr.description_tr, pr.description_en, category, pr.price, pr.image,
-         pr.portion_tr, pr.portion_en, pr.ingredients_tr, pr.ingredients_en, pr.calories, pr.protein, pr.carbs, pr.fat,
-         pr.saturated_fat, pr.sugars, pr.fiber, pr.salt, pr.allergens || '[]', pr.katki_maddesi_icermez || 0]
-      );
-    }
-
-    // 4) Starter tables with permanent QR tokens (QR Table Ordering ready out of the box)
-    const tables = [];
-    for (let t = 1; t <= 3; t++) {
-      const tableId = `table-${slug}-${now}-${t}`;
-      const token = generateTableToken();
-      await db.run(
-        `INSERT INTO tables (id, tenant_id, token, name, description, sort_order, active, created_at)
-         VALUES (${P(1)},${P(2)},${P(3)},${P(4)},${P(5)},${P(6)},1,${P(7)})`,
-        [tableId, slug, token, `Masa ${t}`, '', t, now]
-      );
-      tables.push({ id: tableId, token, name: `Masa ${t}` });
-    }
-
-    // 5) Tenant admin account — password returned ONCE in this response
-    const adminPassword = generatePassword();
-    await db.run(
-      `INSERT INTO admin_users (id, tenant_id, username, password_hash, role, display_name, created_at)
-       VALUES (${P(1)},${P(2)},${P(3)},${P(4)},${P(5)},${P(6)},${P(7)})`,
-      [`user-${slug}-${now}`, slug, slug, hashPassword(adminPassword), 'tenant_admin', display_name + ' Admin', now]
-    );
-
-    const tenant = await db.get(`SELECT * FROM tenants WHERE id = ${P(1)}`, [slug]);
-    return {
-      tenant: { ...tenant, settings: safeParse(tenant.settings) },
-      admin: { username: slug, password: adminPassword },
-      tables,
-      seeded: {
-        translations: baseTranslations.length,
-        categories: baseCats.length,
-        products: baseProducts.length,
-        tables: tables.length
-      }
-    };
-  }
-
   return router;
 };
 
@@ -999,4 +890,7 @@ function safeParse(json) {
   try { return JSON.parse(json || '{}') || {}; } catch (e) { return {}; }
 }
 
-module.exports.generateTableToken = generateTableToken;
+// tables.js requires this directly from root.js — re-exported from the shared module so that
+// contract keeps working unchanged (the tenant-creation logic itself moved to
+// backend/lib/tenantProvisioning.js, see the require() near the top of this file).
+module.exports.generateTableToken = createTenantProvisioner.generateTableToken;
