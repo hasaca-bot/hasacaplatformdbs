@@ -3,7 +3,7 @@
 > Living status doc. Any AI/dev can resume by reading this + the phase files in `/development-logs`.
 > Release changelog lives in `README.md` (§ DEĞİŞİKLİK GÜNLÜĞÜ). This folder tracks in-progress phased work.
 
-**Last updated:** 2026-08-01 (after Phase 38)
+**Last updated:** 2026-08-01 (after Phase 39)
 
 > A living **AI-CONTEXT.txt** hand-off file is maintained in this folder (overwritten every phase).
 
@@ -62,7 +62,8 @@ Multi-tenant restaurant SaaS. Node.js + Express (`backend/server.js`), dual DB l
 | 35 | 10 | Production hotfixes (QR-ordering SyntaxError, recursive storage guards, admin login modal, single-domain tenant login, single sign-in page) + Hero Image Management & plain-text Hero editor | ✅ DONE |
 | 36 | 10 | Tenant-less `/admin`/bare-site routes no longer fall back to the `'default'` tenant; `'default'` is now a fully normal, deletable tenant like any other (Root panel + QR URL symmetry) | ✅ DONE |
 | 37 | 10 | Monochrome rebrand shipped (was held back); Root dashboard "Son Aktivite" replaced with an interactive analytics chart (vanilla SVG, no dependency); contrast bug found+fixed | ✅ DONE |
-| 38 | 10 | AI Assistant swapped from Gemini to Groq — Gemini's real generation quota needs billing linked even for the "free tier" and the user has no card; Groq needs none. Same plan/execute contract, only the HTTP call changed. Same-phase addendum: Admin panel dashboard "Son Aktivite" → analytics chart, same treatment as Root panel (Phase 37), verified on two real tenants | ✅ DONE (real-key end-to-end check + Render deploy confirmation pending) |
+| 38 | 10 | AI Assistant swapped from Gemini to Groq — Gemini's real generation quota needs billing linked even for the "free tier" and the user has no card; Groq needs none. Same plan/execute contract, only the HTTP call changed. Same-phase addendum: Admin panel dashboard "Son Aktivite" → analytics chart, same treatment as Root panel (Phase 37), verified on two real tenants | ✅ DONE — real Groq generation confirmed against production, deployed |
+| 39 | 10 | Root panel AI Assistant redesigned as a real chat UI (transcript, typing indicator, inline plan bubbles with confirm/cancel-in-place). Found+fixed a real bug while testing: the plan endpoint can return HTTP 200 with a real error, which the old (and my first-draft new) code silently mislabeled as "no actionable change" | ✅ DONE (Confirm→Execute path verified by code review + local UI test; live click-through with a real key pending deploy) |
 
 
 | 32+ | 5 | Backlog: fast-follows only (menu-generation wizard; QR logos/frames; widget permission tier; `/register` decision; unused legacy files flagged) | ⏭️ NEXT |

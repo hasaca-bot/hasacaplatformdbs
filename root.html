@@ -120,6 +120,70 @@
   .toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%);background:var(--card);border:1px solid var(--line);color:var(--text);padding:12px 20px;border-radius:12px;font-weight:700;font-size:.85rem;opacity:0;pointer-events:none;transition:opacity .25s;z-index:200;}
   .toast.show{opacity:1;}
   .empty{color:var(--muted);text-align:center;padding:50px 0;grid-column:1/-1;}
+
+  /* ── AI Assistant — chat UI (Phase 39) ── */
+  .ai-chat{ display:flex; flex-direction:column; height:calc(100vh - 190px); min-height:440px;
+    background:var(--panel); border:1px solid var(--line); border-radius:16px; overflow:hidden; }
+  .ai-chat-top{ display:flex; align-items:flex-start; justify-content:space-between; gap:16px;
+    padding:18px 20px; border-bottom:1px solid var(--line); flex:none; }
+  .ai-chat-top h3{ font-size:15px; margin-bottom:3px; }
+  .ai-chat-target-wrap{ display:flex; flex-direction:column; gap:5px; align-items:flex-end; flex:none; }
+  .ai-chat-target-wrap > label{ font-size:10px; font-weight:800; letter-spacing:1px; text-transform:uppercase; color:var(--faint); }
+  .ai-chat-target-wrap select{ min-width:190px; }
+  .ai-chat-target-hint{ color:var(--muted); font-size:.7rem; text-align:right; max-width:230px; line-height:1.4; }
+
+  .ai-chat-body{ flex:1; overflow-y:auto; padding:20px; display:flex; flex-direction:column; gap:14px; }
+  .ai-chat-empty{ margin:auto; text-align:center; max-width:300px; color:var(--muted); }
+  .ai-chat-empty svg{ width:36px; height:36px; color:var(--faint); margin-bottom:10px; }
+  .ai-chat-empty .t{ color:var(--text); font-weight:700; font-size:.95rem; margin-bottom:5px; }
+  .ai-chat-empty .s{ font-size:.82rem; line-height:1.5; }
+
+  .ai-msg{ max-width:80%; display:flex; flex-direction:column; gap:5px; animation:aiMsgIn .18s ease; }
+  @keyframes aiMsgIn{ from{ opacity:0; transform:translateY(4px);} to{ opacity:1; transform:none;} }
+  .ai-msg.user{ align-self:flex-end; align-items:flex-end; }
+  .ai-msg.assistant{ align-self:flex-start; align-items:flex-start; }
+  .ai-bubble{ border-radius:16px; padding:11px 15px; font-size:.87rem; line-height:1.5; }
+  .ai-msg.user .ai-bubble{ background:var(--gold); color:var(--gold-text); border-bottom-right-radius:4px; }
+  .ai-msg.assistant .ai-bubble{ background:var(--card); border:1px solid var(--line); color:var(--text); border-bottom-left-radius:4px; max-width:100%; }
+
+  .ai-typing{ display:inline-flex; gap:4px; padding:2px 3px; }
+  .ai-typing span{ width:6px; height:6px; border-radius:50%; background:var(--faint); animation:aiTyping 1.2s infinite ease-in-out; }
+  .ai-typing span:nth-child(2){ animation-delay:.15s; } .ai-typing span:nth-child(3){ animation-delay:.3s; }
+  @keyframes aiTyping{ 0%,60%,100%{ transform:translateY(0); opacity:.4;} 30%{ transform:translateY(-4px); opacity:1;} }
+
+  .ai-plan-summary{ font-weight:700; margin-bottom:8px; }
+  .ai-plan-row{ display:flex; flex-direction:column; gap:2px; padding:8px 0; border-top:1px solid var(--line); }
+  .ai-plan-row:first-of-type{ border-top:none; padding-top:0; }
+  .ai-plan-field{ color:var(--muted); font-size:.68rem; text-transform:uppercase; letter-spacing:.4px; }
+  .ai-plan-diff{ display:flex; align-items:center; gap:6px; flex-wrap:wrap; font-size:.85rem; }
+  .ai-plan-old{ color:var(--muted); text-decoration:line-through; opacity:.75; }
+  .ai-plan-arrow{ color:var(--faint); }
+  .ai-plan-new{ color:var(--gold); font-weight:700; }
+  .ai-plan-unsupported{ margin-top:10px; padding-top:10px; border-top:1px dashed var(--line); font-size:.78rem; color:var(--muted); line-height:1.6; }
+  .ai-plan-actions{ display:flex; gap:8px; margin-top:14px; }
+  .ai-plan-actions .btn{ padding:8px 16px; font-size:.8rem; }
+  .ai-msg.cancelled .ai-bubble{ opacity:.55; }
+  .ai-msg.cancelled .ai-plan-old, .ai-msg.cancelled .ai-plan-new{ text-decoration:line-through; color:var(--muted); }
+  .ai-msg-tag{ display:inline-flex; align-items:center; gap:5px; font-size:.76rem; font-weight:700; margin-top:10px; }
+  .ai-msg-tag.applied{ color:var(--ok); }
+  .ai-msg-tag.cancelled{ color:var(--faint); font-weight:600; font-style:italic; }
+  .ai-bubble.err{ color:var(--bad); border-color:var(--bad-soft); }
+
+  .ai-chat-composer{ flex:none; display:flex; align-items:flex-end; gap:10px; padding:14px 16px; border-top:1px solid var(--line); }
+  .ai-chat-composer textarea{ flex:1; resize:none; max-height:120px; border-radius:14px; padding:11px 14px; font-size:.87rem; line-height:1.4; }
+  .ai-chat-send-btn{ flex:none; width:40px; height:40px; border-radius:50%; border:none; background:var(--gold); color:var(--gold-text);
+    display:grid; place-items:center; cursor:pointer; transition:transform var(--t,.16s ease); }
+  .ai-chat-send-btn:hover:not(:disabled){ transform:scale(1.06); }
+  .ai-chat-send-btn:disabled{ opacity:.5; cursor:not-allowed; }
+  .ai-chat-send-btn svg{ width:18px; height:18px; }
+  @media(max-width:640px){
+    .ai-chat{ height:calc(100vh - 210px); }
+    .ai-chat-top{ flex-direction:column; }
+    .ai-chat-target-wrap{ align-items:flex-start; width:100%; }
+    .ai-chat-target-wrap select{ width:100%; }
+    .ai-chat-target-hint{ text-align:left; max-width:none; }
+    .ai-msg{ max-width:92%; }
+  }
 </style>
 <!-- Centralized panel design system + Black/White/System themes (Phase 24). Linked last so it is authoritative. -->
 <link rel="stylesheet" href="/panel.css">
@@ -303,37 +367,37 @@
         <div class="tenant-grid" id="tenantGrid"></div>
       </section>
 
-      <!-- AI ASSISTANT VIEW (Phase 27) -->
+      <!-- AI ASSISTANT VIEW (Phase 27, redesigned as a chat UI in Phase 39) -->
       <section class="view" id="view-ai-assistant" hidden>
-        <div class="panel-card">
-          <h3 data-i18n="root_ai_asst_title">AI Asistanı</h3>
-          <p class="hint" data-i18n="root_ai_asst_desc">Platform markanızı doğal dille yönetin.</p>
-          <label data-i18n="root_ai_asst_target">Hedef</label>
-          <select id="rAiTarget" onchange="rootAiTargetChanged()">
-            <option value="" data-i18n="root_ai_asst_platform">Platform (HASACA markası)</option>
-          </select>
-          <p class="hint" id="rAiTargetHint" style="margin-top:6px;" data-i18n="root_ai_asst_platform_hint">Platform adı, logo ve landing metinleri düzenlenir.</p>
-          <div style="display:flex; gap:10px; margin-top:12px; align-items:flex-start;">
-            <textarea id="rAiInput" rows="2" style="flex:1; resize:vertical;" data-i18n-placeholder="root_ai_asst_ph" placeholder="Ne yapmak istersiniz?"></textarea>
-            <button class="btn" id="rAiSendBtn" onclick="rootAiSend()" style="white-space:nowrap;"><span data-i18n="root_ai_asst_send">Gönder</span></button>
+        <div class="ai-chat">
+          <div class="ai-chat-top">
+            <div>
+              <h3 data-i18n="root_ai_asst_title">AI Asistanı</h3>
+              <p class="hint" data-i18n="root_ai_asst_desc">Platform markanızı doğal dille yönetin.</p>
+            </div>
+            <div class="ai-chat-target-wrap">
+              <label data-i18n="root_ai_asst_target">Hedef</label>
+              <select id="rAiTarget" onchange="rootAiTargetChanged()">
+                <option value="" data-i18n="root_ai_asst_platform">Platform (HASACA markası)</option>
+              </select>
+              <p class="ai-chat-target-hint" id="rAiTargetHint" data-i18n="root_ai_asst_platform_hint">Platform adı, logo ve landing metinleri düzenlenir.</p>
+            </div>
           </div>
-          <div id="rAiStatus" class="hint" style="display:none; margin-top:10px;"></div>
-        </div>
 
-        <div class="panel-card" id="rAiPlanCard" style="display:none; margin-top:16px;">
-          <h3 data-i18n="root_ai_asst_plan_title">Önerilen Değişiklikler</h3>
-          <p id="rAiSummary" style="margin:6px 0 12px;"></p>
-          <div id="rAiActions" class="act-list"></div>
-          <div id="rAiUnsupported" class="hint" style="display:none; margin-top:10px;"></div>
-          <div class="row" style="margin-top:16px;">
-            <button class="btn" id="rAiConfirmBtn" onclick="rootAiConfirm()" data-i18n="root_ai_asst_confirm">Onayla ve Uygula</button>
-            <button class="btn secondary" onclick="rootAiCancel()" data-i18n="root_ai_asst_cancel">İptal</button>
+          <div class="ai-chat-body" id="rAiMessages">
+            <div class="ai-chat-empty" id="rAiEmpty">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a4 4 0 0 1 4 4v1a4 4 0 0 1-8 0V6a4 4 0 0 1 4-4z"/><path d="M5 21v-2a7 7 0 0 1 14 0v2"/><path d="M9 11.5v1M15 11.5v1"/></svg>
+              <div class="t" data-i18n="root_ai_asst_empty_title">Nasıl yardımcı olabilirim?</div>
+              <div class="s" data-i18n="root_ai_asst_platform_hint2">Platform adı, logo ve landing metinleri gibi alanları doğal dille düzenleyebilirim.</div>
+            </div>
           </div>
-        </div>
 
-        <div class="panel-card" id="rAiResultCard" style="display:none; margin-top:16px;">
-          <h3 data-i18n="root_ai_asst_applied_title">Uygulandı</h3>
-          <p id="rAiResultSummary"></p>
+          <div class="ai-chat-composer">
+            <textarea id="rAiInput" rows="1" data-i18n-placeholder="root_ai_asst_ph" placeholder="Ne yapmak istersiniz?" oninput="rootAiAutoGrow(this)" onkeydown="rootAiComposerKey(event)"></textarea>
+            <button class="ai-chat-send-btn" id="rAiSendBtn" onclick="rootAiSend()" aria-label="Gönder" data-i18n-aria-label="root_ai_asst_send">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+            </button>
+          </div>
         </div>
       </section>
     </main>
@@ -732,6 +796,8 @@ const i18nData = {
     root_ai_asst_applied_title: "Uygulandı", root_ai_asst_unsupported: "Desteklenmeyen istekler:",
     root_ai_asst_not_configured: "AI asistanı henüz yapılandırılmadı. Önce AI Ayarları'ndan anahtarı etkinleştirin.",
     root_ai_asst_no_actions: "İsteğinizden uygulanabilir bir değişiklik çıkaramadım.",
+    root_ai_asst_empty_title: "Nasıl yardımcı olabilirim?",
+    root_ai_asst_platform_hint2: "Platform adı, logo ve landing metinleri gibi alanları doğal dille düzenleyebilirim.",
     theme_system: "Sistem", theme_light: "Açık", theme_dark: "Koyu",
     dash_tenants: "Restoran", dash_active: "Aktif", dash_orders: "Sipariş", dash_revenue: "Ciro",
     dash_total: "Toplam", dash_active_sub: "Yayında", dash_30d: "Son 30 gün",
@@ -837,6 +903,8 @@ const i18nData = {
     root_ai_asst_applied_title: "Applied", root_ai_asst_unsupported: "Unsupported requests:",
     root_ai_asst_not_configured: "The AI assistant isn't configured yet. Enable it from AI Settings first.",
     root_ai_asst_no_actions: "I couldn't derive an actionable change from your request.",
+    root_ai_asst_empty_title: "How can I help?",
+    root_ai_asst_platform_hint2: "I can edit fields like the platform name, logo and landing copy in plain language.",
     theme_system: "System", theme_light: "Light", theme_dark: "Dark",
     dash_tenants: "Restaurants", dash_active: "Active", dash_orders: "Orders", dash_revenue: "Revenue",
     dash_total: "Total", dash_active_sub: "Live", dash_30d: "Last 30 days",
@@ -1781,11 +1849,16 @@ async function testAiConnection(){
   } catch(e){ el.textContent = T('root_test_fail'); el.style.color = 'var(--bad)'; }
 }
 
-// ── AI Assistant (Phase 27) — thin UI over /api/root/ai-assistant/plan|execute ──
+// ── AI Assistant (Phase 27, chat UI Phase 39) — over /api/root/ai-assistant/plan|execute ──
 // Writes nothing until Confirm is clicked; the server re-applies through savePlatform()/
 // ALLOWED_PLATFORM_KEYS exactly like the Branding modal's own PUT /platform-settings.
+// Only one plan is ever actionable at a time (matches the backend's single-in-flight-plan
+// design) — sending a new message or switching target auto-marks any still-pending plan
+// bubble as cancelled, but earlier messages stay visible in the transcript like a real chat.
 let rootAiPlanId = null;
+let rootAiPendingBubble = null; // the .ai-msg element holding the currently-actionable plan, if any
 function rootAiEsc(x){ return String(x == null ? '' : x).replace(/[<>&]/g, c => ({'<':'&lt;','>':'&gt;','&':'&amp;'}[c])); }
+
 // Phase 30: the assistant can target the platform's own branding OR one specific tenant's menu.
 function rootAiPopulateTargets(){
   const sel = document.getElementById('rAiTarget');
@@ -1803,89 +1876,148 @@ function rootAiTargetChanged(){
   const key = sel.value ? 'root_ai_asst_tenant_hint' : 'root_ai_asst_platform_hint';
   hint.setAttribute('data-i18n', key);
   hint.textContent = T(key);
-  // A cached plan belongs to the scope it was built for — switching target invalidates the preview.
+  // A cached plan belongs to the scope it was built for — switching target invalidates it.
   rootAiCancel();
 }
+
+function rootAiAutoGrow(el){
+  el.style.height = 'auto';
+  el.style.height = Math.min(120, el.scrollHeight) + 'px';
+}
+function rootAiComposerKey(e){
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); rootAiSend(); }
+}
+function rootAiScrollToBottom(){
+  const box = document.getElementById('rAiMessages');
+  box.scrollTop = box.scrollHeight;
+}
+// Appends a message bubble to the transcript and returns the .ai-msg element (so callers can
+// later find/replace it — used for the "typing…" placeholder and for in-place plan updates).
+function rootAiAppendMsg(role, innerHTML, extraClass){
+  const empty = document.getElementById('rAiEmpty');
+  if (empty) empty.remove();
+  const box = document.getElementById('rAiMessages');
+  const wrap = document.createElement('div');
+  wrap.className = 'ai-msg ' + role + (extraClass ? ' ' + extraClass : '');
+  wrap.innerHTML = innerHTML;
+  box.appendChild(wrap);
+  rootAiScrollToBottom();
+  return wrap;
+}
+function rootAiUserBubbleHTML(text){
+  return '<div class="ai-bubble">' + rootAiEsc(text).replace(/\n/g, '<br>') + '</div>';
+}
+function rootAiTypingHTML(){
+  return '<div class="ai-bubble"><span class="ai-typing"><span></span><span></span><span></span></span></div>';
+}
+function rootAiPlanHTML(data){
+  const rows = (data.actions || []).map(a =>
+    '<div class="ai-plan-row"><div class="ai-plan-field">' + rootAiEsc(a.label || a.field) + '</div>' +
+    '<div class="ai-plan-diff"><span class="ai-plan-old">' + rootAiEsc(a.oldValue) + '</span>' +
+    '<span class="ai-plan-arrow">→</span><span class="ai-plan-new">' + rootAiEsc(a.newValue) + '</span></div></div>'
+  ).join('');
+  const unsupported = (data.unsupported && data.unsupported.length)
+    ? '<div class="ai-plan-unsupported"><b>' + T('root_ai_asst_unsupported') + '</b><br>' + data.unsupported.map(rootAiEsc).join('<br>') + '</div>'
+    : '';
+  const actions = data.planId
+    ? '<div class="ai-plan-actions"><button class="btn" onclick="rootAiConfirm(this)" data-i18n="root_ai_asst_confirm">' + T('root_ai_asst_confirm') + '</button>' +
+      '<button class="btn secondary" onclick="rootAiCancelBubble(this)" data-i18n="root_ai_asst_cancel">' + T('root_ai_asst_cancel') + '</button></div>'
+    : '';
+  return '<div class="ai-bubble"><div class="ai-plan"><div class="ai-plan-summary">' + rootAiEsc(data.summary || '') + '</div>' +
+    rows + unsupported + actions + '</div></div>';
+}
+
 async function rootAiSend(){
   const input = document.getElementById('rAiInput');
   const msg = (input.value || '').trim();
   if (!msg) return;
-  const statusEl = document.getElementById('rAiStatus');
+  rootAiCancel(); // superseding a still-pending plan by sending a new message
   const sendBtn = document.getElementById('rAiSendBtn');
-  document.getElementById('rAiPlanCard').style.display = 'none';
-  document.getElementById('rAiResultCard').style.display = 'none';
-  statusEl.style.display = 'block';
-  statusEl.textContent = T('root_ai_asst_thinking');
-  sendBtn.disabled = true;
+  rootAiAppendMsg('user', rootAiUserBubbleHTML(msg));
+  input.value = '';
+  rootAiAutoGrow(input);
+  const typingBubble = rootAiAppendMsg('assistant', rootAiTypingHTML());
+  sendBtn.disabled = true; input.disabled = true;
   try {
     const res = await rootFetch('/api/root/ai-assistant/plan', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ message: msg, targetTenant: (document.getElementById('rAiTarget') || {}).value || '' })
     });
     const data = await res.json();
-    sendBtn.disabled = false;
-    if (!res.ok) {
-      statusEl.textContent = data.error === 'ai_not_configured' ? T('root_ai_asst_not_configured') : (data.error || T('root_err'));
+    sendBtn.disabled = false; input.disabled = false; input.focus();
+    // The backend can report a real failure (bad key, provider error, etc.) with HTTP 200 —
+    // data.error is the actual source of truth, not res.ok. Checking res.ok alone here silently
+    // mislabeled real API errors as "no actionable change found", which is misleading: a broken
+    // key and a genuinely vague request look completely different to the user and need different
+    // next steps (fix the key vs. rephrase the request).
+    if (!res.ok || data.error) {
+      const errMsg = data.error === 'ai_not_configured' ? T('root_ai_asst_not_configured') : (data.error || T('root_err'));
+      typingBubble.innerHTML = '<div class="ai-bubble err">' + rootAiEsc(errMsg) + '</div>';
       return;
     }
     if (!data.planId && !(data.actions && data.actions.length)) {
-      statusEl.textContent = data.summary || T('root_ai_asst_no_actions');
-      if (data.unsupported && data.unsupported.length) rootAiRenderPlan(data);
+      const text = data.summary || T('root_ai_asst_no_actions');
+      typingBubble.innerHTML = (data.unsupported && data.unsupported.length) ? rootAiPlanHTML(data)
+        : '<div class="ai-bubble">' + rootAiEsc(text) + '</div>';
+      rootAiScrollToBottom();
       return;
     }
-    statusEl.style.display = 'none';
-    input.value = '';
-    rootAiRenderPlan(data);
+    typingBubble.innerHTML = rootAiPlanHTML(data);
+    rootAiPlanId = data.planId || null;
+    rootAiPendingBubble = data.planId ? typingBubble : null;
+    rootAiScrollToBottom();
   } catch(e) {
-    sendBtn.disabled = false;
-    statusEl.textContent = T('root_err');
+    sendBtn.disabled = false; input.disabled = false;
+    typingBubble.innerHTML = '<div class="ai-bubble err">' + rootAiEsc(T('root_err')) + '</div>';
   }
 }
-function rootAiRenderPlan(data){
-  rootAiPlanId = data.planId || null;
-  const planCard = document.getElementById('rAiPlanCard');
-  const summaryEl = document.getElementById('rAiSummary');
-  const actionsEl = document.getElementById('rAiActions');
-  const unsupEl = document.getElementById('rAiUnsupported');
-  const confirmBtn = document.getElementById('rAiConfirmBtn');
-  summaryEl.textContent = data.summary || '';
-  actionsEl.innerHTML = (data.actions || []).map(a =>
-    '<div class="act-row"><div class="act-main"><b>' + rootAiEsc(a.label || a.field) + '</b><br><span style="color:var(--muted)">' +
-    rootAiEsc(a.oldValue) + '</span> → <span>' + rootAiEsc(a.newValue) + '</span></div></div>'
-  ).join('');
-  if (data.unsupported && data.unsupported.length) {
-    unsupEl.style.display = 'block';
-    unsupEl.innerHTML = '<b>' + T('root_ai_asst_unsupported') + '</b><br>' + data.unsupported.map(rootAiEsc).join('<br>');
-  } else {
-    unsupEl.style.display = 'none';
-  }
-  confirmBtn.style.display = rootAiPlanId ? 'inline-block' : 'none';
-  planCard.style.display = 'block';
-}
-async function rootAiConfirm(){
-  if (!rootAiPlanId) return;
-  const confirmBtn = document.getElementById('rAiConfirmBtn');
-  confirmBtn.disabled = true;
+async function rootAiConfirm(btn){
+  if (!rootAiPlanId || !rootAiPendingBubble) return;
+  const planId = rootAiPlanId;
+  const bubble = rootAiPendingBubble;
+  const actionsRow = btn.closest('.ai-plan-actions');
+  actionsRow.querySelectorAll('button').forEach(b => b.disabled = true);
   try {
     const res = await rootFetch('/api/root/ai-assistant/execute', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ planId: rootAiPlanId })
+      body: JSON.stringify({ planId })
     });
     const data = await res.json();
-    confirmBtn.disabled = false;
-    if (!res.ok) { toast(data.error || T('root_err')); return; }
-    document.getElementById('rAiPlanCard').style.display = 'none';
-    document.getElementById('rAiResultSummary').textContent = data.summary || '';
-    document.getElementById('rAiResultCard').style.display = 'block';
-    rootAiPlanId = null;
+    if (!res.ok) { toast(data.error || T('root_err')); actionsRow.querySelectorAll('button').forEach(b => b.disabled = false); return; }
+    actionsRow.remove();
+    bubble.classList.add('applied');
+    bubble.querySelector('.ai-plan').insertAdjacentHTML('beforeend',
+      '<div class="ai-msg-tag applied"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>' + T('root_ai_asst_applied_title') + '</div>');
+    if (rootAiPlanId === planId) { rootAiPlanId = null; rootAiPendingBubble = null; }
     applyPlatformConfig();
   } catch(e) {
-    confirmBtn.disabled = false;
+    actionsRow.querySelectorAll('button').forEach(b => b.disabled = false);
   }
 }
+// Cancel button on a specific plan bubble (chat history — always targets its own bubble).
+function rootAiCancelBubble(btn){
+  const bubble = btn.closest('.ai-msg');
+  const actionsRow = btn.closest('.ai-plan-actions');
+  if (actionsRow) actionsRow.remove();
+  bubble.classList.add('cancelled');
+  bubble.querySelector('.ai-plan').insertAdjacentHTML('beforeend',
+    '<div class="ai-msg-tag cancelled">' + T('root_ai_asst_cancel') + '</div>');
+  if (rootAiPendingBubble === bubble) { rootAiPlanId = null; rootAiPendingBubble = null; }
+}
+// Invalidates whatever plan is currently pending (called before a new send, or on target switch)
+// without touching earlier chat history — just marks that one bubble as cancelled in place.
 function rootAiCancel(){
+  if (rootAiPendingBubble) {
+    const actionsRow = rootAiPendingBubble.querySelector('.ai-plan-actions');
+    if (actionsRow) actionsRow.remove();
+    rootAiPendingBubble.classList.add('cancelled');
+    const plan = rootAiPendingBubble.querySelector('.ai-plan');
+    if (plan && !plan.querySelector('.ai-msg-tag')) {
+      plan.insertAdjacentHTML('beforeend', '<div class="ai-msg-tag cancelled">' + T('root_ai_asst_cancel') + '</div>');
+    }
+  }
   rootAiPlanId = null;
-  document.getElementById('rAiPlanCard').style.display = 'none';
+  rootAiPendingBubble = null;
 }
 
 // ── boot ──
