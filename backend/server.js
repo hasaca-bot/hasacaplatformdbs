@@ -5,11 +5,14 @@ const express = require('express');
 const cors = require('cors');
 const path = require('path');
 const fs = require('fs');
+const crypto = require('crypto');
 const { db, initDatabase, resetDatabase, logActivity } = require('./db');
 const webpush = require('web-push');
 const { hashPassword, verifyPassword, signToken, verifyToken, generatePassword } = require('./lib/auth');
 const { createTenantResolver, slugFromHost, errorPageHtml } = require('./lib/tenant');
 const platformEvents = require('./lib/events');
+const { OAuth2Client } = require('google-auth-library');
+const createTenantProvisioner = require('./lib/tenantProvisioning');
 
 // Generate or load VAPID keys
 const vapidPath = path.join(__dirname, '..', 'data', 'vapid.json');
@@ -105,6 +108,11 @@ app.get('/api/health', (req, res) => {
 
 // Helper to build parameterized queries for both PG ($1) and SQLite (?)
 const isPg = !!process.env.DATABASE_URL;
+
+// Shared with Root's own manual "create tenant" form (routes/root.js) — one tested
+// tenant-creation code path, used here by the Google Sign-In self-signup flow.
+const { createTenantWithDemoContent, generateSlugCandidate, RESERVED_SLUGS, SLUG_RE } =
+  createTenantProvisioner({ db, isPg, hashPassword, generatePassword });
 
 // ── TENANT RESOLUTION (multi-tenant core) ──
 // Attaches req.tenant / req.tenantId from the subdomain (or ?tenant= in local dev).
@@ -1094,15 +1102,135 @@ app.post('/api/auth/login', rateLimiter(15), async (req, res) => {
   }
 });
 
-// GET /api/auth/me — validates the stored token (used to restore sessions client-side)
-app.get('/api/auth/me', adminAuth, (req, res) => {
+// GET /api/auth/me — validates the stored token (used to restore sessions client-side).
+// Re-reads the admin_users row (not just the token payload) so a changed display name/avatar
+// shows up without forcing a re-login.
+app.get('/api/auth/me', adminAuth, async (req, res) => {
+  let profile = null;
+  try {
+    profile = await db.get(
+      isPg ? 'SELECT display_name, email, avatar_url FROM admin_users WHERE id = $1' : 'SELECT display_name, email, avatar_url FROM admin_users WHERE id = ?',
+      [req.auth.uid]
+    );
+  } catch (e) { /* fall through to token-only fields below */ }
   res.json({
     uid: req.auth.uid,
     role: req.auth.role,
     tenant_id: req.auth.tenant_id,
     username: req.auth.username,
-    exp: req.auth.exp
+    exp: req.auth.exp,
+    display_name: (profile && profile.display_name) || req.auth.username,
+    email: (profile && profile.email) || '',
+    avatar_url: (profile && profile.avatar_url) || ''
   });
+});
+
+// POST /api/auth/google — { credential } is the Google ID token (a JWT) delivered by Google
+// Identity Services' client-side button. Verified ONCE here against Google's own keys; every
+// subsequent authenticated request on this platform still uses our own signToken()/verifyToken()
+// HMAC session format (lib/auth.js), completely unchanged — Google's token is never stored or
+// passed through as a session token.
+app.post('/api/auth/google', rateLimiter(15), async (req, res) => {
+  try {
+    if (!process.env.GOOGLE_CLIENT_ID) {
+      return res.status(503).json({ error: 'google_signin_not_configured' });
+    }
+    const credential = String((req.body && req.body.credential) || '');
+    if (!credential) return res.status(400).json({ error: 'credential_required' });
+
+    const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+    let payload;
+    try {
+      const ticket = await googleClient.verifyIdToken({ idToken: credential, audience: process.env.GOOGLE_CLIENT_ID });
+      payload = ticket.getPayload();
+    } catch (e) {
+      return res.status(401).json({ error: 'invalid_google_token' });
+    }
+    if (!payload || !payload.email_verified) {
+      return res.status(403).json({ error: 'google_email_unverified' });
+    }
+
+    const clientIp = (req.headers['x-forwarded-for'] || '').split(',')[0].trim() || req.socket?.remoteAddress || '';
+
+    // "One Google account, one tenant, ever" — look up by google_sub (globally unique, not
+    // scoped per tenant) ONLY. If found, log into their existing tenant; never create a second.
+    let user = await db.get(
+      isPg ? 'SELECT * FROM admin_users WHERE google_sub = $1' : 'SELECT * FROM admin_users WHERE google_sub = ?',
+      [payload.sub]
+    );
+
+    let provisioned = false;
+    if (!user) {
+      // First-time Google sign-in: auto-provision a brand-new tenant, named from the person's
+      // own Google account (per the platform owner's explicit choice) — no signup form.
+      const firstName = payload.given_name || (payload.name ? payload.name.split(' ')[0] : '');
+      const displayName = firstName ? `${firstName}'in Restoranı` : 'Yeni Restoran';
+      const seed = firstName || (payload.email || '').split('@')[0];
+
+      let slug = generateSlugCandidate(seed);
+      let n = 2;
+      for (;;) {
+        const reserved = RESERVED_SLUGS.includes(slug);
+        const exists = !reserved && await db.get(
+          isPg ? 'SELECT id FROM tenants WHERE id = $1' : 'SELECT id FROM tenants WHERE id = ?', [slug]
+        );
+        if (!reserved && !exists) break;
+        slug = `${generateSlugCandidate(seed)}-${n++}`.slice(0, 31);
+        if (!SLUG_RE.test(slug)) { slug = `restoran-${Date.now()}`.slice(0, 31); break; }
+      }
+
+      try {
+        await createTenantWithDemoContent({
+          slug, name: displayName, display_name: displayName,
+          body: { contact_email: payload.email },
+          adminOverride: {
+            username: slug,
+            password_hash: hashPassword(crypto.randomBytes(32).toString('hex')), // unusable placeholder — Google-only account
+            email: payload.email, google_sub: payload.sub, avatar_url: payload.picture || '',
+            display_name: payload.name || displayName
+          }
+        });
+        provisioned = true;
+        invalidateTenantCache(slug);
+        logActivity({ tenantId: slug, actor: slug, role: 'tenant_admin', action: 'tenant_self_signup', target: slug, details: payload.email, ip: clientIp });
+      } catch (e) {
+        // Concurrent first-time sign-in (e.g. two tabs) can lose a race on the unique google_sub
+        // index — re-look-up and log into whichever request won, instead of surfacing a raw
+        // DB error. A losing request may leave an orphaned demo tenant with no admin row; at this
+        // platform's scale that is an acceptable, rare Root cleanup item, not a security issue.
+        console.warn('[AUTH] Google provisioning conflict, re-checking existing account:', e.message);
+      }
+      user = await db.get(
+        isPg ? 'SELECT * FROM admin_users WHERE google_sub = $1' : 'SELECT * FROM admin_users WHERE google_sub = ?',
+        [payload.sub]
+      );
+      if (!user) return res.status(500).json({ error: 'provisioning_failed' });
+    } else {
+      // Returning Google user — keep their photo/name fresh without a re-login.
+      await db.run(
+        isPg ? 'UPDATE admin_users SET last_login = $1, avatar_url = $2, display_name = $3 WHERE id = $4'
+             : 'UPDATE admin_users SET last_login = ?, avatar_url = ?, display_name = ? WHERE id = ?',
+        [Date.now(), payload.picture || user.avatar_url || '', payload.name || user.display_name, user.id]
+      );
+    }
+
+    const token = signToken({ uid: user.id, tenant_id: user.tenant_id, role: user.role, username: user.username });
+    logActivity({
+      tenantId: user.role === 'root' ? '' : user.tenant_id, actor: user.username, role: user.role,
+      action: 'login_google', target: user.username, ip: clientIp
+    });
+    res.json({
+      token,
+      role: user.role,
+      tenant_id: user.tenant_id,
+      username: user.username,
+      display_name: payload.name || user.display_name || user.username,
+      provisioned
+    });
+  } catch (err) {
+    console.error('[API ERROR] POST /api/auth/google:', err);
+    res.status(500).json({ error: err.message });
+  }
 });
 
 // ==========================================
@@ -1166,7 +1294,10 @@ app.get('/api/platform-config', async (req, res) => {
       landing_title: s.landing_title || s.platform_name || 'HASACA',
       landing_subtitle: s.landing_subtitle || '',
       footer_brand: s.footer_brand || s.platform_name || 'HASACA',
-      ai_enabled: !!s.ai_enabled
+      ai_enabled: !!s.ai_enabled,
+      // Client IDs are not secret (unlike API keys) — safe to expose publicly. Empty when unset
+      // so the frontend can hide the Google button instead of showing a broken one.
+      google_client_id: process.env.GOOGLE_CLIENT_ID || ''
     });
   } catch (err) {
     console.error('[API ERROR] GET /api/platform-config:', err);

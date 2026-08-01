@@ -7,6 +7,7 @@
 <meta name="description" content="HASACA yönetim paneline güvenli giriş yapın.">
 <meta name="robots" content="noindex,nofollow">
 <link rel="icon" href="/favicon.ico">
+<script src="https://accounts.google.com/gsi/client" async defer></script>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
 @font-face{
@@ -65,6 +66,11 @@ a{ color:inherit; text-decoration:none; }
 .tabs{ display:flex; gap:4px; background:var(--surface); border:1px solid var(--border); border-radius:999px; padding:4px; margin-bottom:22px; }
 .tabs button{ flex:1; background:none; border:none; color:var(--text-mute); font-size:13px; cursor:pointer; padding:9px 8px; border-radius:999px; transition:all .16s var(--ease); }
 .tabs button.on{ background:var(--surface-2); color:var(--text); }
+
+.gwrap{ display:none; }
+.gwrap .gbtn{ display:flex; justify-content:center; }
+.divider{ display:flex; align-items:center; gap:10px; margin:18px 0; color:var(--text-mute); font-size:12.5px; }
+.divider .line{ flex:1; height:1px; background:var(--border); }
 
 .field{ margin-bottom:15px; }
 .field label{ display:block; font-size:12.5px; color:var(--text-dim); margin-bottom:7px; }
@@ -145,6 +151,11 @@ a{ color:inherit; text-decoration:none; }
 
     <div class="msg" id="msg"></div>
 
+    <div class="gwrap" id="googleWrap">
+      <div class="gbtn" id="googleBtn"></div>
+      <div class="divider"><span class="line"></span><span id="lblOr">veya</span><span class="line"></span></div>
+    </div>
+
     <form id="loginForm" novalidate>
       <div class="field" id="fUser">
         <label id="lblUser">Kullanıcı Adı</label>
@@ -216,7 +227,9 @@ const I = {
     back:'Web sitesine dön', support:'Destek', privacy:'Gizlilik', terms:'Kullanım Şartları', demo:'Demo Talep Et',
     need:'Kullanıcı adı ve şifre gerekli.', wrong:'Kullanıcı adı veya şifre hatalı.',
     err:'Giriş yapılamadı. Lütfen tekrar deneyin.', ok:'Giriş başarılı, yönlendiriliyorsunuz...',
-    noRoot:'Bu hesap Root paneline erişim yetkisine sahip değil.' },
+    noRoot:'Bu hesap Root paneline erişim yetkisine sahip değil.',
+    or:'veya', provisioned:'Restoranınız oluşturuldu, yönlendiriliyorsunuz...',
+    googleErr:'Google ile giriş yapılamadı. Lütfen tekrar deneyin.' },
   en:{ ttlT:'Admin Login', ttlR:'Root Panel Login',
     subT:'Sign in to reach your restaurant admin panel.',
     subR:'Sign in to reach the platform admin panel.',
@@ -226,7 +239,9 @@ const I = {
     back:'Back to website', support:'Support', privacy:'Privacy', terms:'Terms of Use', demo:'Request a Demo',
     need:'Username and password are required.', wrong:'Incorrect username or password.',
     err:'Could not sign in. Please try again.', ok:'Signed in, redirecting...',
-    noRoot:'This account does not have access to the Root panel.' }
+    noRoot:'This account does not have access to the Root panel.',
+    or:'or', provisioned:'Your restaurant has been created, redirecting...',
+    googleErr:'Could not sign in with Google. Please try again.' }
 };
 let LANG = 'tr';
 let PANEL = new URLSearchParams(location.search).get('panel') === 'root' ? 'root' : 'tenant';
@@ -256,8 +271,11 @@ function apply(){
   document.getElementById('lnkPrivacy').textContent = T('privacy');
   document.getElementById('lnkTerms').textContent = T('terms');
   document.getElementById('lnkDemo').textContent = T('demo');
+  document.getElementById('lblOr').textContent = T('or');
   document.querySelectorAll('.tabs button').forEach(b=>b.classList.toggle('on', b.dataset.panel===PANEL));
   document.querySelectorAll('.lang button').forEach(b=>b.classList.toggle('on', b.dataset.lang===LANG));
+  // Google Sign-In only ever appears on the "Restoran" tab — Root login stays password-only.
+  document.getElementById('googleWrap').style.display = (GOOGLE_CLIENT_ID && PANEL === 'tenant') ? 'block' : 'none';
 }
 function setLang(l){ LANG=l; try{ localStorage.setItem('hasaca_landing_lang', l); }catch(e){} apply(); }
 function setPanel(p){ PANEL=p; hide(); apply(); }
@@ -300,24 +318,7 @@ document.getElementById('loginForm').addEventListener('submit', async (e) => {
     } else if (PANEL === 'root' && d.role !== 'root') {
       show('bad', T('noRoot'));
     } else {
-      const isRoot = d.role === 'root';
-      const store = document.getElementById('remember').checked ? localStorage : sessionStorage;
-      try {
-        if (d.role === 'root') {
-          store.setItem('hasaca_root_token', d.token);
-          store.setItem('hasaca_admin_token', d.token);
-        } else {
-          store.setItem('hasaca_admin_token', d.token);
-        }
-      } catch (err) {}
-      show('ok', T('ok'));
-      // Carry the tenant into the panel URL. The server-issued tenant_id is authoritative,
-      // so the admin panel scopes its API calls to the right restaurant on single-domain hosts.
-      const slug = (!isRoot && d.tenant_id && d.tenant_id !== 'default') ? d.tenant_id : '';
-      const dest = (isRoot && PANEL === 'root')
-        ? '/root'
-        : '/admin' + (slug ? '?tenant=' + encodeURIComponent(slug) : '');
-      setTimeout(() => { location.href = dest; }, 500);
+      handleLoginSuccess(d, false);
       return;
     }
   } catch (err) {
@@ -325,6 +326,62 @@ document.getElementById('loginForm').addEventListener('submit', async (e) => {
   }
   btn.disabled = false; lbl.textContent = orig;
 });
+
+// Shared by both the password form and Google Sign-In — stores the session token and redirects.
+function handleLoginSuccess(d, provisioned) {
+  const isRoot = d.role === 'root';
+  const store = document.getElementById('remember').checked ? localStorage : sessionStorage;
+  try {
+    if (d.role === 'root') {
+      store.setItem('hasaca_root_token', d.token);
+      store.setItem('hasaca_admin_token', d.token);
+    } else {
+      store.setItem('hasaca_admin_token', d.token);
+    }
+  } catch (err) {}
+  show('ok', provisioned ? T('provisioned') : T('ok'));
+  // Carry the tenant into the panel URL. The server-issued tenant_id is authoritative,
+  // so the admin panel scopes its API calls to the right restaurant on single-domain hosts.
+  const slug = (!isRoot && d.tenant_id && d.tenant_id !== 'default') ? d.tenant_id : '';
+  const dest = (isRoot && PANEL === 'root')
+    ? '/root'
+    : '/admin' + (slug ? '?tenant=' + encodeURIComponent(slug) : '');
+  setTimeout(() => { location.href = dest; }, 500);
+}
+
+/* ── Google Sign-In (Restoran tab only — Root login stays password-only) ── */
+let GOOGLE_CLIENT_ID = '';
+async function onGoogleCredential(resp) {
+  hide();
+  try {
+    const r = await fetch('/api/auth/google', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ credential: resp.credential })
+    });
+    const d = await r.json().catch(() => ({}));
+    if (!r.ok || !d.token) { show('bad', T('googleErr')); return; }
+    handleLoginSuccess(d, !!d.provisioned);
+  } catch (err) {
+    show('bad', T('googleErr'));
+  }
+}
+function initGoogleButton(attemptsLeft) {
+  if (!GOOGLE_CLIENT_ID) return;
+  if (!(window.google && google.accounts && google.accounts.id)) {
+    if (attemptsLeft > 0) setTimeout(() => initGoogleButton(attemptsLeft - 1), 100);
+    return;
+  }
+  google.accounts.id.initialize({ client_id: GOOGLE_CLIENT_ID, callback: onGoogleCredential });
+  google.accounts.id.renderButton(document.getElementById('googleBtn'), { theme: 'filled_black', size: 'large', shape: 'pill', width: 320 });
+}
+(async () => {
+  try {
+    const cfg = await (await fetch('/api/platform-config')).json();
+    GOOGLE_CLIENT_ID = cfg.google_client_id || '';
+  } catch (e) {}
+  apply(); // re-apply now that GOOGLE_CLIENT_ID is known, to correctly show/hide the wrap
+  initGoogleButton(50); // ~5s max wait for the async gsi/client script to load
+})();
 
 try { const s = localStorage.getItem('hasaca_landing_lang'); if (s) LANG = s; } catch (e) {}
 apply();

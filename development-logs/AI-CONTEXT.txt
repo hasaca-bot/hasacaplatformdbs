@@ -2,7 +2,7 @@
 HASACA PLATFORM — AI CONTINUATION CONTEXT
 (Overwrite this file at the END of every phase. Written for an AI that has
 never seen this project. Companion to development-status.md + phase-XX.md.)
-Last updated: 2026-08-01 (after Phase 42, Google Sign-In feature IN PROGRESS)
+Last updated: 2026-08-01 (after Phase 43, Google Sign-In feature IN PROGRESS)
 ======================================================================
 
 # PROJECT SUMMARY
@@ -77,12 +77,33 @@ Panel manages all tenants. As of Phase 22 there is ALSO a public marketing site 
   and an `adminOverride` parameter on `createTenantWithDemoContent` (for a Google-linked admin row instead
   of a random password) — both exist now so Phase B (the actual `POST /api/auth/google` route) can call
   them without touching this shared module again. See `development-logs/phase-42.md` for full detail.
-  **NEXT TASK**: Phase B — `POST /api/auth/google` (verify Google's ID token via `google-auth-library`,
-  find-or-provision via the module above, issue a normal session token via the EXISTING `signToken()` in
-  `lib/auth.js` — nothing about the app's own auth format changes), extend `GET /api/auth/me` to return
-  `display_name`/`email`/`avatar_url`, add the Google button to `login.html`'s "Restoran" tab only (never
-  the Root tab) and to `admin.html`'s embedded login modal. Needs a new dependency
-  (`google-auth-library`) and a new env var `GOOGLE_CLIENT_ID`.
+  **Phase 43 (Phase B) is DONE**: real `POST /api/auth/google` in `server.js` — verifies a Google ID
+  token via `google-auth-library`'s `OAuth2Client.verifyIdToken()`, looks up `admin_users` by `google_sub`
+  ONLY (never email — this is the actual "one Google account, one tenant" guarantee at query time, backed
+  by Phase 42's unique index), auto-provisions via `createTenantWithDemoContent()` on first sign-in
+  (named from the person's Google first name, e.g. "Ahmet'in Restoranı"), issues a token via the
+  UNCHANGED `signToken()`. `GET /api/auth/me` now re-reads the DB row and returns `display_name`/`email`/
+  `avatar_url`. `GET /api/platform-config` exposes `google_client_id` (not secret, safe to expose). The
+  real Client ID (`679295497183-2kruu73jm9em9c2oapaab5gds6h38smh.apps.googleusercontent.com`) is in local
+  `backend/.env` for testing. Google button added to `login.html` (Restoran tab ONLY — `apply()` toggles
+  `#googleWrap` on `PANEL==='tenant'`, Root tab never shows it) and to `admin.html`'s embedded login modal
+  (`#adminLoginBackdrop`, lazily initialized in `openAdminLogin()` via `initAdminGoogleButton()`). Both
+  verified LIVE in a real browser: genuine Google-rendered button markup confirmed via DOM inspection, tab
+  switching correctly shows/hides it, zero console errors. Backend verified with real requests too: a fake
+  credential string gets `401 invalid_google_token` from Google's REAL verification service (proves the
+  library call is live, not a stub) — same verification pattern used for the Groq integration in Phase 38.
+  NOT automatable and deliberately deferred: a full click-through with a REAL Google account (choosing an
+  account in the actual consent popup) — by design this cannot be scripted, needs a human. See
+  phase-43.md for full detail.
+  **NEXT TASK**: Phase C — tenant self-service "Restoran Bilgileri" (name/phone/email/address, mirrors
+  Root's `PUT /api/root/tenants/:id`) and "Marka & Site" (branding — mirrors Root's
+  `PUT /api/root/tenants/:id/branding`'s 25-field UI subset, EXCLUDING widget toggles since those already
+  have their own `view-widgets` screen) full-screen `.view` sections in `admin.html`'s sidebar — NEVER
+  modals, per the platform owner's explicit rule. New tenant-scoped endpoints
+  `PUT /api/admin/restaurant-info` and `PUT /api/admin/branding` in `server.js`, following the exact
+  established self-service pattern (`PUT /api/admin/site-widgets`/`qr-style`/`website-content`) — read the
+  full plan file for the deliberate deviation (stripping HTML from branding fields, unlike Root's own
+  raw-HTML-capable endpoint) and the exact field list.
 - Last completed phase (prior, unrelated): Phase 41 — Admin (tenant) panel's AI Assistant redesigned as a chat UI,
   matching root.html's Phase 39 redesign. Before this, admin.html's `#view-ai-assistant` was still
   the ORIGINAL Phase 27 single-turn form (one textarea, a plan card wiped on every send, no

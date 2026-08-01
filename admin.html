@@ -12,6 +12,7 @@
   <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
   <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
   <link rel="icon" href="/favicon.ico">
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
   <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600;700&family=Syne:wght@600;700;800&family=Dancing+Script:wght@600;700&display=swap" rel="stylesheet">
   <!-- SEO -->
@@ -2923,6 +2924,14 @@ body.theme-bw .rez-select-trigger:hover {
     <div id="adminLoginError" style="color:var(--ap-bad);font-size:0.8rem;font-weight:600;margin-top:-10px;margin-bottom:12px;display:none;text-align:center;"></div>
     <button class="admin-btn" data-i18n="admin_btn_login" onclick="submitAdminLogin()">Giriş Yap</button>
     <button class="admin-btn secondary" data-i18n="admin_btn_cancel" onclick="closeAdminLogin()">Vazgeç</button>
+    <div id="adminGoogleWrap" style="display:none; margin-top:16px;">
+      <div style="display:flex; align-items:center; gap:10px; margin-bottom:14px; color:var(--ap-faint); font-size:12px;">
+        <span style="flex:1; height:1px; background:var(--ap-line);"></span>
+        <span data-i18n="admin_login_or">veya</span>
+        <span style="flex:1; height:1px; background:var(--ap-line);"></span>
+      </div>
+      <div id="adminGoogleBtn" style="display:flex; justify-content:center;"></div>
+    </div>
   </div>
 </div>
 
@@ -3984,6 +3993,8 @@ const i18nData = {
     admin_login: "Yönetici Girişi",
     admin_pwd_lbl: "Şifre",
     admin_btn_login: "Giriş Yap",
+    admin_login_or: "veya",
+    admin_google_err: "Google ile giriş yapılamadı. Lütfen tekrar deneyin.",
     order_online: "Online sipariş",
     admin_btn_cancel: "Vazgeç",
     admin_btn_product_cancel: "Tamam",
@@ -4388,6 +4399,8 @@ const i18nData = {
     admin_login: "Admin Login",
     admin_pwd_lbl: "Password",
     admin_btn_login: "Login",
+    admin_login_or: "or",
+    admin_google_err: "Could not sign in with Google. Please try again.",
     order_online: "Online order",
     admin_btn_cancel: "Cancel",
     order_getir: "Order Online",
@@ -6010,10 +6023,55 @@ async function openAdminLogin(e) {
   document.getElementById('adminLoginError').style.display = 'none';
   document.getElementById('adminLoginBackdrop').classList.add('open');
   document.body.style.overflow = 'hidden';
+  initAdminGoogleButton(50); // ~7.5s max wait for the async gsi/client script to load
 }
 
 function closeAdminLogin() {
   window.location.href = "./";
+}
+
+// Google Sign-In inside the embedded login modal — same backend call as login.html's own
+// button, just a different DOM target. Lazily fetches platform-config once (only when the
+// login modal is actually shown), then renders Google's own button exactly once.
+let ADMIN_GOOGLE_CLIENT_ID = null; // null = not fetched yet, '' = fetched, none configured
+let adminGoogleButtonRendered = false;
+async function initAdminGoogleButton(attemptsLeft) {
+  if (ADMIN_GOOGLE_CLIENT_ID === null) {
+    try {
+      const cfg = await (await fetch('/api/platform-config')).json();
+      ADMIN_GOOGLE_CLIENT_ID = cfg.google_client_id || '';
+    } catch (e) { ADMIN_GOOGLE_CLIENT_ID = ''; }
+  }
+  const wrap = document.getElementById('adminGoogleWrap');
+  if (!ADMIN_GOOGLE_CLIENT_ID) { if (wrap) wrap.style.display = 'none'; return; }
+  if (wrap) wrap.style.display = 'block';
+  if (adminGoogleButtonRendered) return;
+  if (!(window.google && google.accounts && google.accounts.id)) {
+    if (attemptsLeft > 0) setTimeout(() => initAdminGoogleButton(attemptsLeft - 1), 150);
+    return;
+  }
+  google.accounts.id.initialize({ client_id: ADMIN_GOOGLE_CLIENT_ID, callback: onAdminGoogleCredential });
+  google.accounts.id.renderButton(document.getElementById('adminGoogleBtn'), { theme: 'filled_black', size: 'large', shape: 'pill', width: 300 });
+  adminGoogleButtonRendered = true;
+}
+async function onAdminGoogleCredential(resp) {
+  const err = document.getElementById('adminLoginError');
+  err.style.display = 'none';
+  try {
+    const res = await fetch('/api/auth/google', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ credential: resp.credential })
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok || !data.token) throw new Error('google-failed');
+    setAdminToken(data.token);
+    document.getElementById('adminLoginBackdrop').classList.remove('open');
+    openAdminPanel();
+  } catch (e) {
+    err.textContent = (typeof i18nData !== 'undefined' && i18nData[window.currentLanguage] && i18nData[window.currentLanguage].admin_google_err)
+      || (window.currentLanguage === 'tr' ? 'Google ile giriş yapılamadı.' : 'Could not sign in with Google.');
+    err.style.display = 'block';
+  }
 }
 
 async function submitAdminLogin() {
