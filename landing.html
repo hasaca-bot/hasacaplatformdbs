@@ -70,13 +70,22 @@
   --shadow-glow:0 0 0 1px var(--border), 0 24px 70px -25px rgba(0,0,0,.9);
   --maxw:1180px;
 }
-/* Black & White theme — same accent-token-swap approach index.html/admin.html/root.html already
-   use for their own "theme-mono" (see AI-CONTEXT.txt's "naming trap" note: theme-mono is the REAL
-   B&W theme in this codebase's convention). landing.html only ever had one dark-luxury look, so
-   this override just neutralizes the warm gold accent into gray everywhere it's used. */
-body.theme-mono{
-  --gold:#9a9a9a;
-  --gold-rgb:154,154,154;
+/* Black & White theme. The gold accent is only ~6% of this page's surface (small dots/badges/
+   checkmarks) — swapping just that token to gray (an earlier attempt) was correct but nearly
+   invisible to a real viewer, since 94% of the page was already gray/black to begin with and
+   never carried any color to begin with. A full-page grayscale filter is the only way to make
+   "black & white" actually READ as black & white at a glance, and it has a real advantage over
+   hunting down every hardcoded color individually: it also catches things a token-swap can't,
+   like the blue-tinted ambient background glow (line ~89, rgba(120,130,180,...), never tied to
+   --gold at all) or any future color someone adds without going through the token system.
+   Applied to <html> (not <body>) specifically so it doesn't turn body into a new containing
+   block for position:fixed descendants (the nav bar, the ambient body::before glow) — filtering
+   the root element sidesteps that entirely since its box already coincides with the viewport.
+   Grayscale preserves relative LUMINANCE (lightness), which is what text/background contrast
+   actually depends on — a light-on-dark pair stays a light-on-dark pair after desaturating, so
+   this does not introduce unreadable text the way a hue-only change could. */
+html.theme-mono{
+  filter: grayscale(1);
 }
 *{ font-family:var(--font-primary) !important; }
 code,pre,kbd,samp{ font-family:ui-monospace,'SFMono-Regular',Menlo,monospace !important; }
@@ -1303,14 +1312,14 @@ function initForm(){
    platform uses), since 'bw'/'mono' mean different things on different pages in this codebase and
    landing.html only ever has one look to toggle against, not a 3-way engine. */
 function applyLandingTheme(theme){
-  document.body.classList.toggle('theme-mono', theme === 'mono');
+  document.documentElement.classList.toggle('theme-mono', theme === 'mono');
   ['themeSwitchBtn', 'themeSwitchBtnFoot'].forEach(id => {
     const btn = document.getElementById(id);
     if (btn) btn.classList.toggle('on', theme === 'mono');
   });
 }
 function toggleLandingTheme(){
-  const next = document.body.classList.contains('theme-mono') ? 'dark' : 'mono';
+  const next = document.documentElement.classList.contains('theme-mono') ? 'dark' : 'mono';
   try { localStorage.setItem('landing_theme', next); } catch(e){}
   applyLandingTheme(next);
 }
