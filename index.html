@@ -3391,6 +3391,17 @@ window.API_BASE = (() => {
   return '';
 })();
 
+// SSE (EventSource) connections must bypass Netlify's redirect-based /api/* proxy — it does not
+// stream responses (confirmed: a direct EventSource to Render gets the initial ": connected"
+// comment immediately; the same connection through platformhasaca.netlify.app never receives
+// anything at all, not even that first byte). Every other /api/* call stays same-origin through
+// the proxy (that direction works fine) — only EventSource connections need this direct URL.
+window.SSE_BASE = (() => {
+  const h = window.location.hostname;
+  if (h === 'localhost' || h === '127.0.0.1' || h.endsWith('.onrender.com')) return '';
+  return 'https://hasaca-api.onrender.com';
+})();
+
 // Admin session token (multi-tenant auth)
 function getAdminToken() {
   try { return safeGetItem('hasaca_admin_token') || ''; } catch (e) { return ''; }
@@ -7152,7 +7163,8 @@ function dkTrackOrder(orderId, status){
   document.getElementById('dineinTrackCard').classList.add('open');
   if (dkTrackES) { dkTrackES.close(); dkTrackES = null; }
   try {
-    let url = window.API_BASE + '/api/events/track/' + orderId;
+    // SSE_BASE (not API_BASE) — this connection must bypass the Netlify proxy, see its definition.
+    let url = window.SSE_BASE + '/api/events/track/' + orderId;
     if (window.__devTenant) url += '?tenant=' + encodeURIComponent(window.__devTenant);
     dkTrackES = new EventSource(url);
     dkTrackES.addEventListener('order_status', (e) => {

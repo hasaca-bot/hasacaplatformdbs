@@ -3,7 +3,7 @@
 > Living status doc. Any AI/dev can resume by reading this + the phase files in `/development-logs`.
 > Release changelog lives in `README.md` (§ DEĞİŞİKLİK GÜNLÜĞÜ). This folder tracks in-progress phased work.
 
-**Last updated:** 2026-08-01 (after Phase 39)
+**Last updated:** 2026-08-01 (after Phase 40)
 
 > A living **AI-CONTEXT.txt** hand-off file is maintained in this folder (overwritten every phase).
 
@@ -64,6 +64,7 @@ Multi-tenant restaurant SaaS. Node.js + Express (`backend/server.js`), dual DB l
 | 37 | 10 | Monochrome rebrand shipped (was held back); Root dashboard "Son Aktivite" replaced with an interactive analytics chart (vanilla SVG, no dependency); contrast bug found+fixed | ✅ DONE |
 | 38 | 10 | AI Assistant swapped from Gemini to Groq — Gemini's real generation quota needs billing linked even for the "free tier" and the user has no card; Groq needs none. Same plan/execute contract, only the HTTP call changed. Same-phase addendum: Admin panel dashboard "Son Aktivite" → analytics chart, same treatment as Root panel (Phase 37), verified on two real tenants | ✅ DONE — real Groq generation confirmed against production, deployed |
 | 39 | 10 | Root panel AI Assistant redesigned as a real chat UI (transcript, typing indicator, inline plan bubbles with confirm/cancel-in-place). Found+fixed a real bug while testing: the plan endpoint can return HTTP 200 with a real error, which the old (and my first-draft new) code silently mislabeled as "no actionable change" | ✅ DONE (Confirm→Execute path verified by code review + local UI test; live click-through with a real key pending deploy) |
+| 40 | 10 | Fixed real-time order-status updates not reaching the customer's tracking screen in production: Netlify's `_redirects` proxy does not support SSE streaming at all. Added `window.SSE_BASE` (index.html + admin.html) to route `EventSource` connections directly to Render, bypassing the proxy; fixed the resulting tenant-auth break on `GET /api/events/admin` by trusting the JWT's own `tenant_id`. Also fixed the same bug for admin's own live dashboard feed (found proactively, not user-reported) | ✅ DONE — tenant isolation re-verified with a real spoofed-tenant test |
 
 
 | 32+ | 5 | Backlog: fast-follows only (menu-generation wizard; QR logos/frames; widget permission tier; `/register` decision; unused legacy files flagged) | ⏭️ NEXT |
@@ -117,6 +118,17 @@ Default/light themes unaffected (byte-identical before/after, verified via compu
 - **Render deploy pending** for Phase 38's commits — pushed but not yet confirmed live at time of
   writing. Should complete on its own now that the health-check-path misconfiguration is fixed;
   worth a dashboard check if it's taking more than a few minutes.
+- ~~Real-time order-status updates not reaching the customer's tracking screen~~ **RESOLVED
+  (Phase 40)**: Netlify's `_redirects` proxy doesn't support SSE streaming at all; fixed via
+  `window.SSE_BASE` routing `EventSource` connections directly to Render. Also fixed the same bug
+  for admin's own live dashboard feed, found proactively during the same investigation.
+- **In-memory SSE pub/sub (`backend/lib/events.js`) only works for a single server instance** —
+  would need Redis pub/sub (or similar) to support horizontally scaled backend instances. Not a
+  regression, just a scaling limit worth knowing about if Render is ever moved to multiple instances.
+- **User-reported "orange card" on the customer tracking screen** — investigated thoroughly in
+  Phase 40 (source CSS, computed styles, production's actually-served HTML) and found everything
+  already monochrome. No code change made. Awaiting a screenshot from the user if the issue
+  persists after a hard refresh.
 
 ## Credentials (dev fork)
 - Root: `root` / `bunudabullan12A`. Tenant admin: `dayikatik` / `dayikatik123` (reset in P04).

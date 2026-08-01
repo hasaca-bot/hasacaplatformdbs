@@ -3807,6 +3807,17 @@ window.API_BASE = (() => {
   return '';
 })();
 
+// SSE (EventSource) connections must bypass Netlify's redirect-based /api/* proxy — it does not
+// stream responses (confirmed: a direct EventSource to Render gets the initial ": connected"
+// comment immediately; the same connection through platformhasaca.netlify.app never receives
+// anything at all, not even that first byte). Every other /api/* call stays same-origin through
+// the proxy (that direction works fine) — only EventSource connections need this direct URL.
+window.SSE_BASE = (() => {
+  const h = window.location.hostname;
+  if (h === 'localhost' || h === '127.0.0.1' || h.endsWith('.onrender.com')) return '';
+  return 'https://hasaca-api.onrender.com';
+})();
+
 // Admin session token (multi-tenant auth)
 function getAdminToken() {
   // sessionStorage is used when the login page's "Beni hatırla" is unchecked.
@@ -8701,7 +8712,8 @@ function connectAdminEvents(){
     if (!token) return;
     let url = '/api/events/admin?token=' + encodeURIComponent(token);
     if (window.__devTenant) url += '&tenant=' + encodeURIComponent(window.__devTenant);
-    url = window.API_BASE + url;
+    // SSE_BASE (not API_BASE) — this connection must bypass the Netlify proxy, see its definition.
+    url = window.SSE_BASE + url;
     const es = new EventSource(url);
     adminEventSource = es;
     const onDineinTab = () => document.getElementById('adminTabTableOrdersCont') && document.getElementById('adminTabTableOrdersCont').classList.contains('active-tab');

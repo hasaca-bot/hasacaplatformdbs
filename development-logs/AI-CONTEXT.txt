@@ -2,7 +2,7 @@
 HASACA PLATFORM — AI CONTINUATION CONTEXT
 (Overwrite this file at the END of every phase. Written for an AI that has
 never seen this project. Companion to development-status.md + phase-XX.md.)
-Last updated: 2026-08-01 (after Phase 38)
+Last updated: 2026-08-01 (after Phase 40)
 ======================================================================
 
 # PROJECT SUMMARY
@@ -49,6 +49,33 @@ Panel manages all tenants. As of Phase 22 there is ALSO a public marketing site 
     development-logs/  → development-status.md, phase-00..22.md, THIS FILE
 
 # CURRENT STATUS
+- Last completed phase: Phase 40 — fixed real-time order-status updates not reaching the
+  customer's tracking screen in production. Root cause: Netlify's `_redirects`-based `/api/*`
+  proxy does NOT support SSE/streaming responses at all (confirmed via direct `curl -N`
+  comparison — Render direct gets `: connected` instantly; through the Netlify proxy, zero bytes
+  ever arrive, connection just hangs until timeout). Normal buffered request/response API calls
+  proxy fine; only long-lived streaming connections break. Fix: added `window.SSE_BASE` (parallel
+  to the existing `window.API_BASE`, which stays same-origin for everything else) to `index.html`
+  and `admin.html` — resolves to `''` on localhost/`*.onrender.com`, else the hardcoded direct
+  Render origin `https://hasaca-api.onrender.com` — used ONLY for `EventSource` URL construction.
+  Updated the only two `EventSource` sites: `dkTrackOrder()` (index.html, customer tracking) and
+  `connectAdminEvents()` (admin.html, admin's own live feed — the second one was found
+  proactively, not user-reported). `root.html` has no `EventSource` of its own, confirmed via grep.
+  CASCADING FIX: connecting straight to Render's own domain means `slugFromHost()` (Phase 36) can't
+  derive a tenant slug from `.onrender.com`, so `req.tenantId` is `null` on these direct
+  connections — broke `GET /api/events/admin`'s old strict `payload.tenant_id === req.tenantId`
+  check for every real tenant admin. Fixed by trusting the JWT's own `tenant_id` directly for
+  non-root sessions (same trust model `adminAuth` already uses elsewhere), root sessions keep
+  `?tenant=` targeting. TENANT ISOLATION RE-VERIFIED: opened an SSE connection with a real tenant
+  admin's token plus a SPOOFED `?tenant=<other-tenant>` query param, triggered a real status-change
+  event on the admin's own actual tenant via `PUT /api/orders/:id/status`, confirmed the spoofed
+  connection received THAT tenant's event (not the spoofed one) — proves the backend ignores the
+  client-supplied tenant param and uses the JWT's own tenant_id, no cross-tenant leak introduced.
+  See phase-40.md for full detail. NOT part of this phase: the user also asked about an "orange
+  card" on the customer tracking screen — investigated thoroughly (CSS source, computed styles,
+  production's actually-served HTML) and found everything already monochrome from Phase 37; no
+  code change made, likely a stale client view, asked user to hard-refresh + screenshot if it
+  persists.
 - Overall: ~89% of the multi-wave scope. The platform is stable and runnable.
 - Working copy runs on http://localhost:17888 (fork of the original `C:\...\saas proje`, which is a
   frozen rollback). Start it: `cd backend && node server.js` (backend/.env now correctly carries

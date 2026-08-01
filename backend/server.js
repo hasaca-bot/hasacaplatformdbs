@@ -1134,10 +1134,15 @@ app.get('/t/:token', (req, res) => {
 // is passed as a query param and verified here (same checks as adminAuth).
 app.get('/api/events/admin', (req, res) => {
   const payload = verifyToken(String(req.query.token || ''));
-  if (!payload || (payload.role !== 'root' && payload.tenant_id !== req.tenantId)) {
-    return res.status(401).json({ error: 'Unauthorized' });
-  }
-  platformEvents.subscribeAdmin(req.tenantId, req, res);
+  if (!payload) return res.status(401).json({ error: 'Unauthorized' });
+  // Trust the JWT's own tenant_id for a tenant admin — same trust model adminAuth already uses
+  // elsewhere. Required because this SSE connection now bypasses the Netlify proxy and hits
+  // Render directly (the proxy does not stream — see index.html/admin.html's SSE_BASE comment),
+  // so host-based tenant resolution can't determine a slug here at all; the old strict
+  // payload.tenant_id === req.tenantId check would 401 every real tenant admin. A root session
+  // keeps its existing ability to view any tenant's feed via ?tenant=.
+  const tenantId = payload.role === 'root' ? req.tenantId : payload.tenant_id;
+  platformEvents.subscribeAdmin(tenantId, req, res);
 });
 
 // SSE — customer live order tracking (public; order id is unguessable)
