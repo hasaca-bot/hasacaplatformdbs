@@ -2,7 +2,7 @@
 HASACA PLATFORM — AI CONTINUATION CONTEXT
 (Overwrite this file at the END of every phase. Written for an AI that has
 never seen this project. Companion to development-status.md + phase-XX.md.)
-Last updated: 2026-08-01 (after Phase 45 — Google Sign-In feature COMPLETE, not yet deployed)
+Last updated: 2026-08-01 (after Phase 46)
 ======================================================================
 
 # PROJECT SUMMARY
@@ -49,7 +49,49 @@ Panel manages all tenants. As of Phase 22 there is ALSO a public marketing site 
     development-logs/  → development-status.md, phase-00..22.md, THIS FILE
 
 # CURRENT STATUS
-- **IN PROGRESS, multi-phase, plan approved**: Google Sign-In + tenant self-service signup/panel. Full
+- **Phase 46 (latest)**: 4 fixes from live-testing the just-deployed Google Sign-In feature, see
+  development-logs/phase-46.md for full detail. (1) `connectAdminEvents()` (admin.html) now
+  self-heals after a FATAL SSE error (e.g. an expired 24h token, or a backend restart) — previously
+  the `onerror` handler was a no-op assuming the browser always auto-reconnects, which per spec is
+  only true for network-level drops; a fatal error left the connection CLOSED forever, silently,
+  requiring a manual page refresh to see new orders again. Fix: detect `readyState===CLOSED` and
+  retry via `setTimeout` every 5s. This was NOT a Phase 40 regression — Phase 40's actual fix (the
+  Netlify-proxy-bypass + SSE_BASE) is still fully correct; this was a separate, pre-existing gap.
+  (2) Google Sign-In's click handlers (`onGoogleCredential` in login.html,
+  `onAdminGoogleCredential` in admin.html) now show immediate "Giriş yapılıyor…" feedback + a
+  double-click guard — root cause of "first click does nothing, second click works ~10s later" was
+  Render's free-tier cold start (documented since Phase 35 as ~30-60s) combined with zero loading
+  UI; the loading indicator can't eliminate the actual cold-start delay (that's the hosting plan,
+  not code) but fixes the "did my click work?" confusion. Also hoisted `OAuth2Client` in
+  `backend/server.js` to module scope so Google's cert cache persists across requests (was being
+  thrown away and refetched every single call before).
+  (3) Favicon/logo consistency: `icons/favicon.svg` — a correctly-designed, previously COMPLETELY
+  UNUSED square icon with the same triangle/layers mark already used in root.html's sidebar and
+  landing.html's header — is now wired up as the actual `<link rel="icon">` on every page. Direct
+  file inspection found the OLD `.ico`/`.png` favicons being served were a broken flat-orange-square
+  leftover from before the monochrome rebrand. Also found and cleared REAL bad data while verifying:
+  the live `platform_settings.favicon_url` had an accidentally-uploaded giant non-square image in
+  it — visually confirmed, this alone fully explained the "squashed logo" complaint for Root's own
+  panel. `admin.html`'s sidebar brand mark (previously a plain hardcoded "H" letter faked to look
+  like a logotype) now uses the same real SVG root.html's sidebar already had, for consistency
+  between the two panels. Added a favicon UPLOAD field to both admin.html's "Marka & Site" view and
+  root.html's tenant branding modal — the backend already accepted `favicon_url` (from Phase 44 and
+  earlier), it just had no UI anywhere to actually set a per-TENANT favicon.
+  (4) `landing.html` got a real Black & White theme toggle (it never had ANY theme system before —
+  confirmed only dead leftover CSS existed). Added a `--gold-rgb` companion token (mirroring the
+  exact fix Phase 32 applied to index.html for the same reason: rgba() calls need a comma-triplet,
+  can't interpolate a hex custom property directly) and a `body.theme-mono{...}` override, toggle
+  persisted under its own `landing_theme` localStorage key (deliberately NOT the shared `theme` key
+  other pages use, since `'bw'` means a DIFFERENT thing — a light theme — elsewhere in this
+  codebase's own documented naming trap).
+  All four verified live end-to-end (not just code review) — see phase-46.md for the exact repro
+  steps used for each, especially the SSE self-heal (break token → confirm retry scheduled → wait
+  past 5s → confirm a SECOND retry fires → fix token → confirm the NEXT retry actually succeeds and
+  opens a real working connection, all without a page reload).
+  **NEXT TASK**: none queued — check with the user for what's next. Google Sign-In still needs the
+  real click-through-with-an-actual-account test the owner was going to do once GOOGLE_CLIENT_ID
+  was live on Render (see Phase 45's "still needed" note, unchanged by this phase).
+- **Prior (Phases 42-45, still relevant)**: Google Sign-In + tenant self-service signup/panel. Full
   approved plan lives at `C:\Users\hasan_y4hfwna\.claude\plans\evet-plan-haz-rla-composed-walrus.md`
   (also mirrored in this project's memory system as `project_google_signin_plan.md`) — READ IT IN FULL
   before continuing this work, it has the exact design decisions and file targets for every remaining

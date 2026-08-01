@@ -673,7 +673,7 @@ async function seedPlatform() {
     platform = {
       platform_name: 'HASACA',
       logo_url: '/icons/placeholder-logo.svg',
-      favicon_url: '/favicon.ico',
+      favicon_url: '/icons/favicon.svg',
       login_logo_url: '/icons/placeholder-logo.svg',
       landing_title: 'HASACA',
       landing_subtitle: 'Restaurant Platform',

@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="robots" content="noindex, nofollow">
 <title>HASACA Root Panel</title>
+<link rel="icon" type="image/svg+xml" href="/icons/favicon.svg">
 <link rel="icon" href="/favicon.ico">
 <style>
   *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
@@ -458,6 +459,9 @@
     <input type="hidden" id="bSlug">
     <label data-i18n="root_brand_logo">Logo</label>
     <div class="asset-field"><img class="asset-thumb" id="bLogo_thumb" alt=""><input type="text" id="bLogo" readonly class="asset-url" placeholder="/icons/placeholder-logo.svg"><button class="btn small secondary" onclick="uploadPlatformAsset('bLogo')" data-i18n="root_upload">Yükle</button></div>
+    <label data-i18n="root_brand_favicon">Favicon (Sekme İkonu)</label>
+    <div class="hint" data-i18n="root_brand_favicon_hint">Kare bir görsel yükleyin (örn. 512×512) — kare olmayan görseller sekmede gerilmiş görünebilir. Boş bırakılırsa logo kullanılır.</div>
+    <div class="asset-field"><img class="asset-thumb" id="bFavicon_thumb" alt=""><input type="text" id="bFavicon" readonly class="asset-url" placeholder="/icons/placeholder-logo.svg"><button class="btn small secondary" onclick="uploadPlatformAsset('bFavicon')" data-i18n="root_upload">Yükle</button></div>
     <label data-i18n="root_brand_company">Şirket Adı</label>
     <input type="text" id="bCompany">
     <label>Hero Başlık (TR)</label>
@@ -744,6 +748,8 @@ const i18nData = {
     root_edit_title: "Restoranı Düzenle",
     root_brand_title: "Marka / Site İçeriği (Root)",
     root_brand_logo: "Logo", root_brand_company: "Şirket Adı", root_brand_footer: "Footer Metni",
+    root_brand_favicon: "Favicon (Sekme İkonu)",
+    root_brand_favicon_hint: "Kare bir görsel yükleyin (örn. 512×512) — kare olmayan görseller sekmede gerilmiş görünebilir. Boş bırakılırsa logo kullanılır.",
     root_contact_title: "İletişim & Sosyal Medya",
     root_contact_hint: "Bu bilgiler sitenin her yerinde (üst bilgi, alt bilgi, iletişim, harita, sosyal butonlar) otomatik kullanılır.",
     root_cs_phone: "Telefon", root_cs_whatsapp: "WhatsApp", root_cs_email: "E-posta", root_cs_website: "Web Sitesi",
@@ -851,6 +857,8 @@ const i18nData = {
     root_edit_title: "Edit Restaurant",
     root_brand_title: "Branding / Site Content (Root)",
     root_brand_logo: "Logo", root_brand_company: "Company Name", root_brand_footer: "Footer Text",
+    root_brand_favicon: "Favicon (Tab Icon)",
+    root_brand_favicon_hint: "Upload a square image (e.g. 512×512) — non-square images may look stretched in the tab. Falls back to the logo if left blank.",
     root_contact_title: "Contact & Social",
     root_contact_hint: "These values are used automatically across the whole site (header, footer, contact, map, social buttons).",
     root_cs_phone: "Phone", root_cs_whatsapp: "WhatsApp", root_cs_email: "Email", root_cs_website: "Website",
@@ -1326,6 +1334,7 @@ function openBrandModal(slug){
   const s = t.settings || {};
   document.getElementById('bSlug').value = slug;
   document.getElementById('bLogo').value = s.logo_url || '';
+  document.getElementById('bFavicon').value = s.favicon_url || '';
   document.getElementById('bCompany').value = s.company_name || '';
   document.getElementById('bHeroTr').value = s.hero_title_tr || '';
   document.getElementById('bHeroEn').value = s.hero_title_en || '';
@@ -1360,6 +1369,7 @@ function openBrandModal(slug){
     if (el) el.checked = w[key] !== false;
   });
   refreshAssetThumb('bLogo');
+  refreshAssetThumb('bFavicon');
   document.getElementById('brandOverlay').classList.add('open');
 }
 async function saveBranding(){
@@ -1369,6 +1379,7 @@ async function saveBranding(){
       method: 'PUT', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         logo_url: document.getElementById('bLogo').value.trim(),
+        favicon_url: document.getElementById('bFavicon').value.trim(),
         company_name: document.getElementById('bCompany').value.trim(),
         hero_title_tr: document.getElementById('bHeroTr').value,
         hero_title_en: document.getElementById('bHeroEn').value,

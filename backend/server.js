@@ -12,6 +12,11 @@ const { hashPassword, verifyPassword, signToken, verifyToken, generatePassword }
 const { createTenantResolver, slugFromHost, errorPageHtml } = require('./lib/tenant');
 const platformEvents = require('./lib/events');
 const { OAuth2Client } = require('google-auth-library');
+// Built once at startup, not per-request — verifyIdToken() caches Google's public certs on the
+// instance itself, so a fresh instance per call (the original approach) meant that cache never
+// actually helped across requests. GOOGLE_CLIENT_ID may be unset at boot (feature disabled); the
+// route below already checks for that before ever calling verifyIdToken().
+const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID || undefined);
 const createTenantProvisioner = require('./lib/tenantProvisioning');
 
 // Generate or load VAPID keys
@@ -1161,7 +1166,6 @@ app.post('/api/auth/google', rateLimiter(15), async (req, res) => {
     const credential = String((req.body && req.body.credential) || '');
     if (!credential) return res.status(400).json({ error: 'credential_required' });
 
-    const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
     let payload;
     try {
       const ticket = await googleClient.verifyIdToken({ idToken: credential, audience: process.env.GOOGLE_CLIENT_ID });
@@ -1312,7 +1316,7 @@ app.get('/api/platform-config', async (req, res) => {
     res.json({
       platform_name: s.platform_name || 'HASACA',
       logo_url: s.logo_url || '/icons/placeholder-logo.svg',
-      favicon_url: s.favicon_url || '/favicon.ico',
+      favicon_url: s.favicon_url || '/icons/favicon.svg',
       login_logo_url: s.login_logo_url || s.logo_url || '/icons/placeholder-logo.svg',
       landing_title: s.landing_title || s.platform_name || 'HASACA',
       landing_subtitle: s.landing_subtitle || '',

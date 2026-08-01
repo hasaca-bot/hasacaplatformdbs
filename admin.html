@@ -9,6 +9,7 @@
   <meta name="google-site-verification" content="rZFvhCpkgZxrSUCYruqLX70hEIH3JD7yiD_sh8unJps" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"/>
   <title>Yönetim Paneli | My Restaurant</title>
+  <link rel="icon" type="image/svg+xml" href="/icons/favicon.svg">
   <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
   <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
   <link rel="icon" href="/favicon.ico">
@@ -2944,7 +2945,7 @@ body.theme-bw .rez-select-trigger:hover {
     <!-- SIDEBAR -->
     <aside class="app-sidebar" id="adminAppSidebar">
       <div class="side-brand">
-        <span class="mark"><span>H</span></span>
+        <span class="mark"><svg class="hasaca-logo-svg" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 12l10 5 10-5"/><path d="M2 17l10 5 10-5"/></svg></span>
         <span class="txt"><b id="adminSideBrandName">HASACA</b><small data-i18n="admin_panel_title">Yönetim Paneli</small></span>
       </div>
 
@@ -3216,6 +3217,15 @@ body.theme-bw .rez-select-trigger:hover {
               <label class="admin-btn secondary" style="width:auto; flex:none; display:inline-flex; align-items:center; gap:8px; cursor:pointer; margin:0;">
                 <span data-i18n="admin_brand_logo_upload">Logo Yükle</span>
                 <input type="file" accept="image/png,image/jpeg,image/webp,image/gif,image/svg+xml" style="display:none;" onchange="handleBrandLogoUpload(this)">
+              </label>
+            </div>
+            <label class="hint" style="display:block; margin-top:14px;" data-i18n="admin_brand_favicon">Favicon (Sekme İkonu)</label>
+            <p class="hint" style="margin-top:2px; font-size:.78rem;" data-i18n="admin_brand_favicon_hint">Müşteri sitenizin tarayıcı sekmesinde görünen küçük ikon. En iyi sonuç için kare (örn. 512×512) bir görsel yükleyin — kare olmayan görseller gerilmiş görünebilir.</p>
+            <div style="display:flex; align-items:center; gap:12px; margin-top:6px;">
+              <img id="brandFaviconPreview" src="" alt="" style="width:36px; height:36px; border-radius:8px; object-fit:cover; background:var(--ap-card); border:1px solid var(--ap-line); display:none;">
+              <label class="admin-btn secondary" style="width:auto; flex:none; display:inline-flex; align-items:center; gap:8px; cursor:pointer; margin:0;">
+                <span data-i18n="admin_brand_favicon_upload">Favicon Yükle</span>
+                <input type="file" accept="image/png,image/jpeg,image/webp,image/gif,image/svg+xml" style="display:none;" onchange="handleBrandFaviconUpload(this)">
               </label>
             </div>
             <label class="hint" style="display:block; margin-top:14px;" data-i18n="admin_brand_company">Şirket Adı</label>
@@ -4128,6 +4138,7 @@ const i18nData = {
     admin_btn_login: "Giriş Yap",
     admin_login_or: "veya",
     admin_google_err: "Google ile giriş yapılamadı. Lütfen tekrar deneyin.",
+    admin_google_signing: "Giriş yapılıyor…",
     order_online: "Online sipariş",
     admin_btn_cancel: "Vazgeç",
     admin_btn_product_cancel: "Tamam",
@@ -4394,6 +4405,9 @@ const i18nData = {
     admin_brand_basics_title: "Marka",
     admin_brand_logo: "Logo",
     admin_brand_logo_upload: "Logo Yükle",
+    admin_brand_favicon: "Favicon (Sekme İkonu)",
+    admin_brand_favicon_hint: "Müşteri sitenizin tarayıcı sekmesinde görünen küçük ikon. En iyi sonuç için kare (örn. 512×512) bir görsel yükleyin — kare olmayan görseller gerilmiş görünebilir.",
+    admin_brand_favicon_upload: "Favicon Yükle",
     admin_brand_company: "Şirket Adı",
     admin_brand_hero_title: "Ana Sayfa",
     admin_brand_footer: "Footer Metni",
@@ -4586,6 +4600,7 @@ const i18nData = {
     admin_btn_login: "Login",
     admin_login_or: "or",
     admin_google_err: "Could not sign in with Google. Please try again.",
+    admin_google_signing: "Signing in…",
     order_online: "Online order",
     admin_btn_cancel: "Cancel",
     order_getir: "Order Online",
@@ -4786,6 +4801,9 @@ const i18nData = {
     admin_brand_basics_title: "Brand",
     admin_brand_logo: "Logo",
     admin_brand_logo_upload: "Upload Logo",
+    admin_brand_favicon: "Favicon (Tab Icon)",
+    admin_brand_favicon_hint: "The small icon shown in your customer site's browser tab. For best results upload a square image (e.g. 512×512) — non-square images may look stretched.",
+    admin_brand_favicon_upload: "Upload Favicon",
     admin_brand_company: "Company Name",
     admin_brand_hero_title: "Homepage",
     admin_brand_footer: "Footer Text",
@@ -6291,9 +6309,18 @@ async function initAdminGoogleButton(attemptsLeft) {
   google.accounts.id.renderButton(document.getElementById('adminGoogleBtn'), { theme: 'filled_black', size: 'large', shape: 'pill', width: 300 });
   adminGoogleButtonRendered = true;
 }
+let adminGoogleSigninInProgress = false;
 async function onAdminGoogleCredential(resp) {
+  // Render's free hosting plan can take several seconds to wake up on the first request after being
+  // idle — with no visible feedback here, a slow (but working) first attempt looked like a dead click,
+  // so people clicked again. Show a status message immediately and ignore a second click while one is
+  // already in flight, instead of letting them silently stack up.
+  if (adminGoogleSigninInProgress) return;
+  adminGoogleSigninInProgress = true;
   const err = document.getElementById('adminLoginError');
-  err.style.display = 'none';
+  err.style.color = 'var(--ap-muted)';
+  err.textContent = aiT('admin_google_signing', window.currentLanguage === 'tr' ? 'Giriş yapılıyor…' : 'Signing in…');
+  err.style.display = 'block';
   try {
     const res = await fetch('/api/auth/google', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
@@ -6305,6 +6332,8 @@ async function onAdminGoogleCredential(resp) {
     document.getElementById('adminLoginBackdrop').classList.remove('open');
     openAdminPanel();
   } catch (e) {
+    adminGoogleSigninInProgress = false;
+    err.style.color = 'var(--ap-bad)';
     err.textContent = (typeof i18nData !== 'undefined' && i18nData[window.currentLanguage] && i18nData[window.currentLanguage].admin_google_err)
       || (window.currentLanguage === 'tr' ? 'Google ile giriş yapılamadı.' : 'Could not sign in with Google.');
     err.style.display = 'block';
@@ -6905,6 +6934,40 @@ async function loadBranding() {
     if (s.logo_url) { logoImg.src = s.logo_url; logoImg.style.display = 'block'; }
     else { logoImg.style.display = 'none'; }
   }
+  const favImg = document.getElementById('brandFaviconPreview');
+  window.__brandFaviconUrl = s.favicon_url || '';
+  if (favImg) {
+    if (s.favicon_url) { favImg.src = s.favicon_url; favImg.style.display = 'block'; }
+    else { favImg.style.display = 'none'; }
+  }
+}
+async function handleBrandFaviconUpload(input) {
+  const file = input.files && input.files[0];
+  if (!file) return;
+  const statusEl = document.getElementById('brandingStatus');
+  const allowed = ['image/png', 'image/jpeg', 'image/webp', 'image/gif', 'image/svg+xml'];
+  if (!allowed.includes(file.type)) { statusEl.style.display = 'block'; statusEl.textContent = aiT('admin_brand_bad_format', 'Desteklenmeyen format.'); input.value = ''; return; }
+  if (file.size > 5 * 1024 * 1024) { statusEl.style.display = 'block'; statusEl.textContent = aiT('admin_brand_too_big', 'Görsel 5MB sınırını aşıyor.'); input.value = ''; return; }
+  statusEl.style.display = 'block'; statusEl.textContent = aiT('admin_ai_thinking', 'Yükleniyor…');
+  try {
+    const dataUrl = await new Promise((resolve, reject) => {
+      const r = new FileReader();
+      r.onload = () => resolve(r.result);
+      r.onerror = reject;
+      r.readAsDataURL(file);
+    });
+    const res = await fetch('/api/admin/upload-image', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ image: dataUrl })
+    });
+    const out = await res.json();
+    if (!res.ok || !out.url) throw new Error(out.error || 'upload failed');
+    window.__brandFaviconUrl = out.url;
+    const favImg = document.getElementById('brandFaviconPreview');
+    if (favImg) { favImg.src = out.url; favImg.style.display = 'block'; }
+    statusEl.style.display = 'none'; statusEl.textContent = '';
+  } catch (e) {
+    statusEl.textContent = e.message || aiT('admin_ai_error_generic', 'Bir hata oluştu.');
+  }
 }
 async function handleBrandLogoUpload(input) {
   const file = input.files && input.files[0];
@@ -6941,6 +7004,7 @@ async function saveBranding() {
   const get = (id) => { const el = document.getElementById(id); return el ? el.value.trim() : ''; };
   const payload = {
     logo_url: window.__brandLogoUrl || '',
+    favicon_url: window.__brandFaviconUrl || '',
     company_name: get('brCompany'),
     hero_title_tr: get('brHeroTr'), hero_title_en: get('brHeroEn'),
     hero_sub_tr: get('brHeroSubTr'), hero_sub_en: get('brHeroSubEn'),
@@ -9361,8 +9425,10 @@ async function resolveService(id){
 
 // ---------- Real-time (SSE) ----------
 let adminEventSource = null;
+let adminEventsReconnectTimer = null;
 function connectAdminEvents(){
   try {
+    if (adminEventsReconnectTimer) { clearTimeout(adminEventsReconnectTimer); adminEventsReconnectTimer = null; }
     if (adminEventSource) { adminEventSource.close(); adminEventSource = null; }
     const token = getAdminToken();
     if (!token) return;
@@ -9380,7 +9446,18 @@ function connectAdminEvents(){
     });
     es.addEventListener('order_status', () => { loadTableOrders(); });
     es.addEventListener('service_request', () => { loadServiceRequests(); if (typeof playOrderSound === 'function') playOrderSound(); });
-    es.onerror = () => { /* browser auto-reconnects */ };
+    // The browser only auto-retries SSE on transient network drops (readyState stays CONNECTING). On a
+    // FATAL error — e.g. a 401 once the 24h session token expires, or the backend restarting mid-
+    // reconnect — the spec has the browser set readyState=CLOSED and give up permanently, silently, per
+    // https://html.spec.whatwg.org/#sse-processing-model. That was the real cause of "live feed just
+    // stops, needs a manual refresh": nothing ever tried to reconnect again. Detect that case ourselves
+    // and retry after a short delay.
+    es.onerror = () => {
+      if (es.readyState === EventSource.CLOSED && adminEventSource === es) {
+        adminEventSource = null;
+        adminEventsReconnectTimer = setTimeout(connectAdminEvents, 5000);
+      }
+    };
   } catch(e){ console.error('SSE connect failed', e); }
 }
 </script>

@@ -8,6 +8,7 @@
 <meta name="keywords" content="restoran yazılımı, QR menü, online sipariş, komisyonsuz, restoran web sitesi, rezervasyon sistemi, restoran yönetim paneli, HASACA">
 <meta name="theme-color" content="#0a0a0b">
 <link rel="canonical" href="https://hasaca.com/">
+<link rel="icon" type="image/svg+xml" href="/icons/favicon.svg">
 <link rel="icon" href="/favicon.ico">
 <!-- OpenGraph -->
 <meta property="og:type" content="website">
@@ -58,7 +59,8 @@
   --text-mute:#6c6c78;
   --white:#ffffff;
   --gold:#d8b877;
-  --gold-soft:rgba(216,184,119,.14);
+  --gold-rgb:216,184,119;
+  --gold-soft:rgba(var(--gold-rgb),.14);
   --shine:linear-gradient(135deg,#ffffff 0%,#c9c9d2 45%,#8f8f9c 100%);
   --radius:22px;
   --radius-lg:30px;
@@ -67,6 +69,14 @@
   --shadow:0 30px 80px -30px rgba(0,0,0,.85);
   --shadow-glow:0 0 0 1px var(--border), 0 24px 70px -25px rgba(0,0,0,.9);
   --maxw:1180px;
+}
+/* Black & White theme — same accent-token-swap approach index.html/admin.html/root.html already
+   use for their own "theme-mono" (see AI-CONTEXT.txt's "naming trap" note: theme-mono is the REAL
+   B&W theme in this codebase's convention). landing.html only ever had one dark-luxury look, so
+   this override just neutralizes the warm gold accent into gray everywhere it's used. */
+body.theme-mono{
+  --gold:#9a9a9a;
+  --gold-rgb:154,154,154;
 }
 *{ font-family:var(--font-primary) !important; }
 code,pre,kbd,samp{ font-family:ui-monospace,'SFMono-Regular',Menlo,monospace !important; }
@@ -83,7 +93,7 @@ body{
 body::before{
   content:''; position:fixed; inset:0; z-index:0; pointer-events:none;
   background:
-    radial-gradient(60% 40% at 78% 8%, rgba(216,184,119,.08), transparent 60%),
+    radial-gradient(60% 40% at 78% 8%, rgba(var(--gold-rgb),.08), transparent 60%),
     radial-gradient(50% 45% at 8% 20%, rgba(120,130,180,.07), transparent 60%),
     radial-gradient(70% 60% at 50% 120%, rgba(255,255,255,.04), transparent 60%);
 }
@@ -163,6 +173,11 @@ body.theme-bw .brand .mark, html.theme-bw .brand .mark, .theme-bw .brand .mark {
 }
 .lang button.on{ background:var(--surface-2); color:var(--text); }
 .nav-toggle{ display:none; background:var(--surface); border:1px solid var(--border); color:#fff; width:42px; height:42px; border-radius:12px; cursor:pointer; }
+.theme-switch{ display:flex; align-items:center; justify-content:center; width:34px; height:34px; flex:none;
+  background:var(--surface); border:1px solid var(--border); border-radius:999px; color:var(--text-mute);
+  cursor:pointer; transition:all .15s; }
+.theme-switch:hover{ color:var(--text); border-color:var(--border-2); }
+.theme-switch.on{ background:var(--surface-2); color:var(--gold); }
 .nav-toggle svg{ width:20px; height:20px; margin:auto; }
 
 /* ── Hero ── */
@@ -294,7 +309,7 @@ body.theme-bw .brand .mark, html.theme-bw .brand .mark, .theme-bw .brand .mark {
   padding:22px; transition:transform .18s var(--ease), border-color .18s, background .18s;
   position:relative; overflow:hidden;
 }
-.feat::after{ content:''; position:absolute; inset:0; background:radial-gradient(120% 90% at 50% -20%, rgba(216,184,119,.1), transparent 60%); opacity:0; transition:opacity .25s; pointer-events:none; }
+.feat::after{ content:''; position:absolute; inset:0; background:radial-gradient(120% 90% at 50% -20%, rgba(var(--gold-rgb),.1), transparent 60%); opacity:0; transition:opacity .25s; pointer-events:none; }
 .feat:hover{ transform:translateY(-5px); border-color:var(--border-2); background:var(--surface-2); }
 .feat:hover::after{ opacity:1; }
 .feat .fi{ width:44px; height:44px; border-radius:12px; display:grid; place-items:center; margin-bottom:15px;
@@ -330,7 +345,7 @@ body.theme-bw .brand .mark, html.theme-bw .brand .mark, .theme-bw .brand .mark {
 .cmp .cell{ text-align:center; }
 .cmp .yes{ color:#e9e9ee; } .cmp .no{ color:var(--text-mute); }
 .cmp .cell svg{ width:19px; height:19px; }
-.cmp .col-hasaca{ background:linear-gradient(180deg,rgba(216,184,119,.06),transparent); }
+.cmp .col-hasaca{ background:linear-gradient(180deg,rgba(var(--gold-rgb),.06),transparent); }
 
 /* ── Stats ── */
 .stat-grid{ display:grid; grid-template-columns:repeat(4,1fr); gap:16px; }
@@ -362,8 +377,8 @@ body.theme-bw .brand .mark, html.theme-bw .brand .mark, .theme-bw .brand .mark {
   display:flex; flex-direction:column; transition:transform .18s var(--ease), border-color .18s;
 }
 .plan:hover{ transform:translateY(-5px); border-color:var(--border-2); }
-.plan.pop{ background:linear-gradient(180deg,rgba(216,184,119,.08),var(--surface)); border-color:rgba(216,184,119,.4); box-shadow:0 30px 80px -34px rgba(216,184,119,.35); }
-.plan .badge{ align-self:flex-start; font-size:11px; letter-spacing:.1em; text-transform:uppercase; color:var(--gold); background:var(--gold-soft); border:1px solid rgba(216,184,119,.3); padding:5px 11px; border-radius:999px; margin-bottom:14px; }
+.plan.pop{ background:linear-gradient(180deg,rgba(var(--gold-rgb),.08),var(--surface)); border-color:rgba(var(--gold-rgb),.4); box-shadow:0 30px 80px -34px rgba(var(--gold-rgb),.35); }
+.plan .badge{ align-self:flex-start; font-size:11px; letter-spacing:.1em; text-transform:uppercase; color:var(--gold); background:var(--gold-soft); border:1px solid rgba(var(--gold-rgb),.3); padding:5px 11px; border-radius:999px; margin-bottom:14px; }
 .plan h4{ font-size:19px; margin-bottom:6px; }
 .plan .desc{ font-size:13px; color:var(--text-mute); margin-bottom:18px; min-height:34px; }
 .plan .amt{ display:flex; align-items:baseline; gap:6px; margin-bottom:20px; }
@@ -399,7 +414,7 @@ body.theme-bw .brand .mark, html.theme-bw .brand .mark, .theme-bw .brand .mark {
   width:100%; background:var(--bg-2); border:1px solid var(--border); border-radius:12px;
   padding:13px 14px; color:var(--text); font-size:14.5px; transition:border-color .15s, box-shadow .15s; resize:vertical;
 }
-.field input:focus,.field textarea:focus{ outline:none; border-color:rgba(216,184,119,.55); box-shadow:0 0 0 3px var(--gold-soft); }
+.field input:focus,.field textarea:focus{ outline:none; border-color:rgba(var(--gold-rgb),.55); box-shadow:0 0 0 3px var(--gold-soft); }
 .field.err input,.field.err textarea{ border-color:#c0463a; box-shadow:0 0 0 3px rgba(192,70,58,.18); }
 .form .btn{ width:100%; margin-top:4px; }
 .form-note{ font-size:12px; color:var(--text-mute); text-align:center; margin-top:13px; }
@@ -500,6 +515,9 @@ body.theme-bw .brand .mark, html.theme-bw .brand .mark, .theme-bw .brand .mark {
       <a href="/giris" class="nav-cta-mobile" data-i18n="nav_login">Yönetici Girişi</a>
     </div>
     <div class="nav-right">
+      <button class="theme-switch" id="themeSwitchBtn" onclick="toggleLandingTheme()" aria-label="Tema" title="Siyah &amp; Beyaz Tema">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 3a9 9 0 0 0 0 18z" fill="currentColor" stroke="none"/></svg>
+      </button>
       <div class="lang">
         <button data-lang="tr" class="on" onclick="setLang('tr')">TR</button>
         <button data-lang="en" onclick="setLang('en')">EN</button>
@@ -559,7 +577,7 @@ body.theme-bw .brand .mark, html.theme-bw .brand .mark, .theme-bw .brand .mark {
                 </div>
                 <div class="ui-chart">
                   <svg viewBox="0 0 300 78" preserveAspectRatio="none">
-                    <defs><linearGradient id="g" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="rgba(216,184,119,.35)"/><stop offset="1" stop-color="rgba(216,184,119,0)"/></linearGradient></defs>
+                    <defs><linearGradient id="g" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="rgba(var(--gold-rgb),.35)"/><stop offset="1" stop-color="rgba(var(--gold-rgb),0)"/></linearGradient></defs>
                     <path d="M0,60 C40,54 60,30 100,34 C140,38 160,14 200,20 C240,26 260,8 300,12 L300,78 L0,78 Z" fill="url(#g)"/>
                     <path d="M0,60 C40,54 60,30 100,34 C140,38 160,14 200,20 C240,26 260,8 300,12" fill="none" stroke="#e8e8ee" stroke-width="1.6"/>
                   </svg>
@@ -846,9 +864,14 @@ body.theme-bw .brand .mark, html.theme-bw .brand .mark, .theme-bw .brand .mark {
     </div>
     <div class="foot-bottom">
       <p>© <span id="year"></span> HASACA. <span data-i18n="ft_rights">Tüm hakları saklıdır.</span></p>
-      <div class="lang">
-        <button data-lang="tr" class="on" onclick="setLang('tr')">Türkçe</button>
-        <button data-lang="en" onclick="setLang('en')">English</button>
+      <div style="display:flex; align-items:center; gap:10px;">
+        <button class="theme-switch" id="themeSwitchBtnFoot" onclick="toggleLandingTheme()" aria-label="Tema" title="Siyah &amp; Beyaz Tema">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 3a9 9 0 0 0 0 18z" fill="currentColor" stroke="none"/></svg>
+        </button>
+        <div class="lang">
+          <button data-lang="tr" class="on" onclick="setLang('tr')">Türkçe</button>
+          <button data-lang="en" onclick="setLang('en')">English</button>
+        </div>
       </div>
     </div>
   </div>
@@ -1276,11 +1299,30 @@ function initForm(){
   });
 }
 
+/* Black & White theme toggle — landing.html's own key (not the shared 'theme' key the rest of the
+   platform uses), since 'bw'/'mono' mean different things on different pages in this codebase and
+   landing.html only ever has one look to toggle against, not a 3-way engine. */
+function applyLandingTheme(theme){
+  document.body.classList.toggle('theme-mono', theme === 'mono');
+  ['themeSwitchBtn', 'themeSwitchBtnFoot'].forEach(id => {
+    const btn = document.getElementById(id);
+    if (btn) btn.classList.toggle('on', theme === 'mono');
+  });
+}
+function toggleLandingTheme(){
+  const next = document.body.classList.contains('theme-mono') ? 'dark' : 'mono';
+  try { localStorage.setItem('landing_theme', next); } catch(e){}
+  applyLandingTheme(next);
+}
+
 /* ─────────────── INIT ─────────────── */
 document.addEventListener('DOMContentLoaded', ()=>{
   document.getElementById('year').textContent = new Date().getFullYear();
   const saved = localStorage.getItem('hasaca_landing_lang');
   if(saved) LANG = saved;
+  let savedTheme = 'dark';
+  try { savedTheme = localStorage.getItem('landing_theme') || 'dark'; } catch(e){}
+  applyLandingTheme(savedTheme);
   renderFeatures(); renderSteps(); renderCmp(); renderPlans(); renderFaq(); renderTesti(); renderFooter();
   setLang(LANG);
   applyI18n();

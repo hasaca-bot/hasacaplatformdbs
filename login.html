@@ -6,6 +6,7 @@
 <title>Yönetici Girişi — HASACA</title>
 <meta name="description" content="HASACA yönetim paneline güvenli giriş yapın.">
 <meta name="robots" content="noindex,nofollow">
+<link rel="icon" type="image/svg+xml" href="/icons/favicon.svg">
 <link rel="icon" href="/favicon.ico">
 <script src="https://accounts.google.com/gsi/client" async defer></script>
 <style>
@@ -351,17 +352,26 @@ function handleLoginSuccess(d, provisioned) {
 
 /* ── Google Sign-In (Restoran tab only — Root login stays password-only) ── */
 let GOOGLE_CLIENT_ID = '';
+let googleSigninInProgress = false;
 async function onGoogleCredential(resp) {
+  // Render's free hosting plan can take several seconds to wake up on the first request after being
+  // idle — with no visible feedback here, a slow (but working) first attempt looked like a dead click,
+  // so people clicked again. Show a status message immediately and ignore a second click while one is
+  // already in flight, instead of letting them silently stack up.
+  if (googleSigninInProgress) return;
+  googleSigninInProgress = true;
   hide();
+  show('ok', T('signing'));
   try {
     const r = await fetch('/api/auth/google', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ credential: resp.credential })
     });
     const d = await r.json().catch(() => ({}));
-    if (!r.ok || !d.token) { show('bad', T('googleErr')); return; }
+    if (!r.ok || !d.token) { googleSigninInProgress = false; show('bad', T('googleErr')); return; }
     handleLoginSuccess(d, !!d.provisioned);
   } catch (err) {
+    googleSigninInProgress = false;
     show('bad', T('googleErr'));
   }
 }
