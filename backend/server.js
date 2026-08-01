@@ -6,7 +6,7 @@ const cors = require('cors');
 const path = require('path');
 const fs = require('fs');
 const crypto = require('crypto');
-const { db, initDatabase, resetDatabase, logActivity } = require('./db');
+const { db, initDatabase, resetDatabase, deleteTenantData, logActivity } = require('./db');
 const webpush = require('web-push');
 const { hashPassword, verifyPassword, signToken, verifyToken, generatePassword } = require('./lib/auth');
 const { createTenantResolver, slugFromHost, errorPageHtml } = require('./lib/tenant');
@@ -497,6 +497,13 @@ app.get('/api/reservations', adminAuth, async (req, res) => {
 // POST /api/reservations
 app.post('/api/reservations', async (req, res) => {
   try {
+    // Tenant self-service "Geçici Kapat" (Phase D) — a NEW, separate flag from
+    // tenants.status='disabled' (that one also blocks the tenant's own admin login; this one
+    // never does — see settings.self_paused, toggled via PUT /api/admin/self-pause).
+    if (req.tenant) {
+      let s = {}; try { s = JSON.parse(req.tenant.settings || '{}') || {}; } catch (e) {}
+      if (s.self_paused) return res.status(403).json({ error: 'restaurant_paused' });
+    }
     const body = req.body;
     const id = body.id || `rez-${Date.now()}`;
     const customer_name = body.name || '';
@@ -668,6 +675,14 @@ const DINEIN_STATUSES = ['received', 'preparing', 'ready', 'serving', 'delivered
 // POST /api/orders (public - customer places an order)
 app.post('/api/orders', rateLimiter(30), async (req, res) => {
   try {
+    // Tenant self-service "Geçici Kapat" (Phase D) — see the identical check + comment on
+    // POST /api/reservations. Dine-in orders resolve their tenant from the table token further
+    // down (req.tenant may not reflect the right tenant yet at this point for that path), so
+    // this early check only covers the delivery/pickup case; the dine-in path re-checks below.
+    if (req.tenant) {
+      let s = {}; try { s = JSON.parse(req.tenant.settings || '{}') || {}; } catch (e) {}
+      if (s.self_paused) return res.status(403).json({ error: 'restaurant_paused' });
+    }
     const body = req.body || {};
 
     const customer_name = String(body.name || '').trim();
@@ -703,6 +718,14 @@ app.post('/api/orders', rateLimiter(30), async (req, res) => {
       tableId = table.id;
       tableName = table.name;
       effectiveTenantId = table.tenant_id; // always correct, regardless of host
+      // Re-check self-pause against the TABLE's real tenant — the early check above used
+      // req.tenant, which reflects the host, not necessarily the tenant that owns this table.
+      const pausedCheck = await db.get(
+        isPg ? 'SELECT settings FROM tenants WHERE id = $1' : 'SELECT settings FROM tenants WHERE id = ?',
+        [effectiveTenantId]
+      );
+      let ps = {}; try { ps = JSON.parse((pausedCheck && pausedCheck.settings) || '{}') || {}; } catch (e) {}
+      if (ps.self_paused) return res.status(403).json({ error: 'restaurant_paused' });
     }
 
     const items = Array.isArray(body.items) ? body.items : [];
@@ -2149,6 +2172,54 @@ app.put('/api/admin/branding', adminAuth, async (req, res) => {
     res.json({ success: true, settings });
   } catch (err) {
     console.error('[API ERROR] PUT /api/admin/branding:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ---------- Tenant self-service: Tehlikeli Bölge (Phase D) ----------
+// "Geçici Kapat" — deliberately a NEW, separate flag (settings.self_paused) from Root's
+// tenants.status='disabled'. That field blocks the tenant's OWN login too (see resolveTenant,
+// lib/tenant.js) — Root confirmed the tenant admin should be able to reopen themselves without
+// contacting Root, so this can never touch tenants.status. Enforced only in the actual
+// order/reservation-creating routes (POST /api/orders, POST /api/reservations), not in shared
+// middleware — admin login and every /api/admin|root/* route are completely unaffected.
+app.put('/api/admin/self-pause', adminAuth, async (req, res) => {
+  try {
+    const paused = !!(req.body && req.body.paused);
+    const row = await db.get(isPg ? 'SELECT settings FROM tenants WHERE id = $1' : 'SELECT settings FROM tenants WHERE id = ?', [req.tenantId]);
+    if (!row) return res.status(404).json({ error: 'tenant_not_found' });
+    let settings = {}; try { settings = JSON.parse(row.settings || '{}') || {}; } catch (e) {}
+    settings.self_paused = paused;
+    await db.run(
+      isPg ? 'UPDATE tenants SET settings = $1, updated_at = $2 WHERE id = $3' : 'UPDATE tenants SET settings = ?, updated_at = ? WHERE id = ?',
+      [JSON.stringify(settings), Date.now(), req.tenantId]
+    );
+    invalidateTenantCache(req.tenantId);
+    logActivity({ tenantId: req.tenantId, actor: (req.auth && req.auth.username) || 'admin', role: 'tenant_admin', action: paused ? 'tenant_self_paused' : 'tenant_self_resumed', target: req.tenantId, ip: (req.headers['x-forwarded-for'] || '').split(',')[0].trim() || req.socket?.remoteAddress || '' });
+    res.json({ success: true, self_paused: paused });
+  } catch (err) {
+    console.error('[API ERROR] PUT /api/admin/self-pause:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// DELETE /api/admin/self — irreversible, scoped strictly to req.tenantId (never a client-supplied
+// id, unlike Root's :id-based DELETE — a tenant admin can only ever delete their OWN restaurant).
+// Blocks tenant 'default' (the platform's own seed/demo tenant — RESERVED_SLUGS already prevents
+// any real signup from ever owning this id, so the guard only ever protects platform seed data).
+app.delete('/api/admin/self', adminAuth, async (req, res) => {
+  try {
+    if (req.tenantId === 'default') return res.status(400).json({ error: 'default_tenant_protected' });
+    const t = await db.get(isPg ? 'SELECT id FROM tenants WHERE id = $1' : 'SELECT id FROM tenants WHERE id = ?', [req.tenantId]);
+    if (!t) return res.status(404).json({ error: 'tenant_not_found' });
+    const tenantId = req.tenantId;
+    await deleteTenantData(tenantId);
+    await db.run(isPg ? 'DELETE FROM tenants WHERE id = $1' : 'DELETE FROM tenants WHERE id = ?', [tenantId]);
+    invalidateTenantCache(tenantId);
+    logActivity({ tenantId: '', actor: (req.auth && req.auth.username) || 'admin', role: 'tenant_admin', action: 'tenant_self_deleted', target: tenantId, ip: (req.headers['x-forwarded-for'] || '').split(',')[0].trim() || req.socket?.remoteAddress || '' });
+    res.json({ success: true });
+  } catch (err) {
+    console.error('[API ERROR] DELETE /api/admin/self:', err);
     res.status(500).json({ error: err.message });
   }
 });

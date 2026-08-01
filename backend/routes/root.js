@@ -9,7 +9,7 @@
 const express = require('express');
 const fs = require('fs');
 const path = require('path');
-const { regenerateDefaultTenant, logActivity } = require('../db');
+const { regenerateDefaultTenant, deleteTenantData, logActivity } = require('../db');
 const createTenantProvisioner = require('../lib/tenantProvisioning');
 const clientIp = (req) => (req.headers['x-forwarded-for'] || '').split(',')[0].trim() || req.socket?.remoteAddress || '';
 
@@ -209,16 +209,9 @@ module.exports = function createRootRouter({ db, isPg, invalidateTenantCache, si
       const t = await db.get(`SELECT id FROM tenants WHERE id = ${P(1)}`, [id]);
       if (!t) return res.status(404).json({ error: 'Tenant not found' });
 
-      // order_items has no tenant_id-independent path — delete via parent orders first
-      await db.run(
-        isPg ? 'DELETE FROM order_items WHERE order_id IN (SELECT id FROM orders WHERE tenant_id = $1)'
-             : 'DELETE FROM order_items WHERE order_id IN (SELECT id FROM orders WHERE tenant_id = ?)',
-        [id]
-      );
-      for (const table of ['orders', 'products', 'categories', 'translations', 'reservations',
-                           'subscriptions', 'notifications', 'tables', 'service_requests', 'admin_users']) {
-        await db.run(`DELETE FROM ${table} WHERE tenant_id = ${P(1)}`, [id]);
-      }
+      // Shared with regenerateDefaultTenant() and the tenant self-service DELETE — one table
+      // list, see backend/db.js's deleteTenantData().
+      await deleteTenantData(id);
       await db.run(`DELETE FROM tenants WHERE id = ${P(1)}`, [id]);
       invalidateTenantCache(id);
 

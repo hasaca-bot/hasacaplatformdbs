@@ -805,6 +805,25 @@ async function resetDatabase(tenantId = 'default') {
   console.log(`[DB] Reset completed for tenant '${tenantId}'.`);
 }
 
+// ── DELETE ALL DATA FOR A TENANT ──
+// Cascading cleanup shared by regenerateDefaultTenant() (below), Root's own DELETE
+// /api/root/tenants/:id, and the tenant self-service DELETE /api/admin/self — one table list to
+// keep in sync instead of three copies. Does NOT delete the `tenants` row itself; callers do that
+// (regenerateDefaultTenant immediately re-inserts a fresh one, the two API routes just remove it).
+async function deleteTenantData(tenantId) {
+  const isPg = dbDriver.type === 'pg';
+  const p1 = isPg ? '$1' : '?';
+  await dbDriver.run(
+    isPg ? 'DELETE FROM order_items WHERE order_id IN (SELECT id FROM orders WHERE tenant_id = $1)'
+         : 'DELETE FROM order_items WHERE order_id IN (SELECT id FROM orders WHERE tenant_id = ?)',
+    [tenantId]
+  );
+  for (const table of ['orders', 'products', 'categories', 'translations', 'reservations',
+                       'subscriptions', 'notifications', 'tables', 'service_requests', 'admin_users']) {
+    await dbDriver.run(`DELETE FROM ${table} WHERE tenant_id = ${p1}`, [tenantId]);
+  }
+}
+
 // ── REGENERATE DEFAULT TENANT ──
 // Rebuilds a fresh, fully-usable `default` tenant from the master template. Used when the Root user
 // deletes the default tenant (or the last remaining tenant) so the platform is never left empty.
@@ -820,15 +839,7 @@ async function regenerateDefaultTenant() {
   console.log('[DB] Regenerating a fresh default tenant from the master template...');
 
   // Defensive cleanup (safe whether or not `default` currently exists)
-  await dbDriver.run(
-    isPg ? 'DELETE FROM order_items WHERE order_id IN (SELECT id FROM orders WHERE tenant_id = $1)'
-         : 'DELETE FROM order_items WHERE order_id IN (SELECT id FROM orders WHERE tenant_id = ?)',
-    ['default']
-  );
-  for (const table of ['orders', 'products', 'categories', 'translations', 'reservations',
-                       'subscriptions', 'notifications', 'tables', 'service_requests', 'admin_users']) {
-    await dbDriver.run(`DELETE FROM ${table} WHERE tenant_id = ${p1}`, ['default']);
-  }
+  await deleteTenantData('default');
   await dbDriver.run(`DELETE FROM tenants WHERE id = ${p1}`, ['default']);
 
   // 1) tenant row (generic "My Restaurant" placeholder branding + demo contact)
@@ -894,4 +905,4 @@ async function initDatabase() {
   await seedPlatform();
 }
 
-module.exports = { db: dbDriver, initDatabase, resetDatabase, regenerateDefaultTenant, logActivity };
+module.exports = { db: dbDriver, initDatabase, resetDatabase, regenerateDefaultTenant, deleteTenantData, logActivity };

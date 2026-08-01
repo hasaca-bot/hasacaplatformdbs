@@ -3,7 +3,7 @@
 > Living status doc. Any AI/dev can resume by reading this + the phase files in `/development-logs`.
 > Release changelog lives in `README.md` (§ DEĞİŞİKLİK GÜNLÜĞÜ). This folder tracks in-progress phased work.
 
-**Last updated:** 2026-08-01 (after Phase 44)
+**Last updated:** 2026-08-01 (after Phase 45)
 
 > A living **AI-CONTEXT.txt** hand-off file is maintained in this folder (overwritten every phase).
 
@@ -69,6 +69,7 @@ Multi-tenant restaurant SaaS. Node.js + Express (`backend/server.js`), dual DB l
 | 42 | 11 | **Google Sign-In + tenant self-service (in progress, multi-phase, plan approved).** Phase A/42: DB migration (`admin_users.email/google_sub/avatar_url` + unique index) + extracted Root's tenant-creation logic into a shared `backend/lib/tenantProvisioning.js` module (both Root's manual creation and the future Google self-signup route will call the same tested code). No user-facing behavior yet | ✅ DONE (Phase A only) — real create/impersonate-add-table/delete cycle re-verified through the actual API |
 | 43 | 11 | Phase B: real `POST /api/auth/google` (verifies a real Google ID token, finds-or-auto-provisions a tenant, issues a normal session token), `GET /api/auth/me` now returns display_name/email/avatar_url, `GET /api/platform-config` exposes `google_client_id`. "Google ile Giriş Yap" button added to `login.html` (Restoran tab only, never Root) and `admin.html`'s embedded login modal | ✅ DONE — real Google button rendered + verified in browser on both pages, fake-token correctly rejected by Google's real verification service; full real-account click-through still needs a real interactive Google consent screen (can't be scripted) |
 | 44 | 11 | Phase C: tenant self-service "Restoran Bilgileri" (name/phone/email/address + read-only membership status) and "Marka & Site" (25-field branding, mirrors Root's own modal subset, widgets excluded, HTML-stripped for safety) — two new full-screen views in admin.html's new "Restoranım" sidebar group, `PUT /api/admin/restaurant-info` + `PUT /api/admin/branding` | ✅ DONE — found+fixed a real cross-endpoint sync bug during testing (a restaurant-info save could be silently reverted by an unrelated branding save; same latent issue exists in Root's own two-modal design, left untouched there); verified live via real UI clicks + cross-checked against Root's own panel |
+| 45 | 11 | Phase D (FINAL — feature complete): "Tehlikeli Bölge" — `settings.self_paused` (NEW, separate from Root's `tenants.status`, which also blocks the tenant's own login; self-pausing here never does) blocks only new orders/reservations; real self-delete (`DELETE /api/admin/self`, blocks `default`); shared `deleteTenantData()` helper now used by Root's own delete + regenerateDefaultTenant too; real Google profile photo/name in admin.html's top-right corner | ✅ DONE — real 403-while-paused/200-admin-still-works/201-after-resume sequence verified via live requests (delivery + dine-in + reservation paths); real throwaway-tenant delete verified end-to-end without touching `default`; profile avatar verified live in browser |
 
 
 | 32+ | 5 | Backlog: fast-follows only (menu-generation wizard; QR logos/frames; widget permission tier; `/register` decision; unused legacy files flagged) | ⏭️ NEXT |
@@ -88,6 +89,12 @@ Default/light themes unaffected (byte-identical before/after, verified via compu
 > Contact & Social in P13, analytics in P18, Widget Mgmt in P28, QR Designer in P29.
 
 ## Known bugs (open)
+- **Google Sign-In feature (Phases 42–45) is code-complete and locally verified but NOT live yet** —
+  `GOOGLE_CLIENT_ID` only exists in the local `.env`; needs to be added as a real Render environment
+  variable before deploying, and a real click-through with an actual Google account (through the real
+  consent popup — this cannot be scripted/automated by design) is still needed once deployed. Everything
+  else (the backend logic, both new login buttons, both new tenant self-service screens, the danger zone,
+  the profile avatar) has been verified with real requests/real browser sessions locally.
 - ~~Live QR order unverified~~ **RESOLVED**: verified end-to-end on production against table
   "Test2" — POST /api/orders returned 201, tracking card rendered, 0 console errors.
 - `PLATFORM_ORIGIN` is not set on Render, so QR URLs rely on the Referer fallback. Existing

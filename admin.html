@@ -3051,6 +3051,14 @@ body.theme-bw .rez-select-trigger:hover {
         </button>
       </div>
 
+      <div class="nav-group">
+        <div class="lbl" data-i18n="admin_nav_grp_danger">Tehlikeli Bölge</div>
+        <button class="nav-item" data-view="danger-zone" onclick="showAdminView('danger-zone')">
+          <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></span>
+          <span class="lbl" data-i18n="admin_nav_danger">Tehlikeli Bölge</span>
+        </button>
+      </div>
+
       <div class="side-spacer"></div>
       <div class="side-foot">
         <button class="collapse-btn" onclick="apToggleCollapse()">
@@ -3077,7 +3085,7 @@ body.theme-bw .rez-select-trigger:hover {
         <button class="admin-btn secondary topbar-lang" onclick="toggleLanguage()"><span id="admin-lang-btn-text">EN</span></button>
         <div class="profile" id="adminProfile">
           <button class="profile-btn" onclick="apToggleProfileMenu(event)">
-            <span class="av">A</span><span class="nm" data-i18n="admin_nav_admin">Yönetici</span>
+            <span class="av" id="adminProfileAv">A</span><span class="nm" id="adminProfileNm" data-i18n="admin_nav_admin">Yönetici</span>
           </button>
           <div class="profile-menu" id="adminProfileMenu">
             <button onclick="adminLogout()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/></svg><span data-i18n="admin_nav_logout">Çıkış</span></button>
@@ -3262,6 +3270,25 @@ body.theme-bw .rez-select-trigger:hover {
             </div>
             <button class="admin-btn" id="brandingSaveBtn" onclick="saveBranding()" style="width:auto; flex:none; margin-top:18px;" data-i18n="admin_brand_save">Kaydet</button>
             <div id="brandingStatus" class="hint" style="display:none; margin-top:10px;"></div>
+          </div>
+        </section>
+
+        <!-- DANGER ZONE VIEW (Phase D) — tenant self-service pause/delete. self_paused is a NEW,
+             separate flag from Root's tenants.status='disabled' (that one also blocks the
+             tenant's own login) — pausing here is always self-reversible, never locks anyone out. -->
+        <section class="view" id="view-danger-zone" hidden>
+          <div class="panel-card">
+            <h3 data-i18n="admin_danger_pause_title">Restoranı Geçici Kapat</h3>
+            <p class="hint" data-i18n="admin_danger_pause_hint">Kapattığınızda müşterileriniz yeni sipariş/rezervasyon oluşturamaz. İstediğiniz an kendi panelinizden tekrar açabilirsiniz — hesabınıza girişiniz asla engellenmez.</p>
+            <button class="admin-btn secondary" id="selfPauseBtn" onclick="toggleSelfPause()" style="width:auto; flex:none; margin-top:14px;" data-paused="0">Restoranı Kapat</button>
+            <div id="selfPauseStatus" class="hint" style="display:none; margin-top:10px;"></div>
+          </div>
+
+          <div class="panel-card" style="margin-top:16px; border-color:var(--ap-bad);">
+            <h3 style="color:var(--ap-bad);" data-i18n="admin_danger_delete_title">Restoranı Sil</h3>
+            <p class="hint" data-i18n="admin_danger_delete_hint">Bu işlem geri alınamaz. Restoranınız, tüm ürünleriniz, siparişleriniz ve müşteri verileriniz kalıcı olarak silinir.</p>
+            <button class="admin-btn danger" id="selfDeleteBtn" onclick="confirmDeleteMyRestaurant()" style="width:auto; flex:none; margin-top:14px;" data-i18n="admin_danger_delete_btn">Restoranı Sil</button>
+            <div id="selfDeleteStatus" class="hint" style="display:none; margin-top:10px;"></div>
           </div>
         </section>
 
@@ -4384,6 +4411,22 @@ const i18nData = {
     admin_brand_saved: "Kaydedildi.",
     admin_brand_bad_format: "Desteklenmeyen format.",
     admin_brand_too_big: "Görsel 5MB sınırını aşıyor.",
+    admin_nav_grp_danger: "Tehlikeli Bölge",
+    admin_nav_danger: "Tehlikeli Bölge",
+    admin_danger_pause_title: "Restoranı Geçici Kapat",
+    admin_danger_pause_hint: "Kapattığınızda müşterileriniz yeni sipariş/rezervasyon oluşturamaz. İstediğiniz an kendi panelinizden tekrar açabilirsiniz — hesabınıza girişiniz asla engellenmez.",
+    admin_danger_pause_btn: "Restoranı Kapat",
+    admin_danger_resume_btn: "Restoranı Tekrar Aç",
+    admin_danger_pause_confirm: "Restoranınızı geçici olarak kapatmak istediğinize emin misiniz? Müşterileriniz yeni sipariş/rezervasyon oluşturamayacak. İstediğiniz an buradan tekrar açabilirsiniz.",
+    admin_danger_paused_msg: "Restoranınız şu an kapalı.",
+    admin_danger_resumed_msg: "Restoranınız tekrar açık.",
+    admin_danger_delete_title: "Restoranı Sil",
+    admin_danger_delete_hint: "Bu işlem geri alınamaz. Restoranınız, tüm ürünleriniz, siparişleriniz ve müşteri verileriniz kalıcı olarak silinir.",
+    admin_danger_delete_btn: "Restoranı Sil",
+    admin_danger_delete_confirm1_title: "Emin misiniz?",
+    admin_danger_delete_confirm1: "Bu işlem geri alınamaz. Restoranınız ve tüm verileriniz kalıcı olarak silinecek. Devam etmek istiyor musunuz?",
+    admin_danger_delete_confirm2: "Silme işlemini onaylamak için restoranınızın adını yazın:",
+    admin_danger_delete_mismatch: "Yazdığınız isim eşleşmedi, silme işlemi iptal edildi.",
     admin_nav_grp_products: "Ürünler",
     admin_nav_grp_orders: "Siparişler",
     admin_nav_grp_analytics: "Analitik",
@@ -4760,6 +4803,22 @@ const i18nData = {
     admin_brand_saved: "Saved.",
     admin_brand_bad_format: "Unsupported format.",
     admin_brand_too_big: "Image exceeds the 5MB limit.",
+    admin_nav_grp_danger: "Danger Zone",
+    admin_nav_danger: "Danger Zone",
+    admin_danger_pause_title: "Temporarily Close Restaurant",
+    admin_danger_pause_hint: "While closed, customers can't place new orders or reservations. You can reopen anytime from your own panel — your login is never blocked.",
+    admin_danger_pause_btn: "Close Restaurant",
+    admin_danger_resume_btn: "Reopen Restaurant",
+    admin_danger_pause_confirm: "Are you sure you want to temporarily close your restaurant? Customers won't be able to place new orders/reservations. You can reopen anytime from here.",
+    admin_danger_paused_msg: "Your restaurant is currently closed.",
+    admin_danger_resumed_msg: "Your restaurant is open again.",
+    admin_danger_delete_title: "Delete Restaurant",
+    admin_danger_delete_hint: "This action cannot be undone. Your restaurant, all products, orders and customer data will be permanently deleted.",
+    admin_danger_delete_btn: "Delete Restaurant",
+    admin_danger_delete_confirm1_title: "Are you sure?",
+    admin_danger_delete_confirm1: "This action cannot be undone. Your restaurant and all its data will be permanently deleted. Do you want to continue?",
+    admin_danger_delete_confirm2: "Type your restaurant's name to confirm deletion:",
+    admin_danger_delete_mismatch: "The name you typed didn't match, deletion cancelled.",
     admin_nav_grp_products: "Products",
     admin_nav_grp_orders: "Orders",
     admin_nav_grp_analytics: "Analytics",
@@ -6287,6 +6346,7 @@ function openAdminPanel() {
   showAdminView('dashboard');
 
   // Eager loads that must run regardless of the active view (badges, live feed, cached config)
+  loadAdminProfile(); // real Google photo/name in the top-right, if this account has one
   renderAdminProductList();
   renderAdminRezList();
   updateAdminRezBadge();
@@ -6335,6 +6395,7 @@ const AP_VIEW_MAP = {
   'analytics':    { id: 'view-analytics',           title: 'admin_nav_analytics' },
   'ai-assistant': { id: 'view-ai-assistant',         title: 'admin_nav_ai' },
   'widgets':      { id: 'view-widgets',              title: 'admin_nav_widgets' },
+  'danger-zone':  { id: 'view-danger-zone',           title: 'admin_nav_danger' },
   'website-editor': { id: 'view-website-editor',      title: 'admin_nav_website_editor' },
   'category-form':{ id: 'adminCategoryFormPanel',   title: 'admin_add_category_btn' },
   'product-form': { id: 'adminFormPanel',           title: 'admin_lbl_edit_product' }
@@ -6394,6 +6455,7 @@ function showAdminView(view) {
   }
   else if (view === 'widgets') loadTenantWidgets();
   else if (view === 'website-editor') loadWebsiteEditor();
+  else if (view === 'danger-zone') loadDangerZone();
   // Close the mobile drawer after navigating
   apToggleSidebar(false);
 }
@@ -6901,6 +6963,109 @@ async function saveBranding() {
     if (!res.ok) { statusEl.textContent = data.error || aiT('admin_ai_error_generic', 'Bir hata oluştu.'); return; }
     if (window.__siteConfig) window.__siteConfig.settings = data.settings;
     statusEl.textContent = aiT('admin_brand_saved', 'Kaydedildi.');
+  } catch (e) {
+    btn.disabled = false;
+    statusEl.style.display = 'block';
+    statusEl.textContent = aiT('admin_ai_conn_error', 'Bağlantı hatası.');
+  }
+}
+
+// ── Profile avatar (Phase D) — real name/photo for Google-linked accounts, existing
+// initial-letter badge stays the fallback for password-only accounts with no avatar_url. ──
+async function loadAdminProfile() {
+  try {
+    const res = await fetch('/api/auth/me');
+    if (!res.ok) return;
+    const data = await res.json();
+    const avEl = document.getElementById('adminProfileAv');
+    const nmEl = document.getElementById('adminProfileNm');
+    if (!avEl || !nmEl) return;
+    if (data.avatar_url) {
+      avEl.innerHTML = '';
+      const img = document.createElement('img');
+      img.src = data.avatar_url; img.alt = '';
+      avEl.appendChild(img);
+    } else {
+      avEl.textContent = (data.display_name || data.username || 'A').charAt(0).toUpperCase();
+    }
+    if (data.display_name) {
+      nmEl.textContent = data.display_name;
+      nmEl.removeAttribute('data-i18n');
+    }
+  } catch (e) { /* keep the static fallback badge */ }
+}
+
+// ── Danger Zone (Phase D) — tenant self-service pause/delete ──
+async function loadDangerZone() {
+  let cfg = window.__siteConfig;
+  if (!cfg) { try { cfg = await (await fetch('/api/site-config')).json(); window.__siteConfig = cfg; } catch (e) {} }
+  const paused = !!(cfg && cfg.settings && cfg.settings.self_paused);
+  updateSelfPauseButton(paused);
+}
+function updateSelfPauseButton(paused) {
+  const btn = document.getElementById('selfPauseBtn');
+  if (!btn) return;
+  btn.dataset.paused = paused ? '1' : '0';
+  btn.textContent = paused ? aiT('admin_danger_resume_btn', 'Restoranı Tekrar Aç') : aiT('admin_danger_pause_btn', 'Restoranı Kapat');
+}
+async function toggleSelfPause() {
+  const btn = document.getElementById('selfPauseBtn');
+  const statusEl = document.getElementById('selfPauseStatus');
+  const next = btn.dataset.paused !== '1';
+  if (next) {
+    const ok = await showCustomConfirm(aiT('admin_danger_pause_confirm', 'Restoranınızı geçici olarak kapatmak istediğinize emin misiniz? Müşterileriniz yeni sipariş/rezervasyon oluşturamayacak. İstediğiniz an buradan tekrar açabilirsiniz.'));
+    if (!ok) return;
+  }
+  btn.disabled = true;
+  try {
+    const res = await fetch('/api/admin/self-pause', {
+      method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ paused: next })
+    });
+    const data = await res.json();
+    btn.disabled = false;
+    statusEl.style.display = 'block';
+    if (!res.ok) { statusEl.textContent = data.error || aiT('admin_ai_error_generic', 'Bir hata oluştu.'); return; }
+    if (window.__siteConfig && window.__siteConfig.settings) window.__siteConfig.settings.self_paused = data.self_paused;
+    updateSelfPauseButton(data.self_paused);
+    statusEl.textContent = data.self_paused
+      ? aiT('admin_danger_paused_msg', 'Restoranınız şu an kapalı.')
+      : aiT('admin_danger_resumed_msg', 'Restoranınız tekrar açık.');
+  } catch (e) {
+    btn.disabled = false;
+    statusEl.style.display = 'block';
+    statusEl.textContent = aiT('admin_ai_conn_error', 'Bağlantı hatası.');
+  }
+}
+async function confirmDeleteMyRestaurant() {
+  const restaurantName = (window.__siteConfig && (window.__siteConfig.display_name || window.__siteConfig.name)) || '';
+  const ok = await showCustomConfirm(
+    aiT('admin_danger_delete_confirm1', 'Bu işlem geri alınamaz. Restoranınız ve tüm verileriniz kalıcı olarak silinecek. Devam etmek istiyor musunuz?'),
+    aiT('admin_danger_delete_confirm1_title', 'Emin misiniz?')
+  );
+  if (!ok) return;
+  const typed = window.prompt(
+    (aiT('admin_danger_delete_confirm2', 'Silme işlemini onaylamak için restoranınızın adını yazın:')) + '\n"' + restaurantName + '"'
+  );
+  if (typed === null) return;
+  if (typed.trim() !== restaurantName.trim()) {
+    if (typeof toast === 'function') toast(aiT('admin_danger_delete_mismatch', 'Yazdığınız isim eşleşmedi, silme işlemi iptal edildi.'));
+    else alert(aiT('admin_danger_delete_mismatch', 'Yazdığınız isim eşleşmedi, silme işlemi iptal edildi.'));
+    return;
+  }
+  const btn = document.getElementById('selfDeleteBtn');
+  const statusEl = document.getElementById('selfDeleteStatus');
+  btn.disabled = true;
+  try {
+    const res = await fetch('/api/admin/self', { method: 'DELETE' });
+    const data = await res.json();
+    if (!res.ok) {
+      btn.disabled = false;
+      statusEl.style.display = 'block';
+      statusEl.textContent = data.error || aiT('admin_ai_error_generic', 'Bir hata oluştu.');
+      return;
+    }
+    setAdminToken('');
+    window.location.href = '/';
   } catch (e) {
     btn.disabled = false;
     statusEl.style.display = 'block';
@@ -8687,7 +8852,8 @@ async function deletePush(id) {
   #adminPanelOverlay .profile{ position:relative; }
   #adminPanelOverlay .profile-btn{ display:flex; align-items:center; gap:9px; background:var(--ap-card); border:1px solid var(--ap-line); border-radius:999px; padding:5px 12px 5px 5px; cursor:pointer; color:var(--ap-text); transition:border-color var(--ap-t); font-family:inherit; }
   #adminPanelOverlay .profile-btn:hover{ border-color:var(--ap-line-2); }
-  #adminPanelOverlay .profile-btn .av{ width:30px; height:30px; border-radius:50%; background:linear-gradient(150deg,#2a2a30,#0c0c0e); border:1px solid var(--ap-line-2); display:grid; place-items:center; font-size:12px; color:var(--ap-gold); }
+  #adminPanelOverlay .profile-btn .av{ width:30px; height:30px; border-radius:50%; background:linear-gradient(150deg,#2a2a30,#0c0c0e); border:1px solid var(--ap-line-2); display:grid; place-items:center; font-size:12px; color:var(--ap-gold); overflow:hidden; }
+  #adminPanelOverlay .profile-btn .av img{ width:100%; height:100%; object-fit:cover; border-radius:50%; }
   #adminPanelOverlay .profile-btn .nm{ font-size:13px; }
   #adminPanelOverlay .profile-menu{ position:absolute; right:0; top:calc(100% + 8px); min-width:180px; background:var(--ap-panel); border:1px solid var(--ap-line-2); border-radius:14px; box-shadow:var(--ap-shadow-sm); padding:6px; display:none; z-index:120; }
   #adminPanelOverlay .profile-menu.open{ display:block; }

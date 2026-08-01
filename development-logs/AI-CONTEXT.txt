@@ -2,7 +2,7 @@
 HASACA PLATFORM — AI CONTINUATION CONTEXT
 (Overwrite this file at the END of every phase. Written for an AI that has
 never seen this project. Companion to development-status.md + phase-XX.md.)
-Last updated: 2026-08-01 (after Phase 44, Google Sign-In feature IN PROGRESS)
+Last updated: 2026-08-01 (after Phase 45 — Google Sign-In feature COMPLETE, not yet deployed)
 ======================================================================
 
 # PROJECT SUMMARY
@@ -114,22 +114,32 @@ Panel manages all tenants. As of Phase 22 there is ALSO a public marketing site 
   `settings.contact_phone/contact_email/address` in the same request; Root's own two endpoints were left
   untouched (out of scope for this phase) but carry the same latent risk if ever hit in that order. See
   phase-44.md for full detail, including the exact repro used to catch it.
-  **NEXT TASK**: Phase D (final phase) — "Tehlikeli Bölge" in admin.html: a NEW, separate
-  `settings.self_paused` boolean (already defaulted to `false` in Phase 42's `defaultSettings()`) that
-  blocks ONLY the customer-facing site/ordering, NEVER admin login — this is intentionally NOT the same
-  as Root's `tenants.status='disabled'`, because THAT field also blocks the tenant's own login
-  (`lib/tenant.js:132`, `resolveTenant` middleware, runs before `adminAuth`) and the platform owner
-  explicitly chose (via a direct question) that tenant self-pausing must be self-reversible without
-  contacting Root. Needs: a new tenant-scoped `PUT /api/admin/self-pause` (or similar) endpoint merging
-  only `settings.self_paused`; a narrow check added to the actual customer-facing routes/order-creation
-  endpoints (NOT to the shared `resolveTenant` middleware — keep this surgical and separate from Root's
-  existing mechanism to avoid any regression risk to the already-working disable/login logic); a real
-  cascading self-delete endpoint (reuse/extract the same table-list Root's own
-  `DELETE /api/root/tenants/:id` already deletes, blocking tenant `'default'`) with a
-  type-the-restaurant-name-to-confirm client-side step. Also: the real Google-photo profile avatar in
-  admin.html's top-right corner (`.profile-btn .av`/`.nm`, currently 100% hardcoded "A"/"Yönetici" —
-  the `/api/auth/me` `display_name`/`avatar_url` fields Phase 43 already added are the exact prerequisite,
-  not yet consumed by any UI code).
+  **Phase 45 (Phase D, FINAL) is DONE — the entire Google Sign-In + tenant self-service plan is now
+  code-complete.** `PUT /api/admin/self-pause` toggles `settings.self_paused` (tenant-scoped) — enforced
+  ONLY in `POST /api/orders` (both delivery AND dine-in paths — dine-in needed a SECOND check against the
+  scanned table's real tenant, since `req.tenant` at that point reflects the host, not necessarily the
+  table's owner) and `POST /api/reservations`. Verified live with real requests that admin login stays
+  fully functional (200) the entire time a tenant is paused — proving this is genuinely independent of
+  Root's `tenants.status='disabled'` mechanism, not a reskin of it. `DELETE /api/admin/self`
+  (tenant-scoped, blocks `'default'`) reuses a newly-extracted `deleteTenantData(tenantId)` in `db.js`,
+  which `regenerateDefaultTenant()` AND Root's own `DELETE /api/root/tenants/:id` were both refactored to
+  call too (one shared table list instead of three drifting copies). Verified end-to-end with a genuine
+  throwaway test tenant created via Root specifically for this destructive test — never touched `default`
+  or any real tenant. New "Tehlikeli Bölge" sidebar group + full-screen `view-danger-zone` in admin.html
+  (pause/resume toggle via the site's existing `showCustomConfirm()`; delete via that same confirm PLUS a
+  native `prompt()` asking the admin to type their restaurant's own name — mirrors root.html's own
+  tenant-delete confirmation strength). Real profile avatar: new `loadAdminProfile()` (called from
+  `openAdminPanel()`) fetches `/api/auth/me` (Phase 43 already added the needed fields) and swaps the
+  previously-100%-hardcoded "A"/"Yönetici" badge for a real `<img>` when `avatar_url` is present —
+  verified live in the browser by temporarily setting a test avatar on a DB row, confirming the swap, then
+  reverting. See phase-45.md for the full verification sequence.
+  **STILL NEEDED before this is live for real users (platform owner's own steps, not code)**:
+  (1) add `GOOGLE_CLIENT_ID` as a real environment variable on Render — it currently only exists in the
+  local `.env`; (2) a genuine click-through with a real Google account through the actual consent popup,
+  which has never been scriptable/automatable by design (that's the whole point of ID-token verification)
+  — do this once deployed, or locally on request.
+  **NEXT TASK**: none queued from this feature — it's done pending deployment. Check with the user for
+  what's next.
 - Last completed phase (prior, unrelated): Phase 41 — Admin (tenant) panel's AI Assistant redesigned as a chat UI,
   matching root.html's Phase 39 redesign. Before this, admin.html's `#view-ai-assistant` was still
   the ORIGINAL Phase 27 single-turn form (one textarea, a plan card wiped on every send, no
