@@ -2,7 +2,7 @@
 HASACA PLATFORM — AI CONTINUATION CONTEXT
 (Overwrite this file at the END of every phase. Written for an AI that has
 never seen this project. Companion to development-status.md + phase-XX.md.)
-Last updated: 2026-08-01 (after Phase 40)
+Last updated: 2026-08-01 (after Phase 41)
 ======================================================================
 
 # PROJECT SUMMARY
@@ -49,7 +49,39 @@ Panel manages all tenants. As of Phase 22 there is ALSO a public marketing site 
     development-logs/  → development-status.md, phase-00..22.md, THIS FILE
 
 # CURRENT STATUS
-- Last completed phase: Phase 40 — fixed real-time order-status updates not reaching the
+- Last completed phase: Phase 41 — Admin (tenant) panel's AI Assistant redesigned as a chat UI,
+  matching root.html's Phase 39 redesign. Before this, admin.html's `#view-ai-assistant` was still
+  the ORIGINAL Phase 27 single-turn form (one textarea, a plan card wiped on every send, no
+  history) — visually inconsistent with Root's already-redesigned chat interface. Ported Phase
+  39's chat UI (HTML structure, CSS class names, JS behavior) onto admin.html's
+  `#adminPanelOverlay`-scoped `--ap-*` token system (same reuse pattern as the Phase 38 dashboard
+  chart port) — `.ai-chat*`/`.ai-msg`/`.ai-bubble`/`.ai-plan*`/`.ai-typing`, all under
+  `#adminPanelOverlay` and reading `--ap-gold`/`--ap-card`/`--ap-muted`/etc. instead of root.html's
+  bare `--gold`/`--card`/`--muted`. DELIBERATE DIFFERENCE FROM ROOT: no target selector — Root's
+  assistant can target platform branding OR one specific tenant (Phase 30 `targetTenant`), so it
+  needs a "Hedef" dropdown; admin's assistant is always scoped to the logged-in tenant's own
+  products/categories, nothing to select. JS renamed `aiAssistant*` → `adminAi*` for the chat
+  functions; kept `aiT()`/`aiAsstEsc()`/`aiAsstResolveLabel()` helpers as-is (the label resolver
+  matters here because — unlike Root's actions, which carry a server-built `label` — admin's
+  backend action objects only carry `table`/`field`, so the friendly "Ürün Adı · field" label is
+  still built client-side from the local product cache).
+  A REAL BUG FOUND, SAME CLASS AS PHASE 39: `POST /api/admin/ai-assistant/plan`
+  (backend/server.js) can return HTTP 200 with a real error in `data.error` (e.g.
+  `res.json({planId:null,...,error:e.message})` when the Groq call throws) — the OLD frontend only
+  checked `data.error` inside `if(!r.ok)`, which never fires since this endpoint always returns
+  200, so a broken key silently fell through to the misleading "no actionable change" message.
+  This bug existed INDEPENDENTLY of Phase 39's root.html fix — same bug class, different endpoint,
+  had NOT been fixed yet. Fixed identically: `if (!res.ok || data.error)` checked first. No
+  backend change needed (matches how Phase 39 fixed the identical root.js bug purely on the
+  frontend). VERIFIED LIVE in the local Admin panel (not curl): logged in as the real tenant
+  admin, sent a real message — the local dev server's placeholder Groq key correctly triggered a
+  real "Invalid API Key" error, which rendered as a red-bordered error bubble (not the misleading
+  text) — directly proves the fix works. Checked both dark and light theme, both mobile (349px)
+  and desktop widths — no layout issues, 0 console errors. NOT fully verified: the Confirm →
+  Execute → "✓ Uygulandı" path (verified by code review only, a faithful port of root.html's
+  already-verified equivalent — needs a real click-through once a valid Groq key is live). See
+  phase-41.md for full detail.
+- Last completed phase (prior): Phase 40 — fixed real-time order-status updates not reaching the
   customer's tracking screen in production. Root cause: Netlify's `_redirects`-based `/api/*`
   proxy does NOT support SSE/streaming responses at all (confirmed via direct `curl -N`
   comparison — Render direct gets `: connected` instantly; through the Netlify proxy, zero bytes

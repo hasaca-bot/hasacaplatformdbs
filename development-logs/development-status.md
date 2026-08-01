@@ -3,7 +3,7 @@
 > Living status doc. Any AI/dev can resume by reading this + the phase files in `/development-logs`.
 > Release changelog lives in `README.md` (§ DEĞİŞİKLİK GÜNLÜĞÜ). This folder tracks in-progress phased work.
 
-**Last updated:** 2026-08-01 (after Phase 40)
+**Last updated:** 2026-08-01 (after Phase 41)
 
 > A living **AI-CONTEXT.txt** hand-off file is maintained in this folder (overwritten every phase).
 
@@ -65,6 +65,7 @@ Multi-tenant restaurant SaaS. Node.js + Express (`backend/server.js`), dual DB l
 | 38 | 10 | AI Assistant swapped from Gemini to Groq — Gemini's real generation quota needs billing linked even for the "free tier" and the user has no card; Groq needs none. Same plan/execute contract, only the HTTP call changed. Same-phase addendum: Admin panel dashboard "Son Aktivite" → analytics chart, same treatment as Root panel (Phase 37), verified on two real tenants | ✅ DONE — real Groq generation confirmed against production, deployed |
 | 39 | 10 | Root panel AI Assistant redesigned as a real chat UI (transcript, typing indicator, inline plan bubbles with confirm/cancel-in-place). Found+fixed a real bug while testing: the plan endpoint can return HTTP 200 with a real error, which the old (and my first-draft new) code silently mislabeled as "no actionable change" | ✅ DONE (Confirm→Execute path verified by code review + local UI test; live click-through with a real key pending deploy) |
 | 40 | 10 | Fixed real-time order-status updates not reaching the customer's tracking screen in production: Netlify's `_redirects` proxy does not support SSE streaming at all. Added `window.SSE_BASE` (index.html + admin.html) to route `EventSource` connections directly to Render, bypassing the proxy; fixed the resulting tenant-auth break on `GET /api/events/admin` by trusting the JWT's own `tenant_id`. Also fixed the same bug for admin's own live dashboard feed (found proactively, not user-reported) | ✅ DONE — tenant isolation re-verified with a real spoofed-tenant test |
+| 41 | 10 | Admin panel AI Assistant redesigned as a chat UI, matching Root's Phase 39 — ported onto admin.html's `--ap-*` token scope, no target selector (always tenant-scoped). Found+fixed the same "HTTP 200 with a real error" bug Phase 39 found in Root's endpoint, independently present in admin's `/api/admin/ai-assistant/plan` too | ✅ DONE — verified live in local UI (real error correctly surfaced, not misleadingly labeled "no actionable change"), dark+light theme, mobile+desktop |
 
 
 | 32+ | 5 | Backlog: fast-follows only (menu-generation wizard; QR logos/frames; widget permission tier; `/register` decision; unused legacy files flagged) | ⏭️ NEXT |
@@ -113,8 +114,10 @@ Default/light themes unaffected (byte-identical before/after, verified via compu
 - ~~Admin panel dashboard chart~~ **RESOLVED (Phase 38 addendum)**: same treatment as Root panel
   (Phase 37), verified working on two real tenants (empty-state + real-data cases), 0 console
   errors.
-- Root panel chatbot/AI Assistant UI modernization requested (align visually with current site UI) —
-  not yet started, intentionally held until AI generation is confirmed working end-to-end.
+- ~~Root panel chatbot/AI Assistant UI modernization~~ **RESOLVED (Phase 39)**: redesigned as a chat
+  UI. ~~Admin panel's own AI Assistant~~ **RESOLVED (Phase 41)**: same chat-UI treatment ported onto
+  admin.html's `--ap-*` tokens, no target selector (always tenant-scoped). Both also had the same
+  "HTTP 200 with a real error" bug independently — both now fixed.
 - **Render deploy pending** for Phase 38's commits — pushed but not yet confirmed live at time of
   writing. Should complete on its own now that the health-check-path misconfiguration is fixed;
   worth a dashboard check if it's taking more than a few minutes.
