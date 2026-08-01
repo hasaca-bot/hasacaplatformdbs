@@ -2,7 +2,7 @@
 HASACA PLATFORM — AI CONTINUATION CONTEXT
 (Overwrite this file at the END of every phase. Written for an AI that has
 never seen this project. Companion to development-status.md + phase-XX.md.)
-Last updated: 2026-08-01 (after Phase 43, Google Sign-In feature IN PROGRESS)
+Last updated: 2026-08-01 (after Phase 44, Google Sign-In feature IN PROGRESS)
 ======================================================================
 
 # PROJECT SUMMARY
@@ -95,15 +95,41 @@ Panel manages all tenants. As of Phase 22 there is ALSO a public marketing site 
   NOT automatable and deliberately deferred: a full click-through with a REAL Google account (choosing an
   account in the actual consent popup) — by design this cannot be scripted, needs a human. See
   phase-43.md for full detail.
-  **NEXT TASK**: Phase C — tenant self-service "Restoran Bilgileri" (name/phone/email/address, mirrors
-  Root's `PUT /api/root/tenants/:id`) and "Marka & Site" (branding — mirrors Root's
-  `PUT /api/root/tenants/:id/branding`'s 25-field UI subset, EXCLUDING widget toggles since those already
-  have their own `view-widgets` screen) full-screen `.view` sections in `admin.html`'s sidebar — NEVER
-  modals, per the platform owner's explicit rule. New tenant-scoped endpoints
-  `PUT /api/admin/restaurant-info` and `PUT /api/admin/branding` in `server.js`, following the exact
-  established self-service pattern (`PUT /api/admin/site-widgets`/`qr-style`/`website-content`) — read the
-  full plan file for the deliberate deviation (stripping HTML from branding fields, unlike Root's own
-  raw-HTML-capable endpoint) and the exact field list.
+  **Phase 44 (Phase C) is DONE**: `PUT /api/admin/restaurant-info` and `PUT /api/admin/branding` in
+  `server.js` (tenant-scoped, mirror Root's own `PUT /api/root/tenants/:id` and
+  `PUT /api/root/tenants/:id/branding` field-for-field — branding EXCLUDES widget toggles since those
+  already have `view-widgets`, and HTML-strips every field via the existing `stripHtmlTags()`, unlike
+  Root's raw-HTML-capable endpoint — deliberate, safer default for a wider self-service surface). New
+  "Restoranım" sidebar group in `admin.html` with two new full-screen `.view` sections ("Restoran
+  Bilgileri" — name/phone/email/address + a read-only membership-status pill reading the Phase 42
+  `settings.subscription_status` placeholder; "Marka & Site" — logo/hero/footer/SEO/theme/11 contact&social
+  fields, matching Root's own 25-field UI subset exactly, not the fuller 27-key backend list) — both
+  switched via the EXISTING `showAdminView()`/`AP_VIEW_MAP` mechanism, never a popup, per the owner's
+  explicit rule. A REAL BUG FOUND AND FIXED: `restaurant-info` wrote directly to the `tenants` table
+  columns while `branding` always re-derives those same columns FROM `settings.*` (matching Root's own
+  endpoint's existing behavior) — so a restaurant-info save could be silently reverted by ANY later,
+  even-unrelated branding save. This is a PRE-EXISTING latent bug in Root's own two-modal design too
+  (root.html has the identical two-endpoint split) — not newly introduced, just newly exposed by giving
+  tenants two separate save buttons. Fixed by having `restaurant-info` also write
+  `settings.contact_phone/contact_email/address` in the same request; Root's own two endpoints were left
+  untouched (out of scope for this phase) but carry the same latent risk if ever hit in that order. See
+  phase-44.md for full detail, including the exact repro used to catch it.
+  **NEXT TASK**: Phase D (final phase) — "Tehlikeli Bölge" in admin.html: a NEW, separate
+  `settings.self_paused` boolean (already defaulted to `false` in Phase 42's `defaultSettings()`) that
+  blocks ONLY the customer-facing site/ordering, NEVER admin login — this is intentionally NOT the same
+  as Root's `tenants.status='disabled'`, because THAT field also blocks the tenant's own login
+  (`lib/tenant.js:132`, `resolveTenant` middleware, runs before `adminAuth`) and the platform owner
+  explicitly chose (via a direct question) that tenant self-pausing must be self-reversible without
+  contacting Root. Needs: a new tenant-scoped `PUT /api/admin/self-pause` (or similar) endpoint merging
+  only `settings.self_paused`; a narrow check added to the actual customer-facing routes/order-creation
+  endpoints (NOT to the shared `resolveTenant` middleware — keep this surgical and separate from Root's
+  existing mechanism to avoid any regression risk to the already-working disable/login logic); a real
+  cascading self-delete endpoint (reuse/extract the same table-list Root's own
+  `DELETE /api/root/tenants/:id` already deletes, blocking tenant `'default'`) with a
+  type-the-restaurant-name-to-confirm client-side step. Also: the real Google-photo profile avatar in
+  admin.html's top-right corner (`.profile-btn .av`/`.nm`, currently 100% hardcoded "A"/"Yönetici" —
+  the `/api/auth/me` `display_name`/`avatar_url` fields Phase 43 already added are the exact prerequisite,
+  not yet consumed by any UI code).
 - Last completed phase (prior, unrelated): Phase 41 — Admin (tenant) panel's AI Assistant redesigned as a chat UI,
   matching root.html's Phase 39 redesign. Before this, admin.html's `#view-ai-assistant` was still
   the ORIGINAL Phase 27 single-turn form (one textarea, a plan card wiped on every send, no

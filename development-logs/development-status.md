@@ -3,7 +3,7 @@
 > Living status doc. Any AI/dev can resume by reading this + the phase files in `/development-logs`.
 > Release changelog lives in `README.md` (§ DEĞİŞİKLİK GÜNLÜĞÜ). This folder tracks in-progress phased work.
 
-**Last updated:** 2026-08-01 (after Phase 43)
+**Last updated:** 2026-08-01 (after Phase 44)
 
 > A living **AI-CONTEXT.txt** hand-off file is maintained in this folder (overwritten every phase).
 
@@ -68,6 +68,7 @@ Multi-tenant restaurant SaaS. Node.js + Express (`backend/server.js`), dual DB l
 | 41 | 10 | Admin panel AI Assistant redesigned as a chat UI, matching Root's Phase 39 — ported onto admin.html's `--ap-*` token scope, no target selector (always tenant-scoped). Found+fixed the same "HTTP 200 with a real error" bug Phase 39 found in Root's endpoint, independently present in admin's `/api/admin/ai-assistant/plan` too | ✅ DONE — verified live in local UI (real error correctly surfaced, not misleadingly labeled "no actionable change"), dark+light theme, mobile+desktop |
 | 42 | 11 | **Google Sign-In + tenant self-service (in progress, multi-phase, plan approved).** Phase A/42: DB migration (`admin_users.email/google_sub/avatar_url` + unique index) + extracted Root's tenant-creation logic into a shared `backend/lib/tenantProvisioning.js` module (both Root's manual creation and the future Google self-signup route will call the same tested code). No user-facing behavior yet | ✅ DONE (Phase A only) — real create/impersonate-add-table/delete cycle re-verified through the actual API |
 | 43 | 11 | Phase B: real `POST /api/auth/google` (verifies a real Google ID token, finds-or-auto-provisions a tenant, issues a normal session token), `GET /api/auth/me` now returns display_name/email/avatar_url, `GET /api/platform-config` exposes `google_client_id`. "Google ile Giriş Yap" button added to `login.html` (Restoran tab only, never Root) and `admin.html`'s embedded login modal | ✅ DONE — real Google button rendered + verified in browser on both pages, fake-token correctly rejected by Google's real verification service; full real-account click-through still needs a real interactive Google consent screen (can't be scripted) |
+| 44 | 11 | Phase C: tenant self-service "Restoran Bilgileri" (name/phone/email/address + read-only membership status) and "Marka & Site" (25-field branding, mirrors Root's own modal subset, widgets excluded, HTML-stripped for safety) — two new full-screen views in admin.html's new "Restoranım" sidebar group, `PUT /api/admin/restaurant-info` + `PUT /api/admin/branding` | ✅ DONE — found+fixed a real cross-endpoint sync bug during testing (a restaurant-info save could be silently reverted by an unrelated branding save; same latent issue exists in Root's own two-modal design, left untouched there); verified live via real UI clicks + cross-checked against Root's own panel |
 
 
 | 32+ | 5 | Backlog: fast-follows only (menu-generation wizard; QR logos/frames; widget permission tier; `/register` decision; unused legacy files flagged) | ⏭️ NEXT |

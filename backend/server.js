@@ -2049,6 +2049,110 @@ app.put('/api/admin/website-content', adminAuth, async (req, res) => {
   }
 });
 
+// ---------- Tenant self-service: Restoran Bilgileri (Phase C) ----------
+// Mirrors Root's PUT /api/root/tenants/:id, but scoped to req.tenantId (never a client-supplied
+// id) — a tenant admin can only ever edit their own restaurant's basic info.
+app.put('/api/admin/restaurant-info', adminAuth, async (req, res) => {
+  try {
+    const t = await db.get(isPg ? 'SELECT * FROM tenants WHERE id = $1' : 'SELECT * FROM tenants WHERE id = ?', [req.tenantId]);
+    if (!t) return res.status(404).json({ error: 'tenant_not_found' });
+    const b = req.body || {};
+    if (b.contact_email !== undefined && b.contact_email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(b.contact_email).trim())) {
+      return res.status(400).json({ error: 'invalid_email' });
+    }
+    const newPhone = String(b.contact_phone ?? t.contact_phone ?? '').trim();
+    const newEmail = String(b.contact_email ?? t.contact_email ?? '').trim();
+    const newAddr = String(b.address ?? t.address ?? '').trim();
+    // The branding endpoint keeps these SAME column values in sync FROM settings on every save
+    // (matching Root's own two-modal design) — if we only wrote the columns here, an unrelated
+    // branding save made afterward would silently revert this change back to whatever was still
+    // cached in settings. Write both in the same request so neither endpoint can undo the other.
+    let settings = {}; try { settings = JSON.parse(t.settings || '{}') || {}; } catch (e) {}
+    settings.contact_phone = newPhone;
+    settings.contact_email = newEmail;
+    settings.address = newAddr;
+    await db.run(
+      isPg
+        ? 'UPDATE tenants SET name = $1, display_name = $2, contact_phone = $3, contact_email = $4, address = $5, settings = $6, updated_at = $7 WHERE id = $8'
+        : 'UPDATE tenants SET name = ?, display_name = ?, contact_phone = ?, contact_email = ?, address = ?, settings = ?, updated_at = ? WHERE id = ?',
+      [
+        String(b.name ?? t.name).trim() || t.name,
+        String(b.display_name ?? t.display_name ?? '').trim() || t.display_name,
+        newPhone, newEmail, newAddr,
+        JSON.stringify(settings),
+        Date.now(), req.tenantId
+      ]
+    );
+    invalidateTenantCache(req.tenantId);
+    logActivity({ tenantId: req.tenantId, actor: (req.auth && req.auth.username) || 'admin', role: 'tenant_admin', action: 'restaurant_info_updated', target: req.tenantId, details: Object.keys(b).join(','), ip: (req.headers['x-forwarded-for'] || '').split(',')[0].trim() || req.socket?.remoteAddress || '' });
+    const updated = await db.get(isPg ? 'SELECT * FROM tenants WHERE id = $1' : 'SELECT * FROM tenants WHERE id = ?', [req.tenantId]);
+    res.json({ ...updated, settings });
+  } catch (err) {
+    console.error('[API ERROR] PUT /api/admin/restaurant-info:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ---------- Tenant self-service: Marka & Site (Phase C) ----------
+// Mirrors Root's PUT /api/root/tenants/:id/branding field-for-field (same ALLOWED list, same URL/
+// email validation) but scoped to req.tenantId. Widgets are deliberately EXCLUDED here — they
+// already have their own dedicated screen (PUT /api/admin/site-widgets); merging the same JSON key
+// from two different screens risks showing stale/conflicting state.
+// Deliberate deviation from Root's own endpoint: every field is HTML-stripped before storing.
+// Root's raw-HTML-capable path is fine for a trusted platform owner; this is a self-service
+// endpoint with a much wider surface, so the safer default applies here.
+const ADMIN_BRANDING_ALLOWED = ['logo_url', 'favicon_url', 'company_name', 'hero_title_tr', 'hero_title_en',
+  'hero_sub_tr', 'hero_sub_en', 'banner_text_tr', 'banner_text_en', 'footer_text',
+  'seo_title', 'seo_description', 'theme',
+  'seo_keywords', 'og_image', 'seo_robots', 'seo_canonical',
+  'contact_phone', 'whatsapp', 'contact_email', 'address', 'maps_embed', 'maps_link', 'website',
+  'instagram', 'facebook', 'twitter', 'tiktok', 'youtube'];
+const ADMIN_BRANDING_URL_FIELDS = ['maps_link', 'maps_embed', 'website', 'instagram', 'facebook', 'twitter', 'tiktok', 'youtube', 'seo_canonical'];
+function isBlankOrUrl(v) { return !v || /^https?:\/\/.+/i.test(v); }
+function isBlankOrEmail(v) { return !v || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v); }
+app.put('/api/admin/branding', adminAuth, async (req, res) => {
+  try {
+    const body = req.body || {};
+    for (const key of ADMIN_BRANDING_URL_FIELDS) {
+      if (Object.prototype.hasOwnProperty.call(body, key) && !isBlankOrUrl(stripHtmlTags(body[key]))) {
+        return res.status(400).json({ error: `Invalid URL for "${key}" — must start with http:// or https://` });
+      }
+    }
+    if (Object.prototype.hasOwnProperty.call(body, 'contact_email') && !isBlankOrEmail(stripHtmlTags(body.contact_email))) {
+      return res.status(400).json({ error: 'Invalid email address' });
+    }
+
+    const row = await db.get(isPg ? 'SELECT * FROM tenants WHERE id = $1' : 'SELECT * FROM tenants WHERE id = ?', [req.tenantId]);
+    if (!row) return res.status(404).json({ error: 'tenant_not_found' });
+    let settings = {}; try { settings = JSON.parse(row.settings || '{}') || {}; } catch (e) {}
+    const changed = [];
+    for (const key of ADMIN_BRANDING_ALLOWED) {
+      if (Object.prototype.hasOwnProperty.call(body, key)) {
+        settings[key] = stripHtmlTags(body[key]);
+        changed.push(key);
+      }
+    }
+    if (!changed.length) return res.status(400).json({ error: 'no_changes' });
+
+    // Keep the legacy tenant columns in sync, same as Root's own endpoint.
+    const phone = settings.contact_phone !== undefined ? settings.contact_phone : row.contact_phone;
+    const email = settings.contact_email !== undefined ? settings.contact_email : row.contact_email;
+    const addr  = settings.address       !== undefined ? settings.address       : row.address;
+    await db.run(
+      isPg
+        ? 'UPDATE tenants SET settings = $1, contact_phone = $2, contact_email = $3, address = $4, updated_at = $5 WHERE id = $6'
+        : 'UPDATE tenants SET settings = ?, contact_phone = ?, contact_email = ?, address = ?, updated_at = ? WHERE id = ?',
+      [JSON.stringify(settings), phone, email, addr, Date.now(), req.tenantId]
+    );
+    invalidateTenantCache(req.tenantId);
+    logActivity({ tenantId: req.tenantId, actor: (req.auth && req.auth.username) || 'admin', role: 'tenant_admin', action: 'branding_self_updated', target: req.tenantId, details: changed.join(','), ip: (req.headers['x-forwarded-for'] || '').split(',')[0].trim() || req.socket?.remoteAddress || '' });
+    res.json({ success: true, settings });
+  } catch (err) {
+    console.error('[API ERROR] PUT /api/admin/branding:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
 app.post('/api/admin/upload-image', adminAuth, rateLimiter(30), async (req, res) => {
   try {
     const image = req.body && req.body.image;

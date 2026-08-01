@@ -2957,6 +2957,18 @@ body.theme-bw .rez-select-trigger:hover {
       </div>
 
       <div class="nav-group">
+        <div class="lbl" data-i18n="admin_nav_grp_myrestaurant">Restoranım</div>
+        <button class="nav-item" data-view="restaurant-info" onclick="showAdminView('restaurant-info')">
+          <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18M5 21V7l7-4 7 4v14M9 21v-6h6v6"/></svg></span>
+          <span class="lbl" data-i18n="admin_nav_restaurant_info">Restoran Bilgileri</span>
+        </button>
+        <button class="nav-item" data-view="branding" onclick="showAdminView('branding')">
+          <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l3 6 6 1-4.5 4.5L18 20l-6-3-6 3 1.5-6.5L3 9l6-1 3-6z"/></svg></span>
+          <span class="lbl" data-i18n="admin_nav_branding">Marka &amp; Site</span>
+        </button>
+      </div>
+
+      <div class="nav-group">
         <div class="lbl" data-i18n="admin_nav_grp_products">Ürünler</div>
         <button class="nav-item" data-view="products" onclick="showAdminView('products')">
           <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 7L12 3 4 7l8 4 8-4z"/><path d="M4 7v10l8 4 8-4V7"/><path d="M12 11v10"/></svg></span>
@@ -3156,6 +3168,100 @@ body.theme-bw .rez-select-trigger:hover {
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
               </button>
             </div>
+          </div>
+        </section>
+
+        <!-- RESTAURANT INFO VIEW (Phase C) — tenant self-service, mirrors Root's "Restoranı Düzenle" -->
+        <section class="view" id="view-restaurant-info" hidden>
+          <div class="panel-card">
+            <h3 data-i18n="admin_restinfo_title">Restoran Bilgileri</h3>
+            <p class="hint" data-i18n="admin_restinfo_hint">Restoranınızın temel bilgilerini düzenleyin.</p>
+            <label class="hint" style="display:block; margin-top:14px;" data-i18n="admin_restinfo_name">Restoran Adı</label>
+            <input type="text" id="riName" class="admin-input">
+            <label class="hint" style="display:block; margin-top:10px;" data-i18n="admin_restinfo_display">Görünen Ad</label>
+            <input type="text" id="riDisplay" class="admin-input">
+            <label class="hint" style="display:block; margin-top:10px;" data-i18n="admin_restinfo_phone">Telefon</label>
+            <input type="text" id="riPhone" class="admin-input">
+            <label class="hint" style="display:block; margin-top:10px;" data-i18n="admin_restinfo_email">E-posta</label>
+            <input type="email" id="riEmail" class="admin-input">
+            <label class="hint" style="display:block; margin-top:10px;" data-i18n="admin_restinfo_address">Adres</label>
+            <input type="text" id="riAddress" class="admin-input">
+            <button class="admin-btn" id="restaurantInfoSaveBtn" onclick="saveRestaurantInfo()" style="width:auto; flex:none; margin-top:16px;" data-i18n="admin_restinfo_save">Kaydet</button>
+            <div id="restaurantInfoStatus" class="hint" style="display:none; margin-top:10px;"></div>
+          </div>
+
+          <div class="panel-card" style="margin-top:16px;">
+            <h3 data-i18n="admin_membership_title">Üyelik Durumu</h3>
+            <p class="hint" data-i18n="admin_membership_hint">Aboneliğinizle ilgili bilgiler burada görünecek.</p>
+            <div id="membershipStatusPill" style="display:inline-flex; align-items:center; gap:6px; margin-top:12px; padding:6px 14px; border-radius:999px; background:var(--ap-card); border:1px solid var(--ap-line); font-size:13px; font-weight:700; color:var(--ap-text);">–</div>
+          </div>
+        </section>
+
+        <!-- BRANDING VIEW (Phase C) — tenant self-service, mirrors Root's "Marka / Site İçeriği" (same
+             field subset Root's own UI exposes; widget toggles stay exclusively on view-widgets) -->
+        <section class="view" id="view-branding" hidden>
+          <div class="panel-card">
+            <h3 data-i18n="admin_brand_basics_title">Marka</h3>
+            <label class="hint" style="display:block; margin-top:8px;" data-i18n="admin_brand_logo">Logo</label>
+            <div style="display:flex; align-items:center; gap:12px; margin-top:6px;">
+              <img id="brandLogoPreview" src="" alt="" style="width:52px; height:52px; border-radius:12px; object-fit:cover; background:var(--ap-card); border:1px solid var(--ap-line); display:none;">
+              <label class="admin-btn secondary" style="width:auto; flex:none; display:inline-flex; align-items:center; gap:8px; cursor:pointer; margin:0;">
+                <span data-i18n="admin_brand_logo_upload">Logo Yükle</span>
+                <input type="file" accept="image/png,image/jpeg,image/webp,image/gif,image/svg+xml" style="display:none;" onchange="handleBrandLogoUpload(this)">
+              </label>
+            </div>
+            <label class="hint" style="display:block; margin-top:14px;" data-i18n="admin_brand_company">Şirket Adı</label>
+            <input type="text" id="brCompany" class="admin-input">
+          </div>
+
+          <div class="panel-card" style="margin-top:16px;">
+            <h3 data-i18n="admin_brand_hero_title">Ana Sayfa</h3>
+            <label class="hint" style="display:block; margin-top:10px;">Başlık (TR)</label>
+            <input type="text" id="brHeroTr" class="admin-input">
+            <label class="hint" style="display:block; margin-top:10px;">Title (EN)</label>
+            <input type="text" id="brHeroEn" class="admin-input">
+            <label class="hint" style="display:block; margin-top:10px;">Alt Metin (TR)</label>
+            <input type="text" id="brHeroSubTr" class="admin-input">
+            <label class="hint" style="display:block; margin-top:10px;">Subtitle (EN)</label>
+            <input type="text" id="brHeroSubEn" class="admin-input">
+            <label class="hint" style="display:block; margin-top:10px;" data-i18n="admin_brand_footer">Footer Metni</label>
+            <input type="text" id="brFooter" class="admin-input">
+          </div>
+
+          <div class="panel-card" style="margin-top:16px;">
+            <h3 data-i18n="admin_brand_seo_title">SEO</h3>
+            <label class="hint" style="display:block; margin-top:10px;" data-i18n="admin_brand_seo_titlelbl">SEO Başlığı</label>
+            <input type="text" id="brSeoTitle" class="admin-input" maxlength="80">
+            <label class="hint" style="display:block; margin-top:10px;" data-i18n="admin_brand_seo_desc">SEO Açıklaması</label>
+            <textarea id="brSeoDesc" class="admin-input" rows="2" style="resize:vertical;" maxlength="220"></textarea>
+            <label class="hint" style="display:block; margin-top:10px;" data-i18n="admin_brand_seo_keywords">Anahtar Kelimeler</label>
+            <input type="text" id="brSeoKeywords" class="admin-input" placeholder="restoran, menü, sipariş">
+            <label class="hint" style="display:block; margin-top:10px;" data-i18n="admin_brand_theme">Tema</label>
+            <select id="brTheme" class="admin-input">
+              <option value="dark" data-i18n="admin_brand_theme_dark">Sıcak (Varsayılan)</option>
+              <option value="light" data-i18n="admin_brand_theme_light">Açık</option>
+              <option value="bw" data-i18n="admin_brand_theme_bw">Siyah &amp; Beyaz</option>
+            </select>
+          </div>
+
+          <div class="panel-card" style="margin-top:16px;">
+            <h3 data-i18n="admin_brand_contact_title">İletişim &amp; Sosyal Medya</h3>
+            <div style="display:grid; grid-template-columns:repeat(auto-fill,minmax(220px,1fr)); gap:12px; margin-top:10px;">
+              <div><label class="hint">Telefon</label><input type="text" id="brPhone" class="admin-input"></div>
+              <div><label class="hint">WhatsApp</label><input type="text" id="brWhatsapp" class="admin-input" placeholder="+90 555 123 4567"></div>
+              <div><label class="hint">E-posta</label><input type="email" id="brEmail" class="admin-input"></div>
+              <div><label class="hint" data-i18n="admin_brand_website">Web Sitesi</label><input type="text" id="brWebsite" class="admin-input" placeholder="https://…"></div>
+              <div><label class="hint">Adres</label><input type="text" id="brAddress" class="admin-input"></div>
+              <div><label class="hint">Google Maps Linki</label><input type="text" id="brMapsLink" class="admin-input" placeholder="https://maps.google.com/…"></div>
+              <div><label class="hint">Google Maps Embed URL</label><input type="text" id="brMapsEmbed" class="admin-input" placeholder="https://www.google.com/maps/embed?…"></div>
+              <div><label class="hint">Instagram</label><input type="text" id="brInstagram" class="admin-input" placeholder="https://instagram.com/…"></div>
+              <div><label class="hint">Facebook</label><input type="text" id="brFacebook" class="admin-input" placeholder="https://facebook.com/…"></div>
+              <div><label class="hint">X (Twitter)</label><input type="text" id="brTwitter" class="admin-input" placeholder="https://x.com/…"></div>
+              <div><label class="hint">TikTok</label><input type="text" id="brTiktok" class="admin-input" placeholder="https://tiktok.com/@…"></div>
+              <div><label class="hint">YouTube</label><input type="text" id="brYoutube" class="admin-input" placeholder="https://youtube.com/@…"></div>
+            </div>
+            <button class="admin-btn" id="brandingSaveBtn" onclick="saveBranding()" style="width:auto; flex:none; margin-top:18px;" data-i18n="admin_brand_save">Kaydet</button>
+            <div id="brandingStatus" class="hint" style="display:none; margin-top:10px;"></div>
           </div>
         </section>
 
@@ -4242,6 +4348,42 @@ const i18nData = {
     admin_theme_light: "Açık",
     admin_theme_dark: "Koyu",
     admin_nav_grp_general: "Genel",
+    admin_nav_grp_myrestaurant: "Restoranım",
+    admin_nav_restaurant_info: "Restoran Bilgileri",
+    admin_nav_branding: "Marka & Site",
+    admin_restinfo_title: "Restoran Bilgileri",
+    admin_restinfo_hint: "Restoranınızın temel bilgilerini düzenleyin.",
+    admin_restinfo_name: "Restoran Adı",
+    admin_restinfo_display: "Görünen Ad",
+    admin_restinfo_phone: "Telefon",
+    admin_restinfo_email: "E-posta",
+    admin_restinfo_address: "Adres",
+    admin_restinfo_save: "Kaydet",
+    admin_restinfo_saved: "Kaydedildi.",
+    admin_membership_title: "Üyelik Durumu",
+    admin_membership_hint: "Aboneliğinizle ilgili bilgiler burada görünecek.",
+    admin_membership_status_active: "Aktif",
+    admin_membership_status_trial: "Deneme",
+    admin_brand_basics_title: "Marka",
+    admin_brand_logo: "Logo",
+    admin_brand_logo_upload: "Logo Yükle",
+    admin_brand_company: "Şirket Adı",
+    admin_brand_hero_title: "Ana Sayfa",
+    admin_brand_footer: "Footer Metni",
+    admin_brand_seo_title: "SEO",
+    admin_brand_seo_titlelbl: "SEO Başlığı",
+    admin_brand_seo_desc: "SEO Açıklaması",
+    admin_brand_seo_keywords: "Anahtar Kelimeler",
+    admin_brand_theme: "Tema",
+    admin_brand_theme_dark: "Sıcak (Varsayılan)",
+    admin_brand_theme_light: "Açık",
+    admin_brand_theme_bw: "Siyah & Beyaz",
+    admin_brand_contact_title: "İletişim & Sosyal Medya",
+    admin_brand_website: "Web Sitesi",
+    admin_brand_save: "Kaydet",
+    admin_brand_saved: "Kaydedildi.",
+    admin_brand_bad_format: "Desteklenmeyen format.",
+    admin_brand_too_big: "Görsel 5MB sınırını aşıyor.",
     admin_nav_grp_products: "Ürünler",
     admin_nav_grp_orders: "Siparişler",
     admin_nav_grp_analytics: "Analitik",
@@ -4582,6 +4724,42 @@ const i18nData = {
     admin_theme_light: "Light",
     admin_theme_dark: "Dark",
     admin_nav_grp_general: "General",
+    admin_nav_grp_myrestaurant: "My Restaurant",
+    admin_nav_restaurant_info: "Restaurant Info",
+    admin_nav_branding: "Brand & Site",
+    admin_restinfo_title: "Restaurant Info",
+    admin_restinfo_hint: "Edit your restaurant's basic information.",
+    admin_restinfo_name: "Restaurant Name",
+    admin_restinfo_display: "Display Name",
+    admin_restinfo_phone: "Phone",
+    admin_restinfo_email: "Email",
+    admin_restinfo_address: "Address",
+    admin_restinfo_save: "Save",
+    admin_restinfo_saved: "Saved.",
+    admin_membership_title: "Membership Status",
+    admin_membership_hint: "Information about your subscription will appear here.",
+    admin_membership_status_active: "Active",
+    admin_membership_status_trial: "Trial",
+    admin_brand_basics_title: "Brand",
+    admin_brand_logo: "Logo",
+    admin_brand_logo_upload: "Upload Logo",
+    admin_brand_company: "Company Name",
+    admin_brand_hero_title: "Homepage",
+    admin_brand_footer: "Footer Text",
+    admin_brand_seo_title: "SEO",
+    admin_brand_seo_titlelbl: "SEO Title",
+    admin_brand_seo_desc: "SEO Description",
+    admin_brand_seo_keywords: "Keywords",
+    admin_brand_theme: "Theme",
+    admin_brand_theme_dark: "Warm (Default)",
+    admin_brand_theme_light: "Light",
+    admin_brand_theme_bw: "Black & White",
+    admin_brand_contact_title: "Contact & Social Media",
+    admin_brand_website: "Website",
+    admin_brand_save: "Save",
+    admin_brand_saved: "Saved.",
+    admin_brand_bad_format: "Unsupported format.",
+    admin_brand_too_big: "Image exceeds the 5MB limit.",
     admin_nav_grp_products: "Products",
     admin_nav_grp_orders: "Orders",
     admin_nav_grp_analytics: "Analytics",
@@ -6146,6 +6324,8 @@ function openAdminPanel() {
 // only the navigation trigger is new.
 const AP_VIEW_MAP = {
   'dashboard':    { id: 'view-dashboard',           title: 'admin_nav_dashboard' },
+  'restaurant-info': { id: 'view-restaurant-info',   title: 'admin_nav_restaurant_info' },
+  'branding':     { id: 'view-branding',             title: 'admin_nav_branding' },
   'products':     { id: 'adminTabProducts',         title: 'admin_tab_prod' },
   'orders':       { id: 'adminTabOrdersCont',       title: 'admin_tab_orders' },
   'reservations': { id: 'adminTabRezCont',          title: 'admin_tab_rez' },
@@ -6201,6 +6381,8 @@ function showAdminView(view) {
   // Lazy-load per view — same calls the old switchAdminPanelTab did, plus reservations
   // which the Explore pass found was never called on tab-switch before (a real gap).
   if (view === 'dashboard')       loadAdminDashboard();
+  else if (view === 'restaurant-info') loadRestaurantInfo();
+  else if (view === 'branding')   loadBranding();
   else if (view === 'analytics')  loadAdminAnalytics();
   else if (view === 'orders')     loadOrders();
   else if (view === 'reservations' && typeof loadReservations === 'function') loadReservations();
@@ -6591,6 +6773,139 @@ function adminAiCancel(){
   }
   adminAiPlanId = null;
   adminAiPendingBubble = null;
+}
+
+// ── Restaurant Info + Branding (Phase C) — tenant self-service, mirrors what Root can already
+// edit for any tenant via root.html's "Restoranı Düzenle"/"Marka & Site" modals. Both read from the
+// same /api/site-config the customer page + Widget Ayarları already share (window.__siteConfig). ──
+async function loadRestaurantInfo() {
+  let cfg = window.__siteConfig;
+  if (!cfg) { try { cfg = await (await fetch('/api/site-config')).json(); window.__siteConfig = cfg; } catch (e) {} }
+  if (!cfg) return;
+  document.getElementById('riName').value = cfg.name || '';
+  document.getElementById('riDisplay').value = cfg.display_name || '';
+  document.getElementById('riPhone').value = cfg.contact_phone || '';
+  document.getElementById('riEmail').value = cfg.contact_email || '';
+  document.getElementById('riAddress').value = cfg.address || '';
+  const status = (cfg.settings && cfg.settings.subscription_status) || 'active';
+  const pill = document.getElementById('membershipStatusPill');
+  if (pill) pill.textContent = aiT('admin_membership_status_' + status, status === 'active' ? 'Aktif' : status);
+}
+async function saveRestaurantInfo() {
+  const btn = document.getElementById('restaurantInfoSaveBtn');
+  const statusEl = document.getElementById('restaurantInfoStatus');
+  btn.disabled = true;
+  try {
+    const res = await fetch('/api/admin/restaurant-info', {
+      method: 'PUT', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        name: document.getElementById('riName').value.trim(),
+        display_name: document.getElementById('riDisplay').value.trim(),
+        contact_phone: document.getElementById('riPhone').value.trim(),
+        contact_email: document.getElementById('riEmail').value.trim(),
+        address: document.getElementById('riAddress').value.trim()
+      })
+    });
+    const data = await res.json();
+    btn.disabled = false;
+    statusEl.style.display = 'block';
+    if (!res.ok) { statusEl.textContent = data.error || aiT('admin_ai_error_generic', 'Bir hata oluştu.'); return; }
+    if (window.__siteConfig) {
+      Object.assign(window.__siteConfig, { name: data.name, display_name: data.display_name, contact_phone: data.contact_phone, contact_email: data.contact_email, address: data.address });
+    }
+    statusEl.textContent = aiT('admin_restinfo_saved', 'Kaydedildi.');
+  } catch (e) {
+    btn.disabled = false;
+    statusEl.style.display = 'block';
+    statusEl.textContent = aiT('admin_ai_conn_error', 'Bağlantı hatası.');
+  }
+}
+
+async function loadBranding() {
+  let cfg = window.__siteConfig;
+  if (!cfg) { try { cfg = await (await fetch('/api/site-config')).json(); window.__siteConfig = cfg; } catch (e) {} }
+  const s = (cfg && cfg.settings) || {};
+  const set = (id, v) => { const el = document.getElementById(id); if (el) el.value = v || ''; };
+  set('brCompany', s.company_name);
+  set('brHeroTr', s.hero_title_tr); set('brHeroEn', s.hero_title_en);
+  set('brHeroSubTr', s.hero_sub_tr); set('brHeroSubEn', s.hero_sub_en);
+  set('brFooter', s.footer_text);
+  set('brSeoTitle', s.seo_title); set('brSeoDesc', s.seo_description); set('brSeoKeywords', s.seo_keywords);
+  set('brTheme', s.theme || 'dark');
+  set('brPhone', s.contact_phone); set('brWhatsapp', s.whatsapp); set('brEmail', s.contact_email);
+  set('brWebsite', s.website); set('brAddress', s.address);
+  set('brMapsLink', s.maps_link); set('brMapsEmbed', s.maps_embed);
+  set('brInstagram', s.instagram); set('brFacebook', s.facebook); set('brTwitter', s.twitter);
+  set('brTiktok', s.tiktok); set('brYoutube', s.youtube);
+  const logoImg = document.getElementById('brandLogoPreview');
+  window.__brandLogoUrl = s.logo_url || '';
+  if (logoImg) {
+    if (s.logo_url) { logoImg.src = s.logo_url; logoImg.style.display = 'block'; }
+    else { logoImg.style.display = 'none'; }
+  }
+}
+async function handleBrandLogoUpload(input) {
+  const file = input.files && input.files[0];
+  if (!file) return;
+  const statusEl = document.getElementById('brandingStatus');
+  const allowed = ['image/png', 'image/jpeg', 'image/webp', 'image/gif', 'image/svg+xml'];
+  if (!allowed.includes(file.type)) { statusEl.style.display = 'block'; statusEl.textContent = aiT('admin_brand_bad_format', 'Desteklenmeyen format.'); input.value = ''; return; }
+  if (file.size > 5 * 1024 * 1024) { statusEl.style.display = 'block'; statusEl.textContent = aiT('admin_brand_too_big', 'Görsel 5MB sınırını aşıyor.'); input.value = ''; return; }
+  statusEl.style.display = 'block'; statusEl.textContent = aiT('admin_ai_thinking', 'Yükleniyor…');
+  try {
+    const dataUrl = await new Promise((resolve, reject) => {
+      const r = new FileReader();
+      r.onload = () => resolve(r.result);
+      r.onerror = reject;
+      r.readAsDataURL(file);
+    });
+    const res = await fetch('/api/admin/upload-image', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ image: dataUrl })
+    });
+    const out = await res.json();
+    if (!res.ok || !out.url) throw new Error(out.error || 'upload failed');
+    window.__brandLogoUrl = out.url;
+    const logoImg = document.getElementById('brandLogoPreview');
+    if (logoImg) { logoImg.src = out.url; logoImg.style.display = 'block'; }
+    statusEl.style.display = 'none'; statusEl.textContent = '';
+  } catch (e) {
+    statusEl.textContent = e.message || aiT('admin_ai_error_generic', 'Bir hata oluştu.');
+  }
+}
+async function saveBranding() {
+  const btn = document.getElementById('brandingSaveBtn');
+  const statusEl = document.getElementById('brandingStatus');
+  btn.disabled = true;
+  const get = (id) => { const el = document.getElementById(id); return el ? el.value.trim() : ''; };
+  const payload = {
+    logo_url: window.__brandLogoUrl || '',
+    company_name: get('brCompany'),
+    hero_title_tr: get('brHeroTr'), hero_title_en: get('brHeroEn'),
+    hero_sub_tr: get('brHeroSubTr'), hero_sub_en: get('brHeroSubEn'),
+    footer_text: get('brFooter'),
+    seo_title: get('brSeoTitle'), seo_description: get('brSeoDesc'), seo_keywords: get('brSeoKeywords'),
+    theme: get('brTheme'),
+    contact_phone: get('brPhone'), whatsapp: get('brWhatsapp'), contact_email: get('brEmail'),
+    website: get('brWebsite'), address: get('brAddress'),
+    maps_link: get('brMapsLink'), maps_embed: get('brMapsEmbed'),
+    instagram: get('brInstagram'), facebook: get('brFacebook'), twitter: get('brTwitter'),
+    tiktok: get('brTiktok'), youtube: get('brYoutube')
+  };
+  try {
+    const res = await fetch('/api/admin/branding', {
+      method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload)
+    });
+    const data = await res.json();
+    btn.disabled = false;
+    statusEl.style.display = 'block';
+    if (!res.ok) { statusEl.textContent = data.error || aiT('admin_ai_error_generic', 'Bir hata oluştu.'); return; }
+    if (window.__siteConfig) window.__siteConfig.settings = data.settings;
+    statusEl.textContent = aiT('admin_brand_saved', 'Kaydedildi.');
+  } catch (e) {
+    btn.disabled = false;
+    statusEl.style.display = 'block';
+    statusEl.textContent = aiT('admin_ai_conn_error', 'Bağlantı hatası.');
+  }
 }
 
 // ── Widget Settings (Phase 28) — tenant self-service on/off for the customer-site widgets ──
