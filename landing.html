@@ -70,23 +70,70 @@
   --shadow-glow:0 0 0 1px var(--border), 0 24px 70px -25px rgba(0,0,0,.9);
   --maxw:1180px;
 }
-/* Black & White theme. The gold accent is only ~6% of this page's surface (small dots/badges/
-   checkmarks) — swapping just that token to gray (an earlier attempt) was correct but nearly
-   invisible to a real viewer, since 94% of the page was already gray/black to begin with and
-   never carried any color to begin with. A full-page grayscale filter is the only way to make
-   "black & white" actually READ as black & white at a glance, and it has a real advantage over
-   hunting down every hardcoded color individually: it also catches things a token-swap can't,
-   like the blue-tinted ambient background glow (line ~89, rgba(120,130,180,...), never tied to
-   --gold at all) or any future color someone adds without going through the token system.
-   Applied to <html> (not <body>) specifically so it doesn't turn body into a new containing
-   block for position:fixed descendants (the nav bar, the ambient body::before glow) — filtering
-   the root element sidesteps that entirely since its box already coincides with the viewport.
-   Grayscale preserves relative LUMINANCE (lightness), which is what text/background contrast
-   actually depends on — a light-on-dark pair stays a light-on-dark pair after desaturating, so
-   this does not introduce unreadable text the way a hue-only change could. */
+/* Black & White theme = a real WHITE background, dark text (not a gray filter over the dark
+   look — a grayscale filter kept the page dark and was too subtle to read as "a different
+   theme"). Overrides every design token the page's components already build on
+   (--bg/--surface/--border/--text/--gold etc.), the same way index.html/admin.html/root.html's
+   own light theme works, plus the handful of components below that use a hardcoded hex instead
+   of a token (buttons, the nav brand mark, the scrolled-nav backdrop) — those need explicit
+   overrides since they never had a var() to inherit through in the first place. */
 html.theme-mono{
-  filter: grayscale(1);
+  --bg:#ffffff;
+  --bg-2:#f5f5f7;
+  --bg-3:#ececef;
+  --surface:rgba(10,10,11,.035);
+  --surface-2:rgba(10,10,11,.06);
+  --glass:rgba(255,255,255,.75);
+  --border:rgba(10,10,11,.1);
+  --border-2:rgba(10,10,11,.16);
+  --text:#0a0a0b;
+  --text-dim:#4a4a52;
+  --text-mute:#78787f;
+  --white:#0a0a0b;
+  --gold:#0a0a0b;
+  --gold-rgb:10,10,11;
+  --gold-soft:rgba(10,10,11,.08);
+  --shine:linear-gradient(135deg,#0a0a0b 0%,#3c3c42 45%,#6e6e78 100%);
+  --shadow:0 30px 80px -30px rgba(10,10,11,.18);
+  --shadow-glow:0 0 0 1px var(--border), 0 24px 70px -25px rgba(10,10,11,.14);
 }
+html.theme-mono body{ background:var(--bg); }
+html.theme-mono body::before{ opacity:.3; } /* ambient glows were tuned for a dark bg; keep them barely-there instead of removing outright */
+html.theme-mono .nav{ background:rgba(255,255,255,.72); }
+html.theme-mono .nav.scrolled{ background:rgba(255,255,255,.88); }
+html.theme-mono .nav.open .nav-links{ background:rgba(255,255,255,.97); }
+html.theme-mono .brand .mark,
+html.theme-mono .theme-switch.on{ color:var(--gold); }
+html.theme-mono .brand .mark{
+  background:#f0f0f2; border-color:rgba(10,10,11,.15); box-shadow:inset 0 1px 0 rgba(255,255,255,.8); color:#0a0a0b;
+}
+html.theme-mono .btn-primary{ background:#0a0a0b; color:#fff; box-shadow:0 10px 30px -8px rgba(10,10,11,.35); }
+html.theme-mono .nav-toggle{ color:#0a0a0b; }
+html.theme-mono ::selection{ background:var(--gold-soft); color:#0a0a0b; }
+html.theme-mono .foot-social a:hover{ color:#0a0a0b; }
+/* .devices (hero laptop/phone/chip cluster) and .mock (the 3 showcase sections' screen mockups)
+   are meant to look like static screenshots of the actual product's own dark UI — like a real
+   photo, they shouldn't flip color just because the marketing page around them changed theme.
+   Re-declaring the ORIGINAL dark tokens scoped to these containers means every descendant that
+   already correctly used var(--text)/var(--gold)/etc. (rather than a hardcoded color) keeps
+   working exactly as before, with zero need to hunt down and patch each nested element by hand. */
+html.theme-mono .devices,
+html.theme-mono .mock{
+  --bg:#0a0a0b; --bg-2:#0e0e11; --bg-3:#141418;
+  --surface:rgba(255,255,255,.03); --surface-2:rgba(255,255,255,.055);
+  --glass:rgba(20,20,24,.55);
+  --border:rgba(255,255,255,.08); --border-2:rgba(255,255,255,.14);
+  --text:#f4f4f6; --text-dim:#a6a6b0; --text-mute:#6c6c78;
+  --gold:#d8b877; --gold-rgb:216,184,119; --gold-soft:rgba(var(--gold-rgb),.14);
+  --shine:linear-gradient(135deg,#ffffff 0%,#c9c9d2 45%,#8f8f9c 100%);
+}
+/* Small standalone dark badges OUTSIDE those two containers — same "always-dark, light content"
+   idea, but each is a one-off (not a big re-usable panel class), so pinned individually. */
+html.theme-mono .step .num .shine{
+  background:linear-gradient(135deg,#ffffff 0%,#c9c9d2 45%,#8f8f9c 100%);
+  -webkit-background-clip:text; background-clip:text; color:transparent;
+}
+html.theme-mono .tst .who .av{ color:#d8b877; }
 *{ font-family:var(--font-primary) !important; }
 code,pre,kbd,samp{ font-family:ui-monospace,'SFMono-Regular',Menlo,monospace !important; }
 html{ scroll-behavior:smooth; }
