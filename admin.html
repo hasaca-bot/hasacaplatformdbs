@@ -3095,6 +3095,34 @@ body.theme-bw .rez-select-trigger:hover {
       </header>
 
       <main class="app-content">
+        <!-- RESTAURANT HUB VIEW (Phase 50: multi-restaurant Google accounts) -->
+        <section class="view" id="view-hub" hidden>
+          <div class="hub-welcome">
+            <h2><span data-i18n="admin_hub_welcome">Hoş geldin</span><span id="hubWelcomeName"></span></h2>
+          </div>
+          <div class="dash-grid hub-stats">
+            <div class="stat-card"><div class="st-top"><span class="st-k" data-i18n="admin_hub_stat_restaurants">Restoran</span>
+              <span class="st-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><path d="M3 6h18M16 10a4 4 0 0 1-8 0"/></svg></span></div>
+              <div class="st-v" id="hubStatRestaurants">–</div><div class="st-sub" data-i18n="admin_hub_stat_total">Toplam</div></div>
+            <div class="stat-card"><div class="st-top"><span class="st-k" data-i18n="admin_hub_stat_orders">Sipariş</span>
+              <span class="st-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="18" cy="21" r="1"/><path d="M1 1h4l2.6 12.4a2 2 0 0 0 2 1.6h9.7a2 2 0 0 0 2-1.6L23 6H6"/></svg></span></div>
+              <div class="st-v" id="hubStatOrders">–</div><div class="st-sub" data-i18n="admin_hub_stat_total">Toplam</div></div>
+            <div class="stat-card"><div class="st-top"><span class="st-k" data-i18n="admin_hub_stat_revenue">Satış</span>
+              <span class="st-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></span></div>
+              <div class="st-v" id="hubStatRevenue">–</div><div class="st-sub" data-i18n="admin_hub_stat_total">Toplam</div></div>
+          </div>
+          <div class="panel-card hub-list-card">
+            <h3>
+              <span data-i18n="admin_hub_list_title">Restoranlarım</span>
+              <button type="button" id="hubAddBtn" class="admin-btn secondary hub-add-btn" onclick="createNewRestaurantFromHub()">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+                <span data-i18n="admin_hub_new">Yeni Restoran Ekle</span>
+              </button>
+            </h3>
+            <div id="hubMsg" class="hub-msg" style="display:none"></div>
+            <div id="hubRestoList" class="hub-resto-list"></div>
+          </div>
+        </section>
         <!-- DASHBOARD VIEW -->
         <section class="view" id="view-dashboard">
           <div class="dash-grid">
@@ -3980,6 +4008,20 @@ function setAdminToken(t) {
   } catch (e) {}
 }
 
+// Identity-only token (multi-restaurant Google accounts) — no tenant_id, only used to call
+// /api/auth/select-tenant, /api/auth/my-restaurants and /api/auth/create-restaurant. Kept
+// separate from the normal per-tenant hasaca_admin_token so a restaurant switch never needs a
+// fresh Google sign-in: the identity token survives across "Restoranlarım" hub visits.
+function getIdentityToken() {
+  try { return safeGetItem('hasaca_identity_token') || safeGetSessItem('hasaca_identity_token') || ''; } catch (e) { return ''; }
+}
+function setIdentityToken(t) {
+  try {
+    if (t) safeSetItem('hasaca_identity_token', t);
+    else { safeRemoveItem('hasaca_identity_token'); sessionStorage.removeItem('hasaca_identity_token'); }
+  } catch (e) {}
+}
+
 // Root impersonation handoff: /admin.html#imp=<token> (opened from the Root Panel)
 // stores the support session token and removes it from the URL immediately.
 (function () {
@@ -4404,6 +4446,21 @@ const i18nData = {
     admin_membership_status_trial: "Deneme",
     admin_membership_trial_days: "Deneme Sürümü — {n} gün kaldı",
     admin_membership_trial_ended: "Deneme Süresi Doldu",
+    admin_hub_title: "Restoranlarım",
+    admin_hub_welcome: "Hoş geldin",
+    admin_hub_stat_restaurants: "Restoran",
+    admin_hub_stat_orders: "Sipariş",
+    admin_hub_stat_revenue: "Satış",
+    admin_hub_stat_total: "Toplam",
+    admin_hub_list_title: "Restoranlarım",
+    admin_hub_new: "Yeni Restoran Ekle",
+    admin_hub_new_prompt: "Yeni restoranın adı:",
+    admin_hub_loading: "Yükleniyor…",
+    admin_hub_error: "Restoranlar yüklenemedi.",
+    admin_hub_empty: "Henüz bir restoranınız yok.",
+    admin_hub_open: "Aç",
+    admin_hub_select_err: "Restorana geçilemedi, tekrar deneyin.",
+    admin_hub_create_err: "Restoran oluşturulamadı.",
     admin_brand_basics_title: "Marka",
     admin_brand_logo: "Logo",
     admin_brand_logo_upload: "Logo Yükle",
@@ -4802,6 +4859,21 @@ const i18nData = {
     admin_membership_status_trial: "Trial",
     admin_membership_trial_days: "Trial — {n} days left",
     admin_membership_trial_ended: "Trial Ended",
+    admin_hub_title: "My Restaurants",
+    admin_hub_welcome: "Welcome",
+    admin_hub_stat_restaurants: "Restaurants",
+    admin_hub_stat_orders: "Orders",
+    admin_hub_stat_revenue: "Revenue",
+    admin_hub_stat_total: "Total",
+    admin_hub_list_title: "My Restaurants",
+    admin_hub_new: "Add New Restaurant",
+    admin_hub_new_prompt: "Name of the new restaurant:",
+    admin_hub_loading: "Loading…",
+    admin_hub_error: "Could not load your restaurants.",
+    admin_hub_empty: "You don't have any restaurants yet.",
+    admin_hub_open: "Open",
+    admin_hub_select_err: "Could not switch restaurants, try again.",
+    admin_hub_create_err: "Could not create the restaurant.",
     admin_brand_basics_title: "Brand",
     admin_brand_logo: "Logo",
     admin_brand_logo_upload: "Upload Logo",
@@ -6276,6 +6348,9 @@ async function openAdminLogin(e) {
       setAdminToken('');
     } catch (err) { /* fall through to the modal */ }
   }
+  // A multi-restaurant Google account with no tenant picked yet goes to the restaurant picker
+  // instead of the login modal — the identity token alone is enough to list its restaurants.
+  if (getIdentityToken()) { showRestaurantHub(); return; }
   const userEl = document.getElementById('adminUsername');
   if (userEl) userEl.value = '';
   document.getElementById('adminPassword').value = '';
@@ -6331,9 +6406,14 @@ async function onAdminGoogleCredential(resp) {
       body: JSON.stringify({ credential: resp.credential })
     });
     const data = await res.json().catch(() => ({}));
-    if (!res.ok || !data.token) throw new Error('google-failed');
-    setAdminToken(data.token);
+    if (!res.ok || (!data.token && !data.multi)) throw new Error('google-failed');
     document.getElementById('adminLoginBackdrop').classList.remove('open');
+    if (data.multi) {
+      setIdentityToken(data.identityToken);
+      showRestaurantHub();
+      return;
+    }
+    setAdminToken(data.token);
     openAdminPanel();
   } catch (e) {
     adminGoogleSigninInProgress = false;
@@ -6368,6 +6448,8 @@ async function submitAdminLogin() {
 
 function openAdminPanel() {
   console.log('SUCCESS: admin panel opened!');
+  const shell = document.getElementById('adminAppShell');
+  if (shell) shell.classList.remove('hub-mode'); // in case this follows a hub restaurant pick
   window.selectedAdminCategoryFilter = 'tumu';
   updateFormCategoryOptions();
   document.getElementById('adminSearchInput').value = '';
@@ -6410,12 +6492,106 @@ function openAdminPanel() {
   }).catch(() => {});
 }
 
+// ── Phase 50: "Restoranlarım" hub — multi-restaurant Google accounts ──
+// Shown instead of the login modal (or after a multi-tenant Google sign-in) whenever an identity
+// token exists with no restaurant chosen yet. Reuses #adminPanelOverlay's whole shell/theme system
+// (hub-mode just hides the sidebar/nav so nothing tenant-scoped can fire) rather than a new page.
+function hubMsg(text) {
+  const el = document.getElementById('hubMsg');
+  if (!el) return;
+  if (!text) { el.style.display = 'none'; el.textContent = ''; return; }
+  el.style.display = 'block'; el.textContent = text;
+}
+async function showRestaurantHub() {
+  document.getElementById('adminPanelOverlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
+  const shell = document.getElementById('adminAppShell');
+  if (shell) shell.classList.add('hub-mode');
+  apInitTheme();
+  showAdminView('hub');
+  hubMsg('');
+  const list = document.getElementById('hubRestoList');
+  if (list) list.innerHTML = '<div class="hint">' + aiT('admin_hub_loading', 'Yükleniyor…') + '</div>';
+  renderHubStats(null);
+  try {
+    const res = await fetch('/api/auth/my-restaurants', { headers: { Authorization: 'Bearer ' + getIdentityToken() } });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(data.error || 'failed');
+    const wname = document.getElementById('hubWelcomeName');
+    if (wname) wname.textContent = data.display_name ? (', ' + data.display_name + '!') : '!';
+    renderHubStats(data.totals);
+    renderHubList(data.tenants);
+  } catch (e) {
+    if (list) list.innerHTML = '';
+    hubMsg(aiT('admin_hub_error', 'Restoranlar yüklenemedi.'));
+  }
+}
+function renderHubStats(t) {
+  t = t || {};
+  const loc = (window.currentLanguage === 'tr') ? 'tr-TR' : 'en-US';
+  const set = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
+  set('hubStatRestaurants', t.restaurants != null ? Number(t.restaurants).toLocaleString(loc) : '–');
+  set('hubStatOrders', t.orders != null ? Number(t.orders).toLocaleString(loc) : '–');
+  set('hubStatRevenue', t.revenue != null ? ('₺' + Math.round(t.revenue).toLocaleString(loc)) : '–');
+}
+function renderHubList(list) {
+  const host = document.getElementById('hubRestoList');
+  if (!host) return;
+  if (!list || !list.length) {
+    host.innerHTML = '<div class="hint">' + aiT('admin_hub_empty', 'Henüz bir restoranınız yok.') + '</div>';
+    return;
+  }
+  host.innerHTML = list.map(t => `
+    <div class="hub-resto-row">
+      <div class="hub-resto-logo">${t.logo_url ? `<img src="${aiAsstEsc(t.logo_url)}" alt="">` : `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><path d="M3 6h18M16 10a4 4 0 0 1-8 0"/></svg>`}</div>
+      <div class="hub-resto-info"><b>${aiAsstEsc(t.display_name || t.name)}</b><span>${aiAsstEsc(t.id)}</span></div>
+      <button type="button" class="admin-btn hub-open-btn" onclick="selectRestaurant('${aiAsstEsc(t.id)}')">${aiT('admin_hub_open', 'Aç')}</button>
+    </div>`).join('');
+}
+async function selectRestaurant(tenantId) {
+  hubMsg('');
+  try {
+    const res = await fetch('/api/auth/select-tenant', {
+      method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + getIdentityToken() },
+      body: JSON.stringify({ tenant_id: tenantId })
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok || !data.token) throw new Error(data.error || 'failed');
+    setAdminToken(data.token);
+    openAdminPanel();
+  } catch (e) {
+    hubMsg(aiT('admin_hub_select_err', 'Restorana geçilemedi, tekrar deneyin.'));
+  }
+}
+async function createNewRestaurantFromHub() {
+  const promptText = aiT('admin_hub_new_prompt', 'Yeni restoranın adı:');
+  const name = (window.prompt(promptText, '') || '').trim();
+  if (!name) return;
+  const btn = document.getElementById('hubAddBtn');
+  if (btn) btn.disabled = true;
+  hubMsg('');
+  try {
+    const res = await fetch('/api/auth/create-restaurant', {
+      method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + getIdentityToken() },
+      body: JSON.stringify({ name })
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(data.error || 'failed');
+    await showRestaurantHub();
+  } catch (e) {
+    hubMsg(aiT('admin_hub_create_err', 'Restoran oluşturulamadı.'));
+  } finally {
+    if (btn) btn.disabled = false;
+  }
+}
+
 // ── Phase 25 REVISION: sidebar-driven view switching (replaces switchAdminPanelTab) ──
 //
 // Maps a sidebar slug → the matching .view element ID + the lazy-load calls the old
 // switchAdminPanelTab used to do. All existing render/load functions are reused verbatim;
 // only the navigation trigger is new.
 const AP_VIEW_MAP = {
+  'hub':          { id: 'view-hub',                  title: 'admin_hub_title' },
   'dashboard':    { id: 'view-dashboard',           title: 'admin_nav_dashboard' },
   'restaurant-info': { id: 'view-restaurant-info',   title: 'admin_nav_restaurant_info' },
   'branding':     { id: 'view-branding',             title: 'admin_nav_branding' },
@@ -6519,8 +6695,19 @@ document.addEventListener('click', (e) => {
 });
 
 // Real logout (Phase 25 REVISION): the old "Kapat" only navigated away, leaving the token valid.
+// Multi-restaurant accounts (Phase 50): the SAME "Çıkış Yap" button, clicked from inside a
+// restaurant's own admin panel, returns to the "Restoranlarım" hub instead of a full logout —
+// the identity token (and thus the Google session) stays alive. Clicked from the hub itself (or
+// by any single-restaurant account with no identity token at all), it's a full logout as before.
 function adminLogout() {
+  const inHub = document.getElementById('adminAppShell') && document.getElementById('adminAppShell').classList.contains('hub-mode');
+  if (!inHub && getIdentityToken()) {
+    try { setAdminToken(''); } catch (e) {}
+    showRestaurantHub();
+    return;
+  }
   try { setAdminToken(''); } catch (e) {}
+  try { setIdentityToken(''); } catch (e) {}
   window.location.href = '/';
 }
 
@@ -8772,6 +8959,40 @@ async function deletePush(id) {
   #adminPanelOverlay .admin-btn:hover{ transform:translateY(-1px); box-shadow:0 10px 26px -12px var(--ap-gold); }
   #adminPanelOverlay .admin-btn.secondary{ background:var(--ap-card); color:var(--ap-text); border-color:var(--ap-line); box-shadow:none; }
   #adminPanelOverlay .admin-btn.secondary:hover{ background:var(--ap-elev); border-color:var(--ap-line-2); box-shadow:none; }
+
+  /* ── Phase 50: "Restoranlarım" hub (multi-restaurant Google accounts) ── */
+  #adminPanelOverlay .app-shell.hub-mode{ grid-template-columns:1fr; }
+  #adminPanelOverlay .app-shell.hub-mode .app-sidebar,
+  #adminPanelOverlay .app-shell.hub-mode .topbar-icon.hamburger{ display:none; }
+  #adminPanelOverlay .hub-welcome{ margin-bottom:22px; }
+  #adminPanelOverlay .hub-welcome h2{ font-size:22px; font-weight:800; letter-spacing:-.01em; }
+  #adminPanelOverlay .hub-welcome h2 span{ color:var(--ap-gold); }
+  #adminPanelOverlay .hub-stats{ margin-bottom:24px; }
+  #adminPanelOverlay .hub-list-card h3{ display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; }
+  #adminPanelOverlay .hub-add-btn{ width:auto; flex:none; display:inline-flex; align-items:center; gap:8px; margin:0; padding:9px 15px; font-size:.82rem; }
+  #adminPanelOverlay .hub-add-btn svg{ width:15px; height:15px; }
+  #adminPanelOverlay .hub-msg{ font-size:13px; color:var(--ap-bad); margin:10px 0 0; }
+  #adminPanelOverlay .hub-resto-list{ display:flex; flex-direction:column; gap:10px; margin-top:16px; }
+  #adminPanelOverlay .hub-resto-list .hint{ color:var(--ap-muted); font-size:13.5px; padding:8px 2px; }
+  #adminPanelOverlay .hub-resto-row{
+    display:flex; align-items:center; gap:14px; padding:13px 15px; background:var(--ap-bg-2);
+    border:1px solid var(--ap-line); border-radius:var(--ap-radius-sm); transition:border-color var(--ap-t), background var(--ap-t);
+  }
+  #adminPanelOverlay .hub-resto-row:hover{ border-color:var(--ap-line-2); background:var(--ap-elev); }
+  #adminPanelOverlay .hub-resto-logo{
+    width:42px; height:42px; border-radius:11px; flex:none; display:grid; place-items:center; overflow:hidden;
+    background:var(--ap-card); border:1px solid var(--ap-line); color:var(--ap-muted);
+  }
+  #adminPanelOverlay .hub-resto-logo img{ width:100%; height:100%; object-fit:cover; display:block; }
+  #adminPanelOverlay .hub-resto-logo svg{ width:20px; height:20px; }
+  #adminPanelOverlay .hub-resto-info{ flex:1; min-width:0; display:flex; flex-direction:column; gap:2px; }
+  #adminPanelOverlay .hub-resto-info b{ font-size:14.5px; color:var(--ap-text); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  #adminPanelOverlay .hub-resto-info span{ font-size:12px; color:var(--ap-faint); }
+  #adminPanelOverlay .hub-open-btn{ width:auto; flex:none; margin:0; padding:9px 18px; font-size:.82rem; }
+  @media (max-width:640px){
+    #adminPanelOverlay .hub-resto-row{ flex-wrap:wrap; }
+    #adminPanelOverlay .hub-open-btn{ width:100%; order:3; }
+  }
 
   /* ── INPUTS ── */
   #adminPanelOverlay .admin-input,

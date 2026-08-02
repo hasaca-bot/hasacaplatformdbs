@@ -330,6 +330,15 @@ document.getElementById('loginForm').addEventListener('submit', async (e) => {
 
 // Shared by both the password form and Google Sign-In — stores the session token and redirects.
 function handleLoginSuccess(d, provisioned) {
+  if (d.multi) {
+    // This Google account owns more than one restaurant — store the identity-only token and let
+    // admin.html show the "Restoranlarım" hub (picks a restaurant, exchanges it for a real session).
+    const store = document.getElementById('remember').checked ? localStorage : sessionStorage;
+    try { store.setItem('hasaca_identity_token', d.identityToken); } catch (err) {}
+    show('ok', T('signing'));
+    setTimeout(() => { location.href = '/admin'; }, 400);
+    return;
+  }
   const isRoot = d.role === 'root';
   const store = document.getElementById('remember').checked ? localStorage : sessionStorage;
   try {
@@ -368,7 +377,7 @@ async function onGoogleCredential(resp) {
       body: JSON.stringify({ credential: resp.credential })
     });
     const d = await r.json().catch(() => ({}));
-    if (!r.ok || !d.token) { googleSigninInProgress = false; show('bad', T('googleErr')); return; }
+    if (!r.ok || (!d.token && !d.multi)) { googleSigninInProgress = false; show('bad', T('googleErr')); return; }
     handleLoginSuccess(d, !!d.provisioned);
   } catch (err) {
     googleSigninInProgress = false;

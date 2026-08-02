@@ -553,12 +553,15 @@ async function runPlatformMigrations() {
   `);
 
   // 6) Google Sign-In identity fields on admin_users (additive; existing password-only rows keep
-  // these NULL). google_sub is globally unique (not scoped per tenant) so a Google account can
-  // never end up owning more than one tenant.
+  // these NULL). google_sub was originally globally UNIQUE (one Google account, one tenant ever) —
+  // multi-restaurant ownership now allows the same Google account to be linked to several tenants
+  // (one admin_users row per tenant), so the old unique index is dropped and replaced with a plain
+  // lookup index. The lookup pattern itself (WHERE google_sub = ?) is unchanged, just returns 0-N rows.
   await ensureColumn('admin_users', 'email', 'TEXT');
   await ensureColumn('admin_users', 'google_sub', 'TEXT');
   await ensureColumn('admin_users', 'avatar_url', 'TEXT');
-  await dbDriver.exec(`CREATE UNIQUE INDEX IF NOT EXISTS idx_admin_users_google_sub ON admin_users(google_sub) WHERE google_sub IS NOT NULL;`);
+  await dbDriver.exec(`DROP INDEX IF EXISTS idx_admin_users_google_sub;`);
+  await dbDriver.exec(`CREATE INDEX IF NOT EXISTS idx_admin_users_google_sub ON admin_users(google_sub);`);
 }
 
 // Seed the master-template menu (generic "My Restaurant" demo) into a tenant.

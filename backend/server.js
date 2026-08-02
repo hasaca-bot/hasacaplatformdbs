@@ -1158,6 +1158,43 @@ app.get('/api/auth/me', adminAuth, async (req, res) => {
 // subsequent authenticated request on this platform still uses our own signToken()/verifyToken()
 // HMAC session format (lib/auth.js), completely unchanged — Google's token is never stored or
 // passed through as a session token.
+// Auto-provisions a brand-new tenant for a Google account (same demo-content clone every tenant
+// gets), linking it via adminOverride so the account can log into it with no password. Shared by
+// the first-time sign-in path below and POST /api/auth/create-restaurant (an already-registered
+// Google account adding a SECOND restaurant). nameOverride lets the caller supply a real name
+// instead of the generic "X'in Restoranı" default (used by create-restaurant only).
+async function provisionTenantForGoogleAccount(payload, clientIp, nameOverride) {
+  const firstName = payload.given_name || (payload.name ? payload.name.split(' ')[0] : '');
+  const displayName = nameOverride || (firstName ? `${firstName}'in Restoranı` : 'Yeni Restoran');
+  const seed = nameOverride || firstName || (payload.email || '').split('@')[0];
+
+  let slug = generateSlugCandidate(seed);
+  let n = 2;
+  for (;;) {
+    const reserved = RESERVED_SLUGS.includes(slug);
+    const exists = !reserved && await db.get(
+      isPg ? 'SELECT id FROM tenants WHERE id = $1' : 'SELECT id FROM tenants WHERE id = ?', [slug]
+    );
+    if (!reserved && !exists) break;
+    slug = `${generateSlugCandidate(seed)}-${n++}`.slice(0, 31);
+    if (!SLUG_RE.test(slug)) { slug = `restoran-${Date.now()}`.slice(0, 31); break; }
+  }
+
+  await createTenantWithDemoContent({
+    slug, name: displayName, display_name: displayName,
+    body: { contact_email: payload.email },
+    adminOverride: {
+      username: slug,
+      password_hash: hashPassword(crypto.randomBytes(32).toString('hex')), // unusable placeholder — Google-only account
+      email: payload.email, google_sub: payload.sub, avatar_url: payload.picture || '',
+      display_name: payload.name || displayName
+    }
+  });
+  invalidateTenantCache(slug);
+  logActivity({ tenantId: slug, actor: slug, role: 'tenant_admin', action: 'tenant_self_signup', target: slug, details: payload.email, ip: clientIp });
+  return slug;
+}
+
 app.post('/api/auth/google', rateLimiter(15), async (req, res) => {
   try {
     if (!process.env.GOOGLE_CLIENT_ID) {
@@ -1179,83 +1216,180 @@ app.post('/api/auth/google', rateLimiter(15), async (req, res) => {
 
     const clientIp = (req.headers['x-forwarded-for'] || '').split(',')[0].trim() || req.socket?.remoteAddress || '';
 
-    // "One Google account, one tenant, ever" — look up by google_sub (globally unique, not
-    // scoped per tenant) ONLY. If found, log into their existing tenant; never create a second.
-    let user = await db.get(
+    // A Google account can now be linked to more than one tenant (self-service multi-restaurant
+    // ownership, one admin_users row per tenant) — look up EVERY row sharing this google_sub.
+    let users = await db.all(
       isPg ? 'SELECT * FROM admin_users WHERE google_sub = $1' : 'SELECT * FROM admin_users WHERE google_sub = ?',
       [payload.sub]
     );
 
     let provisioned = false;
-    if (!user) {
+    if (!users.length) {
       // First-time Google sign-in: auto-provision a brand-new tenant, named from the person's
       // own Google account (per the platform owner's explicit choice) — no signup form.
-      const firstName = payload.given_name || (payload.name ? payload.name.split(' ')[0] : '');
-      const displayName = firstName ? `${firstName}'in Restoranı` : 'Yeni Restoran';
-      const seed = firstName || (payload.email || '').split('@')[0];
-
-      let slug = generateSlugCandidate(seed);
-      let n = 2;
-      for (;;) {
-        const reserved = RESERVED_SLUGS.includes(slug);
-        const exists = !reserved && await db.get(
-          isPg ? 'SELECT id FROM tenants WHERE id = $1' : 'SELECT id FROM tenants WHERE id = ?', [slug]
-        );
-        if (!reserved && !exists) break;
-        slug = `${generateSlugCandidate(seed)}-${n++}`.slice(0, 31);
-        if (!SLUG_RE.test(slug)) { slug = `restoran-${Date.now()}`.slice(0, 31); break; }
-      }
-
       try {
-        await createTenantWithDemoContent({
-          slug, name: displayName, display_name: displayName,
-          body: { contact_email: payload.email },
-          adminOverride: {
-            username: slug,
-            password_hash: hashPassword(crypto.randomBytes(32).toString('hex')), // unusable placeholder — Google-only account
-            email: payload.email, google_sub: payload.sub, avatar_url: payload.picture || '',
-            display_name: payload.name || displayName
-          }
-        });
+        await provisionTenantForGoogleAccount(payload, clientIp);
         provisioned = true;
-        invalidateTenantCache(slug);
-        logActivity({ tenantId: slug, actor: slug, role: 'tenant_admin', action: 'tenant_self_signup', target: slug, details: payload.email, ip: clientIp });
       } catch (e) {
-        // Concurrent first-time sign-in (e.g. two tabs) can lose a race on the unique google_sub
-        // index — re-look-up and log into whichever request won, instead of surfacing a raw
-        // DB error. A losing request may leave an orphaned demo tenant with no admin row; at this
-        // platform's scale that is an acceptable, rare Root cleanup item, not a security issue.
+        // Concurrent first-time sign-in (e.g. two tabs) can lose a race — re-look-up and log into
+        // whichever request won, instead of surfacing a raw DB error. A losing request may leave an
+        // orphaned demo tenant with no admin row; at this platform's scale that is an acceptable,
+        // rare Root cleanup item, not a security issue.
         console.warn('[AUTH] Google provisioning conflict, re-checking existing account:', e.message);
       }
-      user = await db.get(
+      users = await db.all(
         isPg ? 'SELECT * FROM admin_users WHERE google_sub = $1' : 'SELECT * FROM admin_users WHERE google_sub = ?',
         [payload.sub]
       );
-      if (!user) return res.status(500).json({ error: 'provisioning_failed' });
+      if (!users.length) return res.status(500).json({ error: 'provisioning_failed' });
     } else {
-      // Returning Google user — keep their photo/name fresh without a re-login.
+      // Returning Google user — keep their photo/name fresh across every linked tenant row.
       await db.run(
-        isPg ? 'UPDATE admin_users SET last_login = $1, avatar_url = $2, display_name = $3 WHERE id = $4'
-             : 'UPDATE admin_users SET last_login = ?, avatar_url = ?, display_name = ? WHERE id = ?',
-        [Date.now(), payload.picture || user.avatar_url || '', payload.name || user.display_name, user.id]
+        isPg ? 'UPDATE admin_users SET last_login = $1, avatar_url = $2, display_name = $3 WHERE google_sub = $4'
+             : 'UPDATE admin_users SET last_login = ?, avatar_url = ?, display_name = ? WHERE google_sub = ?',
+        [Date.now(), payload.picture || users[0].avatar_url || '', payload.name || users[0].display_name, payload.sub]
       );
+      users = users.map(u => ({ ...u, avatar_url: payload.picture || u.avatar_url, display_name: payload.name || u.display_name }));
     }
 
-    const token = signToken({ uid: user.id, tenant_id: user.tenant_id, role: user.role, username: user.username });
-    logActivity({
-      tenantId: user.role === 'root' ? '' : user.tenant_id, actor: user.username, role: user.role,
-      action: 'login_google', target: user.username, ip: clientIp
-    });
-    res.json({
-      token,
-      role: user.role,
-      tenant_id: user.tenant_id,
-      username: user.username,
-      display_name: payload.name || user.display_name || user.username,
-      provisioned
-    });
+    if (users.length === 1) {
+      const user = users[0];
+      const token = signToken({ uid: user.id, tenant_id: user.tenant_id, role: user.role, username: user.username });
+      logActivity({
+        tenantId: user.role === 'root' ? '' : user.tenant_id, actor: user.username, role: user.role,
+        action: 'login_google', target: user.username, ip: clientIp
+      });
+      return res.json({
+        token, role: user.role, tenant_id: user.tenant_id, username: user.username,
+        display_name: payload.name || user.display_name || user.username, provisioned
+      });
+    }
+
+    // Multiple tenants linked to this Google account — issue an identity-only token (no tenant_id,
+    // can't call any tenant-scoped API) and let the client show a restaurant picker. It's exchanged
+    // for a normal per-tenant session token via POST /api/auth/select-tenant once a choice is made.
+    const identityToken = signToken({ google_sub: payload.sub, email: payload.email, kind: 'identity' });
+    logActivity({ tenantId: '', actor: payload.email, role: 'tenant_admin', action: 'login_google_multi', target: payload.email, ip: clientIp });
+    res.json({ multi: true, identityToken, display_name: payload.name || '', provisioned });
   } catch (err) {
     console.error('[API ERROR] POST /api/auth/google:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// POST /api/auth/select-tenant — exchanges an identity-only token (from a multi-restaurant Google
+// account) for a normal per-tenant session token, once the "Restoranlarım" hub picker has a choice.
+app.post('/api/auth/select-tenant', rateLimiter(30), async (req, res) => {
+  try {
+    const authHeader = String(req.headers.authorization || '');
+    const idToken = authHeader.startsWith('Bearer ') ? authHeader.slice(7) : '';
+    const idPayload = verifyToken(idToken);
+    if (!idPayload || idPayload.kind !== 'identity' || !idPayload.google_sub) {
+      return res.status(401).json({ error: 'invalid_identity_token' });
+    }
+    const tenantId = String((req.body && req.body.tenant_id) || '');
+    if (!tenantId) return res.status(400).json({ error: 'tenant_id_required' });
+
+    const user = await db.get(
+      isPg ? 'SELECT * FROM admin_users WHERE google_sub = $1 AND tenant_id = $2' : 'SELECT * FROM admin_users WHERE google_sub = ? AND tenant_id = ?',
+      [idPayload.google_sub, tenantId]
+    );
+    if (!user) return res.status(403).json({ error: 'not_your_restaurant' });
+
+    const clientIp = (req.headers['x-forwarded-for'] || '').split(',')[0].trim() || req.socket?.remoteAddress || '';
+    const token = signToken({ uid: user.id, tenant_id: user.tenant_id, role: user.role, username: user.username });
+    logActivity({ tenantId: user.tenant_id, actor: user.username, role: user.role, action: 'login_google_select', target: user.username, ip: clientIp });
+    res.json({ token, role: user.role, tenant_id: user.tenant_id, username: user.username, display_name: user.display_name || user.username });
+  } catch (err) {
+    console.error('[API ERROR] POST /api/auth/select-tenant:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// GET /api/auth/my-restaurants — every tenant this Google account is linked to (accepts either the
+// identity token or a normal per-tenant token, so it also works from inside an open admin panel),
+// plus real aggregate totals across all of them for the hub's "toplam istatistikler" cards.
+app.get('/api/auth/my-restaurants', rateLimiter(30), async (req, res) => {
+  try {
+    const authHeader = String(req.headers.authorization || '');
+    const token = authHeader.startsWith('Bearer ') ? authHeader.slice(7) : '';
+    const payload = verifyToken(token);
+    if (!payload) return res.status(401).json({ error: 'unauthorized' });
+
+    let googleSub = payload.google_sub || null;
+    if (!googleSub && payload.uid) {
+      const self = await db.get(
+        isPg ? 'SELECT google_sub FROM admin_users WHERE id = $1' : 'SELECT google_sub FROM admin_users WHERE id = ?',
+        [payload.uid]
+      );
+      googleSub = self && self.google_sub;
+    }
+    if (!googleSub) return res.status(400).json({ error: 'no_google_account' });
+
+    const rows = await db.all(
+      isPg
+        ? 'SELECT au.tenant_id, au.display_name AS admin_name, t.name, t.display_name, t.settings FROM admin_users au JOIN tenants t ON t.id = au.tenant_id WHERE au.google_sub = $1 ORDER BY t.created_at ASC'
+        : 'SELECT au.tenant_id, au.display_name AS admin_name, t.name, t.display_name, t.settings FROM admin_users au JOIN tenants t ON t.id = au.tenant_id WHERE au.google_sub = ? ORDER BY t.created_at ASC',
+      [googleSub]
+    );
+
+    const tenants = rows.map(r => {
+      let logo = '';
+      try { logo = (JSON.parse(r.settings || '{}') || {}).logo_url || ''; } catch (e) {}
+      return { id: r.tenant_id, name: r.name, display_name: r.display_name, logo_url: logo };
+    });
+
+    const ids = tenants.map(t => t.id);
+    let orders = 0, revenue = 0;
+    if (ids.length) {
+      const placeholders = ids.map((_, i) => (isPg ? `$${i + 1}` : '?')).join(',');
+      const agg = await db.get(`SELECT COUNT(*) AS cnt, COALESCE(SUM(total),0) AS rev FROM orders WHERE tenant_id IN (${placeholders})`, ids);
+      orders = Number(agg && agg.cnt) || 0;
+      revenue = Number(agg && agg.rev) || 0;
+    }
+
+    const latest = await db.get(
+      isPg ? 'SELECT display_name FROM admin_users WHERE google_sub = $1 ORDER BY created_at DESC LIMIT 1' : 'SELECT display_name FROM admin_users WHERE google_sub = ? ORDER BY created_at DESC LIMIT 1',
+      [googleSub]
+    );
+
+    res.json({
+      tenants,
+      totals: { restaurants: tenants.length, orders, revenue },
+      display_name: (latest && latest.display_name) || ''
+    });
+  } catch (err) {
+    console.error('[API ERROR] GET /api/auth/my-restaurants:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// POST /api/auth/create-restaurant — an already-registered Google account (identity token only)
+// self-provisions ANOTHER tenant, linked with a new admin_users row under the same google_sub.
+app.post('/api/auth/create-restaurant', rateLimiter(5), async (req, res) => {
+  try {
+    const authHeader = String(req.headers.authorization || '');
+    const idToken = authHeader.startsWith('Bearer ') ? authHeader.slice(7) : '';
+    const idPayload = verifyToken(idToken);
+    if (!idPayload || idPayload.kind !== 'identity' || !idPayload.google_sub) {
+      return res.status(401).json({ error: 'invalid_identity_token' });
+    }
+    const name = stripHtmlTags(String((req.body && req.body.name) || '').trim()).slice(0, 80);
+    if (!name) return res.status(400).json({ error: 'name_required' });
+
+    const existing = await db.get(
+      isPg ? 'SELECT display_name, avatar_url FROM admin_users WHERE google_sub = $1 LIMIT 1' : 'SELECT display_name, avatar_url FROM admin_users WHERE google_sub = ? LIMIT 1',
+      [idPayload.google_sub]
+    );
+    const clientIp = (req.headers['x-forwarded-for'] || '').split(',')[0].trim() || req.socket?.remoteAddress || '';
+    const fakePayload = {
+      sub: idPayload.google_sub, email: idPayload.email, given_name: '',
+      name: (existing && existing.display_name) || '', picture: (existing && existing.avatar_url) || ''
+    };
+    const slug = await provisionTenantForGoogleAccount(fakePayload, clientIp, name);
+    res.json({ tenant_id: slug });
+  } catch (err) {
+    console.error('[API ERROR] POST /api/auth/create-restaurant:', err);
     res.status(500).json({ error: err.message });
   }
 });
@@ -2326,14 +2460,15 @@ app.get('/', (req, res) => {
 // Phase 36: no tenant specified at all (bare host, no ?tenant=/x-tenant-id) must not silently expose
 // any real restaurant's admin panel — show "no restaurant" instead. An explicit ?tenant=<slug>
 // (including ?tenant=default) still works normally; only the implicit fallback is gone.
+// Always serve admin.html regardless of host-resolved tenant — its own client-side auth gate
+// (openAdminLogin) already handles every case correctly: a valid per-tenant session opens that
+// restaurant's panel, a multi-restaurant Google identity with no tenant chosen yet shows the
+// "Restoranlarım" hub (Phase 50), and no session at all shows the login modal. A server-side
+// "no tenant resolved -> 404" guard used to sit here; it actively broke the hub, since a
+// multi-restaurant Google account is redirected to bare /admin (deliberately, there IS no single
+// tenant to encode in the URL until a restaurant is picked) — removed, not narrowed, because
+// every case it existed to catch already degrades gracefully client-side.
 app.get(['/admin.html', '/admin'], (req, res) => {
-  if (req.tenantId === null) {
-    return res.status(404).send(errorPageHtml(
-      'Restoran Bulunamadı', 'Restaurant Not Found',
-      'Bu adres belirli bir restorana ait değil. Yönetim paneline erişmek için restoranınızın bağlantısını kullanın.',
-      'This address is not tied to a specific restaurant. Use your restaurant\'s own link to reach the admin panel.'
-    ));
-  }
   res.sendFile(path.join(rootDir, 'admin.html'));
 });
 
