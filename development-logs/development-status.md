@@ -3,7 +3,7 @@
 > Living status doc. Any AI/dev can resume by reading this + the phase files in `/development-logs`.
 > Release changelog lives in `README.md` (§ DEĞİŞİKLİK GÜNLÜĞÜ). This folder tracks in-progress phased work.
 
-**Last updated:** 2026-08-02 (after Phase 48)
+**Last updated:** 2026-08-02 (after Phase 49)
 
 > A living **AI-CONTEXT.txt** hand-off file is maintained in this folder (overwritten every phase).
 
@@ -75,6 +75,7 @@ Multi-tenant restaurant SaaS. Node.js + Express (`backend/server.js`), dual DB l
 
 | 47 | 12 | Landing B&W theme redone as a REAL white theme (Phase 46's gray-swap was too subtle to register as a theme change) — full token override + fixed 6 hardcoded-color spots that would have gone dark-on-dark/white-on-white; kept the hero device mockup + showcase screen mockups intentionally dark in both themes (they're meant to look like static product screenshots). Fixed a real admin panel bug: profile avatar was a squashed non-square circle because `.av` (a flex item) had no `flex-shrink:0`, so `object-fit:cover` had nothing correctly-shaped to work with. Favicon re-confirmed already correct+live in production; remaining appearance is almost certainly browser favicon cache, not a code issue | ✅ DONE — both fixes verified with the correct fresh-navigation test method (a documented quirk of this project's own testing environment makes runtime-toggle-then-read-computed-style checks unreliable, per Phase 32's prior note) |
 | 48 | 12 | Landing page nav CTA is now dynamic ("Kayıt Ol"/`/giris` for a logged-out visitor, "Giriş Yap"/`/admin` for a verified session, checked via a real `/api/auth/me` call); pricing simplified to 2 tiers (removed the ₺0 plan, the ₺749 plan now shows "İlk 14 gün ücretsiz" and links straight to `/giris`); new tenants (`masterTemplate.js`) now seed `subscription_status:'trial'` + `trial_started_at`, and admin.html's membership card shows real days-remaining ("Deneme Sürümü — N gün kaldı" / "Deneme Süresi Doldu") | ✅ DONE — nav CTA verified for logged-out + invalid-token cases; pricing plan count/copy/links verified live; trial-days pill logic verified with mocked 5-day and 15-day-elapsed cases; existing pre-phase tenants confirmed to keep their unchanged "Aktif" fallback |
+| 49 | 12 | Admin/root sidebar logo badge (`.side-brand .mark`) fixed to adapt to the white theme (was a permanently dark badge, unreadable once the icon itself turned dark); landing page's fake testimonials section + fake client-logo strip removed entirely (fabricated quotes/brand names); landing page's dark-theme ambient background glows removed (`body::before`) for a flat black; one real leftover unconverted icon badge found+fixed (`.feat .fi` on the 16-card feature grid, found via an exhaustive computed-style scan); pricing cards updated with the real final feature lists, Kurumsal now a real ₺1499/ay tier instead of "contact sales" | ✅ DONE — all fixes verified live (dark theme confirmed byte-for-byte unchanged where not in scope, light/mono theme confirmed correctly adapted); visual/copy only, no billing logic added per explicit instruction |
 
 
 | 32+ | 5 | Backlog: fast-follows only (menu-generation wizard; QR logos/frames; widget permission tier; `/register` decision; unused legacy files flagged) | ⏭️ NEXT |

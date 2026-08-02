@@ -98,7 +98,6 @@ html.theme-mono{
   --shadow-glow:0 0 0 1px var(--border), 0 24px 70px -25px rgba(10,10,11,.14);
 }
 html.theme-mono body{ background:var(--bg); }
-html.theme-mono body::before{ opacity:.3; } /* ambient glows were tuned for a dark bg; keep them barely-there instead of removing outright */
 html.theme-mono .nav{ background:rgba(255,255,255,.72); }
 html.theme-mono .nav.scrolled{ background:rgba(255,255,255,.88); }
 html.theme-mono .nav.open .nav-links{ background:rgba(255,255,255,.97); }
@@ -132,7 +131,6 @@ html.theme-mono .step .num .shine{
   background:linear-gradient(135deg,#0a0a0b 0%,#3c3c42 45%,#6e6e78 100%);
   -webkit-background-clip:text; background-clip:text; color:transparent;
 }
-html.theme-mono .tst .who .av{ background:linear-gradient(150deg,#f0f0f2,#e2e2e6); color:#0a0a0b; }
 *{ font-family:var(--font-primary) !important; }
 code,pre,kbd,samp{ font-family:ui-monospace,'SFMono-Regular',Menlo,monospace !important; }
 html{ scroll-behavior:smooth; }
@@ -144,14 +142,7 @@ body{
   overflow-x:hidden;
   position:relative;
 }
-/* Ambient background glows */
-body::before{
-  content:''; position:fixed; inset:0; z-index:0; pointer-events:none;
-  background:
-    radial-gradient(60% 40% at 78% 8%, rgba(var(--gold-rgb),.08), transparent 60%),
-    radial-gradient(50% 45% at 8% 20%, rgba(120,130,180,.07), transparent 60%),
-    radial-gradient(70% 60% at 50% 120%, rgba(255,255,255,.04), transparent 60%);
-}
+/* Flat background — no ambient glow gradients, in either theme. */
 a{ color:inherit; text-decoration:none; }
 img{ max-width:100%; display:block; }
 ::selection{ background:var(--gold-soft); color:#fff; }
@@ -313,9 +304,6 @@ body.theme-bw .brand .mark, html.theme-bw .brand .mark, .theme-bw .brand .mark {
 .counter{ text-align:center; padding:26px 14px; border:1px solid var(--border); border-radius:var(--radius); background:var(--surface); }
 .counter .n{ font-size:clamp(26px,3.4vw,40px); background:var(--shine); -webkit-background-clip:text; background-clip:text; color:transparent; }
 .counter .lb{ font-size:13px; color:var(--text-dim); margin-top:6px; }
-.logos{ display:flex; flex-wrap:wrap; gap:14px 44px; justify-content:center; align-items:center; opacity:.62; margin-bottom:8px; }
-.logos .lg{ font-size:16px; letter-spacing:.02em; color:var(--text-dim); display:flex; align-items:center; gap:7px; filter:grayscale(1); }
-.logos .lg svg{ width:18px; height:18px; }
 
 /* ── Section spacing ── */
 .block{ padding:84px 0; }
@@ -369,6 +357,7 @@ body.theme-bw .brand .mark, html.theme-bw .brand .mark, .theme-bw .brand .mark {
 .feat:hover::after{ opacity:1; }
 .feat .fi{ width:44px; height:44px; border-radius:12px; display:grid; place-items:center; margin-bottom:15px;
   background:linear-gradient(150deg,#232329,#0e0e11); border:1px solid var(--border-2); color:#e6e6ea; }
+html.theme-mono .feat .fi{ background:linear-gradient(150deg,#f0f0f2,#e2e2e6); color:#0a0a0b; }
 .feat .fi svg{ width:22px; height:22px; }
 .feat h4{ font-size:16px; margin-bottom:7px; letter-spacing:-.01em; }
 .feat p{ font-size:13px; color:var(--text-dim); line-height:1.5; }
@@ -408,22 +397,6 @@ body.theme-bw .brand .mark, html.theme-bw .brand .mark, .theme-bw .brand .mark {
 .statc .n{ font-size:clamp(26px,3.2vw,38px); background:var(--shine); -webkit-background-clip:text; background-clip:text; color:transparent; }
 .statc .lb{ font-size:13.5px; color:var(--text-dim); margin-top:7px; }
 
-/* ── Testimonials ── */
-.tst-track{ display:flex; gap:20px; overflow-x:auto; scroll-snap-type:x mandatory; padding:6px 2px 20px; scrollbar-width:none; }
-.tst-track::-webkit-scrollbar{ display:none; }
-.tst{
-  flex:0 0 clamp(280px,42%,420px); scroll-snap-align:center;
-  background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-lg); padding:28px;
-}
-.tst .q{ font-size:16px; line-height:1.6; color:var(--text); margin-bottom:22px; }
-.tst .who{ display:flex; align-items:center; gap:13px; }
-.tst .who .av{ width:46px; height:46px; border-radius:14px; display:grid; place-items:center; font-size:16px;
-  background:linear-gradient(150deg,#26262c,#0d0d10); border:1px solid var(--border-2); color:var(--gold); }
-.tst .who b{ font-size:14.5px; } .tst .who span{ font-size:12px; color:var(--text-mute); display:block; }
-.tst .stars{ color:var(--gold); font-size:13px; margin-bottom:14px; letter-spacing:2px; }
-.tst-dots{ display:flex; gap:8px; justify-content:center; margin-top:6px; }
-.tst-dots button{ width:8px; height:8px; border-radius:50%; border:none; background:var(--border-2); cursor:pointer; transition:all .2s; padding:0; }
-.tst-dots button.on{ background:var(--gold); width:22px; border-radius:5px; }
 
 /* ── Pricing ── */
 .price-grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:18px; align-items:stretch; }
@@ -668,14 +641,6 @@ body.theme-bw .brand .mark, html.theme-bw .brand .mark, .theme-bw .brand .mark {
       <div class="counter"><div class="n">%<span class="count" data-count="99" data-suffix=".9">0</span></div><div class="lb" data-i18n="tr_uptime">Çalışma Süresi</div></div>
       <div class="counter"><div class="n">%<span class="count" data-count="0">0</span></div><div class="lb" data-i18n="tr_commission">Komisyon</div></div>
     </div>
-    <div class="logos rv">
-      <div class="lg"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="10"/></svg>Bistro Co</div>
-      <div class="lg"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2 2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>UrbanEats</div>
-      <div class="lg"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="4"/></svg>Kahve Lab</div>
-      <div class="lg"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3 7h7l-5.5 4 2 7L12 17l-6.5 3 2-7L2 9h7z"/></svg>Anadolu Sofra</div>
-      <div class="lg"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 12h20M12 2v20"/></svg>NoradaGrill</div>
-      <div class="lg"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v10M7 12h10"/></svg>Deniz Balık</div>
-    </div>
   </div>
 </section>
 
@@ -835,17 +800,6 @@ body.theme-bw .brand .mark, html.theme-bw .brand .mark, .theme-bw .brand .mark {
   </div>
 </section>
 
-<!-- ══════════ TESTIMONIALS ══════════ -->
-<section class="block">
-  <div class="wrap">
-    <div class="sec-head rv">
-      <span class="eyebrow"><span class="dot"></span><span data-i18n="ts_eyebrow">Referanslar</span></span>
-      <h2 data-i18n="ts_title">Restoran sahipleri ne diyor?</h2>
-    </div>
-    <div class="tst-track rv" id="tstTrack"></div>
-    <div class="tst-dots" id="tstDots"></div>
-  </div>
-</section>
 
 <!-- ══════════ PRICING ══════════ -->
 <section class="block" id="pricing">
@@ -979,16 +933,10 @@ const CMP = [
   ['cmp_freedom','yes','no']
 ];
 const PLANS = [
-  {k:'p_pro', price:'₺749', pop:true, trial:true, feats:['pf_qr','pf_menu','pf_orders','pf_res','pf_analytics','pf_domain','pf_priority']},
-  {k:'p_ent', price:'p_custom', pop:false, feats:['pf_all_pro','pf_ai','pf_multibranch','pf_wl','pf_sla','pf_manager']}
+  {k:'p_pro', price:'₺749', pop:true, trial:true, feats:['pf_qr','pf_table','pf_online','pf_res','pf_kitchen','pf_waiter','pf_bill','pf_analytics','pf_notify','pf_seo','pf_theme','pf_lang','pf_domain']},
+  {k:'p_ent', price:'₺1499', pop:false, feats:['pf_all_pro','pf_ai','pf_wl','pf_roles','pf_multibranch','pf_delivery','pf_analytics_adv','pf_priority','pf_api','pf_manager','pf_sla']}
 ];
 const FAQS = ['q1','q2','q3','q4','q5','q6'];
-const TESTI = [
-  {k:'t1', by:'Mert Aydın', role:'t1_role', av:'M'},
-  {k:'t2', by:'Selin Kaya', role:'t2_role', av:'S'},
-  {k:'t3', by:'Burak Demir', role:'t3_role', av:'B'},
-  {k:'t4', by:'Ayşe Yıldız', role:'t4_role', av:'A'}
-];
 
 /* ─────────────── i18n ─────────────── */
 const I18N = {
@@ -1052,23 +1000,18 @@ tr:{
   no_high:'%15 - %20', yes_zero:'%0', cmp_partial:'Kısıtlı',
   st_eyebrow:'Rakamlarla', st_title:'Ölçeklenen bir platform',
   st1:'İşlenen Sipariş', st2:'Yıllık Hacim', st3:'Ülke', st4:'Yanıt Süresi',
-  ts_eyebrow:'Referanslar', ts_title:'Restoran sahipleri ne diyor?',
-  t1:'"Pazaryeri komisyonlarından kurtulduk. Artık her siparişin tam karı bizde ve müşteri verisi elimizde."',
-  t1_role:'Sahibi, Bistro Co', t2:'"QR menüye geçtikten sonra masa devir hızımız arttı, personel yükü azaldı. Kurulum inanılmaz kolaydı."',
-  t2_role:'İşletmeci, UrbanEats', t3:'"Kendi alan adımızda, kendi markamızla profesyonel bir site. AI menü oluşturma bize saatler kazandırdı."',
-  t3_role:'Kurucu, Kahve Lab', t4:'"Rezervasyon ve analitik tek yerde. Artık hangi ürünün ne zaman sattığını net görüyoruz."',
-  t4_role:'Müdür, Anadolu Sofra',
   pr_eyebrow:'Fiyatlandırma', pr_title:'Her işletmeye uygun, esnek planlar', pr_sub:'Küçük bir kafe de olsanız zincir bir marka da — komisyon her zaman %0.',
   pr_note:'Tüm planlar 14 gün ücretsiz denemeyle başlar. Kredi kartı gerekmez.',
   p_start:'Başlangıç', p_start_d:'Dijitale ilk adım için ideal.',
   p_pro:'Profesyonel', p_pro_d:'Büyüyen restoranlar için en popüler seçim.',
   p_ent:'Kurumsal', p_ent_d:'Zincirler ve çok şubeli işletmeler için.',
-  p_custom:'Özel', p_per:'/ay', p_badge:'En Popüler', p_cta:'Ücretsiz Dene', p_cta_ent:'Satışla Görüş',
-  pf_qr:'QR menü ve dijital menü', pf_menu:'Sınırsız ürün ve kategori', pf_1table:'Tek masa QR', pf_email:'E-posta desteği',
-  pf_all_start:'Başlangıç\'taki her şey', pf_orders:'Online ve masa siparişi', pf_res:'Rezervasyon sistemi', pf_analytics:'Gelişmiş analitik',
-  pf_domain:'Özel alan adı', pf_priority:'Öncelikli destek',
-  pf_all_pro:'Profesyonel\'deki her şey', pf_ai:'AI asistan ve menü üretimi', pf_multibranch:'Çoklu şube yönetimi', pf_wl:'Tam white-label',
-  pf_sla:'SLA garantisi', pf_manager:'Özel başarı danışmanı',
+  p_per:'/ay', p_badge:'En Popüler', p_cta:'Ücretsiz Dene',
+  pf_qr:'QR Menü', pf_table:'Masa Siparişi', pf_online:'Online Sipariş', pf_res:'Rezervasyon Sistemi',
+  pf_kitchen:'Mutfak Ekranı', pf_waiter:'Garson Çağırma', pf_bill:'Hesap İsteme', pf_analytics:'Analitik Panel',
+  pf_notify:'Bildirim Gönderme', pf_seo:'SEO Altyapısı', pf_theme:'Tema Motoru', pf_lang:'Çoklu Dil', pf_domain:'Özel Alan Adı',
+  pf_all_pro:'Profesyonel\'deki her şey', pf_ai:'AI Asistan', pf_wl:'White Label (HASACA logosuz)', pf_roles:'Rol Yönetimi',
+  pf_multibranch:'Çoklu Şube Yönetimi', pf_delivery:'Teslimat Modülü', pf_analytics_adv:'Gelişmiş Analitik',
+  pf_priority:'Öncelikli Destek', pf_api:'API Entegrasyonları', pf_manager:'Özel Başarı Danışmanı', pf_sla:'SLA Garantisi',
   fq_eyebrow:'SSS', fq_title:'Sıkça sorulan sorular',
   q1_q:'HASACA gerçekten komisyon almıyor mu?', q1_a:'Evet. Siparişlerinizden hiçbir komisyon almıyoruz. Sabit bir aylık/yıllık plan ödersiniz, geri kalan tamamen size kalır.',
   q2_q:'Kurulum ne kadar sürer?', q2_a:'Ortalama 5 dakika. Restoranınızı oluşturur, logonuzu yükler ve menünüzü eklersiniz. Ekibimiz veri aktarımında ücretsiz yardımcı olur.',
@@ -1151,23 +1094,18 @@ en:{
   no_high:'15-20%', yes_zero:'0%', cmp_partial:'Limited',
   st_eyebrow:'By the numbers', st_title:'A platform that scales',
   st1:'Orders Processed', st2:'Annual Volume', st3:'Countries', st4:'Response Time',
-  ts_eyebrow:'Testimonials', ts_title:'What restaurant owners say',
-  t1:'"We got rid of marketplace commissions. Now every order\'s full profit is ours and we own the customer data."',
-  t1_role:'Owner, Bistro Co', t2:'"After moving to the QR menu our table turnover went up and staff load went down. Setup was incredibly easy."',
-  t2_role:'Operator, UrbanEats', t3:'"A professional site on our own domain, our own brand. AI menu building saved us hours."',
-  t3_role:'Founder, Kahve Lab', t4:'"Reservations and analytics in one place. Now we clearly see what sells and when."',
-  t4_role:'Manager, Anadolu Sofra',
   pr_eyebrow:'Pricing', pr_title:'Flexible plans for every business', pr_sub:'A small café or a chain brand — commission is always 0%.',
   pr_note:'All plans start with a 14-day free trial. No credit card required.',
   p_start:'Starter', p_start_d:'Ideal for a first step into digital.',
   p_pro:'Professional', p_pro_d:'The most popular choice for growing restaurants.',
   p_ent:'Enterprise', p_ent_d:'For chains and multi-branch businesses.',
-  p_custom:'Custom', p_per:'/mo', p_badge:'Most Popular', p_cta:'Start Free', p_cta_ent:'Talk to Sales',
-  pf_qr:'QR and digital menu', pf_menu:'Unlimited products and categories', pf_1table:'Single-table QR', pf_email:'Email support',
-  pf_all_start:'Everything in Starter', pf_orders:'Online and table ordering', pf_res:'Reservation system', pf_analytics:'Advanced analytics',
-  pf_domain:'Custom domain', pf_priority:'Priority support',
-  pf_all_pro:'Everything in Professional', pf_ai:'AI assistant and menu generation', pf_multibranch:'Multi-branch management', pf_wl:'Full white-label',
-  pf_sla:'SLA guarantee', pf_manager:'Dedicated success manager',
+  p_per:'/mo', p_badge:'Most Popular', p_cta:'Start Free',
+  pf_qr:'QR Menu', pf_table:'Table Ordering', pf_online:'Online Ordering', pf_res:'Reservation System',
+  pf_kitchen:'Kitchen Screen', pf_waiter:'Call Waiter', pf_bill:'Request Bill', pf_analytics:'Analytics Dashboard',
+  pf_notify:'Push Notifications', pf_seo:'SEO Infrastructure', pf_theme:'Theme Engine', pf_lang:'Multi-language', pf_domain:'Custom Domain',
+  pf_all_pro:'Everything in Professional', pf_ai:'AI Assistant', pf_wl:'White Label (no HASACA branding)', pf_roles:'Role Management',
+  pf_multibranch:'Multi-branch Management', pf_delivery:'Delivery Module', pf_analytics_adv:'Advanced Analytics',
+  pf_priority:'Priority Support', pf_api:'API Integrations', pf_manager:'Dedicated Success Manager', pf_sla:'SLA Guarantee',
   fq_eyebrow:'FAQ', fq_title:'Frequently asked questions',
   q1_q:'Does HASACA really charge no commission?', q1_a:'Yes. We take no commission on your orders. You pay a fixed monthly/yearly plan and keep the rest entirely.',
   q2_q:'How long does setup take?', q2_a:'About 5 minutes. You create your restaurant, upload your logo and add your menu. Our team helps with data migration for free.',
@@ -1236,7 +1174,6 @@ function renderPlans(){
   document.getElementById('priceGrid').innerHTML = PLANS.map(p=>{
     const price = p.price.startsWith('p_') ? T(p.price) : p.price;
     const showPer = !p.price.startsWith('p_') && p.price !== '₺0';
-    const cta = p.k==='p_ent' ? 'p_cta_ent' : 'p_cta';
     return `<div class="plan ${p.pop?'pop':''}">
       ${p.pop?`<span class="badge" data-i18n="p_badge">${T('p_badge')}</span>`:''}
       <h4 data-i18n="${p.k}">${T(p.k)}</h4>
@@ -1244,7 +1181,7 @@ function renderPlans(){
       <div class="amt"><span class="v">${price}</span>${showPer?`<span class="per" data-i18n="p_per">${T('p_per')}</span>`:''}</div>
       ${p.trial?`<div class="trial-note" data-i18n="p_trial_note">${T('p_trial_note')}</div>`:''}
       <ul>${p.feats.map(f=>`<li>${svg('<path d="M20 6 9 17l-5-5"/>',16)}<span data-i18n="${f}">${T(f)}</span></li>`).join('')}</ul>
-      <a href="${p.k==='p_ent'?'/satis-ekibi':'/giris'}" class="btn ${p.pop?'btn-primary':'btn-ghost'}" data-i18n="${cta}">${T(cta)}</a>
+      <a href="/giris" class="btn ${p.pop?'btn-primary':'btn-ghost'}" data-i18n="p_cta">${T('p_cta')}</a>
     </div>`;
   }).join('');
 }
@@ -1253,15 +1190,6 @@ function renderFaq(){
     <details class="qa"><summary><span data-i18n="${q}_q">${T(q+'_q')}</span>
       <span class="pl">${svg('<path d="M12 5v14M5 12h14"/>',15)}</span></summary>
       <div class="ans" data-i18n="${q}_a">${T(q+'_a')}</div></details>`).join('');
-}
-function renderTesti(){
-  document.getElementById('tstTrack').innerHTML = TESTI.map(t=>`
-    <div class="tst"><div class="stars">★★★★★</div>
-      <div class="q" data-i18n="${t.k}">${T(t.k)}</div>
-      <div class="who"><span class="av">${t.av}</span><div><b>${t.by}</b><span data-i18n="${t.role}">${T(t.role)}</span></div></div>
-    </div>`).join('');
-  const dots = TESTI.map((_,i)=>`<button class="${i===0?'on':''}" onclick="scrollTesti(${i})"></button>`).join('');
-  document.getElementById('tstDots').innerHTML = dots;
 }
 /* Footer columns are rendered from the shared marketing registry so a new page
    automatically appears here — no hardcoded link lists, no dead routes. */
@@ -1284,12 +1212,6 @@ function renderFooter(){
       <a href="/giris">${pick(['Yönetici Girişi','Admin Login'])}</a>
       <a href="/giris">${pick(['Restoran Girişi','Restaurant Login'])}</a>
       <a href="/root-girisi">${pick(['Root Panel Girişi','Root Panel Login'])}</a></div>`;
-}
-
-function scrollTesti(i){
-  const track = document.getElementById('tstTrack');
-  const card = track.children[i];
-  if(card) track.scrollTo({ left: card.offsetLeft - track.offsetLeft - 20, behavior:'smooth' });
 }
 
 /* ─────────────── i18n APPLY ─────────────── */
@@ -1408,7 +1330,7 @@ document.addEventListener('DOMContentLoaded', ()=>{
   let savedTheme = 'dark';
   try { savedTheme = localStorage.getItem('landing_theme') || 'dark'; } catch(e){}
   applyLandingTheme(savedTheme);
-  renderFeatures(); renderSteps(); renderCmp(); renderPlans(); renderFaq(); renderTesti(); renderFooter();
+  renderFeatures(); renderSteps(); renderCmp(); renderPlans(); renderFaq(); renderFooter();
   setLang(LANG);
   applyI18n();
   initObservers();
