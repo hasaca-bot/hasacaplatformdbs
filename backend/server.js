@@ -1341,11 +1341,29 @@ app.get('/api/auth/my-restaurants', rateLimiter(30), async (req, res) => {
 
     const ids = tenants.map(t => t.id);
     let orders = 0, revenue = 0;
+    // Per-tenant chart data for the hub's own restaurant cards (Phase 50 follow-up) — same
+    // day-bucketed shape buildOrdersAnalytics() already produces for the single-tenant dashboard
+    // chart, just computed once per linked tenant instead of once for req.tenantId.
+    const days = Math.min(365, Math.max(1, parseInt(req.query.days) || 30));
+    const since = Date.now() - days * 86400000;
+    const byTenant = {};
     if (ids.length) {
       const placeholders = ids.map((_, i) => (isPg ? `$${i + 1}` : '?')).join(',');
       const agg = await db.get(`SELECT COUNT(*) AS cnt, COALESCE(SUM(total),0) AS rev FROM orders WHERE tenant_id IN (${placeholders})`, ids);
       orders = Number(agg && agg.cnt) || 0;
       revenue = Number(agg && agg.rev) || 0;
+
+      const periodOrders = await db.all(
+        `SELECT tenant_id, total, created_at, order_type FROM orders WHERE tenant_id IN (${placeholders}) AND created_at >= ${isPg ? `$${ids.length + 1}` : '?'}`,
+        [...ids, since]
+      );
+      for (const id of ids) byTenant[id] = [];
+      for (const o of periodOrders) { if (byTenant[o.tenant_id]) byTenant[o.tenant_id].push(o); }
+    }
+    for (const t of tenants) {
+      const a = buildOrdersAnalytics(byTenant[t.id] || [], days);
+      t.summary = a.summary;
+      t.ordersByDay = a.ordersByDay;
     }
 
     const latest = await db.get(
@@ -1356,7 +1374,8 @@ app.get('/api/auth/my-restaurants', rateLimiter(30), async (req, res) => {
     res.json({
       tenants,
       totals: { restaurants: tenants.length, orders, revenue },
-      display_name: (latest && latest.display_name) || ''
+      display_name: (latest && latest.display_name) || '',
+      days
     });
   } catch (err) {
     console.error('[API ERROR] GET /api/auth/my-restaurants:', err);
@@ -1880,6 +1899,39 @@ app.get('/api/admin/activity', adminAuth, async (req, res) => {
 });
 
 // GET /api/admin/analytics?days=30 — the tenant's OWN analytics (tenant-isolated).
+// Shared by GET /api/admin/analytics (one tenant, adminAuth) and GET /api/auth/my-restaurants
+// (many tenants at once, hub cards) — same day-bucketed orders summary + Masa/Paket split either
+// way, so the hub's per-restaurant chart is pixel-for-pixel the same data shape the existing
+// dashboard chart already renders (renderDashAreaChart in admin.html is reused verbatim for both).
+function buildOrdersAnalytics(orders, days) {
+  let revenue = 0, delivery = 0, dinein = 0; const byDay = {}, statusB = {};
+  for (const o of orders) {
+    const t = Number(o.total) || 0; revenue += t;
+    const isDinein = o.order_type === 'dinein';
+    if (isDinein) dinein++; else delivery++;
+    statusB[o.status || 'new'] = (statusB[o.status || 'new'] || 0) + 1;
+    const key = new Date(Number(o.created_at)).toISOString().slice(0, 10);
+    const day = (byDay[key] = byDay[key] || { date: key, orders: 0, revenue: 0, delivery: 0, dinein: 0 });
+    day.orders++; day.revenue += t;
+    if (isDinein) day.dinein++; else day.delivery++;
+  }
+  const series = [];
+  for (let i = days - 1; i >= 0; i--) {
+    const key = new Date(Date.now() - i * 86400000).toISOString().slice(0, 10);
+    series.push(byDay[key] || { date: key, orders: 0, revenue: 0, delivery: 0, dinein: 0 });
+  }
+  return {
+    summary: {
+      orders: orders.length,
+      revenue: +revenue.toFixed(2),
+      avgOrderValue: orders.length ? +(revenue / orders.length).toFixed(2) : 0
+    },
+    typeSplit: { delivery, dinein },
+    statusBreakdown: statusB,
+    ordersByDay: series
+  };
+}
+
 app.get('/api/admin/analytics', adminAuth, async (req, res) => {
   try {
     const days = Math.min(365, Math.max(1, parseInt(req.query.days) || 30));
@@ -1888,22 +1940,7 @@ app.get('/api/admin/analytics', adminAuth, async (req, res) => {
       `SELECT total, created_at, order_type, status FROM orders WHERE tenant_id = ${p(1)} AND created_at >= ${p(2)}`,
       [req.tenantId, since]
     );
-    let revenue = 0, delivery = 0, dinein = 0; const byDay = {}, statusB = {};
-    for (const o of orders) {
-      const t = Number(o.total) || 0; revenue += t;
-      const isDinein = o.order_type === 'dinein';
-      if (isDinein) dinein++; else delivery++;
-      statusB[o.status || 'new'] = (statusB[o.status || 'new'] || 0) + 1;
-      const key = new Date(Number(o.created_at)).toISOString().slice(0, 10);
-      const day = (byDay[key] = byDay[key] || { date: key, orders: 0, revenue: 0, delivery: 0, dinein: 0 });
-      day.orders++; day.revenue += t;
-      if (isDinein) day.dinein++; else day.delivery++;
-    }
-    const series = [];
-    for (let i = days - 1; i >= 0; i--) {
-      const key = new Date(Date.now() - i * 86400000).toISOString().slice(0, 10);
-      series.push(byDay[key] || { date: key, orders: 0, revenue: 0, delivery: 0, dinein: 0 });
-    }
+    const analytics = buildOrdersAnalytics(orders, days);
     const items = await db.all(
       `SELECT product_name, SUM(quantity) q FROM order_items WHERE tenant_id = ${p(1)} GROUP BY product_name ORDER BY q DESC LIMIT 8`,
       [req.tenantId]
@@ -1911,15 +1948,10 @@ app.get('/api/admin/analytics', adminAuth, async (req, res) => {
     const rez = await db.get(`SELECT COUNT(*) c FROM reservations WHERE tenant_id = ${p(1)}`, [req.tenantId]);
     res.json({
       days,
-      summary: {
-        orders: orders.length,
-        revenue: +revenue.toFixed(2),
-        avgOrderValue: orders.length ? +(revenue / orders.length).toFixed(2) : 0,
-        reservations: rez ? Number(Object.values(rez)[0]) : 0
-      },
-      typeSplit: { delivery, dinein },
-      statusBreakdown: statusB,
-      ordersByDay: series,
+      summary: { ...analytics.summary, reservations: rez ? Number(Object.values(rez)[0]) : 0 },
+      typeSplit: analytics.typeSplit,
+      statusBreakdown: analytics.statusBreakdown,
+      ordersByDay: analytics.ordersByDay,
       topProducts: items.map(i => ({ name: i.product_name, qty: Number(i.q) }))
     });
   } catch (err) {

@@ -115,3 +115,33 @@ local dev DB afterward; the real `default` tenant's own admin row was untouched 
 - `admin.html` — identity-token storage; hub view (HTML/CSS/JS); context-aware `adminLogout()`;
   hub-aware `openAdminLogin()`/`onAdminGoogleCredential()`; new i18n keys (`admin_hub_*`, TR+EN).
 - `login.html` — `handleLoginSuccess()`/`onGoogleCredential()` handle the new multi-tenant response.
+
+## Follow-up: per-restaurant analytics chart in the hub, "Ciro" renamed to "Satış"
+Same-day follow-up request: instead of a thin one-line row per restaurant, each restaurant's own
+card should be wide and show real information and a chart underneath its name — specifically the
+SAME Masa/Paket area chart with a day-range selector that already exists on the single-restaurant
+dashboard (`admin_nav_analytics`), not a new chart design. Also: "Ciro" → "Satış" everywhere in the
+hub (TR only; the English "Revenue" label was already correct as-is).
+
+- `backend/server.js`: extracted `buildOrdersAnalytics(orders, days)` — the exact day-bucketed
+  summary/typeSplit/ordersByDay logic `GET /api/admin/analytics` already had — into a shared
+  helper, and refactored that endpoint to call it (zero behavior change, same response shape).
+  `GET /api/auth/my-restaurants` now accepts `?days=` and, with ONE extra query across every linked
+  `tenant_id` (`WHERE tenant_id IN (...) AND created_at >= ?`, grouped by tenant in JS), returns
+  each tenant's own `summary` + `ordersByDay` alongside its name/logo — the hub can render every
+  restaurant's own chart from a single network call instead of one request per restaurant.
+- `admin.html`: `renderHubList()` now builds one wide `.panel-card.hub-resto-card` per restaurant
+  (header with logo/name/"Aç", its own Sipariş/Satış totals for the selected period, the existing
+  Masa/Paket legend, and a `.dash-chart-wrap` div) and, after the cards are in the DOM, calls the
+  **existing, unmodified** `renderDashAreaChart()` once per restaurant with that restaurant's own
+  `ordersByDay` slice — the exact same chart function/interaction (hover tooltip, smoothed area
+  fill) the single-restaurant dashboard already uses, not a reimplementation. A single shared
+  day-range `<select>` (7/30/90, reusing the dashboard's own `admin_an_range_*` i18n keys) above the
+  list re-fetches `my-restaurants` with the new `?days=` and re-renders every card — the top
+  "Toplam" stat cards stay all-time on purpose, only the per-restaurant cards below are period-scoped.
+- Verified live with real seeded order data across two synthetic tenants: both cards render correct,
+  DIFFERENT per-tenant totals and a real chart (4 SVG paths — the area+line pair per series, matching
+  `renderDashAreaChart`'s own output) at both 30-day and 7-day ranges, the numbers genuinely changing
+  between them; re-verified in white theme via the project's established fresh-navigation method
+  (card background, stat-value text color, logo badge, and the chart itself all correctly themed).
+  All synthetic tenants/orders/admin rows removed afterward.
