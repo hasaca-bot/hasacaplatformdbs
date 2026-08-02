@@ -43,7 +43,10 @@ function defaultSettings(displayName) {
     footer_text: name,
     seo_title: name + ' | HASACA',
     seo_description: 'A restaurant website powered by the HASACA platform.',
-    subscription_status: 'active',
+    // New restaurants start on the "first 14 days free" trial from the pricing page (landing.html's
+    // PLANS). trial_started_at is read by admin.html's "Üyelik Durumu" card to show days remaining.
+    subscription_status: 'trial',
+    trial_started_at: Date.now(),
     self_paused: false
   };
 }

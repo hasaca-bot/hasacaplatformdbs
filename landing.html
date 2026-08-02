@@ -436,7 +436,8 @@ body.theme-bw .brand .mark, html.theme-bw .brand .mark, .theme-bw .brand .mark {
 .plan .badge{ align-self:flex-start; font-size:11px; letter-spacing:.1em; text-transform:uppercase; color:var(--gold); background:var(--gold-soft); border:1px solid rgba(var(--gold-rgb),.3); padding:5px 11px; border-radius:999px; margin-bottom:14px; }
 .plan h4{ font-size:19px; margin-bottom:6px; }
 .plan .desc{ font-size:13px; color:var(--text-mute); margin-bottom:18px; min-height:34px; }
-.plan .amt{ display:flex; align-items:baseline; gap:6px; margin-bottom:20px; }
+.plan .amt{ display:flex; align-items:baseline; gap:6px; margin-bottom:4px; }
+.plan .trial-note{ font-size:12.5px; color:var(--gold); font-weight:600; margin-bottom:16px; }
 .plan .amt .v{ font-size:44px; letter-spacing:-.03em; }
 .plan .amt .per{ font-size:13px; color:var(--text-mute); }
 .plan ul{ list-style:none; display:flex; flex-direction:column; gap:11px; margin-bottom:24px; }
@@ -566,7 +567,7 @@ body.theme-bw .brand .mark, html.theme-bw .brand .mark, .theme-bw .brand .mark {
       <a href="/fiyatlandirma" data-i18n="nav_pricing">Fiyatlandırma</a>
       <a href="/dokumantasyon" data-i18n="nav_docs">Dokümantasyon</a>
       <a href="/iletisim" data-i18n="nav_contact">İletişim</a>
-      <a href="/demo-talep" class="nav-cta-mobile" data-i18n="nav_cta">Ücretsiz Demo</a>
+      <a href="/giris" class="nav-cta-mobile" id="navCtaBtnMobile">Kayıt Ol</a>
       <a href="/giris" class="nav-cta-mobile" data-i18n="nav_login">Yönetici Girişi</a>
     </div>
     <div class="nav-right">
@@ -578,7 +579,7 @@ body.theme-bw .brand .mark, html.theme-bw .brand .mark, .theme-bw .brand .mark {
         <button data-lang="en" onclick="setLang('en')">EN</button>
       </div>
       <a href="/giris" class="btn btn-ghost" data-i18n="nav_login">Yönetici Girişi</a>
-      <a href="/demo-talep" class="btn btn-primary" data-i18n="nav_cta">Ücretsiz Demo</a>
+      <a href="/giris" class="btn btn-primary" id="navCtaBtn">Kayıt Ol</a>
       <button class="nav-toggle" onclick="document.getElementById('nav').classList.toggle('open')" aria-label="Menu">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
       </button>
@@ -978,8 +979,7 @@ const CMP = [
   ['cmp_freedom','yes','no']
 ];
 const PLANS = [
-  {k:'p_start', price:'₺0', pop:false, feats:['pf_qr','pf_menu','pf_1table','pf_email']},
-  {k:'p_pro', price:'₺749', pop:true, feats:['pf_all_start','pf_orders','pf_res','pf_analytics','pf_domain','pf_priority']},
+  {k:'p_pro', price:'₺749', pop:true, trial:true, feats:['pf_qr','pf_menu','pf_orders','pf_res','pf_analytics','pf_domain','pf_priority']},
   {k:'p_ent', price:'p_custom', pop:false, feats:['pf_all_pro','pf_ai','pf_multibranch','pf_wl','pf_sla','pf_manager']}
 ];
 const FAQS = ['q1','q2','q3','q4','q5','q6'];
@@ -995,6 +995,8 @@ const I18N = {
 tr:{
   nav_features:'Özellikler', nav_how:'Nasıl Çalışır', nav_pricing:'Fiyatlandırma', nav_faq:'SSS', nav_contact:'İletişim', nav_cta:'Ücretsiz Demo',
   nav_solutions:'Çözümler', nav_docs:'Dokümantasyon', nav_login:'Yönetici Girişi',
+  nav_cta_register:'Kayıt Ol', nav_cta_login:'Giriş Yap',
+  p_trial_note:'İlk 14 gün ücretsiz',
   hero_eyebrow:'Komisyonsuz Restoran Platformu',
   hero_h1a:'Restoranınızı Dijitalleştirin.', hero_h1b:'Komisyon Ödemeyin.',
   hero_sub:'HASACA ile restoranınıza özel web sitesi, QR menü, online sipariş, rezervasyon, yapay zekâ ve yönetim paneline tek platformdan sahip olun.',
@@ -1092,6 +1094,8 @@ tr:{
 en:{
   nav_features:'Features', nav_how:'How it works', nav_pricing:'Pricing', nav_faq:'FAQ', nav_contact:'Contact', nav_cta:'Free Demo',
   nav_solutions:'Solutions', nav_docs:'Documentation', nav_login:'Admin Login',
+  nav_cta_register:'Sign Up', nav_cta_login:'Log In',
+  p_trial_note:'First 14 days free',
   hero_eyebrow:'Commission-Free Restaurant Platform',
   hero_h1a:'Digitize Your Restaurant.', hero_h1b:'Pay Zero Commission.',
   hero_sub:'With HASACA, get a branded website, QR menu, online ordering, reservations, AI and a management panel — all from a single platform.',
@@ -1238,8 +1242,9 @@ function renderPlans(){
       <h4 data-i18n="${p.k}">${T(p.k)}</h4>
       <div class="desc" data-i18n="${p.k}_d">${T(p.k+'_d')}</div>
       <div class="amt"><span class="v">${price}</span>${showPer?`<span class="per" data-i18n="p_per">${T('p_per')}</span>`:''}</div>
+      ${p.trial?`<div class="trial-note" data-i18n="p_trial_note">${T('p_trial_note')}</div>`:''}
       <ul>${p.feats.map(f=>`<li>${svg('<path d="M20 6 9 17l-5-5"/>',16)}<span data-i18n="${f}">${T(f)}</span></li>`).join('')}</ul>
-      <a href="${p.k==='p_ent'?'/satis-ekibi':'/demo-talep'}" class="btn ${p.pop?'btn-primary':'btn-ghost'}" data-i18n="${cta}">${T(cta)}</a>
+      <a href="${p.k==='p_ent'?'/satis-ekibi':'/giris'}" class="btn ${p.pop?'btn-primary':'btn-ghost'}" data-i18n="${cta}">${T(cta)}</a>
     </div>`;
   }).join('');
 }
@@ -1299,7 +1304,32 @@ function setLang(l){
   document.querySelectorAll('.lang button').forEach(b=>b.classList.toggle('on', b.getAttribute('data-lang')===l));
   applyI18n();
   renderFooter();
+  updateNavCta();
 }
+
+/* Top-right CTA: "Kayıt Ol" (register, → /giris) for a first-time visitor, "Giriş Yap" (log in,
+   → /admin) for someone who already has a session on this browser — checked once via the same
+   token this platform's own admin panel already stores (hasaca_admin_token), verified against
+   /api/auth/me so an expired/invalid leftover token doesn't wrongly claim "already registered". */
+let __navCtaLoggedIn = false;
+function updateNavCta(){
+  ['navCtaBtn','navCtaBtnMobile'].forEach(id => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    if (__navCtaLoggedIn) { el.textContent = T('nav_cta_login'); el.href = '/admin'; }
+    else { el.textContent = T('nav_cta_register'); el.href = '/giris'; }
+  });
+}
+(async () => {
+  try {
+    const token = localStorage.getItem('hasaca_admin_token');
+    if (token) {
+      const r = await fetch('/api/auth/me', { headers: { Authorization: 'Bearer ' + token } });
+      __navCtaLoggedIn = r.ok;
+    }
+  } catch (e) {}
+  updateNavCta();
+})();
 
 /* ─────────────── COUNTERS + REVEAL ─────────────── */
 function animateCount(el){

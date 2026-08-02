@@ -4402,6 +4402,8 @@ const i18nData = {
     admin_membership_hint: "Aboneliğinizle ilgili bilgiler burada görünecek.",
     admin_membership_status_active: "Aktif",
     admin_membership_status_trial: "Deneme",
+    admin_membership_trial_days: "Deneme Sürümü — {n} gün kaldı",
+    admin_membership_trial_ended: "Deneme Süresi Doldu",
     admin_brand_basics_title: "Marka",
     admin_brand_logo: "Logo",
     admin_brand_logo_upload: "Logo Yükle",
@@ -4798,6 +4800,8 @@ const i18nData = {
     admin_membership_hint: "Information about your subscription will appear here.",
     admin_membership_status_active: "Active",
     admin_membership_status_trial: "Trial",
+    admin_membership_trial_days: "Trial — {n} days left",
+    admin_membership_trial_ended: "Trial Ended",
     admin_brand_basics_title: "Brand",
     admin_brand_logo: "Logo",
     admin_brand_logo_upload: "Upload Logo",
@@ -6880,7 +6884,17 @@ async function loadRestaurantInfo() {
   document.getElementById('riAddress').value = cfg.address || '';
   const status = (cfg.settings && cfg.settings.subscription_status) || 'active';
   const pill = document.getElementById('membershipStatusPill');
-  if (pill) pill.textContent = aiT('admin_membership_status_' + status, status === 'active' ? 'Aktif' : status);
+  if (pill) {
+    if (status === 'trial' && cfg.settings && cfg.settings.trial_started_at) {
+      const elapsedDays = Math.floor((Date.now() - cfg.settings.trial_started_at) / 86400000);
+      const daysLeft = Math.max(0, 14 - elapsedDays);
+      pill.textContent = daysLeft > 0
+        ? aiT('admin_membership_trial_days', 'Deneme Sürümü — {n} gün kaldı').replace('{n}', daysLeft)
+        : aiT('admin_membership_trial_ended', 'Deneme Süresi Doldu');
+    } else {
+      pill.textContent = aiT('admin_membership_status_' + status, status === 'active' ? 'Aktif' : status);
+    }
+  }
 }
 async function saveRestaurantInfo() {
   const btn = document.getElementById('restaurantInfoSaveBtn');
