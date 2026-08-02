@@ -111,29 +111,28 @@ html.theme-mono .btn-primary{ background:#0a0a0b; color:#fff; box-shadow:0 10px 
 html.theme-mono .nav-toggle{ color:#0a0a0b; }
 html.theme-mono ::selection{ background:var(--gold-soft); color:#0a0a0b; }
 html.theme-mono .foot-social a:hover{ color:#0a0a0b; }
-/* .devices (hero laptop/phone/chip cluster) and .mock (the 3 showcase sections' screen mockups)
-   are meant to look like static screenshots of the actual product's own dark UI — like a real
-   photo, they shouldn't flip color just because the marketing page around them changed theme.
-   Re-declaring the ORIGINAL dark tokens scoped to these containers means every descendant that
-   already correctly used var(--text)/var(--gold)/etc. (rather than a hardcoded color) keeps
-   working exactly as before, with zero need to hunt down and patch each nested element by hand. */
-html.theme-mono .devices,
-html.theme-mono .mock{
-  --bg:#0a0a0b; --bg-2:#0e0e11; --bg-3:#141418;
-  --surface:rgba(255,255,255,.03); --surface-2:rgba(255,255,255,.055);
-  --glass:rgba(20,20,24,.55);
-  --border:rgba(255,255,255,.08); --border-2:rgba(255,255,255,.14);
-  --text:#f4f4f6; --text-dim:#a6a6b0; --text-mute:#6c6c78;
-  --gold:#d8b877; --gold-rgb:216,184,119; --gold-soft:rgba(var(--gold-rgb),.14);
-  --shine:linear-gradient(135deg,#ffffff 0%,#c9c9d2 45%,#8f8f9c 100%);
-}
-/* Small standalone dark badges OUTSIDE those two containers — same "always-dark, light content"
-   idea, but each is a one-off (not a big re-usable panel class), so pinned individually. */
+/* Everything below is a hardcoded (non-token) dark color used somewhere inside the hero device
+   mockup (.devices: .laptop/.phone), the 3 showcase screen mockups (.mock), the step-number
+   badges, the testimonial avatars, or the comparison table — none of these route through the
+   --bg/--text/etc. tokens above, so each needs its own explicit light-theme value. Nothing here
+   is skipped or left dark on purpose. */
+html.theme-mono .laptop .screen{ background:linear-gradient(160deg,#f1f1f3,#e4e4e8); }
+html.theme-mono .laptop .base{ background:linear-gradient(#e4e4e8,#d8d8dd); }
+html.theme-mono .laptop .base::after{ background:#9a9a9a; }
+html.theme-mono .ui-top .d{ background:#c7c7cf; }
+html.theme-mono .phone{ background:linear-gradient(160deg,#f1f1f3,#e4e4e8); }
+html.theme-mono .phone .phead{ background:linear-gradient(160deg,#eaeaee,#dcdce1); }
+html.theme-mono .phone .phead .qr{ border-color:#0a0a0b; }
+html.theme-mono .mock{ background:linear-gradient(160deg,#f6f6f8,#eaeaee); }
+html.theme-mono .mock .m-top .d{ background:#c7c7cf; }
+html.theme-mono .bubble.me{ background:#0a0a0b; color:#fff; }
+html.theme-mono .cmp .yes{ color:#0a0a0b; }
+html.theme-mono .step .num{ background:linear-gradient(150deg,#f0f0f2,#e2e2e6); }
 html.theme-mono .step .num .shine{
-  background:linear-gradient(135deg,#ffffff 0%,#c9c9d2 45%,#8f8f9c 100%);
+  background:linear-gradient(135deg,#0a0a0b 0%,#3c3c42 45%,#6e6e78 100%);
   -webkit-background-clip:text; background-clip:text; color:transparent;
 }
-html.theme-mono .tst .who .av{ color:#d8b877; }
+html.theme-mono .tst .who .av{ background:linear-gradient(150deg,#f0f0f2,#e2e2e6); color:#0a0a0b; }
 *{ font-family:var(--font-primary) !important; }
 code,pre,kbd,samp{ font-family:ui-monospace,'SFMono-Regular',Menlo,monospace !important; }
 html{ scroll-behavior:smooth; }

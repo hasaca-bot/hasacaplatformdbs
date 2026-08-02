@@ -63,9 +63,32 @@ never touched production) — it's a real, correctly-square, if needlessly large
 sticky (often survives a normal hard-refresh, sometimes needs a full browser restart or explicit
 site-data clear) — not something further code changes can address.
 
+## 3. Follow-up: the user explicitly asked for the device mockups to convert too ("don't skip anything")
+Revisited the design decision above — the platform owner wants a genuinely complete white theme, no
+exceptions, including the hero laptop/phone illustration and the 3 showcase screen mockups. Removed the
+"pin back to the original dark tokens" rule for `.devices`/`.mock` and instead gave every hardcoded
+(non-token) dark color inside them its own explicit light-theme value: the laptop screen bezel and base,
+the phone's own frame and header, the mock panel's own background, the small window-control dots (both
+the laptop's `.ui-top .d` and the mock's `.m-top .d`), and the fake QR code's border (the QR pattern
+itself stays black/white — that's inherent to what a QR code actually looks like, not a "theme" color).
+Also found and fixed two more hardcoded-color spots that were never inside `.devices`/`.mock` at all and
+had been missed until this pass: `.cmp .yes` (the comparison-table checkmark color, previously a
+near-white `#e9e9ee` — invisible on the new white page) and `.bubble.me` (a chat-mockup "my message"
+bubble that was white-on-white against the now-white page — flipped to a dark bubble with white text so
+it still reads as a distinct, intentional accent). `.step .num` and `.tst .who .av` (previously left
+pinned to their original dark styling) now also convert to light badges with dark text/icons, matching
+`.brand .mark`'s existing treatment, for full consistency.
+Verified every one of these with the same fresh-navigation method: confirmed each element's actual
+rendered background/color in the white theme, and separately re-confirmed the default dark theme is
+completely byte-for-byte unchanged (laptop screen, mock panel, comparison checkmark, and chat bubble all
+still show their original dark-theme values with the toggle off).
+
 ## Files changed
-- `landing.html` — replaced the `theme-mono` gray-swap with a full light-theme token override + 6
-  component-specific fixes for hardcoded colors that don't route through tokens.
+- `landing.html` — replaced the `theme-mono` gray-swap with a full light-theme token override, then (in
+  a follow-up pass) removed the initial "keep device mockups dark" exception and gave every remaining
+  hardcoded dark color inside `.devices`/`.mock` — plus two standalone spots found late
+  (`.cmp .yes`, `.bubble.me`) — its own explicit light-theme value, so nothing on the page stays dark
+  except the QR mockup's inherently-black-and-white pattern.
 - `admin.html` — `flex-shrink:0` added to `.profile-btn .av`; the earlier (harmless but insufficient)
   `justify-self`/`align-self`/`display:block` additions to the inner `<img>` kept as defensive belt-and-
   suspenders, though the flex-shrink fix on the parent was the actual root cause.
