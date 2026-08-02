@@ -7,7 +7,12 @@
 <meta name="description" content="HASACA ile restoranınıza özel web sitesi, QR menü, online sipariş, rezervasyon, yapay zekâ ve yönetim panelini tek platformdan yönetin. Komisyon yok, tam kontrol sizde.">
 <meta name="keywords" content="restoran yazılımı, QR menü, online sipariş, komisyonsuz, restoran web sitesi, rezervasyon sistemi, restoran yönetim paneli, HASACA">
 <meta name="theme-color" content="#0a0a0b">
-<link rel="canonical" href="https://hasaca.com/">
+<meta name="robots" content="index, follow">
+<!-- Landing is served as a static file (Netlify never proxies this to the backend), so this
+     canonical/OG url must be a real, hardcoded live domain — hasaca.com is NOT registered/live
+     (verified), so this points at the actual current production host. Update by hand if/when a
+     permanent custom domain is set up. -->
+<link rel="canonical" href="https://platformhasaca.netlify.app/">
 <link rel="icon" type="image/svg+xml" href="/icons/favicon.svg">
 <link rel="icon" href="/favicon.ico">
 <!-- OpenGraph -->
@@ -15,7 +20,7 @@
 <meta property="og:site_name" content="HASACA">
 <meta property="og:title" content="HASACA — Komisyonsuz Dijital Restoran Platformu">
 <meta property="og:description" content="Restoranınıza özel web sitesi, QR menü, online sipariş, rezervasyon ve yapay zekâ. Tek platform, sıfır komisyon.">
-<meta property="og:url" content="https://hasaca.com/">
+<meta property="og:url" content="https://platformhasaca.netlify.app/">
 <meta property="og:image" content="/icons/placeholder-logo.svg">
 <!-- Twitter -->
 <meta name="twitter:card" content="summary_large_image">
@@ -30,8 +35,27 @@
   "applicationCategory": "BusinessApplication",
   "operatingSystem": "Web",
   "description": "Komisyonsuz dijital restoran platformu: web sitesi, QR menü, online sipariş, rezervasyon, analitik ve yapay zekâ.",
-  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "TRY" },
-  "publisher": { "@type": "Organization", "name": "HASACA", "url": "https://hasaca.com/" }
+  "offers": [
+    { "@type": "Offer", "name": "Profesyonel", "price": "749", "priceCurrency": "TRY", "priceSpecification": { "@type": "UnitPriceSpecification", "price": "749", "priceCurrency": "TRY", "unitText": "MONTH" } },
+    { "@type": "Offer", "name": "Kurumsal", "price": "1499", "priceCurrency": "TRY", "priceSpecification": { "@type": "UnitPriceSpecification", "price": "1499", "priceCurrency": "TRY", "unitText": "MONTH" } }
+  ],
+  "publisher": { "@type": "Organization", "name": "HASACA", "url": "https://platformhasaca.netlify.app/" }
+}
+</script>
+<!-- Keep in sync by hand with the q1..q6 TR copy below (I18N.tr) — this file is static, there is
+     no server-side templating step to generate this from the same source automatically. -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    { "@type": "Question", "name": "HASACA gerçekten komisyon almıyor mu?", "acceptedAnswer": { "@type": "Answer", "text": "Evet. Siparişlerinizden hiçbir komisyon almıyoruz. Sabit bir aylık/yıllık plan ödersiniz, geri kalan tamamen size kalır." } },
+    { "@type": "Question", "name": "Kurulum ne kadar sürer?", "acceptedAnswer": { "@type": "Answer", "text": "Ortalama 5 dakika. Restoranınızı oluşturur, logonuzu yükler ve menünüzü eklersiniz. Ekibimiz veri aktarımında ücretsiz yardımcı olur." } },
+    { "@type": "Question", "name": "Kendi alan adımı kullanabilir miyim?", "acceptedAnswer": { "@type": "Answer", "text": "Kesinlikle. Profesyonel ve Kurumsal planlarda kendi alan adınızda, tamamen sizin markanızla yayına geçersiniz." } },
+    { "@type": "Question", "name": "Müşteri verileri kime ait?", "acceptedAnswer": { "@type": "Answer", "text": "Tüm müşteri ve sipariş verileri size aittir. İstediğiniz zaman dışa aktarabilirsiniz; biz asla üçüncü taraflarla paylaşmayız." } },
+    { "@type": "Question", "name": "Teknik bilgi gerekiyor mu?", "acceptedAnswer": { "@type": "Answer", "text": "Hayır. Panel sürükle-bırak kadar basittir. Kod veya sunucu bilgisi gerekmez." } },
+    { "@type": "Question", "name": "İstediğim zaman iptal edebilir miyim?", "acceptedAnswer": { "@type": "Answer", "text": "Evet. Taahhüt yoktur, dilediğiniz an iptal edebilirsiniz. 14 gün ücretsiz deneme ile risksiz başlarsınız." } }
+  ]
 }
 </script>
 <script>document.documentElement.className += ' js-anim';</script>

@@ -2,6 +2,12 @@
 /api/*       https://hasaca-api.onrender.com/api/:splat     200!
 /uploads/*   https://hasaca-api.onrender.com/uploads/:splat 200!
 
+# robots.txt / sitemap.xml are per-tenant/host-derived (backend/server.js) — proxied so the
+# real dynamic version is served instead of the static placeholder files at the repo root.
+# Bots tolerate Render's free-tier cold start fine; this is not a real-visitor page load.
+/robots.txt  https://hasaca-api.onrender.com/robots.txt     200!
+/sitemap.xml https://hasaca-api.onrender.com/sitemap.xml    200!
+
 # Platform Core Entry Points
 /root        /root.html        200
 /admin       /admin.html       200
@@ -15,54 +21,61 @@
 /landing     /landing.html     200
 /hasaca      /landing.html     200
 
-# Dynamic Marketing Sub-pages (served by marketing.html)
-/qr-menu               /marketing.html 200
-/online-siparis        /marketing.html 200
-/rezervasyon           /marketing.html 200
-/garson-cagirma        /marketing.html 200
-/mutfak-ekrani         /marketing.html 200
-/masa-yonetimi         /marketing.html 200
-/paket-servis          /marketing.html 200
-/analitik              /marketing.html 200
-/coklu-sube            /marketing.html 200
-/tema-sistemi          /marketing.html 200
-/white-label           /marketing.html 200
-/seo                   /marketing.html 200
-/bildirim-sistemi      /marketing.html 200
-/yapay-zeka            /marketing.html 200
-/ozellikler            /marketing.html 200
-/cozumler              /marketing.html 200
-/fiyatlandirma         /marketing.html 200
-/neden-hasaca          /marketing.html 200
-/karsilastirma         /marketing.html 200
-/entegrasyonlar        /marketing.html 200
-/hakkimizda            /marketing.html 200
-/kariyer               /marketing.html 200
-/referanslar           /marketing.html 200
-/basari-hikayeleri      /marketing.html 200
-/partner-programi      /marketing.html 200
-/bayilik               /marketing.html 200
-/destek                /marketing.html 200
-/yardim                /marketing.html 200
-/dokumantasyon         /marketing.html 200
-/api-docs              /marketing.html 200
-/blog                  /marketing.html 200
-/demo-talep            /marketing.html 200
-/teklif-al             /marketing.html 200
-/satis-ekibi           /marketing.html 200
-/iletisim              /marketing.html 200
-/durum                 /marketing.html 200
-/yol-haritasi          /marketing.html 200
-/surum-notlari         /marketing.html 200
-/sss                   /marketing.html 200
-/guvenlik              /marketing.html 200
-/gizlilik              /marketing.html 200
-/kvkk                  /marketing.html 200
-/cerez-politikasi      /marketing.html 200
-/kullanim-sartlari     /marketing.html 200
-/hizmet-sozlesmesi     /marketing.html 200
-/gizlilik-politikasi   /marketing.html 200
-/kvkk-aydinlatma-metni /marketing.html 200
+# Marketing sub-pages — served as PRE-RENDERED static files (pages/<slug>.html), each with its
+# own real title/description/canonical/OG/JSON-LD already baked in by
+# backend/scripts/prerender-marketing.js. Netlify never reaches the Express route for these in
+# production (only /api/* and /uploads/* proxy to Render above), so a live per-request head
+# injection would silently do nothing — this is why these are build-time files instead.
+# Re-run the prerender script and commit pages/*.html after any marketing-data.js content change.
+/qr-menu               /pages/qr-menu.html 200
+/online-siparis        /pages/online-siparis.html 200
+/rezervasyon           /pages/rezervasyon.html 200
+/garson-cagirma        /pages/garson-cagirma.html 200
+/mutfak-ekrani         /pages/mutfak-ekrani.html 200
+/masa-yonetimi         /pages/masa-yonetimi.html 200
+/paket-servis          /pages/paket-servis.html 200
+/analitik              /pages/analitik.html 200
+/coklu-sube            /pages/coklu-sube.html 200
+/tema-sistemi          /pages/tema-sistemi.html 200
+/white-label           /pages/white-label.html 200
+/seo                   /pages/seo.html 200
+/bildirim-sistemi      /pages/bildirim-sistemi.html 200
+/yapay-zeka            /pages/yapay-zeka.html 200
+/ozellikler            /pages/ozellikler.html 200
+/cozumler              /pages/cozumler.html 200
+/fiyatlandirma         /pages/fiyatlandirma.html 200
+/neden-hasaca          /pages/neden-hasaca.html 200
+/karsilastirma         /pages/karsilastirma.html 200
+/entegrasyonlar        /pages/entegrasyonlar.html 200
+/hakkimizda            /pages/hakkimizda.html 200
+/kariyer               /pages/kariyer.html 200
+/referanslar           /pages/referanslar.html 200
+/basari-hikayeleri     /pages/basari-hikayeleri.html 200
+/partner-programi      /pages/partner-programi.html 200
+/bayilik               /pages/bayilik.html 200
+/destek                /pages/destek.html 200
+/yardim                /pages/yardim.html 200
+/dokumantasyon         /pages/dokumantasyon.html 200
+/api-docs              /pages/api-docs.html 200
+/blog                  /pages/blog.html 200
+/demo-talep            /pages/demo-talep.html 200
+/teklif-al             /pages/teklif-al.html 200
+/satis-ekibi           /pages/satis-ekibi.html 200
+/iletisim              /pages/iletisim.html 200
+/durum                 /pages/durum.html 200
+/yol-haritasi          /pages/yol-haritasi.html 200
+/surum-notlari         /pages/surum-notlari.html 200
+/sss                   /pages/sss.html 200
+/guvenlik              /pages/guvenlik.html 200
+/gizlilik              /pages/gizlilik.html 200
+/kvkk                  /pages/kvkk.html 200
+/cerez-politikasi      /pages/cerez-politikasi.html 200
+/kullanim-sartlari     /pages/kullanim-sartlari.html 200
+/hizmet-sozlesmesi     /pages/hizmet-sozlesmesi.html 200
+# Legacy alias URLs (not real marketing-data.js slugs) — point at their real counterpart's page.
+/gizlilik-politikasi   /pages/gizlilik.html 200
+/kvkk-aydinlatma-metni /pages/kvkk.html 200
+
 
 # Home Page Fallback
 /            /landing.html     200!

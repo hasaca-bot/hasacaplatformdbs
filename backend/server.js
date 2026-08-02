@@ -1435,7 +1435,7 @@ app.use('/api', createTablesRouter({ db, isPg, events: platformEvents, adminAuth
 
 // Customer scans a QR -> /t/<token> serves the ordering page (tenant already resolved by host/override)
 app.get('/t/:token', (req, res) => {
-  res.sendFile(path.join(rootDir, 'index.html'));
+  sendTenantIndex(req, res);
 });
 
 // SSE — admin dashboard live feed. EventSource cannot send headers, so the token
@@ -2484,9 +2484,32 @@ app.use((req, res, next) => {
 // host-fallback id); it now renders the HASACA landing page instead. req.tenantId === null is the
 // single source of truth for that case — resolveTenant() only ever sets it to null when no tenant was
 // specified by any means, so this replaces the old duplicate, dev-only-gated host re-derivation.
+// Real per-tenant SEO in index.html's raw HTML, not just client-side (applySiteConfig() still
+// runs on top, unchanged) — see backend/lib/tenantSeo.js for why this existed only in JS before
+// and what still needs a real custom domain (pointed at Render, not Netlify) to reach real
+// visitors/crawlers in production.
+const { buildTenantHead } = require('./lib/tenantSeo');
+let indexShell = null;
+function sendTenantIndex(req, res) {
+  try {
+    if (!indexShell || process.env.NODE_ENV !== 'production') {
+      indexShell = fs.readFileSync(path.join(rootDir, 'index.html'), 'utf8');
+    }
+    const tenant = req.tenant;
+    if (!tenant) return res.sendFile(path.join(rootDir, 'index.html'));
+    let settings = {};
+    try { settings = JSON.parse(tenant.settings || '{}') || {}; } catch (e) {}
+    const head = buildTenantHead(tenant, settings, baseUrl(req) + '/');
+    res.type('html').send(indexShell.replace('<!--HEAD-->', head));
+  } catch (err) {
+    console.error('[TENANT INDEX] render:', err);
+    res.sendFile(path.join(rootDir, 'index.html'));
+  }
+}
+
 app.get('/', (req, res) => {
   if (req.tenantId === null) return res.sendFile(path.join(rootDir, 'landing.html'));
-  res.sendFile(path.join(rootDir, 'index.html'));
+  sendTenantIndex(req, res);
 });
 
 // Phase 36: no tenant specified at all (bare host, no ?tenant=/x-tenant-id) must not silently expose
@@ -2519,12 +2542,17 @@ app.get('/tenant/:slug', (req, res) => {
 
 // ── HASACA marketing sub-pages (Phase 23) ──
 // One shared shell (marketing.html) renders every page from marketing-data.js.
-// Meta is injected server-side per slug so each URL is genuinely crawlable.
+// Meta is injected server-side per slug so each URL is genuinely crawlable — this
+// route matters for local dev and any direct-Render request, but in PRODUCTION
+// Netlify's _redirects serves these URLs as static pre-rendered files instead
+// (see scripts/prerender-marketing.js) since routing all marketing traffic through
+// Render's free-tier cold start would hurt real visitors and crawl budget alike.
+// Both places build the head from the exact same buildMarketingHead() so they can
+// never drift apart.
 const MARKETING = require('../marketing-data.js');
 const MARKETING_SLUGS = Object.keys(MARKETING.pages);
+const { buildMarketingHead } = require('./lib/marketingSeo');
 let marketingShell = null;
-const esc = (s) => String(s == null ? '' : s)
-  .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
 app.get(MARKETING_SLUGS.map((s) => '/' + s), (req, res) => {
   try {
@@ -2534,25 +2562,7 @@ app.get(MARKETING_SLUGS.map((s) => '/' + s), (req, res) => {
     const slug = req.path.replace(/^\/+|\/+$/g, '');
     const page = MARKETING.pages[slug];
     if (!page) return res.status(404).sendFile(path.join(rootDir, 'marketing.html'));
-    const title = page.title[0] + ' — HASACA';
-    const desc = page.desc[0];
-    const url = baseUrl(req) + '/' + slug;
-    const head = [
-      `<title>${esc(title)}</title>`,
-      `<meta name="description" content="${esc(desc)}">`,
-      `<link rel="canonical" href="${esc(url)}">`,
-      `<meta name="robots" content="index,follow">`,
-      `<meta property="og:type" content="website">`,
-      `<meta property="og:site_name" content="HASACA">`,
-      `<meta property="og:title" content="${esc(title)}">`,
-      `<meta property="og:description" content="${esc(desc)}">`,
-      `<meta property="og:url" content="${esc(url)}">`,
-      `<meta property="og:image" content="/icons/placeholder-logo.svg">`,
-      `<meta name="twitter:card" content="summary_large_image">`,
-      `<meta name="twitter:title" content="${esc(title)}">`,
-      `<meta name="twitter:description" content="${esc(desc)}">`,
-      `<meta name="theme-color" content="#0a0a0b">`
-    ].join('\n');
+    const head = buildMarketingHead(slug, page, baseUrl(req));
     res.type('html').send(marketingShell.replace('<!--HEAD-->', head));
   } catch (err) {
     console.error('[MARKETING] render:', err);
@@ -2579,13 +2589,18 @@ app.get('/robots.txt', (req, res) => {
 });
 app.get('/sitemap.xml', (req, res) => {
   const url = baseUrl(req) + '/';
-  let lastmod = new Date().toISOString().slice(0, 10);
-  try { const u = req.tenant && req.tenant.updated_at; if (u) lastmod = new Date(Number(u)).toISOString().slice(0, 10); } catch (e) {}
-  // Tenant homepage + every HASACA marketing page (all host-derived, no hardcoded domain).
-  const entries = [`  <url>\n    <loc>${url}</loc>\n    <lastmod>${lastmod}</lastmod>\n    <changefreq>weekly</changefreq>\n    <priority>1.0</priority>\n  </url>`];
-  entries.push(`  <url>\n    <loc>${baseUrl(req)}/landing</loc>\n    <lastmod>${lastmod}</lastmod>\n    <changefreq>weekly</changefreq>\n    <priority>0.9</priority>\n  </url>`);
+  const today = new Date().toISOString().slice(0, 10);
+  // The tenant homepage's own lastmod reflects that tenant's real last edit; HASACA-owned pages
+  // (landing + every marketing page) must NOT borrow whichever tenant happened to resolve the
+  // request — they used to, which made /landing's lastmod flip depending on which restaurant's
+  // host served the sitemap. They get today's date instead (no real per-marketing-page edit
+  // timestamp is tracked, so "checked today" is the honest value, not a fabricated old date).
+  let tenantLastmod = today;
+  try { const u = req.tenant && req.tenant.updated_at; if (u) tenantLastmod = new Date(Number(u)).toISOString().slice(0, 10); } catch (e) {}
+  const entries = [`  <url>\n    <loc>${url}</loc>\n    <lastmod>${tenantLastmod}</lastmod>\n    <changefreq>weekly</changefreq>\n    <priority>1.0</priority>\n  </url>`];
+  entries.push(`  <url>\n    <loc>${baseUrl(req)}/landing</loc>\n    <lastmod>${today}</lastmod>\n    <changefreq>weekly</changefreq>\n    <priority>0.9</priority>\n  </url>`);
   for (const slug of MARKETING_SLUGS) {
-    entries.push(`  <url>\n    <loc>${baseUrl(req)}/${slug}</loc>\n    <lastmod>${lastmod}</lastmod>\n    <changefreq>monthly</changefreq>\n    <priority>0.7</priority>\n  </url>`);
+    entries.push(`  <url>\n    <loc>${baseUrl(req)}/${slug}</loc>\n    <lastmod>${today}</lastmod>\n    <changefreq>monthly</changefreq>\n    <priority>0.7</priority>\n  </url>`);
   }
   res.type('application/xml').send(
     `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${entries.join('\n')}\n</urlset>\n`
@@ -2606,7 +2621,7 @@ app.get('*', (req, res) => {
       'This address is not tied to a specific restaurant.'
     ));
   }
-  res.sendFile(path.join(rootDir, 'index.html'));
+  sendTenantIndex(req, res);
 });
 
 
