@@ -89,6 +89,39 @@ restaurant's host served the sitemap). Split into `tenantLastmod` (still the rea
 `updated_at`, for the tenant's own homepage entry only) and a separate `today` value for every
 HASACA-owned URL.
 
+## Follow-up (2026-08-03): the domain switched, then a sitemap bug, then a bigger discovery
+After shipping, the user reactivated their real Netlify site (`hasacaplatform.netlify.app` — the
+earlier `platformhasaca.netlify.app` had been a temporary stand-in while it was suspended for
+billing). Switched every hardcoded domain reference (landing.html's canonical/OG/JSON-LD, the
+prerender script's default base URL, re-ran it for all 45 pages) to the real one, and added the
+second Google Search Console verification meta tag issued for this property (kept the first one too
+— harmless to have both).
+
+Search Console then reported the submitted sitemap as "47 hata" (47 errors, 0 indexed). Live-fetched
+the actual `sitemap.xml`/`robots.txt` and found every URL pointed at `https://hasaca-api.onrender.com/
+...` — the raw Render backend — instead of the real public domain, which is exactly why Search
+Console rejected all of them (URLs outside the verified property). Root cause: `/robots.txt` and
+`/sitemap.xml` are proxied straight to Render by `_redirects`, and `baseUrl()` builds the URL from
+`req.headers.host`, which for this exact kind of Netlify proxy rewrite is Render's OWN hostname, not
+the original domain a visitor typed. First fix attempt (prefer `x-forwarded-host`) did not work —
+confirmed live that Netlify doesn't forward the original host through this proxy path at all.
+Second fix: `baseUrl()` now detects when the resolved host is the raw `*.onrender.com` domain and
+substitutes a `PUBLIC_SITE_URL` constant instead (env-var overridable, defaults to
+`hasacaplatform.netlify.app`) — verified locally with a spoofed `Host: hasaca-api.onrender.com`
+header, correctly resolves to the real domain.
+
+**This fix has NOT been confirmed live yet, for an unrelated and much bigger reason**: `GET
+https://hasaca-api.onrender.com/api/health` (hit directly, bypassing Netlify entirely) reports
+`"version":"2026-07-28-tenant-fix"` — a version string hardcoded in `server.js:110` when that phase
+shipped. Today's date is 2026-08-03. **Render has not deployed anything since around July 28th** —
+none of this session's work (Phases 48 through this sitemap fix, roughly a week of shipped commits)
+is actually live on the backend yet, independent of anything wrong in the code itself. This can't be
+fixed from here (no Render dashboard access, per this project's own standing rule) — told the user
+directly to check Render's dashboard for a stalled/disconnected auto-deploy or a billing pause (same
+class of issue Netlify just had), and to trigger a manual deploy if needed. Every fix in this
+follow-up is written and verified correct locally; whether it's live depends entirely on Render
+actually deploying current `main`.
+
 ## 6. Favicon — real triangle-mark raster assets, replacing pre-rebrand orange/red placeholders
 Opened every raster icon file in the repo directly (Read tool, as images) to check, rather than
 trust file names: `favicon.ico`, `favicon-16x16.png`, `favicon-32x32.png`, `apple-touch-icon.png`,
@@ -112,16 +145,21 @@ CONTENTS were wrong.
 
 ## What's left — the user's own action items (not code)
 Told directly to the user (external actions, no credentials/DNS access available here):
-1. **Google Search Console**: verify the site (a `google-site-verification` meta tag already exists
-   in index.html, so tenant-site verification is partly ready; landing/marketing would need their own
-   verification) and submit `sitemap.xml` once `/robots.txt`/`/sitemap.xml` are live on production.
-2. **Domain decision**: `hasaca.com` is not registered/live. A permanent domain (optionally `.com.tr`
-   for a mild local-search edge, per research — not required) is recommended; the code is already
-   written to make this a one-line update (landing.html's hardcoded canonical) plus one prerender-
-   script re-run, not a bigger change.
-3. **Google Business Profile** — benefits individual TENANT restaurants (HASACA itself isn't a local
+1. **Check Render's deploy status** (see the follow-up above) — nothing from this past week of work,
+   including every SEO fix in this phase, is confirmed live until Render actually redeploys `main`.
+   Check the Render dashboard for a stalled/disconnected auto-deploy or a billing pause, trigger a
+   manual deploy if needed.
+2. **Google Search Console**: `hasacaplatform.netlify.app` verified — DONE, 2026-08-03. Re-submit
+   `sitemap.xml` once Render is confirmed to have deployed the sitemap fix above.
+3. **Domain decision**: `hasaca.com` is not registered/live; the live domain is now
+   `hasacaplatform.netlify.app` (switched from a temporary `platformhasaca.netlify.app` stand-in this
+   same day). A permanent custom domain (optionally `.com.tr` for a mild local-search edge, per
+   research — not required) is still recommended for the long run; the code is already written to
+   make a future switch a small, mechanical change (landing.html's hardcoded canonical +
+   `PUBLIC_SITE_URL` in server.js + one prerender-script re-run), not a bigger one.
+4. **Google Business Profile** — benefits individual TENANT restaurants (HASACA itself isn't a local
    business), already a value-add the platform can point tenants toward.
-4. **Backlinks / directories / PR** — genuinely external, no code path for this.
+5. **Backlinks / directories / PR** — genuinely external, no code path for this.
 
 ## Files changed
 - `backend/lib/marketingSeo.js` (NEW) — shared per-slug head builder (meta/OG/Twitter/JSON-LD incl.
@@ -142,3 +180,8 @@ Told directly to the user (external actions, no credentials/DNS access available
 - `favicon.ico`, `favicon-16x16.png`, `favicon-32x32.png`, `apple-touch-icon.png`,
   `icons/icon-192.png`, `icons/icon-512.png`, `logo.png` — regenerated from the real triangle mark
   (were flat orange/red placeholders).
+- **Follow-up (2026-08-03)**: `landing.html` (second Search Console verification tag + domain switch
+  to `hasacaplatform.netlify.app`), `backend/scripts/prerender-marketing.js` + all 45 `pages/*.html`
+  (default base URL updated, re-run), `backend/server.js` (`baseUrl()`/`PUBLIC_SITE_URL` fix for the
+  robots.txt/sitemap.xml-via-Netlify-proxy bug — not yet confirmed live, Render hasn't deployed since
+  ~2026-07-28, see follow-up section above).
