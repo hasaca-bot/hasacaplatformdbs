@@ -61,6 +61,19 @@
 }
 </script>
 <script>document.documentElement.className += ' js-anim';</script>
+<script>
+/* Applied synchronously, before <body> parses, so there is no flash of the wrong theme on load —
+   the DOMContentLoaded handler further down still calls applyLandingTheme() again (harmless/
+   idempotent) for the toggle-button .on state and other page-specific setup. Shared with
+   marketing.html via the same localStorage key so a theme choice on either carries over to the
+   other when navigating between them. */
+(function(){
+  var saved = null;
+  try { saved = localStorage.getItem('landing_theme'); } catch(e){}
+  var theme = saved || (window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches ? 'mono' : 'dark');
+  if (theme === 'mono') document.documentElement.classList.add('theme-mono');
+})();
+</script>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
 /* ── GLOBAL TYPOGRAPHY — Samsung Sharp Sans (single central config, matches app) ── */
@@ -1353,8 +1366,9 @@ document.addEventListener('DOMContentLoaded', ()=>{
   document.getElementById('year').textContent = new Date().getFullYear();
   const saved = localStorage.getItem('hasaca_landing_lang');
   if(saved) LANG = saved;
-  let savedTheme = 'dark';
-  try { savedTheme = localStorage.getItem('landing_theme') || 'dark'; } catch(e){}
+  let savedTheme = null;
+  try { savedTheme = localStorage.getItem('landing_theme'); } catch(e){}
+  if (!savedTheme) savedTheme = (window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches) ? 'mono' : 'dark';
   applyLandingTheme(savedTheme);
   renderFeatures(); renderSteps(); renderCmp(); renderPlans(); renderFaq(); renderFooter();
   setLang(LANG);

@@ -23,6 +23,16 @@
 <link rel="icon" type="image/svg+xml" href="/icons/favicon.svg">
 <link rel="icon" href="/favicon.ico">
 <script>document.documentElement.className += ' js-anim';</script>
+<script>
+/* Applied synchronously before <body> parses, same as landing.html — shares its
+   localStorage['landing_theme'] key so a choice made on either page carries over to the other. */
+(function(){
+  var saved = null;
+  try { saved = localStorage.getItem('landing_theme'); } catch(e){}
+  var theme = saved || (window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches ? 'mono' : 'dark');
+  if (theme === 'mono') document.documentElement.classList.add('theme-mono');
+})();
+</script>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
 @font-face{
@@ -37,7 +47,7 @@
   --glass:rgba(20,20,24,.55);
   --border:rgba(255,255,255,.08); --border-2:rgba(255,255,255,.14);
   --text:#f4f4f6; --text-dim:#a6a6b0; --text-mute:#6c6c78; --white:#fff;
-  --gold:#d8b877; --gold-soft:rgba(216,184,119,.14);
+  --gold:#d8b877; --gold-rgb:216,184,119; --gold-soft:rgba(var(--gold-rgb),.14);
   --shine:linear-gradient(135deg,#ffffff 0%,#c9c9d2 45%,#8f8f9c 100%);
   --ok:#7fd18f; --warn:#e0c070;
   --radius:22px; --radius-lg:30px; --radius-sm:14px;
@@ -45,6 +55,46 @@
   --shadow:0 30px 80px -30px rgba(0,0,0,.85);
   --maxw:1180px;
 }
+/* Black & White theme, ported from landing.html (same localStorage['landing_theme'] key, so a
+   choice made on either page carries over to the other) — a real white background/dark text, not
+   a filter. Overrides every design token these 45 pages build on, plus the handful of components
+   that use a hardcoded hex instead of a token (buttons, nav brand mark, scrolled-nav backdrop). */
+html.theme-mono{
+  --bg:#ffffff; --bg-2:#f5f5f7; --bg-3:#ececef;
+  --surface:rgba(10,10,11,.035); --surface-2:rgba(10,10,11,.06);
+  --glass:rgba(255,255,255,.75);
+  --border:rgba(10,10,11,.1); --border-2:rgba(10,10,11,.16);
+  --text:#0a0a0b; --text-dim:#4a4a52; --text-mute:#78787f; --white:#0a0a0b;
+  --gold:#0a0a0b; --gold-rgb:10,10,11; --gold-soft:rgba(10,10,11,.08);
+  --shine:linear-gradient(135deg,#0a0a0b 0%,#3c3c42 45%,#6e6e78 100%);
+  --shadow:0 30px 80px -30px rgba(10,10,11,.18);
+  --ok:#1f7a3d; --warn:#8a6d1f;
+}
+html.theme-mono body{ background:var(--bg); }
+html.theme-mono .nav{ background:rgba(255,255,255,.72); }
+html.theme-mono .nav.scrolled{ background:rgba(255,255,255,.88); }
+html.theme-mono .nav.open .nav-links{ background:rgba(255,255,255,.97); }
+html.theme-mono .brand .mark,
+html.theme-mono .theme-switch.on{ color:var(--gold); }
+html.theme-mono .brand .mark{
+  background:#f0f0f2; border-color:rgba(10,10,11,.15); box-shadow:inset 0 1px 0 rgba(255,255,255,.8); color:#0a0a0b;
+}
+html.theme-mono .btn-primary{ background:#0a0a0b; color:#fff; box-shadow:0 10px 30px -8px rgba(10,10,11,.35); }
+html.theme-mono .nav-toggle{ color:#0a0a0b; }
+html.theme-mono ::selection{ background:var(--gold-soft); color:#0a0a0b; }
+html.theme-mono .foot-social a:hover{ color:#0a0a0b; }
+/* Comparison table checkmark (table.cmp .yes) — same near-white-on-white bug landing.html had. */
+html.theme-mono .yes{ color:#0a0a0b; }
+html.theme-mono .step .num{ background:linear-gradient(150deg,#f0f0f2,#e2e2e6); }
+html.theme-mono .step .num .shine{
+  background:linear-gradient(135deg,#0a0a0b 0%,#3c3c42 45%,#6e6e78 100%);
+  -webkit-background-clip:text; background-clip:text; color:transparent;
+}
+/* Contact-form status messages — the dark-theme colors are pale mint/salmon text tuned for a near-
+   black background; unreadable on white, no landing.html equivalent to copy since it has no
+   contact form. New, distinct dark tones for legibility on the light background. */
+html.theme-mono .form-msg.ok{ background:rgba(31,122,61,.08); border:1px solid rgba(31,122,61,.3); color:#1f7a3d; }
+html.theme-mono .form-msg.bad{ background:rgba(168,50,38,.08); border:1px solid rgba(168,50,38,.3); color:#a83226; }
 *{ font-family:var(--font-primary) !important; }
 code,pre,kbd,samp,.mono{ font-family:ui-monospace,'SFMono-Regular',Menlo,monospace !important; }
 html{ scroll-behavior:smooth; }
@@ -99,6 +149,11 @@ h1,h2,h3{ line-height:1.1; letter-spacing:-.02em; }
 .nav-links a:hover,.nav-links a.on{ color:var(--text); background:var(--surface); }
 .nav-right{ margin-left:auto; display:flex; align-items:center; gap:10px; }
 .nav-cta-mobile{ display:none; color:var(--gold) !important; }
+.theme-switch{ display:flex; align-items:center; justify-content:center; width:34px; height:34px; flex:none;
+  background:var(--surface); border:1px solid var(--border); border-radius:999px; color:var(--text-mute);
+  cursor:pointer; transition:all .15s; }
+.theme-switch:hover{ color:var(--text); border-color:var(--border-2); }
+.theme-switch.on{ background:var(--surface-2); color:var(--gold); }
 .lang{ display:flex; align-items:center; gap:2px; background:var(--surface); border:1px solid var(--border); border-radius:999px; padding:3px; }
 .lang button{ background:none; border:none; color:var(--text-mute); font-size:12.5px; cursor:pointer; padding:5px 11px; border-radius:999px; transition:all .15s; }
 .lang button.on{ background:var(--surface-2); color:var(--text); }
@@ -178,8 +233,8 @@ table.cmp tbody tr:hover{ background:rgba(255,255,255,.02); }
 .price-grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:18px; align-items:stretch; }
 .plan{ background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-lg); padding:28px 24px; display:flex; flex-direction:column; transition:transform .18s var(--ease), border-color .18s; }
 .plan:hover{ transform:translateY(-5px); border-color:var(--border-2); }
-.plan.pop{ background:linear-gradient(180deg,rgba(216,184,119,.08),var(--surface)); border-color:rgba(216,184,119,.4); }
-.plan .badge{ align-self:flex-start; font-size:11px; letter-spacing:.1em; text-transform:uppercase; color:var(--gold); background:var(--gold-soft); border:1px solid rgba(216,184,119,.3); padding:5px 11px; border-radius:999px; margin-bottom:13px; }
+.plan.pop{ background:linear-gradient(180deg,rgba(var(--gold-rgb),.08),var(--surface)); border-color:rgba(var(--gold-rgb),.4); }
+.plan .badge{ align-self:flex-start; font-size:11px; letter-spacing:.1em; text-transform:uppercase; color:var(--gold); background:var(--gold-soft); border:1px solid rgba(var(--gold-rgb),.3); padding:5px 11px; border-radius:999px; margin-bottom:13px; }
 .plan h4{ font-size:18px; margin-bottom:5px; }
 .plan .desc{ font-size:13px; color:var(--text-mute); margin-bottom:16px; min-height:34px; }
 .plan .amt{ display:flex; align-items:baseline; gap:6px; margin-bottom:18px; }
@@ -232,7 +287,7 @@ table.cmp tbody tr:hover{ background:rgba(255,255,255,.02); }
 .field label{ display:block; font-size:12.5px; color:var(--text-dim); margin-bottom:6px; }
 .field input,.field textarea{ width:100%; background:var(--bg-2); border:1px solid var(--border); border-radius:12px;
   padding:12px 14px; color:var(--text); font-size:14.5px; transition:border-color .15s, box-shadow .15s; resize:vertical; }
-.field input:focus,.field textarea:focus{ outline:none; border-color:rgba(216,184,119,.55); box-shadow:0 0 0 3px var(--gold-soft); }
+.field input:focus,.field textarea:focus{ outline:none; border-color:rgba(var(--gold-rgb),.55); box-shadow:0 0 0 3px var(--gold-soft); }
 .field.err input,.field.err textarea{ border-color:#c0463a; box-shadow:0 0 0 3px rgba(192,70,58,.18); }
 .form .btn{ width:100%; margin-top:4px; }
 .form-note{ font-size:12px; color:var(--text-mute); text-align:center; margin-top:12px; }
@@ -241,7 +296,7 @@ table.cmp tbody tr:hover{ background:rgba(255,255,255,.02); }
 .form-msg.bad{ display:block; background:rgba(200,90,80,.1); border:1px solid rgba(200,90,80,.3); color:#e5a49c; }
 
 /* CTA */
-.cta-box{ background:linear-gradient(160deg,rgba(216,184,119,.09),var(--surface)); border:1px solid var(--border-2);
+.cta-box{ background:linear-gradient(160deg,rgba(var(--gold-rgb),.09),var(--surface)); border:1px solid var(--border-2);
   border-radius:var(--radius-lg); padding:44px 36px; text-align:center; }
 .cta-box h2{ font-size:clamp(24px,3.2vw,36px); margin-bottom:12px; }
 .cta-box p{ color:var(--text-dim); font-size:16px; margin-bottom:24px; max-width:560px; margin-left:auto; margin-right:auto; }
@@ -321,6 +376,9 @@ table.cmp tbody tr:hover{ background:rgba(255,255,255,.02); }
       <a href="/giris" class="nav-cta-mobile" id="navLoginMobile">Yönetici Girişi</a>
     </div>
     <div class="nav-right">
+      <button class="theme-switch" id="themeSwitchBtn" onclick="toggleLandingTheme()" aria-label="Tema" title="Siyah &amp; Beyaz Tema">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 3a9 9 0 0 0 0 18z" fill="currentColor" stroke="none"/></svg>
+      </button>
       <div class="lang">
         <button data-lang="tr" class="on" onclick="setLang('tr')">TR</button>
         <button data-lang="en" onclick="setLang('en')">EN</button>
@@ -340,6 +398,9 @@ table.cmp tbody tr:hover{ background:rgba(255,255,255,.02); }
   <div class="foot-grid" id="footGrid"></div>
   <div class="foot-bottom">
     <p>© <span id="year"></span> HASACA. <span id="rights">Tüm hakları saklıdır.</span></p>
+    <button class="theme-switch" id="themeSwitchBtnFoot" onclick="toggleLandingTheme()" aria-label="Tema" title="Siyah &amp; Beyaz Tema">
+      <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 3a9 9 0 0 0 0 18z" fill="currentColor" stroke="none"/></svg>
+    </button>
     <div class="lang">
       <button data-lang="tr" class="on" onclick="setLang('tr')">Türkçe</button>
       <button data-lang="en" onclick="setLang('en')">English</button>
@@ -588,8 +649,27 @@ function initForm(){
 
 function setLang(l){ LANG=l; try{ localStorage.setItem('hasaca_landing_lang', l); }catch(e){} render(); }
 
+/* Ported from landing.html verbatim — shared localStorage key, so the toggle-button .on state
+   stays in sync no matter which of the two files the visitor toggled it from. */
+function applyLandingTheme(theme){
+  document.documentElement.classList.toggle('theme-mono', theme === 'mono');
+  ['themeSwitchBtn', 'themeSwitchBtnFoot'].forEach(id => {
+    const btn = document.getElementById(id);
+    if (btn) btn.classList.toggle('on', theme === 'mono');
+  });
+}
+function toggleLandingTheme(){
+  const next = document.documentElement.classList.contains('theme-mono') ? 'dark' : 'mono';
+  try { localStorage.setItem('landing_theme', next); } catch(e){}
+  applyLandingTheme(next);
+}
+
 document.addEventListener('DOMContentLoaded', ()=>{
   try{ const s=localStorage.getItem('hasaca_landing_lang'); if(s) LANG=s; }catch(e){}
+  let savedTheme = null;
+  try { savedTheme = localStorage.getItem('landing_theme'); } catch(e){}
+  if (!savedTheme) savedTheme = (window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches) ? 'mono' : 'dark';
+  applyLandingTheme(savedTheme);
   if(!P){ document.getElementById('pageRoot').innerHTML =
     '<section class="wrap"><div class="p-hero"><h1>404</h1><p>Sayfa bulunamadı.</p><div class="acts"><a href="/landing" class="btn btn-primary btn-lg">Ana Sayfa</a></div></div></section>'; return; }
   render();
