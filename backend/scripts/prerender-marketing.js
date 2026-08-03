@@ -26,7 +26,7 @@ const MARKETING = require('../../marketing-data.js');
 const { buildMarketingHead } = require('../lib/marketingSeo');
 
 const ROOT = path.join(__dirname, '..', '..');
-const BASE_URL = (process.argv[2] || 'https://platformhasaca.netlify.app').replace(/\/+$/, '');
+const BASE_URL = (process.argv[2] || 'https://hasacaplatform.netlify.app').replace(/\/+$/, '');
 const OUT_DIR = path.join(ROOT, 'pages');
 
 const shell = fs.readFileSync(path.join(ROOT, 'marketing.html'), 'utf8');
