@@ -122,6 +122,12 @@ class of issue Netlify just had), and to trigger a manual deploy if needed. Ever
 follow-up is written and verified correct locally; whether it's live depends entirely on Render
 actually deploying current `main`.
 
+**Resolved, 2026-08-03**: user manually triggered a Render deploy; confirmed live afterward
+(Render dashboard showed "Deploy live for b4432b9") and re-verified `sitemap.xml`/`robots.txt` both
+correctly show `hasacaplatform.netlify.app` URLs. Re-submitted in Search Console — reported as
+successful, 47 URLs, zero errors (the earlier "47 hata" was confirmed to just be the stale
+pre-fix crawl result, as expected — no further action needed here).
+
 ## 6. Favicon — real triangle-mark raster assets, replacing pre-rebrand orange/red placeholders
 Opened every raster icon file in the repo directly (Read tool, as images) to check, rather than
 trust file names: `favicon.ico`, `favicon-16x16.png`, `favicon-32x32.png`, `apple-touch-icon.png`,
