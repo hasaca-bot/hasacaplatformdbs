@@ -2577,16 +2577,20 @@ app.get(['/login', '/giris', '/yonetici-girisi', '/restoran-girisi', '/root-giri
 
 // ── Dynamic, per-tenant SEO: robots.txt + sitemap.xml (host-derived, no hardcoded domain) ──
 // Defined BEFORE express.static so they take precedence over any static files.
+// /robots.txt and /sitemap.xml are always reached via Netlify's _redirects proxy in production (a
+// rewrite straight to this Render URL, not a real subdomain visit). Confirmed live: neither
+// req.headers.host NOR x-forwarded-host carries the original platformhasaca/hasacaplatform.
+// netlify.app host through this specific kind of proxy — both show Render's own hostname — so
+// every sitemap URL silently pointed at hasaca-api.onrender.com and Search Console rejected all of
+// them (not part of the verified property). PUBLIC_SITE_URL is the one place to update this by
+// hand if the canonical domain ever changes again (matches landing.html's own hardcoded-domain
+// comment) — an env var overrides it without a code change/redeploy if ever needed.
+const PUBLIC_SITE_URL = process.env.PUBLIC_SITE_URL || 'https://hasacaplatform.netlify.app';
+
 function baseUrl(req) {
   const proto = (req.headers['x-forwarded-proto'] || req.protocol || 'https').split(',')[0];
-  // /robots.txt and /sitemap.xml are always reached via Netlify's _redirects proxy (a rewrite to
-  // this exact Render URL, not a real subdomain visit) — req.headers.host is Render's OWN
-  // hostname there, never the real public domain, which silently produced a sitemap full of
-  // hasaca-api.onrender.com URLs (Search Console rejected all of them: not part of the verified
-  // property). x-forwarded-host is the standard header a reverse proxy sets to the ORIGINAL
-  // request host and takes priority when present; every other route (real tenant subdomains
-  // hitting Render directly) keeps using req.headers.host exactly as before.
   const host = req.headers['x-forwarded-host'] || req.headers.host;
+  if (host && /(^|\.)onrender\.com$/i.test(host)) return PUBLIC_SITE_URL.replace(/\/+$/, '');
   return `${proto}://${host}`;
 }
 app.get('/robots.txt', (req, res) => {
