@@ -2579,7 +2579,15 @@ app.get(['/login', '/giris', '/yonetici-girisi', '/restoran-girisi', '/root-giri
 // Defined BEFORE express.static so they take precedence over any static files.
 function baseUrl(req) {
   const proto = (req.headers['x-forwarded-proto'] || req.protocol || 'https').split(',')[0];
-  return `${proto}://${req.headers.host}`;
+  // /robots.txt and /sitemap.xml are always reached via Netlify's _redirects proxy (a rewrite to
+  // this exact Render URL, not a real subdomain visit) — req.headers.host is Render's OWN
+  // hostname there, never the real public domain, which silently produced a sitemap full of
+  // hasaca-api.onrender.com URLs (Search Console rejected all of them: not part of the verified
+  // property). x-forwarded-host is the standard header a reverse proxy sets to the ORIGINAL
+  // request host and takes priority when present; every other route (real tenant subdomains
+  // hitting Render directly) keeps using req.headers.host exactly as before.
+  const host = req.headers['x-forwarded-host'] || req.headers.host;
+  return `${proto}://${host}`;
 }
 app.get('/robots.txt', (req, res) => {
   let seoRobots = 'index';
