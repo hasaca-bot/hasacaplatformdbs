@@ -2168,48 +2168,49 @@ body.theme-bw .rez-note {
   opacity: 1;
   pointer-events: auto;
 }
+/* One UI 8.5 Glassmorphism Dialog — admin.html'deki AYNI referans-görsel tasarımı: gradient/blur
+   camsı arka plan, sol hizalı başlık+açıklama (ikon yok), alt satırda düz-metin butonlar + ince
+   dikey ayırıcı. Her temada (koyu/theme-bw/theme-mono) aynı koyu/camsı görünüm — kasıtlı olarak
+   tema-bağımsız, tıpkı hero mockup'ları gibi. */
 .custom-popup-card {
-  background: var(--dark2);
-  border: 1.5px solid rgba(244,244,246, 0.08);
-  border-radius: 28px;
+  background:
+    radial-gradient(140% 110% at 100% 0%, rgba(120,160,255,.55), transparent 55%),
+    linear-gradient(160deg, rgba(70,70,100,.6) 0%, rgba(22,22,32,.82) 100%);
+  backdrop-filter: blur(32px) saturate(1.8);
+  -webkit-backdrop-filter: blur(32px) saturate(1.8);
+  border: 1px solid rgba(255,255,255,.22);
+  border-radius: 24px;
   width: 90%;
-  max-width: 400px;
-  padding: 32px 26px;
-  text-align: center;
-  box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+  max-width: 380px;
+  padding: 24px 24px 0;
+  text-align: left;
+  box-shadow: 0 24px 60px -20px rgba(0,0,0,.65), inset 0 1px 0 rgba(255,255,255,.22);
   transform: scale(0.9);
   transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  overflow: hidden;
 }
 .custom-popup-overlay.open .custom-popup-card {
   transform: scale(1);
 }
 .custom-popup-icon {
-  margin: 0 auto 16px;
-  width: 64px;
-  height: 64px;
-  background: rgba(var(--fire-rgb), 0.1);
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-.custom-popup-icon.warning {
-  background: rgba(var(--bad-rgb), 0.1);
+  display: none;
 }
 .custom-popup-title {
   font-family: 'Syne', sans-serif;
   font-weight: 800;
-  font-size: 1.25rem;
-  color: var(--cream);
-  margin-bottom: 10px;
+  font-size: 1.15rem;
+  color: #ffffff;
+  text-align: left;
+  margin-bottom: 8px;
 }
 .custom-popup-message {
   font-family: 'DM Sans', sans-serif;
-  font-size: 0.95rem;
-  color: var(--cream);
-  opacity: 0.8;
+  font-size: 0.9rem;
+  color: #ffffff;
+  opacity: 0.75;
+  text-align: left;
   line-height: 1.5;
-  margin-bottom: 24px;
+  margin-bottom: 20px;
 }
 .custom-popup-actions {
   display: flex;
@@ -2217,34 +2218,28 @@ body.theme-bw .rez-note {
 }
 .custom-popup-actions-row {
   display: flex;
-  gap: 12px;
-  justify-content: center;
+  margin: 0 -24px;
+  border-top: 1px solid rgba(255,255,255,.16);
 }
 .custom-popup-actions-row .admin-btn {
   margin: 0;
   flex: 1;
+  background: transparent !important;
+  border: none !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  color: #ffffff !important;
+  padding: 14px;
+  font-weight: 700;
+}
+.custom-popup-actions-row .admin-btn:first-child {
+  border-right: 1px solid rgba(255,255,255,.16) !important;
+}
+.custom-popup-actions-row .admin-btn:hover {
+  background: rgba(255,255,255,.08) !important;
 }
 .custom-popup-actions-row .admin-btn.danger {
-  background: #0a0a0b;
-  color: #FFF;
-}
-.custom-popup-actions-row .admin-btn.danger:hover {
-  background: var(--bad);
-}
-
-body.theme-bw .custom-popup-card {
-  background: #FFFFFF;
-  border-color: rgba(15,18,25, 0.12);
-  box-shadow: 0 20px 40px rgba(15,18,25, 0.15);
-}
-body.theme-bw .custom-popup-title,
-body.theme-bw .custom-popup-message {
-  color: var(--cream) !important;
-}
-body.theme-bw .custom-popup-actions-row .admin-btn.secondary {
-  background: #F5F5F5;
-  border-color: rgba(15,18,25, 0.15);
-  color: var(--cream) !important;
+  color: #ff9f92 !important;
 }
 
 /* ── REUSABLE CUSTOM SELECT STYLES ── */
@@ -2394,8 +2389,7 @@ body.theme-bw #rezervasyon textarea:focus {
 }
 
 body.theme-bw .checkout-card,
-body.theme-bw .dt-card,
-body.theme-bw .custom-popup-card {
+body.theme-bw .dt-card {
   background: #FFFFFF !important;
   color: #0a0a0b !important;
   border: 1px solid rgba(15,18,25, 0.12) !important;
@@ -2404,9 +2398,7 @@ body.theme-bw .custom-popup-card {
 body.theme-bw .checkout-head h3,
 body.theme-bw .checkout-head svg,
 body.theme-bw .dt-head h3,
-body.theme-bw .dt-head button,
-body.theme-bw .custom-popup-title,
-body.theme-bw .custom-popup-message {
+body.theme-bw .dt-head button {
   color: #0a0a0b !important;
 }
 
