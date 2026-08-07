@@ -97,13 +97,16 @@
   --text-dim:#a6a6b0;
   --text-mute:#6c6c78;
   --white:#ffffff;
-  --gold:#d8b877;
-  --gold-rgb:216,184,119;
-  --gold-soft:rgba(var(--gold-rgb),.14);
+  /* One UI 8.5 (Faz 2C) — blue accent, replacing the old warm-gold palette. Kept the --gold
+     variable name so every existing var(--gold)/var(--gold-rgb) reference repaints automatically. */
+  --gold:#387AFF;
+  --gold-rgb:56,122,255;
+  --gold-soft:rgba(var(--gold-rgb),.16);
   --shine:linear-gradient(135deg,#ffffff 0%,#c9c9d2 45%,#8f8f9c 100%);
   --radius:22px;
   --radius-lg:30px;
   --radius-sm:14px;
+  --radius-pill:999px;
   --ease:cubic-bezier(.22,.61,.36,1);
   --shadow:0 30px 80px -30px rgba(0,0,0,.85);
   --shadow-glow:0 0 0 1px var(--border), 0 24px 70px -25px rgba(0,0,0,.9);
@@ -129,9 +132,10 @@ html.theme-mono{
   --text-dim:#4a4a52;
   --text-mute:#78787f;
   --white:#0a0a0b;
-  --gold:#0a0a0b;
-  --gold-rgb:10,10,11;
-  --gold-soft:rgba(10,10,11,.08);
+  /* Same blue accent as dark — One UI keeps its accent constant across light/dark. */
+  --gold:#387AFF;
+  --gold-rgb:56,122,255;
+  --gold-soft:rgba(56,122,255,.12);
   --shine:linear-gradient(135deg,#0a0a0b 0%,#3c3c42 45%,#6e6e78 100%);
   --shadow:0 30px 80px -30px rgba(10,10,11,.18);
   --shadow-glow:0 0 0 1px var(--border), 0 24px 70px -25px rgba(10,10,11,.14);
@@ -145,7 +149,7 @@ html.theme-mono .theme-switch.on{ color:var(--gold); }
 html.theme-mono .brand .mark{
   background:#f0f0f2; border-color:rgba(10,10,11,.15); box-shadow:inset 0 1px 0 rgba(255,255,255,.8); color:#0a0a0b;
 }
-html.theme-mono .btn-primary{ background:#0a0a0b; color:#fff; box-shadow:0 10px 30px -8px rgba(10,10,11,.35); }
+html.theme-mono .btn-primary{ background:var(--gold); color:#fff; box-shadow:0 10px 30px -8px rgba(56,122,255,.35); }
 html.theme-mono .nav-toggle{ color:#0a0a0b; }
 html.theme-mono ::selection{ background:var(--gold-soft); color:#0a0a0b; }
 html.theme-mono .foot-social a:hover{ color:#0a0a0b; }
@@ -184,6 +188,7 @@ body{
 /* Flat background — no ambient glow gradients, in either theme. */
 a{ color:inherit; text-decoration:none; }
 img{ max-width:100%; display:block; }
+svg{ stroke-width:2.25; stroke-linecap:round; stroke-linejoin:round; }
 ::selection{ background:var(--gold-soft); color:#fff; }
 /* Scrollbar */
 ::-webkit-scrollbar{ width:11px; height:11px; }
@@ -217,8 +222,8 @@ h1,h2,h3{ line-height:1.08; letter-spacing:-.02em; }
   white-space:nowrap;
 }
 .btn svg{ width:17px; height:17px; }
-.btn-primary{ background:#fff; color:#0a0a0b; box-shadow:0 10px 30px -8px rgba(255,255,255,.35); }
-.btn-primary:hover{ transform:translateY(-2px); box-shadow:0 16px 42px -8px rgba(255,255,255,.5); }
+.btn-primary{ background:var(--gold); color:#fff; box-shadow:0 10px 30px -8px rgba(var(--gold-rgb),.45); }
+.btn-primary:hover{ transform:translateY(-2px); box-shadow:0 16px 42px -8px rgba(var(--gold-rgb),.6); }
 .btn-ghost{ background:var(--surface-2); color:var(--text); border-color:var(--border-2); }
 .btn-ghost:hover{ background:rgba(255,255,255,.11); transform:translateY(-2px); }
 .btn-lg{ padding:16px 30px; font-size:16px; }
@@ -234,7 +239,7 @@ h1,h2,h3{ line-height:1.08; letter-spacing:-.02em; }
 .nav-in{ max-width:var(--maxw); margin:0 auto; padding:15px 24px; display:flex; align-items:center; gap:26px; }
 .brand{ display:flex; align-items:center; gap:11px; font-size:20px; letter-spacing:.02em; }
 .brand .mark{
-  width:34px; height:34px; border-radius:10px; display:grid; place-items:center;
+  width:34px; height:34px; border-radius:999px; display:grid; place-items:center;
   background:linear-gradient(150deg,#2a2a30,#0c0c0e); border:1px solid var(--border-2);
   box-shadow:inset 0 1px 0 rgba(255,255,255,.14); color:#ffffff;
   transition: background .3s, color .3s, border-color .3s;
@@ -244,7 +249,7 @@ body.theme-bw .brand .mark, html.theme-bw .brand .mark, .theme-bw .brand .mark {
   background:#f0f0f2; border-color:rgba(0,0,0,.15); box-shadow:inset 0 1px 0 rgba(255,255,255,.8); color:#0a0a0b;
 }
 .nav-links{ display:flex; gap:6px; margin-left:14px; }
-.nav-links a{ color:var(--text-dim); font-size:14.5px; padding:8px 14px; border-radius:10px; transition:color .15s, background .15s; }
+.nav-links a{ color:var(--text-dim); font-size:14.5px; padding:8px 14px; border-radius:999px; transition:color .15s, background .15s; }
 .nav-links a:hover{ color:var(--text); background:var(--surface); }
 .nav-right{ margin-left:auto; display:flex; align-items:center; gap:10px; }
 .nav-cta-mobile{ display:none; color:var(--gold) !important; }
@@ -257,7 +262,7 @@ body.theme-bw .brand .mark, html.theme-bw .brand .mark, .theme-bw .brand .mark {
   padding:5px 11px; border-radius:999px; transition:all .15s;
 }
 .lang button.on{ background:var(--surface-2); color:var(--text); }
-.nav-toggle{ display:none; background:var(--surface); border:1px solid var(--border); color:#fff; width:42px; height:42px; border-radius:12px; cursor:pointer; }
+.nav-toggle{ display:none; background:var(--surface); border:1px solid var(--border); color:#fff; width:42px; height:42px; border-radius:999px; cursor:pointer; }
 .theme-switch{ display:flex; align-items:center; justify-content:center; width:34px; height:34px; flex:none;
   background:var(--surface); border:1px solid var(--border); border-radius:999px; color:var(--text-mute);
   cursor:pointer; transition:all .15s; }
@@ -287,29 +292,29 @@ body.theme-bw .brand .mark, html.theme-bw .brand .mark, .theme-bw .brand .mark {
 }
 .laptop{
   position:absolute; left:50%; top:52%; transform:translate(-50%,-50%);
-  width:min(100%,520px);
+  width:min(100%,580px);
   animation:floaty-center 7s ease-in-out infinite;
 }
 .laptop .screen{
-  border-radius:16px 16px 4px 4px; padding:11px; background:linear-gradient(160deg,#26262c,#0b0b0d);
+  border-radius:20px 20px 4px 4px; padding:11px; background:linear-gradient(160deg,#26262c,#0b0b0d);
   border:1px solid var(--border-2); box-shadow:var(--shadow);
 }
 .laptop .base{ height:15px; background:linear-gradient(#1b1b20,#0c0c0e); border-radius:0 0 14px 14px; border:1px solid var(--border); border-top:none; position:relative; }
 .laptop .base::after{ content:''; position:absolute; left:50%; top:0; transform:translateX(-50%); width:80px; height:5px; background:#000; border-radius:0 0 7px 7px; }
-.ui{ background:var(--bg-2); border-radius:9px; overflow:hidden; }
+.ui{ background:var(--bg-2); border-radius:14px; overflow:hidden; }
 .ui-top{ display:flex; align-items:center; gap:6px; padding:9px 12px; border-bottom:1px solid var(--border); }
 .ui-top .d{ width:9px; height:9px; border-radius:50%; background:#333; }
 .ui-top .t{ margin-left:8px; font-size:10px; color:var(--text-mute); }
 .ui-body{ display:grid; grid-template-columns:56px 1fr; min-height:210px; }
 .ui-side{ border-right:1px solid var(--border); padding:12px 8px; display:flex; flex-direction:column; gap:9px; }
-.ui-side i{ height:9px; border-radius:4px; background:var(--surface-2); display:block; }
+.ui-side i{ height:9px; border-radius:999px; background:var(--surface-2); display:block; }
 .ui-side i:first-child{ background:var(--gold-soft); }
 .ui-main{ padding:14px; }
 .ui-cards{ display:grid; grid-template-columns:repeat(3,1fr); gap:9px; margin-bottom:12px; }
-.ui-card{ background:var(--surface); border:1px solid var(--border); border-radius:8px; padding:9px; }
+.ui-card{ background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:9px; }
 .ui-card b{ font-size:14px; display:block; }
 .ui-card span{ font-size:8.5px; color:var(--text-mute); }
-.ui-chart{ height:78px; border:1px solid var(--border); border-radius:8px; background:var(--surface); position:relative; overflow:hidden; }
+.ui-chart{ height:78px; border:1px solid var(--border); border-radius:14px; background:var(--surface); position:relative; overflow:hidden; }
 .ui-chart svg{ position:absolute; inset:0; width:100%; height:100%; }
 .phone{
   position:absolute; right:0; bottom:0; width:132px;
@@ -328,10 +333,10 @@ body.theme-bw .brand .mark, html.theme-bw .brand .mark, .theme-bw .brand .mark {
 .chip{
   position:absolute; display:flex; align-items:center; gap:9px; padding:10px 13px;
   background:var(--glass); backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px);
-  border:1px solid var(--border-2); border-radius:14px; box-shadow:var(--shadow);
+  border:1px solid var(--border-2); border-radius:999px; box-shadow:var(--shadow);
   font-size:12px;
 }
-.chip .ic{ width:26px; height:26px; border-radius:8px; display:grid; place-items:center; background:var(--gold-soft); color:var(--gold); }
+.chip .ic{ width:26px; height:26px; border-radius:999px; display:grid; place-items:center; background:var(--gold-soft); color:var(--gold); }
 .chip .ic svg{ width:15px; height:15px; }
 .chip b{ font-size:12.5px; } .chip span{ font-size:10.5px; color:var(--text-mute); display:block; }
 .chip.c1{ top:6px; left:0; animation:floaty 6.5s ease-in-out infinite .3s; }
@@ -355,7 +360,7 @@ body.theme-bw .brand .mark, html.theme-bw .brand .mark, .theme-bw .brand .mark {
 .sc-copy p{ color:var(--text-dim); font-size:16px; margin-bottom:20px; }
 .sc-list{ list-style:none; display:flex; flex-direction:column; gap:11px; margin-bottom:24px; }
 .sc-list li{ display:flex; gap:11px; align-items:flex-start; font-size:14.5px; color:var(--text); }
-.sc-list .ck{ flex:none; width:21px; height:21px; border-radius:6px; background:var(--gold-soft); color:var(--gold); display:grid; place-items:center; margin-top:1px; }
+.sc-list .ck{ flex:none; width:21px; height:21px; border-radius:999px; background:var(--gold-soft); color:var(--gold); display:grid; place-items:center; margin-top:1px; }
 .sc-list .ck svg{ width:13px; height:13px; }
 .sc-media{ position:relative; }
 .mock{
@@ -366,23 +371,23 @@ body.theme-bw .brand .mark, html.theme-bw .brand .mark, .theme-bw .brand .mark {
 .mock .m-top .d{ width:9px; height:9px; border-radius:50%; background:#2c2c33; }
 .mock .m-top .tt{ margin-left:8px; font-size:11px; color:var(--text-mute); }
 .grid-tiles{ display:grid; grid-template-columns:repeat(2,1fr); gap:11px; }
-.tile{ background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:14px; }
+.tile{ background:var(--surface); border:1px solid var(--border); border-radius:16px; padding:14px; }
 .tile .lab{ font-size:10.5px; color:var(--text-mute); text-transform:uppercase; letter-spacing:.08em; }
 .tile .big{ font-size:22px; margin-top:5px; }
 .tile .sub{ font-size:10.5px; color:var(--gold); margin-top:3px; }
 .bars{ display:flex; align-items:flex-end; gap:6px; height:60px; margin-top:9px; }
 .bars i{ flex:1; background:linear-gradient(#e9e9ee,#6a6a75); border-radius:4px 4px 0 0; display:block; opacity:.85; }
 .kanban{ display:grid; grid-template-columns:repeat(3,1fr); gap:9px; }
-.kcol{ background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:9px; }
+.kcol{ background:var(--surface); border:1px solid var(--border); border-radius:16px; padding:9px; }
 .kcol .h{ font-size:10px; color:var(--text-mute); margin-bottom:8px; text-transform:uppercase; letter-spacing:.06em; }
-.kcard{ background:var(--surface-2); border:1px solid var(--border); border-radius:8px; padding:8px; margin-bottom:7px; }
+.kcard{ background:var(--surface-2); border:1px solid var(--border); border-radius:12px; padding:8px; margin-bottom:7px; }
 .kcard .l1{ height:6px; width:80%; border-radius:3px; background:rgba(255,255,255,.2); margin-bottom:5px; }
 .kcard .l2{ height:5px; width:52%; border-radius:3px; background:rgba(255,255,255,.1); }
 .chatline{ display:flex; gap:9px; margin-bottom:11px; }
-.chatline .av{ width:28px; height:28px; border-radius:9px; flex:none; background:var(--gold-soft); color:var(--gold); display:grid; place-items:center; }
+.chatline .av{ width:28px; height:28px; border-radius:999px; flex:none; background:var(--gold-soft); color:var(--gold); display:grid; place-items:center; }
 .chatline .av svg{ width:15px; height:15px; }
-.bubble{ background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:10px 12px; font-size:11.5px; color:var(--text-dim); }
-.bubble.me{ background:#fff; color:#111; margin-left:auto; }
+.bubble{ background:var(--surface); border:1px solid var(--border); border-radius:16px; padding:10px 12px; font-size:11.5px; color:var(--text-dim); }
+.bubble.me{ background:var(--gold); color:#fff; margin-left:auto; }
 
 /* ── Features grid ── */
 .feat-grid{ display:grid; grid-template-columns:repeat(4,1fr); gap:16px; }
@@ -394,7 +399,7 @@ body.theme-bw .brand .mark, html.theme-bw .brand .mark, .theme-bw .brand .mark {
 .feat::after{ content:''; position:absolute; inset:0; background:radial-gradient(120% 90% at 50% -20%, rgba(var(--gold-rgb),.1), transparent 60%); opacity:0; transition:opacity .25s; pointer-events:none; }
 .feat:hover{ transform:translateY(-5px); border-color:var(--border-2); background:var(--surface-2); }
 .feat:hover::after{ opacity:1; }
-.feat .fi{ width:44px; height:44px; border-radius:12px; display:grid; place-items:center; margin-bottom:15px;
+.feat .fi{ width:44px; height:44px; border-radius:999px; display:grid; place-items:center; margin-bottom:15px;
   background:linear-gradient(150deg,#232329,#0e0e11); border:1px solid var(--border-2); color:#e6e6ea; }
 html.theme-mono .feat .fi{ background:linear-gradient(150deg,#f0f0f2,#e2e2e6); color:#0a0a0b; }
 .feat .fi svg{ width:22px; height:22px; }
@@ -406,7 +411,7 @@ html.theme-mono .feat .fi{ background:linear-gradient(150deg,#f0f0f2,#e2e2e6); c
 .steps::before{ content:''; position:absolute; left:27px; top:12px; bottom:12px; width:2px; background:linear-gradient(var(--gold),transparent); opacity:.35; }
 .step{ display:flex; gap:22px; padding:16px 0; align-items:flex-start; }
 .step .num{
-  flex:none; width:56px; height:56px; border-radius:16px; display:grid; place-items:center; font-size:20px;
+  flex:none; width:56px; height:56px; border-radius:999px; display:grid; place-items:center; font-size:20px;
   background:linear-gradient(150deg,#202026,#0c0c0e); border:1px solid var(--border-2); position:relative; z-index:1;
   box-shadow:inset 0 1px 0 rgba(255,255,255,.1);
 }
@@ -462,9 +467,22 @@ html.theme-mono .feat .fi{ background:linear-gradient(150deg,#f0f0f2,#e2e2e6); c
 .qa{ border:1px solid var(--border); border-radius:var(--radius); margin-bottom:12px; background:var(--surface); overflow:hidden; }
 .qa summary{ list-style:none; cursor:pointer; padding:19px 22px; display:flex; align-items:center; justify-content:space-between; gap:16px; font-size:16px; }
 .qa summary::-webkit-details-marker{ display:none; }
-.qa summary .pl{ flex:none; width:26px; height:26px; border-radius:8px; border:1px solid var(--border-2); display:grid; place-items:center; transition:transform .2s; color:var(--text-dim); }
+.qa summary .pl{ flex:none; width:26px; height:26px; border-radius:999px; border:1px solid var(--border-2); display:grid; place-items:center; transition:transform .2s; color:var(--text-dim); }
 .qa[open] summary .pl{ transform:rotate(45deg); color:var(--gold); }
 .qa .ans{ padding:0 22px 20px; color:var(--text-dim); font-size:14.5px; line-height:1.6; }
+
+/* ── CTA banner — intentionally dark in both themes (same treatment as the hero/showcase device
+   mockups), matching the reference site's "Ready To Get Started" section. No stats/testimonial
+   claims here, just a plain call to action, so nothing needs a light-theme override. ── */
+.cta-banner{ padding:0 0 84px; }
+.cta-banner-in{
+  background:linear-gradient(135deg,#0c0c0e,#1a1a1f); border-radius:var(--radius-lg);
+  padding:48px 44px; display:flex; align-items:center; justify-content:space-between; gap:32px;
+  flex-wrap:wrap; border:1px solid rgba(255,255,255,.14); box-shadow:var(--shadow);
+}
+.cta-banner-in h2{ font-size:clamp(24px,3.2vw,34px); color:#fff; margin-bottom:8px; }
+.cta-banner-in p{ color:#a6a6b0; font-size:15px; max-width:420px; }
+.cta-banner-in .btn{ flex:none; }
 
 /* ── Contact ── */
 .contact-grid{ display:grid; grid-template-columns:1fr 1.05fr; gap:48px; align-items:center; }
@@ -472,21 +490,21 @@ html.theme-mono .feat .fi{ background:linear-gradient(150deg,#f0f0f2,#e2e2e6); c
 .contact-copy p{ color:var(--text-dim); font-size:16px; margin-bottom:26px; }
 .c-points{ list-style:none; display:flex; flex-direction:column; gap:15px; }
 .c-points li{ display:flex; gap:13px; align-items:center; font-size:14.5px; }
-.c-points .ci{ width:40px; height:40px; border-radius:12px; display:grid; place-items:center; background:var(--surface-2); border:1px solid var(--border); color:var(--gold); }
+.c-points .ci{ width:40px; height:40px; border-radius:999px; display:grid; place-items:center; background:var(--surface-2); border:1px solid var(--border); color:var(--gold); }
 .c-points .ci svg{ width:19px; height:19px; }
 .form{ background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-lg); padding:30px; box-shadow:var(--shadow); }
 .form .row{ display:grid; grid-template-columns:1fr 1fr; gap:14px; }
 .field{ margin-bottom:15px; }
 .field label{ display:block; font-size:12.5px; color:var(--text-dim); margin-bottom:7px; }
 .field input,.field textarea{
-  width:100%; background:var(--bg-2); border:1px solid var(--border); border-radius:12px;
+  width:100%; background:var(--bg-2); border:1px solid var(--border); border-radius:14px;
   padding:13px 14px; color:var(--text); font-size:14.5px; transition:border-color .15s, box-shadow .15s; resize:vertical;
 }
 .field input:focus,.field textarea:focus{ outline:none; border-color:rgba(var(--gold-rgb),.55); box-shadow:0 0 0 3px var(--gold-soft); }
 .field.err input,.field.err textarea{ border-color:#c0463a; box-shadow:0 0 0 3px rgba(192,70,58,.18); }
 .form .btn{ width:100%; margin-top:4px; }
 .form-note{ font-size:12px; color:var(--text-mute); text-align:center; margin-top:13px; }
-.form-msg{ text-align:center; padding:12px; border-radius:12px; font-size:14px; margin-bottom:16px; display:none; }
+.form-msg{ text-align:center; padding:12px; border-radius:14px; font-size:14px; margin-bottom:16px; display:none; }
 .form-msg.ok{ display:block; background:rgba(120,200,120,.1); border:1px solid rgba(120,200,120,.3); color:#a6e0a6; }
 .form-msg.bad{ display:block; background:rgba(200,90,80,.1); border:1px solid rgba(200,90,80,.3); color:#e5a49c; }
 
@@ -496,7 +514,7 @@ html.theme-mono .feat .fi{ background:linear-gradient(150deg,#f0f0f2,#e2e2e6); c
 .foot-cols-host{ display:grid; grid-template-columns:repeat(auto-fit,minmax(130px,1fr)); gap:26px 22px; }
 .foot-brand p{ color:var(--text-mute); font-size:13.5px; margin:16px 0 20px; max-width:280px; }
 .foot-social{ display:flex; gap:10px; }
-.foot-social a{ width:38px; height:38px; border-radius:11px; border:1px solid var(--border); background:var(--surface); display:grid; place-items:center; color:var(--text-dim); transition:all .15s; }
+.foot-social a{ width:38px; height:38px; border-radius:999px; border:1px solid var(--border); background:var(--surface); display:grid; place-items:center; color:var(--text-dim); transition:all .15s; }
 .foot-social a:hover{ color:#fff; border-color:var(--border-2); background:var(--surface-2); transform:translateY(-2px); }
 .foot-social svg{ width:17px; height:17px; }
 .foot-col h5{ font-size:13px; color:var(--text); margin-bottom:15px; letter-spacing:.02em; }
@@ -586,10 +604,6 @@ html.theme-mono .feat .fi{ background:linear-gradient(150deg,#f0f0f2,#e2e2e6); c
       <button class="theme-switch" id="themeSwitchBtn" onclick="toggleLandingTheme()" aria-label="Tema" title="Siyah &amp; Beyaz Tema">
         <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 3a9 9 0 0 0 0 18z" fill="currentColor" stroke="none"/></svg>
       </button>
-      <div class="lang">
-        <button data-lang="tr" class="on" onclick="setLang('tr')">TR</button>
-        <button data-lang="en" onclick="setLang('en')">EN</button>
-      </div>
       <a href="/giris" class="btn btn-ghost" data-i18n="nav_login">Yönetici Girişi</a>
       <a href="/giris" class="btn btn-primary" id="navCtaBtn">Kayıt Ol</a>
       <button class="nav-toggle" onclick="document.getElementById('nav').classList.toggle('open')" aria-label="Menu">
@@ -655,17 +669,6 @@ html.theme-mono .feat .fi{ background:linear-gradient(150deg,#f0f0f2,#e2e2e6); c
           </div>
         </div>
         <div class="base"></div>
-      </div>
-      <div class="phone">
-        <div class="pscreen">
-          <div class="phead">
-            <div class="qr"></div>
-            <div class="l"></div><div class="l" style="width:50%"></div>
-          </div>
-          <div class="pitem"><div class="thumb"></div><div class="ln"></div><span class="pr">₺120</span></div>
-          <div class="pitem"><div class="thumb"></div><div class="ln"></div><span class="pr">₺85</span></div>
-          <div class="pitem"><div class="thumb"></div><div class="ln"></div><span class="pr">₺60</span></div>
-        </div>
       </div>
     </div>
   </div>
@@ -864,6 +867,18 @@ html.theme-mono .feat .fi{ background:linear-gradient(150deg,#f0f0f2,#e2e2e6); c
   </div>
 </section>
 
+<!-- ══════════ CTA BANNER ══════════ -->
+<section class="cta-banner">
+  <div class="wrap cta-banner-in rv">
+    <div>
+      <h2 data-i18n="cta2_title">Hemen başlayın</h2>
+      <p data-i18n="cta2_sub">Kurulum 5 dakika sürer, kredi kartı gerekmez. Restoranınızı bugün dijitale taşıyın.</p>
+    </div>
+    <a href="/demo-talep" class="btn btn-primary btn-lg" data-i18n="cta2_btn">Ücretsiz Demo Talep Et
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
+  </div>
+</section>
+
 <!-- ══════════ CONTACT ══════════ -->
 <section class="block" id="contact">
   <div class="wrap contact-grid">
@@ -917,10 +932,6 @@ html.theme-mono .feat .fi{ background:linear-gradient(150deg,#f0f0f2,#e2e2e6); c
         <button class="theme-switch" id="themeSwitchBtnFoot" onclick="toggleLandingTheme()" aria-label="Tema" title="Siyah &amp; Beyaz Tema">
           <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 3a9 9 0 0 0 0 18z" fill="currentColor" stroke="none"/></svg>
         </button>
-        <div class="lang">
-          <button data-lang="tr" class="on" onclick="setLang('tr')">Türkçe</button>
-          <button data-lang="en" onclick="setLang('en')">English</button>
-        </div>
       </div>
     </div>
   </div>
@@ -1058,6 +1069,7 @@ tr:{
   q4_q:'Müşteri verileri kime ait?', q4_a:'Tüm müşteri ve sipariş verileri size aittir. İstediğiniz zaman dışa aktarabilirsiniz; biz asla üçüncü taraflarla paylaşmayız.',
   q5_q:'Teknik bilgi gerekiyor mu?', q5_a:'Hayır. Panel sürükle-bırak kadar basittir. Kod veya sunucu bilgisi gerekmez.',
   q6_q:'İstediğim zaman iptal edebilir miyim?', q6_a:'Evet. Taahhüt yoktur, dilediğiniz an iptal edebilirsiniz. 14 gün ücretsiz deneme ile risksiz başlarsınız.',
+  cta2_title:'Hemen başlayın', cta2_sub:'Kurulum 5 dakika sürer, kredi kartı gerekmez. Restoranınızı bugün dijitale taşıyın.', cta2_btn:'Ücretsiz Demo Talep Et',
   ct_eyebrow:'İletişim', ct_title:'Restoranınızı dijitale taşıyalım',
   ct_sub:'Formu doldurun, ekibimiz 24 saat içinde size özel bir demo ile geri dönsün. Hiçbir taahhüt yok.',
   ct_p1:'Kişisel kurulum ve ücretsiz veri aktarımı', ct_p2:'Size özel bir başarı danışmanı', ct_p3:'%0 komisyon, iptal koşulu yok',
@@ -1152,6 +1164,7 @@ en:{
   q4_q:'Who owns the customer data?', q4_a:'All customer and order data belongs to you. Export anytime; we never share it with third parties.',
   q5_q:'Do I need technical skills?', q5_a:'No. The panel is as simple as drag-and-drop. No code or server knowledge needed.',
   q6_q:'Can I cancel anytime?', q6_a:'Yes. No commitment, cancel whenever you like. Start risk-free with a 14-day free trial.',
+  cta2_title:'Get started now', cta2_sub:'Setup takes 5 minutes, no credit card required. Take your restaurant digital today.', cta2_btn:'Request a Free Demo',
   ct_eyebrow:'Contact', ct_title:'Let\'s take your restaurant digital',
   ct_sub:'Fill in the form and our team will get back within 24 hours with a tailored demo. No commitment.',
   ct_p1:'Personal setup and free data migration', ct_p2:'A dedicated success manager', ct_p3:'0% commission, cancel anytime',
@@ -1364,8 +1377,10 @@ function toggleLandingTheme(){
 /* ─────────────── INIT ─────────────── */
 document.addEventListener('DOMContentLoaded', ()=>{
   document.getElementById('year').textContent = new Date().getFullYear();
-  const saved = localStorage.getItem('hasaca_landing_lang');
-  if(saved) LANG = saved;
+  // Faz 2C: manuel TR/EN butonu kaldırıldı — dil artık tarayıcının kendi dilinden otomatik
+  // algılanıyor (I18N sadece tr/en içeriyor; başka bir dilse İngilizce gösterilir, kullanıcı
+  // isterse tarayıcısının kendi çeviri özelliğini kullanabilir).
+  LANG = (navigator.language || navigator.userLanguage || 'en').toLowerCase().startsWith('tr') ? 'tr' : 'en';
   let savedTheme = null;
   try { savedTheme = localStorage.getItem('landing_theme'); } catch(e){}
   if (!savedTheme) savedTheme = (window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches) ? 'mono' : 'dark';
