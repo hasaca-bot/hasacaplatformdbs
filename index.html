@@ -29,17 +29,18 @@
 *{ font-family:var(--font-primary) !important; }
 code,pre,kbd,samp,.cred-box,[class*="mono"],[style*="monospace"]{ font-family:ui-monospace,'SFMono-Regular',Menlo,monospace !important; }
 :root{
-  /* One UI 8.5 (Faz 2B) — blue accent, constant across default/theme-bw (theme-mono stays
-     intentionally grey, untouched below). --fire is the primary (buttons/backgrounds), --ember/
-     --gold/--amber are the lighter secondary shade used for text accents/highlights/stars. */
+  /* One UI 8.5 (Faz 2B) — blue accent for --fire (primary, buttons/backgrounds). --ember/--gold/
+     --amber (secondary text-accent shade — product prices, labels, cart icon gradients) reverted
+     to their original near-white per user feedback: the blue read wrong on product-page text and
+     the cart icon specifically. */
   --fire:#387AFF; --fire-text:#ffffff;
-  --ember:#5c96ff;
-  --gold:#5c96ff;
-  --amber:#5c96ff;
+  --ember:#f4f4f6;
+  --gold:#e6e6ea;
+  --amber:#e6e6ea;
   /* RGB triplets for rgba() forms that can't interpolate a hex custom property (Phase 32) */
   --fire-rgb:56,122,255;
-  --ember-rgb:92,150,255;
-  --amber-rgb:92,150,255;
+  --ember-rgb:229,229,235;
+  --amber-rgb:230,230,234;
   /* Error/warning indicator — a distinct shade from --ember, used for allergen/login/checkout errors */
   --bad:#FF7043;
   --bad-rgb:255,112,67;
@@ -83,12 +84,12 @@ svg:not(#adminPanelOverlay *){ stroke-width:2.25; stroke-linecap:round; stroke-l
 /* ── LIGHT THEME (One UI 8.5, Faz 2B) — same blue accent as dark, only the neutral scale flips ── */
 body.theme-bw {
   --fire:#387AFF; --fire-text:#ffffff;
-  --ember:#2f68d9;
-  --gold: #2f68d9;
-  --amber: #2f68d9;
+  /* --ember/--gold/--amber reverted to original (no override needed — --gold was originally
+     black in light theme, --amber warm-taupe grey; --ember/--ember-rgb/--amber-rgb inherit
+     the :root values unchanged, same as before Faz 2B). */
+  --gold: #0a0a0b;
+  --amber: #565c69;
   --fire-rgb:56,122,255;
-  --ember-rgb:47,104,217;
-  --amber-rgb:47,104,217;
   --cream: #000000;      /* Dark text color */
   --dark: #f1f1f3;       /* One UI light background */
   --dark2: #eceef2;      /* Light card/header background */
@@ -6431,25 +6432,26 @@ window.addEventListener('appinstalled', () => {
     --cart-chip:rgba(0,0,0,0.04);
   }
 
-  /* Add-to-cart button on menu cards */
+  /* Add-to-cart button on menu cards — kept its original white look on user request (not the new
+     --fire blue used for other buttons), same for .cart-fab below. */
   .food-card-actions{ display:flex; align-items:center; gap:8px; }
   .food-card-cart-btn{
     display:inline-flex; align-items:center; justify-content:center;
     width:38px; height:38px; border-radius:999px; cursor:pointer;
-    background:linear-gradient(135deg,var(--fire),var(--ember));color:var(--fire-text) !important;
+    background:linear-gradient(135deg,#ffffff,#f4f4f6);color:#0a0a0b !important;
     border:none; flex-shrink:0; transition:transform .15s ease, box-shadow .15s ease;
-    box-shadow:0 4px 14px rgba(var(--fire-rgb),.35);
+    box-shadow:0 4px 14px rgba(255,255,255,.35);
   }
-  .food-card-cart-btn:hover{ transform:translateY(-2px); box-shadow:0 6px 18px rgba(var(--fire-rgb),.45); }
+  .food-card-cart-btn:hover{ transform:translateY(-2px); box-shadow:0 6px 18px rgba(255,255,255,.45); }
   .food-card-cart-btn:active{ transform:scale(.92); }
 
   /* Floating cart button */
   .cart-fab{
     position:fixed; right:18px; bottom:calc(96px + var(--safe-bottom)); z-index:var(--z-fab);
     width:60px; height:60px; border-radius:50%; border:none; cursor:pointer;
-    background:linear-gradient(135deg,var(--fire),var(--ember));color:var(--fire-text) !important;
+    background:linear-gradient(135deg,#ffffff,#f4f4f6);color:#0a0a0b !important;
     display:flex; align-items:center; justify-content:center;
-    box-shadow:0 8px 26px rgba(var(--fire-rgb),.5); transition:transform .18s ease;
+    box-shadow:0 8px 26px rgba(255,255,255,.5); transition:transform .18s ease;
   }
   .cart-fab:hover{ transform:translateY(-3px) scale(1.04); }
   .cart-fab:active{ transform:scale(.94); }
