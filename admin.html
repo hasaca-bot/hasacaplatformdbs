@@ -2328,9 +2328,9 @@ body.theme-bw .rez-note {
   left: 0;
   width: 100%;
   height: 100%;
-  background: rgba(10, 5, 3, 0.6);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  background: rgba(0, 0, 0, 0.55);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -2346,10 +2346,10 @@ body.theme-bw .rez-note {
 .custom-popup-card {
   background: var(--dark2);
   border: 1.5px solid rgba(244,244,246, 0.08);
-  border-radius: 24px;
+  border-radius: 28px;
   width: 90%;
   max-width: 400px;
-  padding: 30px 24px;
+  padding: 32px 26px;
   text-align: center;
   box-shadow: 0 20px 40px rgba(0,0,0,0.4);
   transform: scale(0.9);
@@ -2421,6 +2421,50 @@ body.theme-bw .custom-popup-actions-row .admin-btn.secondary {
   background: #F5F5F5;
   border-color: rgba(15,18,25, 0.15);
   color: var(--cream) !important;
+}
+
+/* One UI Dialog — admin-panel binding fix: #customConfirmOverlay is a DOM sibling of
+   #adminPanelOverlay (not a descendant), so the panel's --dark2/--cream token remap never
+   reaches it and this dialog was falling back to the customer site's theme-bw look even while
+   the admin panel's own dark/light toggle said otherwise. Bind directly to admin-panel state
+   via :has() instead, mirroring the --ap-panel/--ap-text/--ap-gold values (placed after the
+   theme-bw rules above so it wins on equal specificity whenever the admin panel is open). */
+body:has(#adminPanelOverlay.open) .custom-popup-card {
+  background: #17171a;
+  border-color: rgba(255,255,255, 0.08);
+  box-shadow: 0 20px 50px -12px rgba(0,0,0,0.7);
+}
+body:has(#adminPanelOverlay.open) .custom-popup-title,
+body:has(#adminPanelOverlay.open) .custom-popup-message {
+  color: #ffffff !important;
+}
+body:has(#adminPanelOverlay.open) .custom-popup-icon {
+  background: rgba(56,122,255,0.16);
+}
+body:has(#adminPanelOverlay.open) .custom-popup-icon.warning {
+  background: rgba(229,119,107,0.14);
+}
+body:has(#adminPanelOverlay.open) .custom-popup-actions-row .admin-btn.secondary {
+  background: #26262a;
+  border-color: rgba(255,255,255, 0.14);
+  color: #ffffff !important;
+}
+html[data-theme="light"]:has(#adminPanelOverlay.open) .custom-popup-card {
+  background: #ffffff;
+  border-color: rgba(0,0,0, 0.08);
+  box-shadow: 0 20px 50px -14px rgba(15,18,25,0.20);
+}
+html[data-theme="light"]:has(#adminPanelOverlay.open) .custom-popup-title,
+html[data-theme="light"]:has(#adminPanelOverlay.open) .custom-popup-message {
+  color: #000000 !important;
+}
+html[data-theme="light"]:has(#adminPanelOverlay.open) .custom-popup-icon {
+  background: rgba(56,122,255,0.12);
+}
+html[data-theme="light"]:has(#adminPanelOverlay.open) .custom-popup-actions-row .admin-btn.secondary {
+  background: #f5f5f7;
+  border-color: rgba(0,0,0, 0.14);
+  color: #000000 !important;
 }
 
 /* ── REUSABLE CUSTOM SELECT STYLES ── */
@@ -8933,14 +8977,17 @@ async function deletePush(id) {
      shared 'hasaca_panel_theme' key so Root + Admin stay in sync.
      ================================================================ */
   #adminPanelOverlay{
-    /* dark default */
-    --ap-bg:#0a0a0b; --ap-bg-2:#0e0e11; --ap-panel:#141418; --ap-card:#1b1b20; --ap-elev:#212127;
-    --ap-line:rgba(255,255,255,.09); --ap-line-2:rgba(255,255,255,.15);
-    --ap-text:#f4f4f6; --ap-muted:#a6a6b0; --ap-faint:#6c6c78;
-    --ap-gold:#ffffff; --ap-gold-2:#e6e6ea; --ap-gold-soft:rgba(255,255,255,.14); --ap-gold-text:#0a0a0b;
+    /* One UI 8.5 — dark default. Primary accent is now One UI blue (was white/gold);
+       --ap-gold/--ap-gold-* names kept as-is so every existing var(--ap-gold) reference across
+       this file repaints automatically — only the VALUES changed, per the One UI Design Kit
+       reference (colours, radii). Corner radii are now the large One UI scale + a pill token. */
+    --ap-bg:#000000; --ap-bg-2:#0a0a0a; --ap-panel:#17171a; --ap-card:#1e1e21; --ap-elev:#26262a;
+    --ap-line:rgba(255,255,255,.08); --ap-line-2:rgba(255,255,255,.14);
+    --ap-text:#ffffff; --ap-muted:#909095; --ap-faint:#6b6b70;
+    --ap-gold:#387AFF; --ap-gold-2:#5c96ff; --ap-gold-soft:rgba(56,122,255,.16); --ap-gold-text:#ffffff;
     --ap-ok:#7fd18f; --ap-ok-soft:rgba(127,209,143,.14);
     --ap-bad:#e5776b; --ap-bad-soft:rgba(229,119,107,.14);
-    --ap-radius:16px; --ap-radius-sm:11px; --ap-radius-lg:22px;
+    --ap-radius:20px; --ap-radius-sm:14px; --ap-radius-lg:28px;
     --ap-shadow-sm:0 8px 24px -12px rgba(0,0,0,.7);
     --ap-ease:cubic-bezier(.22,.61,.36,1);
     --ap-t:.16s var(--ap-ease);
@@ -8965,10 +9012,12 @@ async function deletePush(id) {
   /* Light theme — only inside the overlay. body.theme-bw on the CUSTOMER page
      is a separate engine and must remain untouched. */
   html[data-theme="light"] #adminPanelOverlay{
-    --ap-bg:#f4f5f7; --ap-bg-2:#eceef2; --ap-panel:#ffffff; --ap-card:#ffffff; --ap-elev:#ffffff;
-    --ap-line:rgba(15,18,25,.10); --ap-line-2:rgba(15,18,25,.17);
-    --ap-text:#15171c; --ap-muted:#565c69; --ap-faint:#8b909c;
-    --ap-gold:#15171c; --ap-gold-2:#565c69; --ap-gold-soft:rgba(21,23,28,.12); --ap-gold-text:#ffffff;
+    /* One UI 8.5 — light. Same blue primary as dark (One UI keeps its accent constant across
+       modes), everything else flips to the light neutral scale from the design kit. */
+    --ap-bg:#f1f1f3; --ap-bg-2:#e8e8ea; --ap-panel:#ffffff; --ap-card:#ffffff; --ap-elev:#f5f5f7;
+    --ap-line:rgba(0,0,0,.08); --ap-line-2:rgba(0,0,0,.14);
+    --ap-text:#000000; --ap-muted:#6d6d72; --ap-faint:#9a9a9e;
+    --ap-gold:#387AFF; --ap-gold-2:#2f68d9; --ap-gold-soft:rgba(56,122,255,.12); --ap-gold-text:#ffffff;
     --ap-ok:#2f9e56; --ap-ok-soft:rgba(47,158,86,.12);
     --ap-bad:#c0473b; --ap-bad-soft:rgba(192,71,59,.12);
     --ap-shadow-sm:0 8px 24px -14px rgba(15,18,25,.20);
@@ -8990,10 +9039,17 @@ async function deletePush(id) {
   #adminPanelOverlay .seg button svg{ width:15px; height:15px; }
   #adminPanelOverlay .seg button.on{ background:var(--ap-panel); color:var(--ap-text); box-shadow:var(--ap-shadow-sm); }
 
-  /* ── BUTTONS ── (rescope colors, keep shapes) */
+  /* ── ICONS (One UI 8.5 — style pass only, not a 1:1 redraw) ──
+     Every icon in this file is an inline outline SVG (stroke="currentColor", stroke-width="2").
+     CSS stroke-width/linecap/linejoin override the SVG's own presentation attributes, so a single
+     rule here re-styles every existing icon shape to the slightly bolder, fully-rounded stroke the
+     One UI Vector Icons reference uses — without redrawing each glyph by hand. */
+  #adminPanelOverlay svg{ stroke-width:2.25; stroke-linecap:round; stroke-linejoin:round; }
+
+  /* ── BUTTONS (One UI 8.5 — full pill radius) ── */
   #adminPanelOverlay .admin-btn{
     background:var(--ap-gold); color:var(--ap-gold-text); border:1px solid transparent;
-    border-radius:11px; font-weight:700; transition:transform var(--ap-t), box-shadow var(--ap-t), background var(--ap-t);
+    border-radius:var(--ap-radius-pill); font-weight:700; transition:transform var(--ap-t), box-shadow var(--ap-t), background var(--ap-t);
   }
   #adminPanelOverlay .admin-btn:hover{ transform:translateY(-1px); box-shadow:0 10px 26px -12px var(--ap-gold); }
   #adminPanelOverlay .admin-btn.secondary{ background:var(--ap-card); color:var(--ap-text); border-color:var(--ap-line); box-shadow:none; }
@@ -9044,7 +9100,7 @@ async function deletePush(id) {
   #adminPanelOverlay input:not([type=checkbox]):not([type=radio]):not([type=file]),
   #adminPanelOverlay select, #adminPanelOverlay textarea{
     background:var(--ap-bg-2); color:var(--ap-text); border:1px solid var(--ap-line);
-    border-radius:11px; transition:border-color var(--ap-t), box-shadow var(--ap-t);
+    border-radius:var(--ap-radius-sm); transition:border-color var(--ap-t), box-shadow var(--ap-t);
   }
   #adminPanelOverlay .admin-input:focus,
   #adminPanelOverlay input:focus:not([type=checkbox]):not([type=radio]):not([type=file]),
@@ -9055,7 +9111,7 @@ async function deletePush(id) {
 
   /* Custom dropdown */
   #adminPanelOverlay .custom-select-trigger{
-    background:var(--ap-bg-2); color:var(--ap-text); border:1px solid var(--ap-line); border-radius:11px;
+    background:var(--ap-bg-2); color:var(--ap-text); border:1px solid var(--ap-line); border-radius:var(--ap-radius-sm);
   }
   #adminPanelOverlay .custom-select-trigger:hover{ border-color:var(--ap-line-2); }
   #adminPanelOverlay .custom-select-options{
@@ -9079,6 +9135,26 @@ async function deletePush(id) {
   html[data-theme="light"] .admin-product-row,
   html[data-theme="light"] .admin-order-card,
   html[data-theme="light"] .admin-reservation-card{ background:var(--ap-panel); border-color:var(--ap-line); }
+
+  /* Masa (dine-in) screens reuse the pre-existing tbl-card / floor-section / dinein-card system —
+     colors already remap to --ap-* via the --tbl-* token block above, but each rule hardcoded its
+     own corner radius rather than referencing a variable, so those needed a direct bump to the
+     One UI scale. */
+  #adminPanelOverlay .tbl-card,
+  #adminPanelOverlay .floor-section,
+  #adminPanelOverlay .dinein-card{ border-radius:var(--ap-radius); }
+  #adminPanelOverlay .floor-cell,
+  #adminPanelOverlay .dc-items,
+  #adminPanelOverlay .tbl-qr-thumb,
+  #adminPanelOverlay .service-item{ border-radius:var(--ap-radius-sm); }
+  #adminPanelOverlay .tbl-mini-btn,
+  #adminPanelOverlay .dc-status-badge,
+  #adminPanelOverlay .dc-nav button{ border-radius:var(--ap-radius-pill); }
+
+  /* Uzaktan sipariş (remote order) cards — same hardcoded-radius situation as the dine-in ones above. */
+  #adminPanelOverlay .orders-search{ border-radius:var(--ap-radius-pill); }
+  #adminPanelOverlay .aoc-items{ border-radius:var(--ap-radius-sm); }
+  #adminPanelOverlay .aoc-btn{ border-radius:var(--ap-radius-pill); }
 
   /* Search row and inline helpers */
   #adminPanelOverlay .admin-search-row{ gap:10px; }
@@ -9134,7 +9210,7 @@ async function deletePush(id) {
     transition:transform .22s var(--ap-ease);
   }
   #adminPanelOverlay .side-brand{ display:flex; align-items:center; gap:11px; padding:6px 8px 16px; }
-  #adminPanelOverlay .side-brand .mark{ width:34px; height:34px; border-radius:10px; flex:none; display:grid; place-items:center;
+  #adminPanelOverlay .side-brand .mark{ width:34px; height:34px; border-radius:var(--ap-radius-pill); flex:none; display:grid; place-items:center;
     background:linear-gradient(150deg,#2a2a30,#0c0c0e); border:1px solid var(--ap-line-2); box-shadow:inset 0 1px 0 rgba(255,255,255,.14); color:#fff; }
   #adminPanelOverlay .side-brand .mark span{ font-size:16px; background:linear-gradient(135deg,#fff 0%,#c9c9d2 45%,#8f8f9c 100%); -webkit-background-clip:text; background-clip:text; color:transparent; }
   html[data-theme="light"] #adminPanelOverlay .side-brand .mark{
@@ -9145,23 +9221,25 @@ async function deletePush(id) {
   #adminPanelOverlay .side-brand .txt small{ font-size:11px; color:var(--ap-faint); letter-spacing:.05em; }
   #adminPanelOverlay .nav-group{ margin-top:14px; }
   #adminPanelOverlay .nav-group > .lbl{ font-size:10.5px; letter-spacing:.13em; text-transform:uppercase; color:var(--ap-faint); padding:6px 12px 8px; white-space:nowrap; }
+  /* Navigation Rail (One UI 8.5): selected item is a solid filled pill, no side accent bar —
+     replaces the old thin left-edge indicator + soft-tint pattern. */
   #adminPanelOverlay .nav-item{
-    width:100%; display:flex; align-items:center; gap:12px; padding:10px 12px; border-radius:11px;
+    width:100%; display:flex; align-items:center; gap:12px; padding:11px 14px; border-radius:var(--ap-radius-pill);
     background:none; border:1px solid transparent; color:var(--ap-muted); font-size:14px; text-align:left;
     cursor:pointer; transition:background var(--ap-t), color var(--ap-t), border-color var(--ap-t); position:relative;
     font-family:inherit; text-decoration:none;
   }
   #adminPanelOverlay .nav-item:hover{ background:var(--ap-card); color:var(--ap-text); }
   #adminPanelOverlay .nav-item:focus-visible{ outline:none; border-color:var(--ap-gold); }
-  #adminPanelOverlay .nav-item.active{ background:var(--ap-gold-soft); color:var(--ap-text); }
-  #adminPanelOverlay .nav-item.active::before{ content:''; position:absolute; left:-12px; top:50%; transform:translateY(-50%); width:3px; height:20px; border-radius:0 3px 3px 0; background:var(--ap-gold); }
+  #adminPanelOverlay .nav-item.active{ background:var(--ap-gold); color:var(--ap-gold-text); font-weight:600; }
   #adminPanelOverlay .nav-item .ic{ width:20px; height:20px; flex:none; display:grid; place-items:center; }
   #adminPanelOverlay .nav-item .ic svg{ width:19px; height:19px; }
   #adminPanelOverlay .nav-item .lbl{ flex:1; white-space:nowrap; overflow:hidden; }
   #adminPanelOverlay .nav-item .nbadge{ min-width:20px; height:20px; padding:0 6px; border-radius:999px; background:#fff; color:#0a0a0b; font-size:11px; font-weight:800; line-height:1; display:flex; align-items:center; justify-content:center; }
+  #adminPanelOverlay .nav-item.active .nbadge{ background:rgba(255,255,255,.28); color:#fff; }
   #adminPanelOverlay .side-spacer{ flex:1; }
   #adminPanelOverlay .side-foot{ padding:10px 4px 4px; border-top:1px solid var(--ap-line); margin-top:8px; }
-  #adminPanelOverlay .collapse-btn{ width:100%; display:flex; align-items:center; gap:12px; padding:10px 12px; border-radius:11px; background:none; border:1px solid var(--ap-line); color:var(--ap-muted); font-size:13px; cursor:pointer; transition:background var(--ap-t), color var(--ap-t); font-family:inherit; }
+  #adminPanelOverlay .collapse-btn{ width:100%; display:flex; align-items:center; gap:12px; padding:10px 14px; border-radius:var(--ap-radius-pill); background:none; border:1px solid var(--ap-line); color:var(--ap-muted); font-size:13px; cursor:pointer; transition:background var(--ap-t), color var(--ap-t); font-family:inherit; }
   #adminPanelOverlay .collapse-btn:hover{ background:var(--ap-card); color:var(--ap-text); }
   #adminPanelOverlay .collapse-btn svg{ width:18px; height:18px; transition:transform .22s var(--ap-ease); }
   #adminPanelOverlay .app-shell.collapsed .side-brand .txt,
@@ -9181,7 +9259,7 @@ async function deletePush(id) {
   }
   #adminPanelOverlay .app-topbar .page-title{ font-size:17px; font-weight:700; color:var(--ap-text); }
   #adminPanelOverlay .app-topbar .spacer{ flex:1; }
-  #adminPanelOverlay .topbar-icon{ width:40px; height:40px; border-radius:11px; border:1px solid var(--ap-line); background:var(--ap-card); color:var(--ap-muted); display:grid; place-items:center; cursor:pointer; transition:all var(--ap-t); }
+  #adminPanelOverlay .topbar-icon{ width:40px; height:40px; border-radius:var(--ap-radius-pill); border:1px solid var(--ap-line); background:var(--ap-card); color:var(--ap-muted); display:grid; place-items:center; cursor:pointer; transition:all var(--ap-t); }
   #adminPanelOverlay .topbar-icon:hover{ color:var(--ap-text); border-color:var(--ap-line-2); }
   #adminPanelOverlay .topbar-icon svg{ width:19px; height:19px; }
   #adminPanelOverlay .hamburger{ display:none; }
@@ -9212,7 +9290,7 @@ async function deletePush(id) {
   #adminPanelOverlay .stat-card{ background:var(--ap-panel); border:1px solid var(--ap-line); border-radius:var(--ap-radius); padding:20px; transition:transform var(--ap-t), border-color var(--ap-t); }
   #adminPanelOverlay .stat-card:hover{ transform:translateY(-3px); border-color:var(--ap-line-2); }
   #adminPanelOverlay .stat-card .st-top{ display:flex; align-items:center; justify-content:space-between; margin-bottom:14px; }
-  #adminPanelOverlay .stat-card .st-ic{ width:38px; height:38px; border-radius:11px; display:grid; place-items:center; background:var(--ap-gold-soft); color:var(--ap-gold); }
+  #adminPanelOverlay .stat-card .st-ic{ width:38px; height:38px; border-radius:var(--ap-radius-pill); display:grid; place-items:center; background:var(--ap-gold-soft); color:var(--ap-gold); }
   #adminPanelOverlay .stat-card .st-ic svg{ width:19px; height:19px; }
   #adminPanelOverlay .stat-card .st-k{ font-size:12px; color:var(--ap-muted); text-transform:uppercase; letter-spacing:.06em; }
   #adminPanelOverlay .stat-card .st-v{ font-size:30px; font-weight:800; letter-spacing:-.02em; margin-top:5px; color:var(--ap-text); }
@@ -9220,8 +9298,21 @@ async function deletePush(id) {
   #adminPanelOverlay .dash-row{ display:grid; grid-template-columns:1.5fr 1fr; gap:16px; }
   #adminPanelOverlay .panel-card{ background:var(--ap-panel); border:1px solid var(--ap-line); border-radius:var(--ap-radius); padding:20px; }
   #adminPanelOverlay .panel-card > h3{ font-size:15px; margin-bottom:14px; display:flex; align-items:center; justify-content:space-between; color:var(--ap-text); }
-  #adminPanelOverlay .ap-chk-lbl{ display:flex; align-items:center; gap:8px; padding:10px 12px; background:var(--ap-card); border:1px solid var(--ap-line); border-radius:10px; color:var(--ap-text); font-size:13px; font-weight:600; cursor:pointer; }
-  #adminPanelOverlay .ap-chk-lbl input[type="checkbox"]{ width:auto; flex:none; accent-color:var(--ap-gold); }
+  #adminPanelOverlay .ap-chk-lbl{ display:flex; align-items:center; gap:8px; padding:10px 12px; background:var(--ap-card); border:1px solid var(--ap-line); border-radius:var(--ap-radius-sm); color:var(--ap-text); font-size:13px; font-weight:600; cursor:pointer; }
+  /* One UI 8.5 pill switch — CSS-only remap of the native checkbox via appearance:none +
+     pseudo-element thumb, no markup/JS change so every existing .ap-chk-lbl toggle picks this up. */
+  #adminPanelOverlay .ap-chk-lbl input[type="checkbox"]{
+    -webkit-appearance:none; appearance:none; width:42px; height:26px; flex:none; margin:0;
+    border-radius:var(--ap-radius-pill); background:var(--ap-line-2); border:none; position:relative;
+    cursor:pointer; transition:background var(--ap-t);
+  }
+  #adminPanelOverlay .ap-chk-lbl input[type="checkbox"]::before{
+    content:''; position:absolute; top:3px; left:3px; width:20px; height:20px; border-radius:50%;
+    background:#fff; box-shadow:0 1px 3px rgba(0,0,0,.3); transition:transform var(--ap-t);
+  }
+  #adminPanelOverlay .ap-chk-lbl input[type="checkbox"]:checked{ background:var(--ap-gold); }
+  #adminPanelOverlay .ap-chk-lbl input[type="checkbox"]:checked::before{ transform:translateX(16px); }
+  #adminPanelOverlay .ap-chk-lbl input[type="checkbox"]:focus-visible{ outline:2px solid var(--ap-gold); outline-offset:2px; }
   #adminPanelOverlay .quick-actions{ display:flex; flex-direction:column; gap:8px; }
   #adminPanelOverlay .quick-actions button{ display:flex; align-items:center; gap:12px; width:100%; text-align:left; padding:13px 14px; border-radius:12px; background:var(--ap-card); border:1px solid var(--ap-line); color:var(--ap-text); font-size:14px; cursor:pointer; transition:all var(--ap-t); font-family:inherit; }
   #adminPanelOverlay .quick-actions button:hover{ border-color:var(--ap-line-2); transform:translateX(2px); }
