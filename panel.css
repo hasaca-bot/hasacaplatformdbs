@@ -127,7 +127,7 @@ body{ background:var(--bg); color:var(--text); transition:background .25s var(--
 }
 .app-topbar .page-title{ font-size:17px; font-weight:700; }
 .app-topbar .spacer{ flex:1; }
-.topbar-icon{ width:40px; height:40px; border-radius:var(--radius-pill); border:1px solid var(--line); background:var(--card); color:var(--muted); display:grid; place-items:center; cursor:pointer; transition:all var(--t); }
+.topbar-icon{ width:40px; height:40px; flex-shrink:0; border-radius:var(--radius-pill); border:1px solid var(--line); background:var(--card); color:var(--muted); display:grid; place-items:center; cursor:pointer; transition:all var(--t); }
 .topbar-icon:hover{ color:var(--text); border-color:var(--line-2); }
 .topbar-icon svg{ width:19px; height:19px; }
 .hamburger{ display:none; }

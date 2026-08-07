@@ -9245,8 +9245,12 @@ async function deletePush(id) {
   #adminPanelOverlay .app-shell.collapsed .side-brand .txt,
   #adminPanelOverlay .app-shell.collapsed .nav-group > .lbl,
   #adminPanelOverlay .app-shell.collapsed .nav-item .lbl,
-  #adminPanelOverlay .app-shell.collapsed .nav-item .nbadge,
   #adminPanelOverlay .app-shell.collapsed .collapse-btn span{ display:none; }
+  /* .nbadge gets its "visible" state from an INLINE style set by JS (e.g. style="display:flex"
+     when there's a real count) — a plain class-selector rule can never win against that, so this
+     one needs !important to actually hide the badge once collapsed (this was the cause of the
+     crooked/overlapping badges in the collapsed rail). */
+  #adminPanelOverlay .app-shell.collapsed .nav-item .nbadge{ display:none !important; }
   #adminPanelOverlay .app-shell.collapsed .nav-item{ justify-content:center; }
   #adminPanelOverlay .app-shell.collapsed .collapse-btn{ justify-content:center; }
   #adminPanelOverlay .app-shell.collapsed .collapse-btn svg{ transform:rotate(180deg); }
@@ -9259,7 +9263,7 @@ async function deletePush(id) {
   }
   #adminPanelOverlay .app-topbar .page-title{ font-size:17px; font-weight:700; color:var(--ap-text); }
   #adminPanelOverlay .app-topbar .spacer{ flex:1; }
-  #adminPanelOverlay .topbar-icon{ width:40px; height:40px; border-radius:var(--ap-radius-pill); border:1px solid var(--ap-line); background:var(--ap-card); color:var(--ap-muted); display:grid; place-items:center; cursor:pointer; transition:all var(--ap-t); }
+  #adminPanelOverlay .topbar-icon{ width:40px; height:40px; flex-shrink:0; border-radius:var(--ap-radius-pill); border:1px solid var(--ap-line); background:var(--ap-card); color:var(--ap-muted); display:grid; place-items:center; cursor:pointer; transition:all var(--ap-t); }
   #adminPanelOverlay .topbar-icon:hover{ color:var(--ap-text); border-color:var(--ap-line-2); }
   #adminPanelOverlay .topbar-icon svg{ width:19px; height:19px; }
   #adminPanelOverlay .hamburger{ display:none; }
