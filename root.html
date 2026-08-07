@@ -48,7 +48,7 @@
 
   /* Login */
   .login-wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;}
-  .login-card{width:min(380px,100%);background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:30px;}
+  .login-card{width:min(380px,100%);background:var(--panel);border:1px solid var(--line);border-radius:28px;padding:30px;}
   .login-card h1{font-size:1.3rem;margin-bottom:4px;}
   .login-card .sub{color:var(--muted);font-size:.82rem;margin-bottom:22px;}
   .login-card label{display:block;font-size:.7rem;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;color:var(--fire);margin:14px 0 6px;}
@@ -85,22 +85,22 @@
   .modal h2{font-size:1.05rem;margin-bottom:16px;}
   .modal label{display:block;font-size:.68rem;font-weight:800;letter-spacing:1.2px;text-transform:uppercase;color:var(--fire);margin:12px 0 5px;}
   .modal .row{display:flex;gap:16px;justify-content:flex-end;margin-top:20px;}
-  .cred-box{background:var(--card);border:1px dashed var(--gold);border-radius:12px;padding:14px;margin-top:14px;font-family:ui-monospace,monospace;font-size:.9rem;line-height:1.7;}
+  .cred-box{background:var(--card);border:1px dashed var(--gold);border-radius:16px;padding:14px;margin-top:14px;font-family:ui-monospace,monospace;font-size:.9rem;line-height:1.7;}
   .hint{color:var(--muted);font-size:.75rem;margin-top:4px;}
   .asset-field{display:flex;align-items:center;gap:10px;}
   .asset-field .asset-url{flex:1;min-width:0;opacity:.7;cursor:default;font-size:.72rem;}
-  .asset-thumb{width:40px;height:40px;border-radius:8px;object-fit:cover;background:#1c1c1c;border:1px solid rgba(255,255,255,.12);display:none;flex-shrink:0;}
+  .asset-thumb{width:40px;height:40px;border-radius:14px;object-fit:cover;background:#1c1c1c;border:1px solid rgba(255,255,255,.12);display:none;flex-shrink:0;}
   .brand-section{margin:22px 0 4px;font-size:.95rem;color:var(--gold);border-top:1px solid var(--line);padding-top:16px;}
   .seo-count{float:right;font-size:.68rem;color:var(--muted);text-transform:none;letter-spacing:0;}
   .seo-count.over{color:var(--bad);}
-  .seo-preview{margin:10px 0 4px;padding:12px 14px;background:var(--panel);border:1px solid var(--line);border-radius:12px;}
+  .seo-preview{margin:10px 0 4px;padding:12px 14px;background:var(--panel);border:1px solid var(--line);border-radius:14px;}
   .seo-preview .sp-title{color:#8ab4f8;font-size:1rem;line-height:1.3;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
   .seo-preview .sp-url{color:#3ea150;font-size:.78rem;margin:2px 0;}
   .seo-preview .sp-desc{color:var(--muted);font-size:.82rem;line-height:1.4;}
   .cs-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px 14px;}
   @media(max-width:520px){ .cs-grid{grid-template-columns:1fr;} }
   .hstat-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px;}
-  .hstat{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px 14px;}
+  .hstat{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:12px 14px;}
   .hstat .k{font-size:.68rem;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);}
   .hstat .v{font-size:1.25rem;font-weight:800;margin-top:4px;color:var(--text);}
   .hstat .v small{font-size:.7rem;font-weight:600;color:var(--muted);}
@@ -118,13 +118,13 @@
   .tbl{width:100%;border-collapse:collapse;font-size:.82rem;margin-top:8px;}
   .tbl th,.tbl td{text-align:left;padding:7px 8px;border-bottom:1px solid var(--line);}
   .tbl th{color:var(--muted);font-size:.68rem;text-transform:uppercase;letter-spacing:.5px;}
-  .toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%);background:var(--card);border:1px solid var(--line);color:var(--text);padding:12px 20px;border-radius:12px;font-weight:700;font-size:.85rem;opacity:0;pointer-events:none;transition:opacity .25s;z-index:200;}
+  .toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%);background:var(--card);border:1px solid var(--line);color:var(--text);padding:12px 20px;border-radius:999px;font-weight:700;font-size:.85rem;opacity:0;pointer-events:none;transition:opacity .25s;z-index:200;}
   .toast.show{opacity:1;}
   .empty{color:var(--muted);text-align:center;padding:50px 0;grid-column:1/-1;}
 
   /* ── AI Assistant — chat UI (Phase 39) ── */
   .ai-chat{ display:flex; flex-direction:column; height:calc(100vh - 190px); min-height:440px;
-    background:var(--panel); border:1px solid var(--line); border-radius:16px; overflow:hidden; }
+    background:var(--panel); border:1px solid var(--line); border-radius:20px; overflow:hidden; }
   .ai-chat-top{ display:flex; align-items:flex-start; justify-content:space-between; gap:16px;
     padding:18px 20px; border-bottom:1px solid var(--line); flex:none; }
   .ai-chat-top h3{ font-size:15px; margin-bottom:3px; }
@@ -143,7 +143,7 @@
   @keyframes aiMsgIn{ from{ opacity:0; transform:translateY(4px);} to{ opacity:1; transform:none;} }
   .ai-msg.user{ align-self:flex-end; align-items:flex-end; }
   .ai-msg.assistant{ align-self:flex-start; align-items:flex-start; }
-  .ai-bubble{ border-radius:16px; padding:11px 15px; font-size:.87rem; line-height:1.5; }
+  .ai-bubble{ border-radius:18px; padding:11px 15px; font-size:.87rem; line-height:1.5; }
   .ai-msg.user .ai-bubble{ background:var(--gold); color:var(--gold-text); border-bottom-right-radius:4px; }
   .ai-msg.assistant .ai-bubble{ background:var(--card); border:1px solid var(--line); color:var(--text); border-bottom-left-radius:4px; max-width:100%; }
 
@@ -655,7 +655,7 @@
       <th data-i18n="root_landing_name">Ad</th><th data-i18n="root_landing_contact">İletişim</th>
       <th data-i18n="root_landing_status">Durum</th><th></th>
     </tr></thead><tbody id="landingBody"></tbody></table></div>
-    <div id="lmDetail" style="display:none;margin-top:12px;padding:12px;border:1px solid var(--line);border-radius:10px;background:rgba(255,255,255,.03);"></div>
+    <div id="lmDetail" style="display:none;margin-top:12px;padding:12px;border:1px solid var(--line);border-radius:14px;background:rgba(255,255,255,.03);"></div>
     <div class="row">
       <button class="btn secondary" onclick="loadLandingMessages()" data-i18n="root_health_refresh">Yenile</button>
       <button class="btn" onclick="closeModal('landingOverlay')" data-i18n="root_close">Kapat</button>
@@ -700,7 +700,7 @@
       <label style="display:flex;align-items:center;gap:6px;text-transform:none;letter-spacing:0;color:var(--text);font-weight:600;"><input type="radio" name="nfTarget" value="all" checked onchange="toggleNotifyTargets()" style="width:auto;"> <span data-i18n="root_notify_all">Tüm restoranlar</span></label>
       <label style="display:flex;align-items:center;gap:6px;text-transform:none;letter-spacing:0;color:var(--text);font-weight:600;"><input type="radio" name="nfTarget" value="sel" onchange="toggleNotifyTargets()" style="width:auto;"> <span data-i18n="root_notify_selected">Seçili</span></label>
     </div>
-    <div id="nfTenantList" style="display:none;max-height:120px;overflow:auto;border:1px solid var(--line);border-radius:10px;padding:8px;margin-bottom:8px;"></div>
+    <div id="nfTenantList" style="display:none;max-height:120px;overflow:auto;border:1px solid var(--line);border-radius:14px;padding:8px;margin-bottom:8px;"></div>
     <div class="row" style="justify-content:space-between;">
       <button class="btn" onclick="sendRootNotification()" data-i18n="root_notify_send">Gönder</button>
       <button class="btn secondary" onclick="closeModal('notifyOverlay')" data-i18n="root_close">Kapat</button>

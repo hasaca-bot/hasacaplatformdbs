@@ -7,17 +7,21 @@
    ========================================================================== */
 
 /* ---------------------------------------------------------------- TOKENS -- */
+/* One UI 8.5 (Faz 2A) — same values as admin.html's Faz 1 --ap-* tokens, applied here to the
+   shared root.html token names so both panels repaint identically. Primary accent is now One UI
+   blue, constant across both themes; variable NAMES kept as-is so every existing rule re-themes
+   automatically. */
 :root, :root[data-theme="dark"]{
   color-scheme: dark;
-  --bg:#0a0a0b; --bg-2:#0e0e11; --panel:#141418; --card:#1b1b20; --elev:#212127;
-  --line:rgba(255,255,255,.09); --line-2:rgba(255,255,255,.15);
-  --text:#f4f4f6; --muted:#a6a6b0; --faint:#6c6c78;
-  --gold:#ffffff; --gold-2:#e6e6ea; --gold-soft:rgba(255,255,255,.14); --gold-text:#0a0a0b;
+  --bg:#000000; --bg-2:#0a0a0a; --panel:#17171a; --card:#1e1e21; --elev:#26262a;
+  --line:rgba(255,255,255,.08); --line-2:rgba(255,255,255,.14);
+  --text:#ffffff; --muted:#909095; --faint:#6b6b70;
+  --gold:#387AFF; --gold-2:#5c96ff; --gold-soft:rgba(56,122,255,.16); --gold-text:#ffffff;
   --ok:#7fd18f; --ok-soft:rgba(127,209,143,.14);
   --bad:#e5776b; --bad-soft:rgba(229,119,107,.14);
   --warn:#e0c070;
   /* legacy aliases (existing rules use these) */
-  --fire:#ffffff; --ember:#e6e6ea; --fire-text:#0a0a0b;
+  --fire:#387AFF; --ember:#5c96ff; --fire-text:#ffffff;
   --scroll-thumb:rgba(255,255,255,.4); --scroll-thumb-hover:rgba(255,255,255,.7);
   --shine:linear-gradient(135deg,#ffffff 0%,#c9c9d2 45%,#8f8f9c 100%);
   --shadow:0 24px 60px -26px rgba(0,0,0,.85);
@@ -25,14 +29,14 @@
 }
 :root[data-theme="light"]{
   color-scheme: light;
-  --bg:#f4f5f7; --bg-2:#eceef2; --panel:#ffffff; --card:#ffffff; --elev:#ffffff;
-  --line:rgba(15,18,25,.10); --line-2:rgba(15,18,25,.17);
-  --text:#15171c; --muted:#565c69; --faint:#8b909c;
-  --gold:#15171c; --gold-2:#565c69; --gold-soft:rgba(21,23,28,.12); --gold-text:#ffffff;
+  --bg:#f1f1f3; --bg-2:#e8e8ea; --panel:#ffffff; --card:#ffffff; --elev:#f5f5f7;
+  --line:rgba(0,0,0,.08); --line-2:rgba(0,0,0,.14);
+  --text:#000000; --muted:#6d6d72; --faint:#9a9a9e;
+  --gold:#387AFF; --gold-2:#2f68d9; --gold-soft:rgba(56,122,255,.12); --gold-text:#ffffff;
   --ok:#2f9e56; --ok-soft:rgba(47,158,86,.12);
   --bad:#c0473b; --bad-soft:rgba(192,71,59,.12);
   --warn:#a9781f;
-  --fire:#15171c; --ember:#565c69; --fire-text:#ffffff;
+  --fire:#387AFF; --ember:#2f68d9; --fire-text:#ffffff;
   --scroll-thumb:rgba(15,18,25,.22); --scroll-thumb-hover:rgba(15,18,25,.4);
   --shine:linear-gradient(135deg,#2a2a30 0%,#4a4a55 45%,#6a6a75 100%);
   --shadow:0 24px 60px -30px rgba(15,18,25,.26);
@@ -40,10 +44,14 @@
 }
 :root{
   --sidebar-w:252px; --sidebar-collapsed:74px; --topbar-h:62px;
-  --radius:16px; --radius-sm:11px; --radius-lg:22px; --radius-pill:999px;
+  --radius:20px; --radius-sm:14px; --radius-lg:28px; --radius-pill:999px;
   --ease:cubic-bezier(.22,.61,.36,1);
   --t:.16s var(--ease);
 }
+
+/* ICONS — style pass only (see admin.html's Faz 1 note): every icon here is an inline outline SVG
+   (stroke="currentColor" stroke-width="2"); CSS overrides the SVG's own presentation attributes. */
+svg{ stroke-width:2.25; stroke-linecap:round; stroke-linejoin:round; }
 
 html{ scrollbar-color:var(--scroll-thumb) transparent; }
 body{ background:var(--bg); color:var(--text); transition:background .25s var(--ease), color .25s var(--ease); }
@@ -69,7 +77,7 @@ body{ background:var(--bg); color:var(--text); transition:background .25s var(--
   transition:transform .22s var(--ease);
 }
 .side-brand{ display:flex; align-items:center; gap:11px; padding:6px 8px 16px; }
-.side-brand .mark{ width:34px; height:34px; border-radius:10px; flex:none; display:grid; place-items:center;
+.side-brand .mark{ width:34px; height:34px; border-radius:var(--radius-pill); flex:none; display:grid; place-items:center;
   background:linear-gradient(150deg,#2a2a30,#0c0c0e); border:1px solid var(--line-2); box-shadow:inset 0 1px 0 rgba(255,255,255,.14); }
 .side-brand .mark span{ font-size:16px; background:var(--shine); -webkit-background-clip:text; background-clip:text; color:transparent; }
 :root[data-theme="light"] .side-brand .mark, body.theme-bw .side-brand .mark, html.theme-bw .side-brand .mark{
@@ -80,22 +88,23 @@ body{ background:var(--bg); color:var(--text); transition:background .25s var(--
 .side-brand .txt small{ font-size:11px; color:var(--faint); letter-spacing:.05em; }
 .nav-group{ margin-top:14px; }
 .nav-group > .lbl{ font-size:10.5px; letter-spacing:.13em; text-transform:uppercase; color:var(--faint); padding:6px 12px 8px; white-space:nowrap; }
+/* Navigation Rail (One UI 8.5): selected item is a solid filled pill, no side accent bar. */
 .nav-item{
-  width:100%; display:flex; align-items:center; gap:12px; padding:10px 12px; border-radius:11px;
+  width:100%; display:flex; align-items:center; gap:12px; padding:11px 14px; border-radius:var(--radius-pill);
   background:none; border:1px solid transparent; color:var(--muted); font-size:14px; text-align:left;
   cursor:pointer; transition:background var(--t), color var(--t), border-color var(--t); position:relative;
 }
 .nav-item:hover{ background:var(--card); color:var(--text); }
 .nav-item:focus-visible{ outline:none; border-color:var(--gold); }
-.nav-item.active{ background:var(--gold-soft); color:var(--text); }
-.nav-item.active::before{ content:''; position:absolute; left:-12px; top:50%; transform:translateY(-50%); width:3px; height:20px; border-radius:0 3px 3px 0; background:var(--gold); }
+.nav-item.active{ background:var(--gold); color:var(--gold-text); font-weight:600; }
 .nav-item .ic{ width:20px; height:20px; flex:none; display:grid; place-items:center; }
 .nav-item .ic svg{ width:19px; height:19px; }
 .nav-item .lbl{ flex:1; white-space:nowrap; overflow:hidden; }
 .nav-item .nbadge{ min-width:20px; height:20px; padding:0 6px; border-radius:999px; background:var(--gold); color:var(--gold-text); font-size:11px; font-weight:800; display:flex; align-items:center; justify-content:center; line-height:1; }
+.nav-item.active .nbadge{ background:rgba(255,255,255,.28); color:#fff; }
 .side-spacer{ flex:1; }
 .side-foot{ padding:10px 4px 4px; border-top:1px solid var(--line); margin-top:8px; }
-.collapse-btn{ width:100%; display:flex; align-items:center; gap:12px; padding:10px 12px; border-radius:11px; background:none; border:1px solid var(--line); color:var(--muted); font-size:13px; cursor:pointer; transition:background var(--t), color var(--t); }
+.collapse-btn{ width:100%; display:flex; align-items:center; gap:12px; padding:10px 14px; border-radius:var(--radius-pill); background:none; border:1px solid var(--line); color:var(--muted); font-size:13px; cursor:pointer; transition:background var(--t), color var(--t); }
 .collapse-btn:hover{ background:var(--card); color:var(--text); }
 .collapse-btn svg{ width:18px; height:18px; transition:transform .22s var(--ease); }
 
@@ -118,7 +127,7 @@ body{ background:var(--bg); color:var(--text); transition:background .25s var(--
 }
 .app-topbar .page-title{ font-size:17px; font-weight:700; }
 .app-topbar .spacer{ flex:1; }
-.topbar-icon{ width:40px; height:40px; border-radius:11px; border:1px solid var(--line); background:var(--card); color:var(--muted); display:grid; place-items:center; cursor:pointer; transition:all var(--t); }
+.topbar-icon{ width:40px; height:40px; border-radius:var(--radius-pill); border:1px solid var(--line); background:var(--card); color:var(--muted); display:grid; place-items:center; cursor:pointer; transition:all var(--t); }
 .topbar-icon:hover{ color:var(--text); border-color:var(--line-2); }
 .topbar-icon svg{ width:19px; height:19px; }
 .hamburger{ display:none; }
@@ -145,9 +154,9 @@ body{ background:var(--bg); color:var(--text); transition:background .25s var(--
 .profile-btn:hover{ border-color:var(--line-2); }
 .profile-btn .av{ width:30px; height:30px; border-radius:50%; background:linear-gradient(150deg,#2a2a30,#0c0c0e); border:1px solid var(--line-2); display:grid; place-items:center; font-size:12px; color:var(--gold); }
 .profile-btn .nm{ font-size:13px; }
-.profile-menu{ position:absolute; right:0; top:calc(100% + 8px); min-width:180px; background:var(--panel); border:1px solid var(--line-2); border-radius:14px; box-shadow:var(--shadow); padding:6px; display:none; z-index:120; }
+.profile-menu{ position:absolute; right:0; top:calc(100% + 8px); min-width:180px; background:var(--panel); border:1px solid var(--line-2); border-radius:var(--radius-sm); box-shadow:var(--shadow); padding:6px; display:none; z-index:120; }
 .profile-menu.open{ display:block; }
-.profile-menu button{ width:100%; display:flex; align-items:center; gap:10px; background:none; border:none; color:var(--text); font-size:13.5px; text-align:left; padding:10px 12px; border-radius:9px; cursor:pointer; transition:background var(--t); }
+.profile-menu button{ width:100%; display:flex; align-items:center; gap:10px; background:none; border:none; color:var(--text); font-size:13.5px; text-align:left; padding:10px 12px; border-radius:var(--radius-sm); cursor:pointer; transition:background var(--t); }
 .profile-menu button:hover{ background:var(--card); }
 .profile-menu button.danger{ color:var(--bad); }
 .profile-menu button svg{ width:16px; height:16px; }
@@ -158,7 +167,7 @@ body{ background:var(--bg); color:var(--text); transition:background .25s var(--
 .stat-card{ background:var(--panel); border:1px solid var(--line); border-radius:var(--radius); padding:20px; transition:transform var(--t), border-color var(--t); }
 .stat-card:hover{ transform:translateY(-3px); border-color:var(--line-2); }
 .stat-card .st-top{ display:flex; align-items:center; justify-content:space-between; margin-bottom:14px; }
-.stat-card .st-ic{ width:38px; height:38px; border-radius:11px; display:grid; place-items:center; background:var(--gold-soft); color:var(--gold); }
+.stat-card .st-ic{ width:38px; height:38px; border-radius:var(--radius-pill); display:grid; place-items:center; background:var(--gold-soft); color:var(--gold); }
 .stat-card .st-ic svg{ width:19px; height:19px; }
 .stat-card .st-k{ font-size:12px; color:var(--muted); text-transform:uppercase; letter-spacing:.06em; }
 .stat-card .st-v{ font-size:30px; font-weight:800; letter-spacing:-.02em; margin-top:5px; }
@@ -168,13 +177,13 @@ body{ background:var(--bg); color:var(--text); transition:background .25s var(--
 .panel-card > h3{ font-size:15px; margin-bottom:14px; display:flex; align-items:center; justify-content:space-between; }
 .panel-card > h3 a{ font-size:12.5px; color:var(--gold); cursor:pointer; }
 .quick-actions{ display:flex; flex-direction:column; gap:8px; }
-.quick-actions button{ display:flex; align-items:center; gap:12px; width:100%; text-align:left; padding:13px 14px; border-radius:12px; background:var(--card); border:1px solid var(--line); color:var(--text); font-size:14px; cursor:pointer; transition:all var(--t); }
+.quick-actions button{ display:flex; align-items:center; gap:12px; width:100%; text-align:left; padding:13px 14px; border-radius:var(--radius-sm); background:var(--card); border:1px solid var(--line); color:var(--text); font-size:14px; cursor:pointer; transition:all var(--t); }
 .quick-actions button:hover{ border-color:var(--line-2); transform:translateX(2px); }
 .quick-actions button svg{ width:18px; height:18px; color:var(--gold); flex:none; }
 .act-list{ display:flex; flex-direction:column; }
 .act-row{ display:flex; align-items:center; gap:12px; padding:11px 2px; border-top:1px solid var(--line); font-size:13px; }
 .act-row:first-child{ border-top:none; }
-.act-row .act-ic{ width:30px; height:30px; border-radius:9px; flex:none; display:grid; place-items:center; background:var(--card); color:var(--muted); }
+.act-row .act-ic{ width:30px; height:30px; border-radius:var(--radius-pill); flex:none; display:grid; place-items:center; background:var(--card); color:var(--muted); }
 .act-row .act-ic svg{ width:15px; height:15px; }
 .act-row .act-main{ flex:1; min-width:0; }
 .act-row .act-main b{ font-weight:700; }
@@ -190,7 +199,7 @@ body{ background:var(--bg); color:var(--text); transition:background .25s var(--
 .dash-chart-wrap .dc-guide{ stroke:var(--line-2); stroke-width:1; pointer-events:none; }
 .dash-chart-tooltip{
   position:absolute; top:0; left:0; pointer-events:none; z-index:5;
-  background:var(--elev); border:1px solid var(--line-2); border-radius:10px; padding:8px 11px;
+  background:var(--elev); border:1px solid var(--line-2); border-radius:var(--radius-sm); padding:8px 11px;
   font-size:11.5px; box-shadow:var(--shadow-sm); white-space:nowrap; opacity:0;
   transition:opacity .1s ease; transform:translate(-50%,-110%);
 }
@@ -202,7 +211,7 @@ body{ background:var(--bg); color:var(--text); transition:background .25s var(--
 
 /* ----------------------------------------------------- COMPONENT REFRESH -- */
 /* These load after root.html's inline styles → they win at equal specificity. */
-.btn{ border:1px solid transparent; border-radius:11px; padding:10px 16px; font-weight:700; font-size:.85rem;
+.btn{ border:1px solid transparent; border-radius:var(--radius-pill); padding:10px 16px; font-weight:700; font-size:.85rem;
   background:var(--gold); color:var(--gold-text); transition:transform var(--t), box-shadow var(--t), background var(--t), border-color var(--t); }
 .btn:hover{ transform:translateY(-1px); box-shadow:0 10px 26px -12px var(--gold); }
 .btn.secondary{ background:var(--card); border-color:var(--line); color:var(--text) !important; }
@@ -211,9 +220,37 @@ body{ background:var(--bg); color:var(--text); transition:background .25s var(--
 .btn.danger:hover{ box-shadow:none; background:color-mix(in srgb, var(--bad) 22%, transparent); }
 .btn.small{ padding:7px 12px; font-size:.78rem; }
 
-input,select,textarea{ background:var(--bg-2); border:1px solid var(--line); color:var(--text); border-radius:11px; transition:border-color var(--t), box-shadow var(--t); }
+input,select,textarea{ background:var(--bg-2); border:1px solid var(--line); color:var(--text); border-radius:var(--radius-sm); transition:border-color var(--t), box-shadow var(--t); }
 input:focus,select:focus,textarea:focus{ outline:none; border-color:var(--gold); box-shadow:0 0 0 3px var(--gold-soft); }
 ::placeholder{ color:var(--faint); }
+
+/* One UI 8.5 pill switch — toggle-semantic checkboxes (widget on/off, AI enable). CSS-only remap
+   via appearance:none + pseudo-element thumb, no markup/JS change. `.nf-ten` (the notify-target
+   tenant multi-select list) is real checkbox semantics, not a toggle, so it's excluded here and
+   gets a rounded-square check style instead, right below. */
+input[type="checkbox"]:not(.nf-ten){
+  -webkit-appearance:none; appearance:none; width:42px; height:26px; flex:none; margin:0;
+  border-radius:var(--radius-pill); background:var(--line-2); border:none; position:relative;
+  cursor:pointer; transition:background var(--t); vertical-align:middle;
+}
+input[type="checkbox"]:not(.nf-ten)::before{
+  content:''; position:absolute; top:3px; left:3px; width:20px; height:20px; border-radius:50%;
+  background:#fff; box-shadow:0 1px 3px rgba(0,0,0,.3); transition:transform var(--t);
+}
+input[type="checkbox"]:not(.nf-ten):checked{ background:var(--gold); }
+input[type="checkbox"]:not(.nf-ten):checked::before{ transform:translateX(16px); }
+input[type="checkbox"]:not(.nf-ten):focus-visible{ outline:2px solid var(--gold); outline-offset:2px; }
+
+input.nf-ten{
+  -webkit-appearance:none; appearance:none; width:20px; height:20px; flex:none; margin:0;
+  border-radius:6px; border:1.5px solid var(--line-2); background:var(--card); position:relative;
+  cursor:pointer; transition:background var(--t), border-color var(--t); vertical-align:middle;
+}
+input.nf-ten:checked{ background:var(--gold); border-color:var(--gold); }
+input.nf-ten:checked::after{
+  content:''; position:absolute; left:6px; top:2px; width:5px; height:10px;
+  border:solid var(--gold-text); border-width:0 2px 2px 0; transform:rotate(45deg);
+}
 
 .chip{ background:var(--card); border:1px solid var(--line); color:var(--muted); border-radius:999px; padding:8px 15px; font-size:.8rem; font-weight:700; cursor:pointer; transition:all var(--t); }
 .chip:hover{ color:var(--text); border-color:var(--line-2); }
@@ -233,10 +270,10 @@ input:focus,select:focus,textarea:focus{ outline:none; border-color:var(--gold);
 .tbl tbody tr{ transition:background var(--t); }
 .tbl tbody tr:hover{ background:var(--card); }
 
-/* Modals — glass + consistent */
-.overlay{ background:rgba(0,0,0,.62); backdrop-filter:blur(5px); -webkit-backdrop-filter:blur(5px); z-index:2000; }
+/* Modals — One UI Dialog (Faz 2A): neutral scrim + stronger blur, same treatment as admin.html. */
+.overlay{ background:rgba(0,0,0,.55); backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px); z-index:2000; }
 .modal{ background:var(--panel); border:1px solid var(--line-2); border-radius:var(--radius-lg); box-shadow:var(--shadow); }
-:root[data-theme="light"] .overlay{ background:rgba(15,18,25,.42); }
+:root[data-theme="light"] .overlay{ background:rgba(0,0,0,.45); }
 
 .hstat,.stat-card,.panel-card,.tenant-card{ transition:transform var(--t), border-color var(--t), background .25s var(--ease); }
 
