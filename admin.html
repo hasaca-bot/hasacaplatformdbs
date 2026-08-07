@@ -9024,20 +9024,6 @@ async function deletePush(id) {
     color-scheme:light;
   }
 
-  /* Masa Siparişi + Uzaktan Sipariş — reverted to monochrome (pre-One-UI) accent on user request.
-     Scoped via CSS variable overrides on the two view containers only, so every descendant that
-     reads --fire/--ember/--gold/--amber (or --ap-gold/-2 directly) inside these two screens goes
-     back to white/grey instead of the One UI blue, while the rest of the admin panel (dashboard,
-     nav, dialogs, other views) keeps the blue accent untouched. */
-  #adminTabOrdersCont, #adminTabTableOrdersCont{
-    --fire:#ffffff; --ember:#e6e6ea; --gold:#ffffff; --amber:#e6e6ea;
-    --ap-gold:#ffffff; --ap-gold-2:#e6e6ea; --ap-gold-soft:rgba(255,255,255,.14); --ap-gold-text:#0a0a0b;
-  }
-  html[data-theme="light"] #adminTabOrdersCont, html[data-theme="light"] #adminTabTableOrdersCont{
-    --fire:#15171c; --ember:#565c69; --gold:#15171c; --amber:#565c69;
-    --ap-gold:#15171c; --ap-gold-2:#565c69; --ap-gold-soft:rgba(21,23,28,.12); --ap-gold-text:#ffffff;
-  }
-
   /* ── HEADER ── */
   .admin-panel-header{
     border-bottom:1px solid var(--ap-line);

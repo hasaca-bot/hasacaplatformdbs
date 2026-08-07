@@ -29,16 +29,15 @@
 *{ font-family:var(--font-primary) !important; }
 code,pre,kbd,samp,.cred-box,[class*="mono"],[style*="monospace"]{ font-family:ui-monospace,'SFMono-Regular',Menlo,monospace !important; }
 :root{
-  /* One UI 8.5 (Faz 2B) — blue accent for --fire (primary, buttons/backgrounds). --ember/--gold/
-     --amber (secondary text-accent shade — product prices, labels, cart icon gradients) reverted
-     to their original near-white per user feedback: the blue read wrong on product-page text and
-     the cart icon specifically. */
-  --fire:#387AFF; --fire-text:#ffffff;
+  /* Faz 2B'de One UI mavisine çevrilmişti; kullanıcı isteğiyle masa siparişi (QR/dine-in) ve
+     uzaktan sipariş akışları — yani bu sitenin bütün müşteri tarafı — tekrar monokrom (beyaz/
+     krem) hale döndürüldü. Admin paneli (admin.html) ayrı bir dosya, mavi kalmaya devam ediyor. */
+  --fire:#ffffff; --fire-text:#0a0a0b;
   --ember:#f4f4f6;
   --gold:#e6e6ea;
   --amber:#e6e6ea;
   /* RGB triplets for rgba() forms that can't interpolate a hex custom property (Phase 32) */
-  --fire-rgb:56,122,255;
+  --fire-rgb:255,255,255;
   --ember-rgb:229,229,235;
   --amber-rgb:230,230,234;
   /* Error/warning indicator — a distinct shade from --ember, used for allergen/login/checkout errors */
@@ -83,13 +82,10 @@ svg:not(#adminPanelOverlay *){ stroke-width:2.25; stroke-linecap:round; stroke-l
 
 /* ── LIGHT THEME (One UI 8.5, Faz 2B) — same blue accent as dark, only the neutral scale flips ── */
 body.theme-bw {
-  --fire:#387AFF; --fire-text:#ffffff;
-  /* --ember/--gold/--amber reverted to original (no override needed — --gold was originally
-     black in light theme, --amber warm-taupe grey; --ember/--ember-rgb/--amber-rgb inherit
-     the :root values unchanged, same as before Faz 2B). */
+  /* --fire/--gold/--amber/--fire-rgb reverted to original (no overrides needed here anymore —
+     same monochrome values as :root, inherited). */
   --gold: #0a0a0b;
   --amber: #565c69;
-  --fire-rgb:56,122,255;
   --cream: #000000;      /* Dark text color */
   --dark: #f1f1f3;       /* One UI light background */
   --dark2: #eceef2;      /* Light card/header background */
