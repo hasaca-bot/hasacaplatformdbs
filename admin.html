@@ -9100,7 +9100,7 @@ async function deletePush(id) {
   #adminPanelOverlay input:not([type=checkbox]):not([type=radio]):not([type=file]),
   #adminPanelOverlay select, #adminPanelOverlay textarea{
     background:var(--ap-bg-2); color:var(--ap-text); border:1px solid var(--ap-line);
-    border-radius:var(--ap-radius-sm); transition:border-color var(--ap-t), box-shadow var(--ap-t);
+    border-radius:var(--ap-radius-pill); transition:border-color var(--ap-t), box-shadow var(--ap-t);
   }
   #adminPanelOverlay .admin-input:focus,
   #adminPanelOverlay input:focus:not([type=checkbox]):not([type=radio]):not([type=file]),
@@ -9111,7 +9111,7 @@ async function deletePush(id) {
 
   /* Custom dropdown */
   #adminPanelOverlay .custom-select-trigger{
-    background:var(--ap-bg-2); color:var(--ap-text); border:1px solid var(--ap-line); border-radius:var(--ap-radius-sm);
+    background:var(--ap-bg-2); color:var(--ap-text); border:1px solid var(--ap-line); border-radius:var(--ap-radius-pill);
   }
   #adminPanelOverlay .custom-select-trigger:hover{ border-color:var(--ap-line-2); }
   #adminPanelOverlay .custom-select-options{
@@ -9210,7 +9210,7 @@ async function deletePush(id) {
     transition:transform .22s var(--ap-ease);
   }
   #adminPanelOverlay .side-brand{ display:flex; align-items:center; gap:11px; padding:6px 8px 16px; }
-  #adminPanelOverlay .side-brand .mark{ width:34px; height:34px; border-radius:var(--ap-radius-pill); flex:none; display:grid; place-items:center;
+  #adminPanelOverlay .side-brand .mark{ width:34px; height:34px; border-radius:var(--ap-radius-sm); flex:none; display:grid; place-items:center;
     background:linear-gradient(150deg,#2a2a30,#0c0c0e); border:1px solid var(--ap-line-2); box-shadow:inset 0 1px 0 rgba(255,255,255,.14); color:#fff; }
   #adminPanelOverlay .side-brand .mark span{ font-size:16px; background:linear-gradient(135deg,#fff 0%,#c9c9d2 45%,#8f8f9c 100%); -webkit-background-clip:text; background-clip:text; color:transparent; }
   html[data-theme="light"] #adminPanelOverlay .side-brand .mark{

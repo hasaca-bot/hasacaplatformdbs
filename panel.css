@@ -77,7 +77,7 @@ body{ background:var(--bg); color:var(--text); transition:background .25s var(--
   transition:transform .22s var(--ease);
 }
 .side-brand{ display:flex; align-items:center; gap:11px; padding:6px 8px 16px; }
-.side-brand .mark{ width:34px; height:34px; border-radius:var(--radius-pill); flex:none; display:grid; place-items:center;
+.side-brand .mark{ width:34px; height:34px; border-radius:var(--radius-sm); flex:none; display:grid; place-items:center;
   background:linear-gradient(150deg,#2a2a30,#0c0c0e); border:1px solid var(--line-2); box-shadow:inset 0 1px 0 rgba(255,255,255,.14); }
 .side-brand .mark span{ font-size:16px; background:var(--shine); -webkit-background-clip:text; background-clip:text; color:transparent; }
 :root[data-theme="light"] .side-brand .mark, body.theme-bw .side-brand .mark, html.theme-bw .side-brand .mark{
@@ -220,7 +220,7 @@ body{ background:var(--bg); color:var(--text); transition:background .25s var(--
 .btn.danger:hover{ box-shadow:none; background:color-mix(in srgb, var(--bad) 22%, transparent); }
 .btn.small{ padding:7px 12px; font-size:.78rem; }
 
-input,select,textarea{ background:var(--bg-2); border:1px solid var(--line); color:var(--text); border-radius:var(--radius-sm); transition:border-color var(--t), box-shadow var(--t); }
+input,select,textarea{ background:var(--bg-2); border:1px solid var(--line); color:var(--text); border-radius:var(--radius-pill); transition:border-color var(--t), box-shadow var(--t); }
 input:focus,select:focus,textarea:focus{ outline:none; border-color:var(--gold); box-shadow:0 0 0 3px var(--gold-soft); }
 ::placeholder{ color:var(--faint); }
 
