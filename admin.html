@@ -2291,36 +2291,6 @@ body.theme-bw .rez-note {
   font-weight: 700;
 }
 
-/* Trash Zone */
-.admin-trash-zone {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 12px;
-  border: 2px dashed rgba(var(--fire-rgb), 0.25);
-  background: rgba(var(--fire-rgb), 0.02);
-  color: rgba(var(--fire-rgb), 0.6);
-  border-radius: 16px;
-  padding: 40px 20px;
-  text-align: center;
-  transition: all 0.3s ease;
-  height: 100%;
-  min-height: 200px;
-}
-.admin-trash-zone.drag-hover {
-  border-color: var(--fire);
-  background: rgba(var(--fire-rgb), 0.1);
-  color: var(--fire);
-  transform: scale(1.02);
-}
-.admin-trash-zone svg {
-  transition: transform 0.3s;
-}
-.admin-trash-zone.drag-hover svg {
-  transform: scale(1.2) rotate(5deg);
-}
-
 /* ── CUSTOM DIALOG OVERLAYS ── */
 .custom-popup-overlay {
   position: fixed;
@@ -2343,48 +2313,50 @@ body.theme-bw .rez-note {
   opacity: 1;
   pointer-events: auto;
 }
+/* One UI 8.5 Glassmorphism Dialog — kullanıcının gönderdiği referans görsele göre: gradient/blur
+   camsı arka plan, sol hizalı başlık+açıklama (ikon yok), alt satırda düz-metin butonlar + ince
+   dikey ayırıcı. Referans görseldeki gibi HER TEMADA aynı koyu/camsı görünüm — hero mockup'ları/
+   CTA şeritleriyle bu oturumda kurulan "bazı yüzeyler kasıtlı olarak her iki temada da sabit"
+   ilkesiyle tutarlı, ayrı açık/koyu tema varyantı gerektirmiyor. */
 .custom-popup-card {
-  background: var(--dark2);
-  border: 1.5px solid rgba(244,244,246, 0.08);
-  border-radius: 28px;
+  background:
+    radial-gradient(140% 110% at 100% 0%, rgba(120,160,255,.55), transparent 55%),
+    linear-gradient(160deg, rgba(70,70,100,.6) 0%, rgba(22,22,32,.82) 100%);
+  backdrop-filter: blur(32px) saturate(1.8);
+  -webkit-backdrop-filter: blur(32px) saturate(1.8);
+  border: 1px solid rgba(255,255,255,.22);
+  border-radius: 24px;
   width: 90%;
-  max-width: 400px;
-  padding: 32px 26px;
-  text-align: center;
-  box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+  max-width: 380px;
+  padding: 24px 24px 0;
+  text-align: left;
+  box-shadow: 0 24px 60px -20px rgba(0,0,0,.65), inset 0 1px 0 rgba(255,255,255,.22);
   transform: scale(0.9);
   transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  overflow: hidden;
 }
 .custom-popup-overlay.open .custom-popup-card {
   transform: scale(1);
 }
 .custom-popup-icon {
-  margin: 0 auto 16px;
-  width: 64px;
-  height: 64px;
-  background: rgba(var(--fire-rgb), 0.1);
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-.custom-popup-icon.warning {
-  background: rgba(var(--bad-rgb), 0.1);
+  display: none;
 }
 .custom-popup-title {
   font-family: 'Syne', sans-serif;
   font-weight: 800;
-  font-size: 1.25rem;
-  color: var(--cream);
-  margin-bottom: 10px;
+  font-size: 1.15rem;
+  color: #ffffff;
+  text-align: left;
+  margin-bottom: 8px;
 }
 .custom-popup-message {
   font-family: 'DM Sans', sans-serif;
-  font-size: 0.95rem;
-  color: var(--cream);
-  opacity: 0.8;
+  font-size: 0.9rem;
+  color: #ffffff;
+  opacity: 0.75;
+  text-align: left;
   line-height: 1.5;
-  margin-bottom: 24px;
+  margin-bottom: 20px;
 }
 .custom-popup-actions {
   display: flex;
@@ -2392,79 +2364,28 @@ body.theme-bw .rez-note {
 }
 .custom-popup-actions-row {
   display: flex;
-  gap: 12px;
-  justify-content: center;
+  margin: 0 -24px;
+  border-top: 1px solid rgba(255,255,255,.16);
 }
 .custom-popup-actions-row .admin-btn {
   margin: 0;
   flex: 1;
+  background: transparent !important;
+  border: none !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  color: #ffffff !important;
+  padding: 14px;
+  font-weight: 700;
+}
+.custom-popup-actions-row .admin-btn:first-child {
+  border-right: 1px solid rgba(255,255,255,.16) !important;
+}
+.custom-popup-actions-row .admin-btn:hover {
+  background: rgba(255,255,255,.08) !important;
 }
 .custom-popup-actions-row .admin-btn.danger {
-  background: var(--ap-bad, #e5776b);
-  color: #FFF;
-}
-.custom-popup-actions-row .admin-btn.danger:hover {
-  background: var(--ap-bad, #e5776b);
-  filter: brightness(1.12);
-}
-
-body.theme-bw .custom-popup-card {
-  background: #FFFFFF;
-  border-color: rgba(15,18,25, 0.12);
-  box-shadow: 0 20px 40px rgba(15,18,25, 0.15);
-}
-body.theme-bw .custom-popup-title,
-body.theme-bw .custom-popup-message {
-  color: var(--cream) !important;
-}
-body.theme-bw .custom-popup-actions-row .admin-btn.secondary {
-  background: #F5F5F5;
-  border-color: rgba(15,18,25, 0.15);
-  color: var(--cream) !important;
-}
-
-/* One UI Dialog — admin-panel binding fix: #customConfirmOverlay is a DOM sibling of
-   #adminPanelOverlay (not a descendant), so the panel's --dark2/--cream token remap never
-   reaches it and this dialog was falling back to the customer site's theme-bw look even while
-   the admin panel's own dark/light toggle said otherwise. Bind directly to admin-panel state
-   via :has() instead, mirroring the --ap-panel/--ap-text/--ap-gold values (placed after the
-   theme-bw rules above so it wins on equal specificity whenever the admin panel is open). */
-body:has(#adminPanelOverlay.open) .custom-popup-card {
-  background: #17171a;
-  border-color: rgba(255,255,255, 0.08);
-  box-shadow: 0 20px 50px -12px rgba(0,0,0,0.7);
-}
-body:has(#adminPanelOverlay.open) .custom-popup-title,
-body:has(#adminPanelOverlay.open) .custom-popup-message {
-  color: #ffffff !important;
-}
-body:has(#adminPanelOverlay.open) .custom-popup-icon {
-  background: rgba(56,122,255,0.16);
-}
-body:has(#adminPanelOverlay.open) .custom-popup-icon.warning {
-  background: rgba(229,119,107,0.14);
-}
-body:has(#adminPanelOverlay.open) .custom-popup-actions-row .admin-btn.secondary {
-  background: #26262a;
-  border-color: rgba(255,255,255, 0.14);
-  color: #ffffff !important;
-}
-html[data-theme="light"]:has(#adminPanelOverlay.open) .custom-popup-card {
-  background: #ffffff;
-  border-color: rgba(0,0,0, 0.08);
-  box-shadow: 0 20px 50px -14px rgba(15,18,25,0.20);
-}
-html[data-theme="light"]:has(#adminPanelOverlay.open) .custom-popup-title,
-html[data-theme="light"]:has(#adminPanelOverlay.open) .custom-popup-message {
-  color: #000000 !important;
-}
-html[data-theme="light"]:has(#adminPanelOverlay.open) .custom-popup-icon {
-  background: rgba(56,122,255,0.12);
-}
-html[data-theme="light"]:has(#adminPanelOverlay.open) .custom-popup-actions-row .admin-btn.secondary {
-  background: #f5f5f7;
-  border-color: rgba(0,0,0, 0.14);
-  color: #000000 !important;
+  color: #ff9f92 !important;
 }
 
 /* ── REUSABLE CUSTOM SELECT STYLES ── */
@@ -3121,6 +3042,10 @@ body.theme-bw .rez-select-trigger:hover {
         </button>
         <span class="page-title" id="adminPageTitle" data-i18n="admin_nav_dashboard">Panel</span>
         <span class="spacer"></span>
+        <!-- Faz 3A: çoklu ekran bölme aç/kapa -->
+        <button class="topbar-icon" id="apSplitToggleBtn" onclick="apToggleSplitMode()" data-i18n-title="admin_split_toggle" title="Ekranı Böl" aria-label="Ekranı Böl">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
+        </button>
         <!-- Phase 25 REVISION: theme switch relocated here from .admin-panel-header -->
         <div class="seg" id="adminThemeSeg" role="group" data-i18n-title="admin_theme_group" aria-label="Theme">
           <button type="button" data-theme-mode="system" onclick="apSetTheme('system')" data-i18n-title="admin_theme_system" title="Sistem" aria-label="Sistem"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg></button>
@@ -3139,6 +3064,9 @@ body.theme-bw .rez-select-trigger:hover {
       </header>
 
       <main class="app-content">
+        <!-- Faz 3A: çoklu ekran bölme (Bottom Container panoları) — .view elemanları split-mode
+             açıkken buraya taşınır (klonlanmaz), kapanınca .app-content'e geri taşınır. -->
+        <div class="ap-split-grid" id="apSplitGrid" hidden></div>
         <!-- RESTAURANT HUB VIEW (Phase 50: multi-restaurant Google accounts) -->
         <section class="view" id="view-hub" hidden>
           <div class="hub-welcome">
@@ -3462,10 +3390,6 @@ body.theme-bw .rez-select-trigger:hover {
       <div id="adminTabRezCont" class="view admin-tab-content" hidden>
         <div class="admin-rez-header">
           <h3 data-i18n="admin_rez_title">Müşteri Rezervasyonları</h3>
-          <div class="admin-trash-zone" id="adminTrashZone" ondragover="allowRezDragOver(event)" ondragleave="handleRezDragLeave(event)" ondrop="handleRezDrop(event)">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
-            <span data-i18n="admin_drag_delete">Silmek için sürükleyin</span>
-          </div>
         </div>
         <div class="admin-rez-list" id="adminRezList"></div>
       </div>
@@ -4441,7 +4365,6 @@ const i18nData = {
     admin_lbl_allergens: "Alerjenler (Seçmek için üzerlerine tıklayın)",
     admin_btn_save: "Kaydet",
     admin_rez_title: "Müşteri Rezervasyonları",
-    admin_drag_delete: "Silmek için sürükleyin",
     push_confirm_title: "Bildirimi Gönder?",
     sec_tag_book: "Masa Ayırt",
     sec_tag_contact: "Bize Ulaşın",
@@ -4558,6 +4481,9 @@ const i18nData = {
     admin_nav_grp_settings: "Ayarlar",
     admin_nav_dashboard: "Panel",
     admin_nav_categories: "Kategoriler",
+    admin_split_toggle: "Ekranı Böl",
+    admin_split_add_pane: "Pano Ekle",
+    admin_split_remove_pane: "Panoyu Kaldır",
     admin_nav_analytics: "Analitik",
     admin_nav_push: "Bildirim Gönder",
     admin_nav_view_site: "Siteyi Görüntüle",
@@ -4854,7 +4780,6 @@ const i18nData = {
     admin_lbl_allergens: "Allergens (Click to select)",
     admin_btn_save: "Save",
     admin_rez_title: "Customer Reservations",
-    admin_drag_delete: "Drag here to delete",
     push_confirm_title: "Send Notification?",
     sec_tag_book: "Reservation",
     sec_tag_contact: "Contact Us",
@@ -4971,6 +4896,9 @@ const i18nData = {
     admin_nav_grp_settings: "Settings",
     admin_nav_dashboard: "Dashboard",
     admin_nav_categories: "Categories",
+    admin_split_toggle: "Split View",
+    admin_split_add_pane: "Add Pane",
+    admin_split_remove_pane: "Remove Pane",
     admin_nav_analytics: "Analytics",
     admin_nav_push: "Send Notification",
     admin_nav_view_site: "View Site",
@@ -6400,13 +6328,11 @@ async function openAdminLogin(e) {
   // A multi-restaurant Google account with no tenant picked yet goes to the restaurant picker
   // instead of the login modal — the identity token alone is enough to list its restaurants.
   if (getIdentityToken()) { showRestaurantHub(); return; }
-  const userEl = document.getElementById('adminUsername');
-  if (userEl) userEl.value = '';
-  document.getElementById('adminPassword').value = '';
-  document.getElementById('adminLoginError').style.display = 'none';
-  document.getElementById('adminLoginBackdrop').classList.add('open');
-  document.body.style.overflow = 'hidden';
-  initAdminGoogleButton(50); // ~7.5s max wait for the async gsi/client script to load
+  // Kullanıcı isteğiyle kaldırıldı: admin.html artık kendi eski/stilsiz giriş modalını
+  // GÖSTERMİYOR. root.html'in zaten yaptığı gibi, tek/tutarlı One UI giriş deneyimi için
+  // /giris'e (login.html) yönlendiriyoruz — tenant bağlamı korunuyor.
+  const tenant = new URLSearchParams(window.location.search).get('tenant') || '';
+  window.location.href = '/giris' + (tenant ? ('?tenant=' + encodeURIComponent(tenant)) : '');
 }
 
 function closeAdminLogin() {
@@ -6709,6 +6635,16 @@ const AP_VIEW_MAP = {
   });
 })();
 function showAdminView(view) {
+  // Faz 3A: sidebar'dan normal tek-görünüm gezintisine dönmek her zaman split-mode'dan çıkar —
+  // panolara atama SADECE pano başlığındaki picker'dan yapılır, sidebar tıklaması karışıklık
+  // yaratmasın diye.
+  if (apSplitMode) apExitSplitModeSilent();
+  // Görünümler arası her geçişte kaydırma konumunu sıfırla — önceki görünümde aşağı kaydırılmışken
+  // geçiş yapılırsa yeni görünüm de aynı kaydırma konumunda açılıp üstte boşluk/kesik içerik
+  // gösterebiliyordu (split-mode'dan çıkışta özellikle fark ediliyordu, ama tüm görünüm
+  // geçişlerinde tutarlı olsun diye burada genel olarak uygulanıyor).
+  const apContentEl = document.querySelector('#adminPanelOverlay .app-content');
+  if (apContentEl) apContentEl.scrollTop = 0;
   const spec = AP_VIEW_MAP[view] || AP_VIEW_MAP['dashboard'];
   // Toggle all .view panes inside the shell
   document.querySelectorAll('#adminPanelOverlay .view').forEach(el => {
@@ -6750,6 +6686,156 @@ function showAdminView(view) {
   else if (view === 'danger-zone') loadDangerZone();
   // Close the mobile drawer after navigating
   apToggleSidebar(false);
+}
+
+// ── Faz 3A: Çoklu Ekran Bölme (Bottom Container panoları) ──
+// Bir görünüm aynı anda sadece TEK panoda olabilir; .view elemanları klonlanmaz, gerçekten
+// appendChild ile taşınır (getElementById çakışmasını önler, mevcut render/load fonksiyonlarına
+// dokunulmaz — sadece DOM'un NEREDE göründüğü değişir).
+let apSplitMode = false;
+let apSplitPanes = []; // view-adı dizisi, index = pano konumu, max 4
+const AP_SPLITTABLE_VIEWS = ['dashboard', 'orders', 'table-orders', 'reservations', 'analytics'];
+
+function apT(key, fallback) {
+  const t = (typeof i18nData !== 'undefined' && i18nData[window.currentLanguage || 'tr'] && i18nData[window.currentLanguage || 'tr'][key]);
+  return t || fallback || key;
+}
+
+// Panonun ihtiyaç duyduğu veriyi bir kez tazeler — showAdminView()'daki lazy-load dispatch'in
+// aynısı, sadece görünürlük/nav-state yan etkileri olmadan.
+function apLoadViewData(view) {
+  if (view === 'dashboard') loadAdminDashboard();
+  else if (view === 'analytics') loadAdminAnalytics();
+  else if (view === 'orders') loadOrders();
+  else if (view === 'reservations' && typeof loadReservations === 'function') loadReservations();
+  else if (view === 'table-orders') {
+    if (typeof loadTableOrders === 'function') loadTableOrders();
+    if (typeof loadServiceRequests === 'function') loadServiceRequests();
+  }
+}
+
+// Sadece DOM temizliği: panolardaki .view'ları .app-content'e geri taşır, split grid'i gizler.
+// showAdminView()'ı ÇAĞIRMAZ (çağırsaydı showAdminView → apExitSplitModeSilent → ... sonsuz
+// döngü riski olurdu) — hangi görünümün gösterileceğine çağıran karar verir.
+// KRİTİK: kurtarma apSplitPanes DİZİSİNE göre değil, grid içinde O AN GERÇEKTEN bulunan .view
+// elemanlarına (DOM sorgusu) göre yapılır — apSplitRemovePane() son panoyu kaldırırken diziyi
+// ÖNCE boşaltıp SONRA bu fonksiyonu çağırıyor, yani dizi tabanlı kurtarma o durumda hiçbir şeyi
+// kurtaramaz ve grid.innerHTML='' geriye kalan (taşınmış, klon değil) .view'ı kalıcı olarak silerdi.
+function apExitSplitModeSilent() {
+  const content = document.querySelector('#adminPanelOverlay .app-content');
+  const grid = document.getElementById('apSplitGrid');
+  if (grid && content) {
+    grid.querySelectorAll('.view').forEach(el => { el.hidden = true; content.insertBefore(el, grid); });
+    grid.hidden = true;
+    grid.innerHTML = '';
+  }
+  apSplitMode = false;
+  apSplitPanes = [];
+  const btn = document.getElementById('apSplitToggleBtn');
+  if (btn) btn.classList.remove('active');
+}
+
+function apToggleSplitMode() {
+  if (apSplitMode) {
+    apExitSplitModeSilent();
+    const activeNav = document.querySelector('#adminPanelOverlay .nav-item.active[data-view]');
+    showAdminView(activeNav ? activeNav.getAttribute('data-view') : 'dashboard');
+    return;
+  }
+  if (!apSplitPanes.length) {
+    let saved = null;
+    try { saved = JSON.parse(safeGetItem('hasaca_admin_split_layout') || 'null'); } catch (e) {}
+    apSplitPanes = (Array.isArray(saved) && saved.length)
+      ? [...new Set(saved.filter(v => AP_SPLITTABLE_VIEWS.includes(v)))].slice(0, 4)
+      : ['orders', 'table-orders'];
+  }
+  apSplitMode = true;
+  document.querySelectorAll('#adminPanelOverlay .nav-item[data-view]').forEach(a => a.classList.remove('active'));
+  document.querySelectorAll('#adminPanelOverlay .view').forEach(el => { el.hidden = true; });
+  const apContentEl2 = document.querySelector('#adminPanelOverlay .app-content');
+  if (apContentEl2) apContentEl2.scrollTop = 0;
+  const btn = document.getElementById('apSplitToggleBtn');
+  if (btn) btn.classList.add('active');
+  apRenderSplitGrid();
+}
+
+function apRenderSplitGrid() {
+  const content = document.querySelector('#adminPanelOverlay .app-content');
+  const grid = document.getElementById('apSplitGrid');
+  if (!content || !grid) return;
+  // KRİTİK: .view elemanları panolara klonlanmadan, gerçekten taşınarak (appendChild) yerleştirilir
+  // — yani grid'in içindeler. `grid.innerHTML=''` bunları KLONLAMAK yerine KALICI OLARAK SİLERDİ
+  // (innerHTML='' alt node'ları DOM'dan tamamen kopartır) — bu yüzden grid'i boşaltmadan ÖNCE her
+  // .view'ı .app-content'e (gizli) geri kurtarmak şart, yoksa ör. "Masa Siparişi" ekranı kalıcı
+  // olarak kaybolur ve sayfa yenilenene kadar geri gelmez.
+  grid.querySelectorAll('.view').forEach(el => { el.hidden = true; content.insertBefore(el, grid); });
+  grid.hidden = false;
+  grid.className = 'ap-split-grid panes-' + apSplitPanes.length;
+  grid.innerHTML = '';
+  apSplitPanes.forEach((viewName, idx) => {
+    const spec = AP_VIEW_MAP[viewName];
+    if (!spec) return;
+    const pane = document.createElement('div');
+    pane.className = 'ap-split-pane';
+    const options = AP_SPLITTABLE_VIEWS.map(v => {
+      const vspec = AP_VIEW_MAP[v];
+      const disabled = apSplitPanes.includes(v) && v !== viewName;
+      return `<option value="${v}" ${v === viewName ? 'selected' : ''} ${disabled ? 'disabled' : ''}>${apT(vspec.title, v)}</option>`;
+    }).join('');
+    const head = document.createElement('div');
+    head.className = 'ap-split-pane-head';
+    head.innerHTML = `
+      <select class="ap-split-pane-picker" aria-label="${apT('admin_split_toggle', 'Ekranı Böl')}">${options}</select>
+      <button type="button" class="ap-split-pane-close" aria-label="${apT('admin_split_remove_pane', 'Panoyu Kaldır')}">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
+      </button>`;
+    head.querySelector('.ap-split-pane-picker').addEventListener('change', (e) => apSplitAssign(idx, e.target.value));
+    head.querySelector('.ap-split-pane-close').addEventListener('click', () => apSplitRemovePane(idx));
+    const body = document.createElement('div');
+    body.className = 'ap-split-pane-body';
+    pane.appendChild(head);
+    pane.appendChild(body);
+    grid.appendChild(pane);
+    const el = document.getElementById(spec.id);
+    if (el) { el.hidden = false; body.appendChild(el); }
+    apLoadViewData(viewName);
+  });
+  if (apSplitPanes.length < 4) {
+    const addBtn = document.createElement('button');
+    addBtn.type = 'button';
+    addBtn.className = 'ap-split-add-pane';
+    addBtn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg><span>${apT('admin_split_add_pane', 'Pano Ekle')}</span>`;
+    addBtn.addEventListener('click', apSplitAddPane);
+    grid.appendChild(addBtn);
+  }
+  try { safeSetItem('hasaca_admin_split_layout', JSON.stringify(apSplitPanes)); } catch (e) {}
+}
+
+function apSplitAssign(idx, viewName) {
+  const otherIdx = apSplitPanes.indexOf(viewName);
+  if (otherIdx !== -1 && otherIdx !== idx) apSplitPanes[otherIdx] = apSplitPanes[idx];
+  apSplitPanes[idx] = viewName;
+  apRenderSplitGrid();
+}
+
+function apSplitRemovePane(idx) {
+  const spec = AP_VIEW_MAP[apSplitPanes[idx]];
+  if (spec) { const el = document.getElementById(spec.id); if (el) el.hidden = true; }
+  apSplitPanes.splice(idx, 1);
+  if (!apSplitPanes.length) {
+    apExitSplitModeSilent();
+    showAdminView('dashboard');
+    return;
+  }
+  apRenderSplitGrid();
+}
+
+function apSplitAddPane() {
+  if (apSplitPanes.length >= 4) return;
+  const used = new Set(apSplitPanes);
+  const next = AP_SPLITTABLE_VIEWS.find(v => !used.has(v)) || AP_SPLITTABLE_VIEWS[0];
+  apSplitPanes.push(next);
+  apRenderSplitGrid();
 }
 
 // ── Sidebar / topbar helpers (ports of root.html's toggleSidebar/Collapse/ProfileMenu) ──
@@ -7847,58 +7933,11 @@ async function markRezAsRead(id) {
   }
 }
 
-let draggedRezId = null;
-
-function handleRezDragStart(event, id) {
-  draggedRezId = id;
-  event.dataTransfer.setData('text/plain', id);
-  event.dataTransfer.effectAllowed = 'move';
-  
-  setTimeout(() => {
-    const card = document.getElementById('rez-card-' + id);
-    if (card) card.style.opacity = '0.4';
-  }, 0);
-}
-
-document.addEventListener('dragend', function(event) {
-  if (draggedRezId) {
-    const card = document.getElementById('rez-card-' + draggedRezId);
-    if (card) card.style.opacity = '';
-    draggedRezId = null;
-  }
-});
-
-function allowRezDragOver(event) {
-  event.preventDefault();
-  event.dataTransfer.dropEffect = 'move';
-  const trashZone = document.getElementById('adminTrashZone');
-  if (trashZone) trashZone.classList.add('drag-hover');
-}
-
-function handleRezDragLeave(event) {
-  const trashZone = document.getElementById('adminTrashZone');
-  if (trashZone) trashZone.classList.remove('drag-hover');
-}
-
-async function handleRezDrop(event) {
-  event.preventDefault();
-  const trashZone = document.getElementById('adminTrashZone');
-  if (trashZone) trashZone.classList.remove('drag-hover');
-  
-  const id = event.dataTransfer.getData('text/plain') || draggedRezId;
-  if (!id) return;
-  
-  try {
-    const res = await fetch(`/api/reservations/${id}`, {
-      method: 'DELETE'
-    });
-    if (!res.ok) throw new Error('Failed to delete reservation');
-    await loadReservations();
-  } catch (e) {
-    console.error("Error dropping reservation:", e);
-  }
-}
-
+// Kullanıcı isteğiyle kaldırıldı: rezervasyon kartını üstteki "silmek için sürükleyin" kutusuna
+// sürükleyip bırakma özelliği (draggedRezId/handleRezDragStart/allowRezDragOver/
+// handleRezDragLeave/handleRezDrop) hiçbir kartta gerçekten `draggable`/`ondragstart` olarak
+// bağlanmamıştı — yani zaten görünse de çalışmıyordu. Her kartın üzerindeki çöp kutusu butonu
+// (aşağıdaki deleteReservation) zaten doğrudan silme yapıyor, artık tek silme yolu bu.
 async function deleteReservation(id) {
   const confirmMsg = window.currentLanguage === 'tr' 
     ? 'Bu rezervasyonu silmek istediğinize emin misiniz?' 
@@ -9274,6 +9313,58 @@ async function deletePush(id) {
   #adminPanelOverlay .app-content .view[hidden]{ display:none; }
   /* Reparented .admin-tab-content panes now behave as ordinary .view panes (no slider sizing/opacity) */
   #adminPanelOverlay .admin-tab-content{ width:auto; height:auto; opacity:1; padding-bottom:60px; overflow:visible; }
+
+  /* ── Faz 3A: Çoklu Ekran Bölme (Bottom Container panoları) ── */
+  #adminPanelOverlay .topbar-icon.active{ background:var(--ap-gold); color:var(--ap-gold-text); border-color:transparent; }
+  #adminPanelOverlay .ap-split-grid{
+    display:grid; gap:16px; max-width:none; height:100%;
+    grid-template-columns:1fr; grid-auto-rows:minmax(320px,1fr);
+  }
+  /* [hidden]'in tarayıcı varsayılan display:none'u, yukarıdaki display:grid tarafından eziliyordu
+     (.view[hidden] için zaten var olan aynı düzeltme deseni) — bu olmadan split-mode kapatılınca
+     boş grid `height:100%` yüzünden görünmeye devam edip normal görünümün üstünde koca bir boşluk
+     bırakıyordu. */
+  #adminPanelOverlay .ap-split-grid[hidden]{ display:none; }
+  #adminPanelOverlay .ap-split-grid.panes-2{ grid-template-columns:1fr 1fr; }
+  #adminPanelOverlay .ap-split-grid.panes-3{ grid-template-columns:1fr 1fr; }
+  #adminPanelOverlay .ap-split-grid.panes-3 .ap-split-pane:first-child{ grid-column:1 / -1; }
+  #adminPanelOverlay .ap-split-grid.panes-4{ grid-template-columns:1fr 1fr; }
+  #adminPanelOverlay .ap-split-pane{
+    display:flex; flex-direction:column; min-width:0; min-height:0;
+    background:var(--ap-panel); border:1px solid var(--ap-line); border-radius:var(--ap-radius-lg);
+    overflow:hidden;
+  }
+  #adminPanelOverlay .ap-split-pane-head{
+    flex:none; display:flex; align-items:center; gap:8px; padding:12px 14px;
+    border-bottom:1px solid var(--ap-line); background:var(--ap-elev);
+  }
+  #adminPanelOverlay .ap-split-pane-picker{
+    flex:1; background:var(--ap-card); color:var(--ap-text); border:1px solid var(--ap-line);
+    border-radius:var(--ap-radius-pill); padding:7px 12px; font-size:13px; font-weight:700;
+    font-family:inherit; cursor:pointer;
+  }
+  #adminPanelOverlay .ap-split-pane-close{
+    flex:none; width:30px; height:30px; border-radius:999px; border:none; background:var(--ap-card);
+    color:var(--ap-muted); display:grid; place-items:center; cursor:pointer; transition:all var(--ap-t);
+  }
+  #adminPanelOverlay .ap-split-pane-close:hover{ background:var(--ap-bad-soft); color:var(--ap-bad); }
+  #adminPanelOverlay .ap-split-pane-close svg{ width:15px; height:15px; }
+  #adminPanelOverlay .ap-split-pane-body{ flex:1; overflow-y:auto; padding:18px; min-height:0; }
+  #adminPanelOverlay .ap-split-pane-body .view{ max-width:none; margin:0; }
+  #adminPanelOverlay .ap-split-add-pane{
+    display:flex; flex-direction:column; align-items:center; justify-content:center; gap:8px;
+    background:var(--ap-card); border:1.5px dashed var(--ap-line-2); border-radius:var(--ap-radius-lg);
+    color:var(--ap-muted); font-size:13px; font-weight:700; font-family:inherit; cursor:pointer;
+    min-height:120px; transition:all var(--ap-t);
+  }
+  #adminPanelOverlay .ap-split-add-pane:hover{ border-color:var(--ap-gold); color:var(--ap-gold); }
+  #adminPanelOverlay .ap-split-add-pane svg{ width:22px; height:22px; }
+  @media (max-width:900px){
+    #adminPanelOverlay .ap-split-grid.panes-2,
+    #adminPanelOverlay .ap-split-grid.panes-3,
+    #adminPanelOverlay .ap-split-grid.panes-4{ grid-template-columns:1fr; }
+    #adminPanelOverlay .ap-split-grid.panes-3 .ap-split-pane:first-child{ grid-column:auto; }
+  }
 
   #adminPanelOverlay .app-backdrop{ position:fixed; inset:0; background:rgba(0,0,0,.5); z-index:90; display:none; }
   #adminPanelOverlay .app-backdrop.show{ display:block; }
