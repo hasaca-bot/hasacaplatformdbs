@@ -2168,23 +2168,24 @@ body.theme-bw .rez-note {
   opacity: 1;
   pointer-events: auto;
 }
-/* One UI 8.5 Glassmorphism Dialog — admin.html'deki AYNI referans-görsel tasarımı: gradient/blur
-   camsı arka plan, sol hizalı başlık+açıklama (ikon yok), alt satırda düz-metin butonlar + ince
-   dikey ayırıcı. Her temada (koyu/theme-bw/theme-mono) aynı koyu/camsı görünüm — kasıtlı olarak
-   tema-bağımsız, tıpkı hero mockup'ları gibi. */
+/* One UI 8.5 Glassmorphism Dialog v2 — admin.html'deki AYNI, kullanıcının kendi verdiği referans
+   HTML/CSS koduna göre: nötr beyaz-tonlu buzlu cam, büyük radius, büyük tipografi, flex spacer ile
+   alta sabitlenmiş buton satırı, ince dikey ayırıcı. Siyah/beyaz temaya uyarlandı: varsayılan (koyu)
+   ve theme-mono (koyu gri) beyaz-tonlu cam + beyaz metin kalır; theme-bw (AÇIK tema) ters çevrilmiş
+   kontrast — daha opak beyaz cam + siyah metin. */
 .custom-popup-card {
-  background:
-    radial-gradient(140% 110% at 100% 0%, rgba(120,160,255,.55), transparent 55%),
-    linear-gradient(160deg, rgba(70,70,100,.6) 0%, rgba(22,22,32,.82) 100%);
-  backdrop-filter: blur(32px) saturate(1.8);
-  -webkit-backdrop-filter: blur(32px) saturate(1.8);
-  border: 1px solid rgba(255,255,255,.22);
-  border-radius: 24px;
+  background: rgba(255,255,255,.12);
+  backdrop-filter: blur(24px) saturate(1.4);
+  -webkit-backdrop-filter: blur(24px) saturate(1.4);
+  border: 1px solid rgba(255,255,255,.25);
+  border-radius: 40px;
   width: 90%;
-  max-width: 380px;
-  padding: 24px 24px 0;
+  max-width: 420px;
+  padding: 32px;
+  display: flex;
+  flex-direction: column;
   text-align: left;
-  box-shadow: 0 24px 60px -20px rgba(0,0,0,.65), inset 0 1px 0 rgba(255,255,255,.22);
+  box-shadow: 0 10px 30px rgba(0,0,0,.3), inset 0 1px 0 rgba(255,255,255,.06);
   transform: scale(0.9);
   transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
   overflow: hidden;
@@ -2197,50 +2198,90 @@ body.theme-bw .rez-note {
 }
 .custom-popup-title {
   font-family: 'Syne', sans-serif;
-  font-weight: 800;
-  font-size: 1.15rem;
+  font-weight: 700;
+  font-size: 1.375rem;
+  letter-spacing: -0.01em;
   color: #ffffff;
   text-align: left;
-  margin-bottom: 8px;
+  margin-bottom: 14px;
 }
 .custom-popup-message {
   font-family: 'DM Sans', sans-serif;
-  font-size: 0.9rem;
-  color: #ffffff;
-  opacity: 0.75;
+  font-size: 1rem;
+  color: rgba(255,255,255,.72);
   text-align: left;
-  line-height: 1.5;
-  margin-bottom: 20px;
+  line-height: 1.45;
+  margin-bottom: 0;
+  flex: 1;
 }
 .custom-popup-actions {
   display: flex;
   justify-content: center;
+  margin-top: 24px;
 }
-.custom-popup-actions-row {
-  display: flex;
-  margin: 0 -24px;
-  border-top: 1px solid rgba(255,255,255,.16);
-}
-.custom-popup-actions-row .admin-btn {
+.custom-popup-actions .admin-btn {
+  width: auto !important;
   margin: 0;
-  flex: 1;
   background: transparent !important;
   border: none !important;
-  border-radius: 0 !important;
+  border-radius: 999px !important;
   box-shadow: none !important;
   color: #ffffff !important;
-  padding: 14px;
-  font-weight: 700;
+  padding: 10px 24px;
+  font-weight: 600;
+  font-size: 1rem;
+}
+.custom-popup-actions .admin-btn:hover {
+  background: rgba(255,255,255,.1) !important;
+}
+body.theme-bw .custom-popup-actions .admin-btn { color: #0a0a0b !important; }
+body.theme-bw .custom-popup-actions .admin-btn:hover { background: rgba(10,10,11,.06) !important; }
+.custom-popup-actions-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  margin-top: 24px;
+  border-top: none;
+}
+.custom-popup-actions-row .admin-btn {
+  width: auto !important;
+  margin: 0;
+  flex: none;
+  background: transparent !important;
+  border: none !important;
+  border-radius: 999px !important;
+  box-shadow: none !important;
+  color: #ffffff !important;
+  padding: 10px 20px;
+  font-weight: 600;
+  font-size: 1rem;
 }
 .custom-popup-actions-row .admin-btn:first-child {
-  border-right: 1px solid rgba(255,255,255,.16) !important;
+  border-right: none !important;
 }
 .custom-popup-actions-row .admin-btn:hover {
-  background: rgba(255,255,255,.08) !important;
+  background: rgba(255,255,255,.1) !important;
 }
 .custom-popup-actions-row .admin-btn.danger {
   color: #ff9f92 !important;
 }
+.custom-popup-divider {
+  width: 1px;
+  height: 28px;
+  flex-shrink: 0;
+  background: rgba(255,255,255,.18);
+}
+body.theme-bw .custom-popup-card {
+  background: rgba(255,255,255,.6);
+  border-color: rgba(10,10,11,.1);
+  box-shadow: 0 10px 30px rgba(15,18,25,.15), inset 0 1px 0 rgba(255,255,255,.6);
+}
+body.theme-bw .custom-popup-title { color: #0a0a0b; }
+body.theme-bw .custom-popup-message { color: rgba(10,10,11,.68); }
+body.theme-bw .custom-popup-actions-row .admin-btn { color: #0a0a0b !important; }
+body.theme-bw .custom-popup-actions-row .admin-btn.danger { color: #c0392b !important; }
+body.theme-bw .custom-popup-actions-row .admin-btn:hover { background: rgba(10,10,11,.06) !important; }
+body.theme-bw .custom-popup-divider { background: rgba(10,10,11,.14); }
 
 /* ── REUSABLE CUSTOM SELECT STYLES ── */
 .custom-select-container {
@@ -2901,7 +2942,7 @@ body.theme-bw .dinein-actions button.primary {
     <h3 class="custom-popup-title" id="customAlertTitle" data-i18n="alert_title_notification">Bildirim</h3>
     <p class="custom-popup-message" id="customAlertMessage"></p>
     <div class="custom-popup-actions">
-      <button class="admin-btn" onclick="closeCustomAlert()" data-i18n="ok" style="margin: 0; width: 100%;">Tamam</button>
+      <button class="admin-btn" onclick="closeCustomAlert()" data-i18n="ok" style="margin: 0;">Tamam</button>
     </div>
   </div>
 </div>
@@ -2916,7 +2957,8 @@ body.theme-bw .dinein-actions button.primary {
     <p class="custom-popup-message" id="customConfirmMessage"></p>
     <div class="custom-popup-actions-row">
       <button class="admin-btn secondary" id="customConfirmCancelBtn" data-i18n="admin_btn_cancel" style="margin: 0;">İptal</button>
-      <button class="admin-btn danger" id="customConfirmOkBtn" style="margin: 0; background: #0a0a0b; color: #FFF;" data-i18n="admin_btn_yes">Evet</button>
+      <div class="custom-popup-divider" aria-hidden="true"></div>
+      <button class="admin-btn danger" id="customConfirmOkBtn" style="margin: 0;" data-i18n="admin_btn_yes">Evet</button>
     </div>
   </div>
 </div>
@@ -6367,18 +6409,13 @@ window.addEventListener('appinstalled', () => {
 
 <!-- PUSH NOTIFICATION REQUEST DIALOG -->
 <div id="pushPromptBackdrop" style="position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.6);backdrop-filter:blur(8px);z-index:999999;display:none;align-items:center;justify-content:center;opacity:0;transition:opacity 0.3s ease;">
-  <div style="background:rgba(20,18,17,0.85);border:1.5px solid rgba(244,244,246,0.1);backdrop-filter:blur(25px);border-radius:24px;padding:30px;width:90%;max-width:400px;text-align:center;box-shadow:0 20px 40px rgba(0,0,0,0.5);transform:scale(0.9);transition:transform 0.3s ease;font-family:'DM Sans',sans-serif;color:var(--cream);">
-    <div style="width:60px;height:60px;background:rgba(var(--fire-rgb),0.1);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 20px;border:1px solid rgba(var(--fire-rgb),0.2);">
-      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--ember)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
-        <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
-      </svg>
-    </div>
-    <h3 style="font-size:1.25rem;font-weight:700;margin-bottom:10px;" data-i18n="push_prompt_title">Kampanyalardan Haberdar Olun</h3>
-    <p style="font-size:0.9rem;opacity:0.8;line-height:1.5;margin-bottom:24px;" data-i18n="push_prompt_desc">En güncel lezzet kampanyaları, indirimler ve yeni menülerden anında haberdar olmak ister misiniz?</p>
-    <div style="display:flex;gap:12px;">
-      <button id="pushPromptDecline" style="flex:1;background:rgba(244,244,246,0.06);border:1px solid rgba(244,244,246,0.1);color:var(--cream);padding:12px;border-radius:12px;font-weight:600;font-size:0.9rem;cursor:pointer;transition:background 0.2s;" data-i18n="push_prompt_later" onclick="closePushPrompt(true)">Daha Sonra</button>
-      <button id="pushPromptAccept" style="flex:1;background:var(--ember);border:none;color:#FFFFFF;padding:12px;border-radius:12px;font-weight:700;font-size:0.9rem;cursor:pointer;transition:transform 0.2s, background-color 0.2s;" data-i18n="push_prompt_allow" onclick="acceptPushPrompt()">İzin Ver</button>
+  <div class="custom-popup-card" style="transform:scale(0.9);transition:transform 0.3s ease;">
+    <h3 class="custom-popup-title" data-i18n="push_prompt_title">Kampanyalardan Haberdar Olun</h3>
+    <p class="custom-popup-message" data-i18n="push_prompt_desc">En güncel lezzet kampanyaları, indirimler ve yeni menülerden anında haberdar olmak ister misiniz?</p>
+    <div class="custom-popup-actions-row">
+      <button id="pushPromptDecline" class="admin-btn secondary" data-i18n="push_prompt_later" onclick="closePushPrompt(true)">Daha Sonra</button>
+      <div class="custom-popup-divider" aria-hidden="true"></div>
+      <button id="pushPromptAccept" class="admin-btn" data-i18n="push_prompt_allow" onclick="acceptPushPrompt()">İzin Ver</button>
     </div>
   </div>
 </div>

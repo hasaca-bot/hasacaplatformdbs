@@ -154,10 +154,10 @@
   product('analitik',
     x('Analitik', 'Analytics'),
     x('Kararlarınızı veriye dayandırın.', 'Base your decisions on data.'),
-    x('Ciro, sipariş sayısı, ortalama sepet ve en çok satan ürünler tek panelde. Hangi ürünün ne zaman sattığını net görün.',
+    x('Satış, sipariş sayısı, ortalama sepet ve en çok satan ürünler tek panelde. Hangi ürünün ne zaman sattığını net görün.',
       'Revenue, order count, average basket and best sellers in one panel. See exactly what sells and when.'),
     [
-      [x('Ciro takibi', 'Revenue tracking'), x('Günlük, haftalık ve aylık gelir grafikleri.', 'Daily, weekly and monthly revenue charts.')],
+      [x('Satış takibi', 'Sales tracking'), x('Günlük, haftalık ve aylık satış grafikleri.', 'Daily, weekly and monthly sales charts.')],
       [x('En çok satanlar', 'Best sellers'), x('Menünüzün lokomotif ürünlerini keşfedin.', 'Discover the drivers of your menu.')],
       [x('Ortalama sepet', 'Average basket'), x('Sepet tutarını artıracak fırsatları görün.', 'Spot opportunities to increase basket size.')],
       [x('Sipariş tipi kırılımı', 'Order type split'), x('Masa, paket ve gel-al dağılımını izleyin.', 'Track the dine-in, delivery and pickup split.')]
@@ -250,7 +250,7 @@
       [x('Masa Yönetimi', 'Table Management'), x('Salonunuzun tamamı tek ekranda.', 'Your whole floor on one screen.'), '/masa-yonetimi'],
       [x('Garson Çağırma', 'Waiter Call'), x('Tek dokunuşla servis talebi.', 'Service requests with one tap.'), '/garson-cagirma'],
       [x('Paket Servis', 'Delivery'), x('Kendi teslimat akışınız, kendi kurallarınız.', 'Your own delivery flow.'), '/paket-servis'],
-      [x('Analitik', 'Analytics'), x('Ciro ve ürün performansı tek panelde.', 'Revenue and product performance in one panel.'), '/analitik'],
+      [x('Analitik', 'Analytics'), x('Satış ve ürün performansı tek panelde.', 'Sales and product performance in one panel.'), '/analitik'],
       [x('Yapay Zekâ', 'AI'), x('Menü üretimi ve satış öngörüleri.', 'Menu generation and sales insights.'), '/yapay-zeka'],
       [x('Çoklu Şube', 'Multi Branch'), x('Zincirinizi tek merkezden yönetin.', 'Run your chain centrally.'), '/coklu-sube'],
       [x('White Label', 'White Label'), x('Her yer sizin markanız.', 'Every surface is your brand.'), '/white-label'],
@@ -282,8 +282,8 @@
   def('fiyatlandirma', x('Fiyatlandırma', 'Pricing'),
     x('Şeffaf, komisyonsuz fiyatlandırma. 14 gün ücretsiz deneme.', 'Transparent, commission-free pricing. 14-day free trial.'), [
     hero(x('Fiyatlandırma', 'Pricing'), x('Komisyon yok, sürpriz yok', 'No commission, no surprises'),
-      x('Sabit aylık ücret ödersiniz, cironuzdan pay almayız. Tüm planlar 14 gün ücretsiz denemeyle başlar.',
-        'You pay a fixed monthly fee and we never take a cut of your revenue. All plans start with a 14-day free trial.'), []),
+      x('Sabit aylık ücret ödersiniz, satışınızdan pay almayız. Tüm planlar 14 gün ücretsiz denemeyle başlar.',
+        'You pay a fixed monthly fee and we never take a cut of your sales. All plans start with a 14-day free trial.'), []),
     { t: 'plans' },
     table(x('Plan karşılaştırması', 'Plan comparison'),
       [x('Özellik', 'Feature'), x('Başlangıç', 'Starter'), x('Profesyonel', 'Professional'), x('Kurumsal', 'Enterprise')], [
@@ -325,7 +325,7 @@
       [x('Özgürlük', 'Freedom'), 'yes', 'no']
     ]),
     stats([[x('%0', '0%'), x('Komisyon', 'Commission')], [x('5 dk', '5 min'), x('Kurulum', 'Setup')], [x('%100', '100%'), x('Veri sahipliği', 'Data ownership')], [x('7/24', '24/7'), x('Destek', 'Support')]]),
-    cta(x('Hesabınızı yapın', 'Do the math'), x('Aylık cironuzu söyleyin, komisyonda ne kadar tasarruf edeceğinizi hesaplayalım.', 'Tell us your monthly revenue and we will calculate your commission savings.'), [SALES, DEMO])
+    cta(x('Hesabınızı yapın', 'Do the math'), x('Aylık satışınızı söyleyin, komisyonda ne kadar tasarruf edeceğinizi hesaplayalım.', 'Tell us your monthly sales and we will calculate your commission savings.'), [SALES, DEMO])
   ]);
 
   def('karsilastirma', x('Özellik Karşılaştırma', 'Feature Comparison'),
@@ -365,7 +365,7 @@
         'Designed to work alongside your payment, accounting, courier and marketing tools.'), [SALES]),
     cards(x('Kategoriler', 'Categories'), null, [
       [x('Ödeme', 'Payments'), x('Online ödeme sağlayıcılarıyla uyumlu altyapı.', 'Infrastructure compatible with online payment providers.')],
-      [x('Muhasebe', 'Accounting'), x('Sipariş ve ciro verinizi dışa aktarın.', 'Export your order and revenue data.')],
+      [x('Muhasebe', 'Accounting'), x('Sipariş ve satış verinizi dışa aktarın.', 'Export your order and sales data.')],
       [x('Kurye', 'Courier'), x('Teslimat akışınızı kendi kuryenizle yürütün.', 'Run delivery with your own couriers.')],
       [x('Pazarlama', 'Marketing'), x('Bildirim ve kampanya araçlarıyla entegre çalışın.', 'Work with notification and campaign tools.')],
       [x('Analitik', 'Analytics'), x('Verinizi kendi raporlama araçlarınıza taşıyın.', 'Move your data into your own reporting tools.')],
@@ -438,7 +438,7 @@
       [x('Deniz Balık', 'Deniz Balık'), x('Rezervasyon: 2 katı', 'Reservations: 2x'), x('7/24 online rezervasyon sayesinde kapalı saatlerde de talep toplanmaya başladı.', 'Round-the-clock online booking started capturing demand outside opening hours.')],
       [x('Anadolu Sofra', 'Anadolu Sofra'), x('Ortalama sepet: +%18', 'Average basket: +18%'), x('Analitik verisiyle menü düzenlendi, yüksek kârlı ürünler öne çıkarıldı.', 'The menu was reworked using analytics, promoting high-margin items.')]
     ]),
-    cta(x('Sizin rakamlarınız ne olur?', 'What would your numbers be?'), x('Mevcut cironuza göre tahmini kazancınızı hesaplayalım.', 'Let us estimate your gains based on your current revenue.'), [SALES, DEMO])
+    cta(x('Sizin rakamlarınız ne olur?', 'What would your numbers be?'), x('Mevcut satışınıza göre tahmini kazancınızı hesaplayalım.', 'Let us estimate your gains based on your current sales.'), [SALES, DEMO])
   ]);
 
   def('partner-programi', x('Partner Programı', 'Partner Program'),
@@ -563,7 +563,7 @@
       ['POST /api/orders', x('Yeni sipariş oluşturur.', 'Creates a new order.')],
       ['GET /api/reservations', x('Rezervasyonları listeler.', 'Lists reservations.')],
       ['POST /api/reservations', x('Yeni rezervasyon oluşturur.', 'Creates a new reservation.')],
-      ['GET /api/analytics?days=30', x('Dönemsel ciro ve sipariş özetini döndürür.', 'Returns revenue and order summary for a period.')]
+      ['GET /api/analytics?days=30', x('Dönemsel satış ve sipariş özetini döndürür.', 'Returns sales and order summary for a period.')]
     ]),
     cta(x('API erişimi ister misiniz?', 'Need API access?'), x('Kurumsal plan ve entegrasyon detayları için satış ekibimize yazın.', 'Contact sales for Enterprise plan and integration details.'), [SALES, { label: x('Entegrasyonlar', 'Integrations'), href: '/entegrasyonlar' }])
   ]);
@@ -689,7 +689,7 @@
       [x('Sürüm 2.3', 'v2.3'), x('Tanıtım sitesi ve kurumsal sayfalar', 'Marketing site and company pages'), x('Tüm ürün, çözüm, kaynak ve yasal sayfalar yayına alındı; yeni yönetici giriş ekranı eklendi.', 'All product, solution, resource and legal pages went live, along with a new admin login screen.'), 'done'],
       [x('Sürüm 2.2', 'v2.2'), x('SEO yönetim merkezi', 'SEO management center'), x('Restoran bazlı meta etiketleri, sosyal paylaşım görseli ve otomatik robots/sitemap.', 'Per-restaurant meta tags, social image and automatic robots/sitemap.'), 'done'],
       [x('Sürüm 2.1', 'v2.1'), x('Bildirim sistemi', 'Notification system'), x('Restoran bazlı push bildirimleri ve merkezî duyuru gönderimi.', 'Per-restaurant push notifications and central broadcast.'), 'done'],
-      [x('Sürüm 2.0', 'v2.0'), x('Analitik ve aktivite kaydı', 'Analytics and activity log'), x('Ciro, sipariş ve ürün performansı raporları; denetim kaydı.', 'Revenue, order and product reports plus an audit trail.'), 'done'],
+      [x('Sürüm 2.0', 'v2.0'), x('Analitik ve aktivite kaydı', 'Analytics and activity log'), x('Satış, sipariş ve ürün performansı raporları; denetim kaydı.', 'Sales, order and product reports plus an audit trail.'), 'done'],
       [x('Sürüm 1.9', 'v1.9'), x('Tema motoru', 'Theme engine'), x('Sıcak, açık ve siyah-beyaz tema seçenekleri.', 'Warm, light and black & white theme options.'), 'done'],
       [x('Sürüm 1.8', 'v1.8'), x('Görsel yükleme sistemi', 'Image upload system'), x('Ürün ve marka görselleri artık doğrudan panelden yükleniyor.', 'Product and brand images are now uploaded straight from the panel.'), 'done']
     ]),

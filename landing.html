@@ -500,6 +500,10 @@ html.theme-mono .feat .fi{ background:linear-gradient(150deg,#f0f0f2,#e2e2e6); c
   width:100%; background:var(--bg-2); border:1px solid var(--border); border-radius:999px;
   padding:13px 14px; color:var(--text); font-size:14.5px; transition:border-color .15s, box-shadow .15s; resize:vertical;
 }
+/* Büyük/çok satırlı kutular (textarea) tam pill değil, normal yuvarlak köşeli olmalı — stadyum
+   şekli sadece tek satırlık küçük input'lar için doğru görünüyor, uzun bir metin kutusunda tuhaf
+   duruyordu (kullanıcı geri bildirimi). */
+.field textarea{ border-radius:var(--radius); }
 .field input:focus,.field textarea:focus{ outline:none; border-color:rgba(var(--gold-rgb),.55); box-shadow:0 0 0 3px var(--gold-soft); }
 .field.err input,.field.err textarea{ border-color:#c0463a; box-shadow:0 0 0 3px rgba(192,70,58,.18); }
 .form .btn{ width:100%; margin-top:4px; }
@@ -598,13 +602,11 @@ html.theme-mono .feat .fi{ background:linear-gradient(150deg,#f0f0f2,#e2e2e6); c
       <a href="/dokumantasyon" data-i18n="nav_docs">Dokümantasyon</a>
       <a href="/iletisim" data-i18n="nav_contact">İletişim</a>
       <a href="/giris" class="nav-cta-mobile" id="navCtaBtnMobile">Kayıt Ol</a>
-      <a href="/giris" class="nav-cta-mobile" data-i18n="nav_login">Yönetici Girişi</a>
     </div>
     <div class="nav-right">
       <button class="theme-switch" id="themeSwitchBtn" onclick="toggleLandingTheme()" aria-label="Tema" title="Siyah &amp; Beyaz Tema">
         <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 3a9 9 0 0 0 0 18z" fill="currentColor" stroke="none"/></svg>
       </button>
-      <a href="/giris" class="btn btn-ghost" data-i18n="nav_login">Yönetici Girişi</a>
       <a href="/giris" class="btn btn-primary" id="navCtaBtn">Kayıt Ol</a>
       <button class="nav-toggle" onclick="document.getElementById('nav').classList.toggle('open')" aria-label="Menu">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
@@ -643,7 +645,7 @@ html.theme-mono .feat .fi{ background:linear-gradient(150deg,#f0f0f2,#e2e2e6); c
       </div>
       <div class="chip c2">
         <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></span>
-        <div><b data-i18n="chip2_t">Bugünkü Ciro</b><span class="shine">₺18.240</span></div>
+        <div><b data-i18n="chip2_t">Bugünkü Satış</b><span class="shine">₺18.240</span></div>
       </div>
       <div class="laptop">
         <div class="screen">
@@ -654,7 +656,7 @@ html.theme-mono .feat .fi{ background:linear-gradient(150deg,#f0f0f2,#e2e2e6); c
               <div class="ui-main">
                 <div class="ui-cards">
                   <div class="ui-card"><b>142</b><span data-i18n="ui_orders">Sipariş</span></div>
-                  <div class="ui-card"><b>₺18K</b><span data-i18n="ui_rev">Ciro</span></div>
+                  <div class="ui-card"><b>₺18K</b><span data-i18n="ui_rev">Satış</span></div>
                   <div class="ui-card"><b>4.9★</b><span data-i18n="ui_rate">Puan</span></div>
                 </div>
                 <div class="ui-chart">
@@ -992,7 +994,7 @@ const FAQS = ['q1','q2','q3','q4','q5','q6'];
 const I18N = {
 tr:{
   nav_features:'Özellikler', nav_how:'Nasıl Çalışır', nav_pricing:'Fiyatlandırma', nav_faq:'SSS', nav_contact:'İletişim', nav_cta:'Ücretsiz Demo',
-  nav_solutions:'Çözümler', nav_docs:'Dokümantasyon', nav_login:'Yönetici Girişi',
+  nav_solutions:'Çözümler', nav_docs:'Dokümantasyon',
   nav_cta_register:'Kayıt Ol', nav_cta_login:'Giriş Yap',
   p_trial_note:'İlk 14 gün ücretsiz',
   hero_eyebrow:'Komisyonsuz Restoran Platformu',
@@ -1000,8 +1002,8 @@ tr:{
   hero_sub:'HASACA ile restoranınıza özel web sitesi, QR menü, online sipariş, rezervasyon, yapay zekâ ve yönetim paneline tek platformdan sahip olun.',
   hero_cta1:'Ücretsiz Demo Talep Et', hero_cta2:'Canlı Demoyu İncele',
   hero_m1:'Komisyon', hero_m2:'Destek', hero_m3:'Kurulum',
-  chip1_t:'Yeni Sipariş', chip1_s:'Masa 7 · ₺340', chip2_t:'Bugünkü Ciro',
-  ui_orders:'Sipariş', ui_rev:'Ciro', ui_rate:'Puan',
+  chip1_t:'Yeni Sipariş', chip1_s:'Masa 7 · ₺340', chip2_t:'Bugünkü Satış',
+  ui_orders:'Sipariş', ui_rev:'Satış', ui_rate:'Puan',
   tr_restaurants:'Restoran', tr_orders:'Sipariş', tr_uptime:'Çalışma Süresi', tr_commission:'Komisyon',
   sc_eyebrow:'Platform', sc_title:'Restoranınızın ihtiyacı olan her şey, tek yerde',
   sc_sub:'Müşteriden mutfağa, rezervasyondan analitiğe kadar tüm operasyonunuzu tek bir premium platformdan yönetin.', sc_more:'Daha Fazla Bilgi',
@@ -1087,7 +1089,7 @@ tr:{
 },
 en:{
   nav_features:'Features', nav_how:'How it works', nav_pricing:'Pricing', nav_faq:'FAQ', nav_contact:'Contact', nav_cta:'Free Demo',
-  nav_solutions:'Solutions', nav_docs:'Documentation', nav_login:'Admin Login',
+  nav_solutions:'Solutions', nav_docs:'Documentation',
   nav_cta_register:'Sign Up', nav_cta_login:'Log In',
   p_trial_note:'First 14 days free',
   hero_eyebrow:'Commission-Free Restaurant Platform',
@@ -1095,8 +1097,8 @@ en:{
   hero_sub:'With HASACA, get a branded website, QR menu, online ordering, reservations, AI and a management panel — all from a single platform.',
   hero_cta1:'Request a Free Demo', hero_cta2:'Explore Live Demo',
   hero_m1:'Commission', hero_m2:'Support', hero_m3:'Setup',
-  chip1_t:'New Order', chip1_s:'Table 7 · ₺340', chip2_t:'Today\'s Revenue',
-  ui_orders:'Orders', ui_rev:'Revenue', ui_rate:'Rating',
+  chip1_t:'New Order', chip1_s:'Table 7 · ₺340', chip2_t:'Today\'s Sales',
+  ui_orders:'Orders', ui_rev:'Sales', ui_rate:'Rating',
   tr_restaurants:'Restaurants', tr_orders:'Orders', tr_uptime:'Uptime', tr_commission:'Commission',
   sc_eyebrow:'Platform', sc_title:'Everything your restaurant needs, in one place',
   sc_sub:'Run your whole operation — from guest to kitchen, reservations to analytics — from one premium platform.', sc_more:'Learn More',

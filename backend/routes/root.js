@@ -317,8 +317,9 @@ module.exports = function createRootRouter({ db, isPg, invalidateTenantCache, si
   router.get('/platform-settings', async (req, res) => {
     try {
       const p = await getPlatform();
-      // never leak the AI key here
+      // never leak the AI keys here
       if (p.ai_key) delete p.ai_key;
+      if (p.hf_key) delete p.hf_key;
       res.json(p);
     } catch (err) {
       console.error('[ROOT API] GET /platform-settings:', err);
@@ -652,7 +653,8 @@ module.exports = function createRootRouter({ db, isPg, invalidateTenantCache, si
         ai_enabled: !!p.ai_enabled,
         ai_provider: 'groq',
         ai_model: cleanAiModel(p.ai_model) || DEFAULT_AI_MODEL,
-        key_set: !!p.ai_key
+        key_set: !!p.ai_key,
+        hf_key_set: !!p.hf_key
       });
     } catch (err) {
       console.error('[ROOT API] GET /ai-settings:', err);
@@ -672,8 +674,11 @@ module.exports = function createRootRouter({ db, isPg, invalidateTenantCache, si
       if (typeof b.ai_key === 'string' && b.ai_key.trim()) {
         p.ai_key = b.ai_key.trim();
       }
+      if (typeof b.hf_key === 'string' && b.hf_key.trim()) {
+        p.hf_key = b.hf_key.trim();
+      }
       await savePlatform(p);
-      logActivity({ tenantId: '', actor: 'root', role: 'root', action: 'ai_settings_updated', target: 'platform', details: { ai_enabled: p.ai_enabled, ai_model: p.ai_model, key_changed: !!(b.ai_key && b.ai_key.trim()) }, ip: clientIp(req) });
+      logActivity({ tenantId: '', actor: 'root', role: 'root', action: 'ai_settings_updated', target: 'platform', details: { ai_enabled: p.ai_enabled, ai_model: p.ai_model, key_changed: !!(b.ai_key && b.ai_key.trim()), hf_key_changed: !!(b.hf_key && b.hf_key.trim()) }, ip: clientIp(req) });
       res.json({ success: true });
     } catch (err) {
       console.error('[ROOT API] PUT /ai-settings:', err);

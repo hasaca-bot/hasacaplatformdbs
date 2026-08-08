@@ -85,6 +85,39 @@
   .modal h2{font-size:1.05rem;margin-bottom:16px;}
   .modal label{display:block;font-size:.68rem;font-weight:800;letter-spacing:1.2px;text-transform:uppercase;color:var(--fire);margin:12px 0 5px;}
   .modal .row{display:flex;gap:16px;justify-content:flex-end;margin-top:20px;}
+
+  /* One UI 8.5 Glassmorphism Dialog — admin.html/index.html'deki AYNI .custom-popup-* sistemi,
+     native confirm()/alert()/prompt() çağrılarının yerine. Font-family BİLEREK set edilmiyor —
+     bu sayfanın kendi global 'Samsung Sharp Sans' kuralı (yukarıda, *{...!important}) zaten
+     miras alınıyor, admin.html'in Syne/DM Sans'ı buraya taşınmadı. */
+  .custom-popup-overlay{position:fixed;inset:0;background:rgba(0,0,0,.55);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);display:flex;align-items:center;justify-content:center;z-index:10000;opacity:0;pointer-events:none;transition:opacity .3s cubic-bezier(.4,0,.2,1);}
+  .custom-popup-overlay.open{opacity:1;pointer-events:auto;}
+  .custom-popup-card{background:rgba(255,255,255,.12);backdrop-filter:blur(24px) saturate(1.4);-webkit-backdrop-filter:blur(24px) saturate(1.4);border:1px solid rgba(255,255,255,.25);border-radius:40px;width:90%;max-width:420px;padding:32px;display:flex;flex-direction:column;text-align:left;box-shadow:0 10px 30px rgba(0,0,0,.3),inset 0 1px 0 rgba(255,255,255,.06);transform:scale(.9);transition:transform .3s cubic-bezier(.34,1.56,.64,1);overflow:hidden;}
+  .custom-popup-overlay.open .custom-popup-card{transform:scale(1);}
+  .custom-popup-title{font-weight:700;font-size:1.375rem;letter-spacing:-0.01em;color:#fff;margin-bottom:14px;}
+  .custom-popup-message{font-size:1rem;color:rgba(255,255,255,.72);line-height:1.45;margin-bottom:0;flex:1;}
+  .custom-popup-input{width:100%;box-sizing:border-box;background:rgba(255,255,255,.08)!important;border:1px solid rgba(255,255,255,.2)!important;border-radius:999px;padding:10px 20px;color:#fff!important;font-size:.95rem;margin-top:16px;}
+  .custom-popup-input::placeholder{color:rgba(255,255,255,.45);}
+  .custom-popup-input:focus{border-color:rgba(255,255,255,.45)!important;box-shadow:none!important;}
+  .custom-popup-actions{display:flex;justify-content:center;margin-top:24px;}
+  .custom-popup-actions .btn{background:transparent!important;border:none!important;border-radius:999px!important;box-shadow:none!important;color:#fff!important;padding:10px 24px;font-weight:600;font-size:1rem;}
+  .custom-popup-actions .btn:hover{background:rgba(255,255,255,.1)!important;transform:none;}
+  :root[data-theme="light"] .custom-popup-actions .btn{color:#0a0a0b!important;}
+  :root[data-theme="light"] .custom-popup-actions .btn:hover{background:rgba(10,10,11,.06)!important;}
+  .custom-popup-actions-row{display:flex;align-items:center;justify-content:space-around;margin-top:24px;}
+  .custom-popup-actions-row .btn{background:transparent!important;border:none!important;border-radius:999px!important;box-shadow:none!important;color:#fff!important;padding:10px 20px;font-weight:600;font-size:1rem;}
+  .custom-popup-actions-row .btn:hover{background:rgba(255,255,255,.1)!important;transform:none;}
+  .custom-popup-actions-row .btn.danger{color:#ff9f92!important;}
+  .custom-popup-divider{width:1px;height:28px;flex-shrink:0;background:rgba(255,255,255,.18);}
+  :root[data-theme="light"] .custom-popup-card{background:rgba(255,255,255,.6);border-color:rgba(10,10,11,.1);box-shadow:0 10px 30px rgba(15,18,25,.15),inset 0 1px 0 rgba(255,255,255,.6);}
+  :root[data-theme="light"] .custom-popup-title{color:#0a0a0b;}
+  :root[data-theme="light"] .custom-popup-message{color:rgba(10,10,11,.68);}
+  :root[data-theme="light"] .custom-popup-input{background:rgba(10,10,11,.05)!important;border-color:rgba(10,10,11,.16)!important;color:#0a0a0b!important;}
+  :root[data-theme="light"] .custom-popup-input::placeholder{color:rgba(10,10,11,.4);}
+  :root[data-theme="light"] .custom-popup-actions-row .btn{color:#0a0a0b!important;}
+  :root[data-theme="light"] .custom-popup-actions-row .btn.danger{color:#c0392b!important;}
+  :root[data-theme="light"] .custom-popup-actions-row .btn:hover{background:rgba(10,10,11,.06)!important;}
+  :root[data-theme="light"] .custom-popup-divider{background:rgba(10,10,11,.14);}
   .cred-box{background:var(--card);border:1px dashed var(--gold);border-radius:16px;padding:14px;margin-top:14px;font-family:ui-monospace,monospace;font-size:.9rem;line-height:1.7;}
   .hint{color:var(--muted);font-size:.75rem;margin-top:4px;}
   .asset-field{display:flex;align-items:center;gap:10px;}
@@ -325,7 +358,7 @@
             <div class="st-v" id="dashOrders">–</div><div class="st-sub" data-i18n="dash_30d">Son 30 gün</div>
           </div>
           <div class="stat-card">
-            <div class="st-top"><span class="st-k" data-i18n="dash_revenue">Ciro</span>
+            <div class="st-top"><span class="st-k" data-i18n="dash_revenue">Satış</span>
               <span class="st-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></span></div>
             <div class="st-v" id="dashRevenue">–</div><div class="st-sub" data-i18n="dash_30d">Son 30 gün</div>
           </div>
@@ -521,14 +554,14 @@
     <h3 class="brand-section" data-i18n="root_widgets_title">Widget'lar</h3>
     <p class="hint" data-i18n="root_widgets_hint">Müşteri sitesinde hangi butonların/bölümlerin gösterileceğini kapatıp açın. Bir widget'ı kapatmak, ilgili bilgiyi silmez — sadece siteden gizler.</p>
     <div class="cs-grid" id="bWidgetsGrid">
-      <label style="display:flex;align-items:center;gap:8px;text-transform:none;letter-spacing:0;color:var(--text);font-weight:600;"><input type="checkbox" id="wWhatsapp" style="width:auto;" checked> WhatsApp</label>
-      <label style="display:flex;align-items:center;gap:8px;text-transform:none;letter-spacing:0;color:var(--text);font-weight:600;"><input type="checkbox" id="wInstagram" style="width:auto;" checked> Instagram</label>
-      <label style="display:flex;align-items:center;gap:8px;text-transform:none;letter-spacing:0;color:var(--text);font-weight:600;"><input type="checkbox" id="wFacebook" style="width:auto;" checked> Facebook</label>
-      <label style="display:flex;align-items:center;gap:8px;text-transform:none;letter-spacing:0;color:var(--text);font-weight:600;"><input type="checkbox" id="wTwitter" style="width:auto;" checked> X (Twitter)</label>
-      <label style="display:flex;align-items:center;gap:8px;text-transform:none;letter-spacing:0;color:var(--text);font-weight:600;"><input type="checkbox" id="wTiktok" style="width:auto;" checked> TikTok</label>
-      <label style="display:flex;align-items:center;gap:8px;text-transform:none;letter-spacing:0;color:var(--text);font-weight:600;"><input type="checkbox" id="wYoutube" style="width:auto;" checked> YouTube</label>
-      <label style="display:flex;align-items:center;gap:8px;text-transform:none;letter-spacing:0;color:var(--text);font-weight:600;"><input type="checkbox" id="wWebsite" style="width:auto;" checked> <span data-i18n="root_cs_website">Web Sitesi</span></label>
-      <label style="display:flex;align-items:center;gap:8px;text-transform:none;letter-spacing:0;color:var(--text);font-weight:600;"><input type="checkbox" id="wMaps" style="width:auto;" checked> Google Maps</label>
+      <label style="display:flex;align-items:center;gap:8px;text-transform:none;letter-spacing:0;color:var(--text);font-weight:600;"><input type="checkbox" id="wWhatsapp" checked> WhatsApp</label>
+      <label style="display:flex;align-items:center;gap:8px;text-transform:none;letter-spacing:0;color:var(--text);font-weight:600;"><input type="checkbox" id="wInstagram" checked> Instagram</label>
+      <label style="display:flex;align-items:center;gap:8px;text-transform:none;letter-spacing:0;color:var(--text);font-weight:600;"><input type="checkbox" id="wFacebook" checked> Facebook</label>
+      <label style="display:flex;align-items:center;gap:8px;text-transform:none;letter-spacing:0;color:var(--text);font-weight:600;"><input type="checkbox" id="wTwitter" checked> X (Twitter)</label>
+      <label style="display:flex;align-items:center;gap:8px;text-transform:none;letter-spacing:0;color:var(--text);font-weight:600;"><input type="checkbox" id="wTiktok" checked> TikTok</label>
+      <label style="display:flex;align-items:center;gap:8px;text-transform:none;letter-spacing:0;color:var(--text);font-weight:600;"><input type="checkbox" id="wYoutube" checked> YouTube</label>
+      <label style="display:flex;align-items:center;gap:8px;text-transform:none;letter-spacing:0;color:var(--text);font-weight:600;"><input type="checkbox" id="wWebsite" checked> <span data-i18n="root_cs_website">Web Sitesi</span></label>
+      <label style="display:flex;align-items:center;gap:8px;text-transform:none;letter-spacing:0;color:var(--text);font-weight:600;"><input type="checkbox" id="wMaps" checked> Google Maps</label>
     </div>
 
     <div class="row">
@@ -579,7 +612,7 @@
     <h2 data-i18n="root_ai_title">AI Ayarları (Groq)</h2>
     <p class="hint" data-i18n="root_ai_hint">Tek bir platform anahtarı. Restoran sahipleri anahtar girmez. Anahtar yalnız sunucuda saklanır.</p>
     <label style="display:flex;align-items:center;gap:8px;text-transform:none;letter-spacing:0;color:var(--text);font-weight:600;">
-      <input type="checkbox" id="aiEnabled" style="width:auto;"> <span data-i18n="root_ai_enable">AI özelliklerini etkinleştir</span>
+      <input type="checkbox" id="aiEnabled"> <span data-i18n="root_ai_enable">AI özelliklerini etkinleştir</span>
     </label>
     <label data-i18n="root_ai_key">API Anahtarı</label>
     <input type="password" id="aiKey" autocomplete="off" placeholder="gsk_...">
@@ -587,6 +620,15 @@
     <label data-i18n="root_ai_model">Varsayılan Model</label>
     <input type="text" id="aiModel" placeholder="llama-3.3-70b-versatile">
     <div id="aiTestResult" style="margin-top:10px;font-size:.85rem;"></div>
+
+    <div style="margin-top:18px;padding-top:16px;border-top:1px solid var(--line);">
+      <div style="font-weight:700;color:var(--text);margin-bottom:4px;" data-i18n="root_hf_title">Görsel Oluşturma (Hugging Face)</div>
+      <p class="hint" data-i18n="root_hf_hint">AI Asistanı sohbetinde "bana bir görsel oluştur" gibi isteklerde kullanılacak, ayrı ve ücretsiz bir API anahtarı.</p>
+      <label data-i18n="root_hf_key">Hugging Face API Anahtarı</label>
+      <input type="password" id="hfKey" autocomplete="off" placeholder="hf_...">
+      <div class="hint" id="hfKeyStatus"></div>
+    </div>
+
     <div class="row">
       <button class="btn secondary" onclick="testAiConnection()" data-i18n="root_ai_test">Bağlantıyı Test Et</button>
       <button class="btn secondary" onclick="closeModal('aiOverlay')" data-i18n="root_cancel">Vazgeç</button>
@@ -712,6 +754,44 @@
   </div>
 </div>
 
+<!-- CUSTOM ALERT MODAL (native alert() replacement) -->
+<div id="customAlertOverlay" class="custom-popup-overlay" onclick="closeCustomAlert()">
+  <div class="custom-popup-card" onclick="event.stopPropagation()">
+    <h3 class="custom-popup-title" id="customAlertTitle">Bildirim</h3>
+    <p class="custom-popup-message" id="customAlertMessage"></p>
+    <div class="custom-popup-actions">
+      <button class="btn" onclick="closeCustomAlert()" id="customAlertOkBtn">Tamam</button>
+    </div>
+  </div>
+</div>
+
+<!-- CUSTOM CONFIRM MODAL (native confirm() replacement) -->
+<div id="customConfirmOverlay" class="custom-popup-overlay">
+  <div class="custom-popup-card" onclick="event.stopPropagation()">
+    <h3 class="custom-popup-title" id="customConfirmTitle">Emin misiniz?</h3>
+    <p class="custom-popup-message" id="customConfirmMessage"></p>
+    <div class="custom-popup-actions-row">
+      <button class="btn secondary" id="customConfirmCancelBtn">Vazgeç</button>
+      <div class="custom-popup-divider" aria-hidden="true"></div>
+      <button class="btn danger" id="customConfirmOkBtn">Evet</button>
+    </div>
+  </div>
+</div>
+
+<!-- CUSTOM PROMPT MODAL (native prompt() replacement) -->
+<div id="customPromptOverlay" class="custom-popup-overlay">
+  <div class="custom-popup-card" onclick="event.stopPropagation()">
+    <h3 class="custom-popup-title" id="customPromptTitle">Değer girin</h3>
+    <p class="custom-popup-message" id="customPromptMessage"></p>
+    <input type="text" class="custom-popup-input" id="customPromptInput" autocomplete="off">
+    <div class="custom-popup-actions-row">
+      <button class="btn secondary" id="customPromptCancelBtn">Vazgeç</button>
+      <div class="custom-popup-divider" aria-hidden="true"></div>
+      <button class="btn" id="customPromptOkBtn">Tamam</button>
+    </div>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script>
@@ -730,6 +810,9 @@ const i18nData = {
     root_ai_enable: "AI özelliklerini etkinleştir", root_ai_key: "API Anahtarı",
     root_ai_model: "Varsayılan Model", root_ai_test: "Bağlantıyı Test Et",
     root_ai_key_set: "Anahtar ayarlı ✓", root_ai_key_unset: "Henüz anahtar ayarlanmadı",
+    root_hf_title: "Görsel Oluşturma (Hugging Face)",
+    root_hf_hint: 'AI Asistanı sohbetinde "bana bir görsel oluştur" gibi isteklerde kullanılacak, ayrı ve ücretsiz bir API anahtarı.',
+    root_hf_key: "Hugging Face API Anahtarı",
     root_test_ok: "Bağlantı başarılı ✓", root_test_fail: "Bağlantı başarısız",
     root_login_wrong: "Giriş başarısız. Bilgileri kontrol edin.",
     root_not_root: "Bu hesap root yetkisine sahip değil.",
@@ -773,7 +856,7 @@ const i18nData = {
     root_analytics: "Analitik", root_analytics_title: "Platform Analitiği",
     root_analytics_hint: "Tüm restoranların toplamı. Restoran sahipleri yalnızca kendi verilerini görür.",
     root_an_range_7: "7 gün", root_an_range_30: "30 gün", root_an_range_90: "90 gün",
-    root_an_days: "gün", root_an_orders: "Sipariş", root_an_revenue: "Ciro", root_an_avg: "Ort. Sepet",
+    root_an_days: "gün", root_an_orders: "Sipariş", root_an_revenue: "Satış", root_an_avg: "Ort. Sepet",
     root_an_reservations: "Rezervasyon", root_an_delivery: "Paket", root_an_dinein: "Masa",
     root_an_orders_by_day: "Günlük Sipariş", root_an_top_tenants: "En Çok Sipariş Alan Restoranlar",
     root_notify: "Bildirim", root_notify_title: "Bildirim Merkezi",
@@ -805,7 +888,7 @@ const i18nData = {
     root_ai_asst_empty_title: "Nasıl yardımcı olabilirim?",
     root_ai_asst_platform_hint2: "Platform adı, logo ve landing metinleri gibi alanları doğal dille düzenleyebilirim.",
     theme_system: "Sistem", theme_light: "Açık", theme_dark: "Koyu",
-    dash_tenants: "Restoran", dash_active: "Aktif", dash_orders: "Sipariş", dash_revenue: "Ciro",
+    dash_tenants: "Restoran", dash_active: "Aktif", dash_orders: "Sipariş", dash_revenue: "Satış",
     dash_total: "Toplam", dash_active_sub: "Yayında", dash_30d: "Son 30 gün",
     dash_recent: "Son Aktivite", dash_viewall: "Tümü", dash_quick: "Hızlı İşlemler",
     dash_loading: "Yükleniyor…", dash_empty: "Henüz aktivite yok.",
@@ -839,6 +922,9 @@ const i18nData = {
     root_ai_enable: "Enable AI features", root_ai_key: "API Key",
     root_ai_model: "Default Model", root_ai_test: "Test Connection",
     root_ai_key_set: "Key configured ✓", root_ai_key_unset: "No key configured yet",
+    root_hf_title: "Image Generation (Hugging Face)",
+    root_hf_hint: 'A separate, free API key used when the AI Assistant chat is asked to "generate an image".',
+    root_hf_key: "Hugging Face API Key",
     root_test_ok: "Connection successful ✓", root_test_fail: "Connection failed",
     root_login_wrong: "Login failed. Check your credentials.",
     root_not_root: "This account does not have root access.",
@@ -1464,7 +1550,7 @@ async function impersonate(slug){
   }
 }
 async function toggleStatus(slug, current){
-  if (current === 'active' && !confirm(T('root_confirm_disable'))) return;
+  if (current === 'active' && !(await showCustomConfirm(T('root_confirm_disable')))) return;
   try {
     await rootFetch('/api/root/tenants/' + slug + '/status', {
       method: 'PUT', headers: { 'Content-Type': 'application/json' },
@@ -1474,10 +1560,10 @@ async function toggleStatus(slug, current){
   } catch(e){ toast(T('root_err')); }
 }
 async function deleteTenant(slug){
-  if (!confirm(T('root_confirm_delete'))) return;
+  if (!(await showCustomConfirm(T('root_confirm_delete')))) return;
   // Deleting the default tenant needs a strong (type-to-confirm) step; it will be auto-regenerated.
   if (slug === 'default') {
-    const typed = prompt(T('root_confirm_delete_default'));
+    const typed = await showCustomPrompt(T('root_confirm_delete_default'));
     if ((typed || '').trim().toUpperCase() !== 'DELETE') { toast(T('root_delete_cancelled')); return; }
   }
   try {
@@ -1493,7 +1579,7 @@ async function resetTenantPassword(slug){
     const res = await rootFetch('/api/root/tenants/' + slug + '/reset-admin-password', { method: 'POST' });
     const data = await res.json();
     if (!res.ok) throw new Error();
-    alert(T('root_pwd_reset_ok') + '\n\n' + data.username + ' / ' + data.password);
+    showCustomAlert(T('root_pwd_reset_ok') + '<br><br><strong>' + esc(data.username) + ' / ' + esc(data.password) + '</strong>');
   } catch(e){ toast(T('root_err')); }
 }
 
@@ -1501,6 +1587,85 @@ function toast(msg){
   const el = document.getElementById('toast');
   el.textContent = msg; el.classList.add('show');
   clearTimeout(window.__t); window.__t = setTimeout(() => el.classList.remove('show'), 2200);
+}
+
+// ── Promise-based replacements for native alert()/confirm()/prompt() — same .custom-popup-*
+// glass dialog admin.html/index.html use, so root panelinde de artık tarayıcının kendi çirkin
+// kutuları görünmüyor. Contracts match the natives they replace: showCustomConfirm resolves
+// true/false, showCustomPrompt resolves the typed string or null on Cancel/Escape. ──
+function showCustomAlert(message, title){
+  if (!title) title = lang === 'tr' ? 'Bildirim' : 'Notification';
+  return new Promise((resolve) => {
+    const overlay = document.getElementById('customAlertOverlay');
+    document.getElementById('customAlertMessage').innerHTML = message;
+    document.getElementById('customAlertTitle').textContent = title;
+    document.getElementById('customAlertOkBtn').textContent = lang === 'tr' ? 'Tamam' : 'OK';
+    overlay.classList.add('open');
+    const okBtn = document.getElementById('customAlertOkBtn');
+    const cleanup = () => { overlay.classList.remove('open'); okBtn.removeEventListener('click', onOk); resolve(); };
+    function onOk(){ cleanup(); }
+    okBtn.addEventListener('click', onOk);
+  });
+}
+function closeCustomAlert(){
+  document.getElementById('customAlertOverlay').classList.remove('open');
+}
+function showCustomConfirm(message, title){
+  if (!title) title = lang === 'tr' ? 'Emin misiniz?' : 'Are you sure?';
+  return new Promise((resolve) => {
+    const overlay = document.getElementById('customConfirmOverlay');
+    const okBtn = document.getElementById('customConfirmOkBtn');
+    const cancelBtn = document.getElementById('customConfirmCancelBtn');
+    document.getElementById('customConfirmMessage').innerHTML = message;
+    document.getElementById('customConfirmTitle').textContent = title;
+    cancelBtn.textContent = lang === 'tr' ? 'Vazgeç' : 'Cancel';
+    okBtn.textContent = lang === 'tr' ? 'Evet' : 'Yes';
+    overlay.classList.add('open');
+    const cleanup = (result) => {
+      overlay.classList.remove('open');
+      okBtn.removeEventListener('click', onOk);
+      cancelBtn.removeEventListener('click', onCancel);
+      resolve(result);
+    };
+    function onOk(){ cleanup(true); }
+    function onCancel(){ cleanup(false); }
+    okBtn.addEventListener('click', onOk);
+    cancelBtn.addEventListener('click', onCancel);
+  });
+}
+function showCustomPrompt(message, title, defaultValue){
+  if (!title) title = lang === 'tr' ? 'Değer girin' : 'Enter a value';
+  return new Promise((resolve) => {
+    const overlay = document.getElementById('customPromptOverlay');
+    const inputEl = document.getElementById('customPromptInput');
+    const okBtn = document.getElementById('customPromptOkBtn');
+    const cancelBtn = document.getElementById('customPromptCancelBtn');
+    const msgEl = document.getElementById('customPromptMessage');
+    msgEl.innerHTML = message || '';
+    msgEl.style.display = message ? '' : 'none';
+    document.getElementById('customPromptTitle').textContent = title;
+    inputEl.value = defaultValue || '';
+    cancelBtn.textContent = lang === 'tr' ? 'Vazgeç' : 'Cancel';
+    okBtn.textContent = lang === 'tr' ? 'Tamam' : 'OK';
+    overlay.classList.add('open');
+    setTimeout(() => { inputEl.focus(); inputEl.select(); }, 50);
+    const cleanup = (result) => {
+      overlay.classList.remove('open');
+      okBtn.removeEventListener('click', onOk);
+      cancelBtn.removeEventListener('click', onCancel);
+      inputEl.removeEventListener('keydown', onKeydown);
+      resolve(result);
+    };
+    function onOk(){ cleanup(inputEl.value); }
+    function onCancel(){ cleanup(null); }
+    function onKeydown(e){
+      if (e.key === 'Enter'){ e.preventDefault(); onOk(); }
+      else if (e.key === 'Escape'){ e.preventDefault(); onCancel(); }
+    }
+    okBtn.addEventListener('click', onOk);
+    cancelBtn.addEventListener('click', onCancel);
+    inputEl.addEventListener('keydown', onKeydown);
+  });
 }
 
 // ── platform branding (white-label) ──
@@ -1723,7 +1888,7 @@ async function setLandingStatus(id, status, quiet){
   } catch(e){ toast(T('root_err')); }
 }
 async function deleteLandingMessage(id){
-  if (!confirm(T('root_landing_confirm_del'))) return;
+  if (!(await showCustomConfirm(T('root_landing_confirm_del')))) return;
   try {
     await rootFetch('/api/root/landing-messages/' + encodeURIComponent(id), { method: 'DELETE' });
     document.getElementById('lmDetail').style.display = 'none';
@@ -1832,6 +1997,8 @@ async function openAiSettingsModal(){
     document.getElementById('aiKey').value = '';
     document.getElementById('aiKeyStatus').textContent = s.key_set ? T('root_ai_key_set') : T('root_ai_key_unset');
     document.getElementById('aiTestResult').textContent = '';
+    document.getElementById('hfKey').value = '';
+    document.getElementById('hfKeyStatus').textContent = s.hf_key_set ? T('root_ai_key_set') : T('root_ai_key_unset');
     document.getElementById('aiOverlay').classList.add('open');
   } catch(e){ toast(T('root_err')); }
 }
@@ -1843,6 +2010,8 @@ async function saveAiSettings(){
     };
     const key = document.getElementById('aiKey').value.trim();
     if (key) body.ai_key = key;
+    const hfKey = document.getElementById('hfKey').value.trim();
+    if (hfKey) body.hf_key = hfKey;
     const res = await rootFetch('/api/root/ai-settings', { method:'PUT', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body) });
     if (!res.ok) throw new Error();
     closeModal('aiOverlay'); toast(T('root_saved')); applyPlatformConfig();

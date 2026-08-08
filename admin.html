@@ -2313,24 +2313,24 @@ body.theme-bw .rez-note {
   opacity: 1;
   pointer-events: auto;
 }
-/* One UI 8.5 Glassmorphism Dialog — kullanıcının gönderdiği referans görsele göre: gradient/blur
-   camsı arka plan, sol hizalı başlık+açıklama (ikon yok), alt satırda düz-metin butonlar + ince
-   dikey ayırıcı. Referans görseldeki gibi HER TEMADA aynı koyu/camsı görünüm — hero mockup'ları/
-   CTA şeritleriyle bu oturumda kurulan "bazı yüzeyler kasıtlı olarak her iki temada da sabit"
-   ilkesiyle tutarlı, ayrı açık/koyu tema varyantı gerektirmiyor. */
+/* One UI 8.5 Glassmorphism Dialog v2 — kullanıcının kendi verdiği referans HTML/CSS koduna göre:
+   nötr beyaz-tonlu buzlu cam (koyu-tonlu mavi gradient DEĞİL), büyük radius, büyük tipografi,
+   flex spacer ile alta sabitlenmiş buton satırı, butonlar arasında ince dikey ayırıcı. Siyah/beyaz
+   temaya uyarlandı: koyu temada beyaz-tonlu cam + beyaz metin (referans birebir), açık temada
+   (admin.html: html[data-theme="light"]) ters çevrilmiş kontrast — daha opak beyaz cam + siyah metin. */
 .custom-popup-card {
-  background:
-    radial-gradient(140% 110% at 100% 0%, rgba(120,160,255,.55), transparent 55%),
-    linear-gradient(160deg, rgba(70,70,100,.6) 0%, rgba(22,22,32,.82) 100%);
-  backdrop-filter: blur(32px) saturate(1.8);
-  -webkit-backdrop-filter: blur(32px) saturate(1.8);
-  border: 1px solid rgba(255,255,255,.22);
-  border-radius: 24px;
+  background: rgba(255,255,255,.12);
+  backdrop-filter: blur(24px) saturate(1.4);
+  -webkit-backdrop-filter: blur(24px) saturate(1.4);
+  border: 1px solid rgba(255,255,255,.25);
+  border-radius: 40px;
   width: 90%;
-  max-width: 380px;
-  padding: 24px 24px 0;
+  max-width: 420px;
+  padding: 32px;
+  display: flex;
+  flex-direction: column;
   text-align: left;
-  box-shadow: 0 24px 60px -20px rgba(0,0,0,.65), inset 0 1px 0 rgba(255,255,255,.22);
+  box-shadow: 0 10px 30px rgba(0,0,0,.3), inset 0 1px 0 rgba(255,255,255,.06);
   transform: scale(0.9);
   transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
   overflow: hidden;
@@ -2343,50 +2343,124 @@ body.theme-bw .rez-note {
 }
 .custom-popup-title {
   font-family: 'Syne', sans-serif;
-  font-weight: 800;
-  font-size: 1.15rem;
+  font-weight: 700;
+  font-size: 1.375rem;
+  letter-spacing: -0.01em;
   color: #ffffff;
   text-align: left;
-  margin-bottom: 8px;
+  margin-bottom: 14px;
 }
 .custom-popup-message {
   font-family: 'DM Sans', sans-serif;
-  font-size: 0.9rem;
-  color: #ffffff;
-  opacity: 0.75;
+  font-size: 1rem;
+  color: rgba(255,255,255,.72);
   text-align: left;
-  line-height: 1.5;
-  margin-bottom: 20px;
+  line-height: 1.45;
+  margin-bottom: 0;
+  flex: 1;
 }
 .custom-popup-actions {
   display: flex;
   justify-content: center;
+  margin-top: 24px;
 }
-.custom-popup-actions-row {
-  display: flex;
-  margin: 0 -24px;
-  border-top: 1px solid rgba(255,255,255,.16);
-}
-.custom-popup-actions-row .admin-btn {
+.custom-popup-actions .admin-btn {
+  width: auto !important;
   margin: 0;
-  flex: 1;
   background: transparent !important;
   border: none !important;
-  border-radius: 0 !important;
+  border-radius: 999px !important;
   box-shadow: none !important;
   color: #ffffff !important;
-  padding: 14px;
-  font-weight: 700;
+  padding: 10px 24px;
+  font-weight: 600;
+  font-size: 1rem;
+}
+.custom-popup-actions .admin-btn:hover {
+  background: rgba(255,255,255,.1) !important;
+}
+html[data-theme="light"] .custom-popup-actions .admin-btn { color: #0a0a0b !important; }
+html[data-theme="light"] .custom-popup-actions .admin-btn:hover { background: rgba(10,10,11,.06) !important; }
+.custom-popup-actions-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  margin-top: 24px;
+  border-top: none;
+}
+.custom-popup-actions-row .admin-btn {
+  width: auto !important;
+  margin: 0;
+  flex: none;
+  background: transparent !important;
+  border: none !important;
+  border-radius: 999px !important;
+  box-shadow: none !important;
+  color: #ffffff !important;
+  padding: 10px 20px;
+  font-weight: 600;
+  font-size: 1rem;
 }
 .custom-popup-actions-row .admin-btn:first-child {
-  border-right: 1px solid rgba(255,255,255,.16) !important;
+  border-right: none !important;
 }
 .custom-popup-actions-row .admin-btn:hover {
-  background: rgba(255,255,255,.08) !important;
+  background: rgba(255,255,255,.1) !important;
 }
 .custom-popup-actions-row .admin-btn.danger {
   color: #ff9f92 !important;
 }
+.custom-popup-divider {
+  width: 1px;
+  height: 28px;
+  flex-shrink: 0;
+  background: rgba(255,255,255,.18);
+}
+/* Onay dialoglarının içine gömülü, alan/etiket satırlarından oluşan özet blokları için (ör.
+   bildirim gönder onayı) — .custom-popup-message'ın soluk (0.72 opacity) metin rengi bu tür
+   gözden-geçirilecek verilerde okunabilirliği düşürdüğü için tam opaklıkta ayrı bir sınıf. */
+.custom-popup-summary {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.85rem;
+  color: #ffffff;
+  text-align: left;
+  line-height: 1.6;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex: 1;
+}
+.custom-popup-summary strong { font-weight: 700; }
+.custom-popup-input {
+  width: 100%;
+  box-sizing: border-box;
+  background: rgba(255,255,255,.08);
+  border: 1px solid rgba(255,255,255,.2);
+  border-radius: 999px;
+  padding: 10px 20px;
+  color: #ffffff;
+  font-size: 0.95rem;
+  font-family: 'DM Sans', sans-serif;
+  outline: none;
+  margin-top: 16px;
+}
+.custom-popup-input::placeholder { color: rgba(255,255,255,.45); }
+.custom-popup-input:focus { border-color: rgba(255,255,255,.45); }
+html[data-theme="light"] .custom-popup-card {
+  background: rgba(255,255,255,.6);
+  border-color: rgba(10,10,11,.1);
+  box-shadow: 0 10px 30px rgba(15,18,25,.15), inset 0 1px 0 rgba(255,255,255,.6);
+}
+html[data-theme="light"] .custom-popup-title { color: #0a0a0b; }
+html[data-theme="light"] .custom-popup-message { color: rgba(10,10,11,.68); }
+html[data-theme="light"] .custom-popup-summary { color: #0a0a0b; }
+html[data-theme="light"] .custom-popup-input { background: rgba(10,10,11,.05); border-color: rgba(10,10,11,.16); color: #0a0a0b; }
+html[data-theme="light"] .custom-popup-input::placeholder { color: rgba(10,10,11,.4); }
+html[data-theme="light"] .custom-popup-input:focus { border-color: rgba(10,10,11,.4); }
+html[data-theme="light"] .custom-popup-actions-row .admin-btn { color: #0a0a0b !important; }
+html[data-theme="light"] .custom-popup-actions-row .admin-btn.danger { color: #c0392b !important; }
+html[data-theme="light"] .custom-popup-actions-row .admin-btn:hover { background: rgba(10,10,11,.06) !important; }
+html[data-theme="light"] .custom-popup-divider { background: rgba(10,10,11,.14); }
 
 /* ── REUSABLE CUSTOM SELECT STYLES ── */
 .custom-select-container {
@@ -2859,7 +2933,7 @@ body.theme-bw .rez-select-trigger:hover {
     <h3 class="custom-popup-title" id="customAlertTitle" data-i18n="alert_title_notification">Bildirim</h3>
     <p class="custom-popup-message" id="customAlertMessage"></p>
     <div class="custom-popup-actions">
-      <button class="admin-btn" onclick="closeCustomAlert()" data-i18n="ok" style="margin: 0; width: 100%;">Tamam</button>
+      <button class="admin-btn" onclick="closeCustomAlert()" data-i18n="ok" style="margin: 0;">Tamam</button>
     </div>
   </div>
 </div>
@@ -2874,7 +2948,22 @@ body.theme-bw .rez-select-trigger:hover {
     <p class="custom-popup-message" id="customConfirmMessage"></p>
     <div class="custom-popup-actions-row">
       <button class="admin-btn secondary" id="customConfirmCancelBtn" data-i18n="admin_btn_cancel" style="margin: 0;">İptal</button>
+      <div class="custom-popup-divider" aria-hidden="true"></div>
       <button class="admin-btn danger" id="customConfirmOkBtn" style="margin: 0;" data-i18n="admin_btn_yes">Evet</button>
+    </div>
+  </div>
+</div>
+
+<!-- CUSTOM PROMPT MODAL (native window.prompt() replacement) -->
+<div id="customPromptOverlay" class="custom-popup-overlay">
+  <div class="custom-popup-card" onclick="event.stopPropagation()">
+    <h3 class="custom-popup-title" id="customPromptTitle">Değer girin</h3>
+    <p class="custom-popup-message" id="customPromptMessage"></p>
+    <input type="text" class="custom-popup-input" id="customPromptInput" autocomplete="off" />
+    <div class="custom-popup-actions-row">
+      <button class="admin-btn secondary" id="customPromptCancelBtn" style="margin: 0;">İptal</button>
+      <div class="custom-popup-divider" aria-hidden="true"></div>
+      <button class="admin-btn" id="customPromptOkBtn" style="margin: 0;">Tamam</button>
     </div>
   </div>
 </div>
@@ -3106,7 +3195,7 @@ body.theme-bw .rez-select-trigger:hover {
             <div class="stat-card"><div class="st-top"><span class="st-k" data-i18n="admin_dash_orders">Sipariş</span>
               <span class="st-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="18" cy="21" r="1"/><path d="M1 1h4l2.6 12.4a2 2 0 0 0 2 1.6h9.7a2 2 0 0 0 2-1.6L23 6H6"/></svg></span></div>
               <div class="st-v" id="adDashOrders">–</div><div class="st-sub" data-i18n="admin_dash_30d">Son 30 gün</div></div>
-            <div class="stat-card"><div class="st-top"><span class="st-k" data-i18n="admin_dash_revenue">Ciro</span>
+            <div class="stat-card"><div class="st-top"><span class="st-k" data-i18n="admin_dash_revenue">Satış</span>
               <span class="st-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></span></div>
               <div class="st-v" id="adDashRevenue">–</div><div class="st-sub" data-i18n="admin_dash_30d">Son 30 gün</div></div>
             <div class="stat-card"><div class="st-top"><span class="st-k" data-i18n="admin_dash_avg">Ortalama Sepet</span>
@@ -3147,7 +3236,7 @@ body.theme-bw .rez-select-trigger:hover {
         <section class="view" id="view-analytics" hidden>
           <div class="dash-grid" style="grid-template-columns:repeat(auto-fill,minmax(160px,1fr))">
             <div class="stat-card"><div class="st-k" data-i18n="admin_dash_orders">Sipariş</div><div class="st-v" id="adAnOrders">–</div></div>
-            <div class="stat-card"><div class="st-k" data-i18n="admin_dash_revenue">Ciro</div><div class="st-v" id="adAnRevenue">–</div></div>
+            <div class="stat-card"><div class="st-k" data-i18n="admin_dash_revenue">Satış</div><div class="st-v" id="adAnRevenue">–</div></div>
             <div class="stat-card"><div class="st-k" data-i18n="admin_dash_avg">Ort. Sepet</div><div class="st-v" id="adAnAvg">–</div></div>
             <div class="stat-card"><div class="st-k" data-i18n="admin_analytics_dinein">Masa</div><div class="st-v" id="adAnDinein">–</div></div>
             <div class="stat-card"><div class="st-k" data-i18n="admin_analytics_delivery">Paket / Gel-al</div><div class="st-v" id="adAnDelivery">–</div></div>
@@ -3168,15 +3257,21 @@ body.theme-bw .rez-select-trigger:hover {
               </div>
             </div>
 
-            <div class="ai-chat-body" id="aAiMessages">
-              <div class="ai-chat-empty" id="aAiEmpty">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a4 4 0 0 1 4 4v1a4 4 0 0 1-8 0V6a4 4 0 0 1 4-4z"/><path d="M5 21v-2a7 7 0 0 1 14 0v2"/><path d="M9 11.5v1M15 11.5v1"/></svg>
-                <div class="t" data-i18n="admin_ai_empty_title">Nasıl yardımcı olabilirim?</div>
-                <div class="s" data-i18n="admin_ai_empty_sub">Ürün, kategori ve fiyatlarınızı doğal dille düzenleyebilirim.</div>
+            <div class="ai-chat-body-wrap">
+              <div class="ai-chat-body" id="aAiMessages">
+                <div class="ai-chat-empty" id="aAiEmpty">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a4 4 0 0 1 4 4v1a4 4 0 0 1-8 0V6a4 4 0 0 1 4-4z"/><path d="M5 21v-2a7 7 0 0 1 14 0v2"/><path d="M9 11.5v1M15 11.5v1"/></svg>
+                  <div class="t" data-i18n="admin_ai_empty_title">Nasıl yardımcı olabilirim?</div>
+                  <div class="s" data-i18n="admin_ai_empty_sub">Ürün, kategori ve fiyatlarınızı doğal dille düzenleyebilirim.</div>
+                </div>
               </div>
+              <div class="ai-chat-fade" aria-hidden="true"></div>
             </div>
 
             <div class="ai-chat-composer">
+              <div class="ai-chat-composer-avatar" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a4 4 0 0 1 4 4v1a4 4 0 0 1-8 0V6a4 4 0 0 1 4-4z"/><path d="M5 21v-2a7 7 0 0 1 14 0v2"/></svg>
+              </div>
               <textarea id="aAiInput" rows="1" data-i18n-placeholder="ph_ai_asst" placeholder="Ne yapmak istersiniz?" oninput="adminAiAutoGrow(this)" onkeydown="adminAiComposerKey(event)"></textarea>
               <button class="ai-chat-send-btn" id="aAiSendBtn" onclick="adminAiSend()" aria-label="Gönder">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
@@ -3609,37 +3704,6 @@ body.theme-bw .rez-select-trigger:hover {
           <button class="admin-btn secondary" onclick="printAllQr()" data-i18n="admin_tbl_printall">Tüm QR'ları Yazdır</button>
         </div>
 
-        <div class="panel-card" style="margin:14px 0;">
-          <h3 data-i18n="admin_qrstyle_title">QR Stili</h3>
-          <p class="hint" data-i18n="admin_qrstyle_hint">Masa QR kodlarınızın renklerini, kenar boşluğunu ve hata düzeltme seviyesini özelleştirin.</p>
-          <div style="display:flex; flex-wrap:wrap; gap:16px; align-items:flex-end; margin-top:12px;">
-            <div>
-              <label class="hint" data-i18n="admin_qrstyle_fg" style="display:block; margin-bottom:4px;">Ön Plan</label>
-              <input type="color" id="qrStyleFg" value="#000000" style="width:56px; height:36px; padding:2px; border-radius:8px;">
-            </div>
-            <div>
-              <label class="hint" data-i18n="admin_qrstyle_bg" style="display:block; margin-bottom:4px;">Arka Plan</label>
-              <input type="color" id="qrStyleBg" value="#ffffff" style="width:56px; height:36px; padding:2px; border-radius:8px;">
-            </div>
-            <div>
-              <label class="hint" data-i18n="admin_qrstyle_margin" style="display:block; margin-bottom:4px;">Kenar Boşluğu</label>
-              <input type="number" id="qrStyleMargin" class="admin-input" min="0" max="10" value="1" style="width:70px;">
-            </div>
-            <div>
-              <label class="hint" data-i18n="admin_qrstyle_ecc" style="display:block; margin-bottom:4px;">Hata Düzeltme</label>
-              <select id="qrStyleEcc" class="admin-input" style="width:auto;">
-                <option value="L">L</option>
-                <option value="M" selected>M</option>
-                <option value="Q">Q</option>
-                <option value="H">H</option>
-              </select>
-            </div>
-            <button class="admin-btn" id="qrStyleSaveBtn" onclick="saveQrStyle()" style="width:auto; flex:none; margin:0;" data-i18n="admin_qrstyle_save">Kaydet</button>
-            <img id="qrStylePreview" alt="" style="display:none; width:96px; height:96px; border-radius:8px; border:1px solid var(--ap-line);">
-          </div>
-          <div id="qrStyleStatus" class="hint" style="display:none; margin-top:10px;"></div>
-        </div>
-
         <div id="adminTablesList" class="tbl-list"></div>
       </div>
 
@@ -3668,21 +3732,24 @@ body.theme-bw .rez-select-trigger:hover {
 
 
 <!-- PUSH CONFIRM MODAL -->
-<div id="pushConfirmModal" class="admin-modal-backdrop" onclick="closePushConfirmModal()">
-  <div class="admin-modal-card" onclick="event.stopPropagation()">
-    <h2 data-i18n="push_confirm_title">Bildirimi Gönder?</h2>
-    <div style="text-align:left;font-size:0.9rem;display:flex;flex-direction:column;gap:12px;margin-bottom:20px;">
+<div id="pushConfirmModal" class="custom-popup-overlay" onclick="closePushConfirmModal()">
+  <div class="custom-popup-card" onclick="event.stopPropagation()">
+    <h3 class="custom-popup-title" data-i18n="push_confirm_title">Bildirimi Gönder?</h3>
+    <div class="custom-popup-summary">
       <div><strong>Başlık:</strong> <span id="confirmPushTitle"></span></div>
       <div><strong>Mesaj:</strong> <span id="confirmPushBody"></span></div>
       <div><strong>Hedef Kitle:</strong> <span id="confirmPushTarget"></span></div>
       <div><strong>URL:</strong> <span id="confirmPushUrl"></span></div>
       <div id="confirmPushImageWrapper" style="display:none;">
         <strong>Görsel Önizleme:</strong>
-        <div id="confirmPushImage" style="width:100%;height:100px;background-size:cover;background-position:center;border-radius:8px;margin-top:6px;border:1px solid rgba(255,255,255,0.1);"></div>
+        <div id="confirmPushImage" style="width:100%;height:100px;background-size:cover;background-position:center;border-radius:14px;margin-top:6px;border:1px solid rgba(255,255,255,0.14);"></div>
       </div>
     </div>
-    <button class="admin-btn" style="margin:0;width:100%;margin-bottom:10px;" onclick="submitPushNotification()" data-i18n="push_confirm_approve">Onayla ve Gönder</button>
-    <button class="admin-btn secondary" style="margin:0;width:100%;" onclick="closePushConfirmModal()" data-i18n="admin_btn_cancel">Vazgeç</button>
+    <div class="custom-popup-actions-row">
+      <button class="admin-btn secondary" onclick="closePushConfirmModal()" data-i18n="admin_btn_cancel">Vazgeç</button>
+      <div class="custom-popup-divider" aria-hidden="true"></div>
+      <button class="admin-btn" onclick="submitPushNotification()" data-i18n="push_confirm_approve">Onayla ve Gönder</button>
+    </div>
   </div>
 </div>
 
@@ -4228,14 +4295,6 @@ const i18nData = {
     admin_tbl_add: "+ Masa Ekle",
     admin_tbl_bulk: "Toplu Ekle",
     admin_tbl_printall: "Tüm QR'ları Yazdır",
-    admin_qrstyle_title: "QR Stili",
-    admin_qrstyle_hint: "Masa QR kodlarınızın renklerini, kenar boşluğunu ve hata düzeltme seviyesini özelleştirin.",
-    admin_qrstyle_fg: "Ön Plan",
-    admin_qrstyle_bg: "Arka Plan",
-    admin_qrstyle_margin: "Kenar Boşluğu",
-    admin_qrstyle_ecc: "Hata Düzeltme",
-    admin_qrstyle_save: "Kaydet",
-    admin_qrstyle_saved: "Kaydedildi.",
     admin_tbl_add_title: "Yeni Masa",
     admin_tbl_bulk_title: "Toplu Masa Oluştur",
     admin_tbl_name_lbl: "Masa Adı",
@@ -4502,6 +4561,10 @@ const i18nData = {
     admin_ai_error_generic: "Bir hata oluştu. Lütfen tekrar deneyin.",
     admin_ai_conn_error: "Bağlantı hatası.",
     admin_ai_no_actions: "İsteğinizden uygulanabilir bir değişiklik çıkaramadım.",
+    admin_ai_fb_up: "Faydalı",
+    admin_ai_fb_down: "Faydasız",
+    admin_ai_copy: "Kopyala",
+    admin_ai_regenerate: "Yeniden oluştur",
     admin_ai_empty_title: "Nasıl yardımcı olabilirim?",
     admin_ai_empty_sub: "Ürün, kategori ve fiyatlarınızı doğal dille düzenleyebilirim.",
     admin_nav_widgets: "Widget Ayarları",
@@ -4522,7 +4585,7 @@ const i18nData = {
     admin_nav_collapse: "Daralt",
     admin_nav_admin: "Yönetici",
     admin_dash_orders: "Sipariş",
-    admin_dash_revenue: "Ciro",
+    admin_dash_revenue: "Satış",
     admin_dash_avg: "Ortalama Sepet",
     admin_dash_rez: "Rezervasyon",
     admin_dash_30d: "Son 30 gün",
@@ -4697,14 +4760,6 @@ const i18nData = {
     admin_tbl_add: "+ Add Table",
     admin_tbl_bulk: "Bulk Add",
     admin_tbl_printall: "Print All QR",
-    admin_qrstyle_title: "QR Style",
-    admin_qrstyle_hint: "Customize your table QR codes' colors, margin, and error-correction level.",
-    admin_qrstyle_fg: "Foreground",
-    admin_qrstyle_bg: "Background",
-    admin_qrstyle_margin: "Margin",
-    admin_qrstyle_ecc: "Error Correction",
-    admin_qrstyle_save: "Save",
-    admin_qrstyle_saved: "Saved.",
     admin_tbl_add_title: "New Table",
     admin_tbl_bulk_title: "Bulk Create Tables",
     admin_tbl_name_lbl: "Table Name",
@@ -4917,6 +4972,10 @@ const i18nData = {
     admin_ai_error_generic: "Something went wrong. Please try again.",
     admin_ai_conn_error: "Connection error.",
     admin_ai_no_actions: "I couldn't derive an actionable change from your request.",
+    admin_ai_fb_up: "Helpful",
+    admin_ai_fb_down: "Not helpful",
+    admin_ai_copy: "Copy",
+    admin_ai_regenerate: "Regenerate",
     admin_ai_empty_title: "How can I help?",
     admin_ai_empty_sub: "I can edit your products, categories and prices in plain language.",
     admin_nav_widgets: "Widget Settings",
@@ -4937,7 +4996,7 @@ const i18nData = {
     admin_nav_collapse: "Collapse",
     admin_nav_admin: "Admin",
     admin_dash_orders: "Orders",
-    admin_dash_revenue: "Revenue",
+    admin_dash_revenue: "Sales",
     admin_dash_avg: "Avg. Basket",
     admin_dash_rez: "Reservations",
     admin_dash_30d: "Last 30 days",
@@ -6676,7 +6735,7 @@ function showAdminView(view) {
   else if (view === 'orders')     loadOrders();
   else if (view === 'reservations' && typeof loadReservations === 'function') loadReservations();
   else if (view === 'push')       loadPushDashboardData();
-  else if (view === 'tables') { if (typeof loadTables === 'function') loadTables(); if (typeof loadQrStyle === 'function') loadQrStyle(); }
+  else if (view === 'tables') { if (typeof loadTables === 'function') loadTables(); }
   else if (view === 'table-orders') {
     if (typeof loadTableOrders === 'function') loadTableOrders();
     if (typeof loadServiceRequests === 'function') loadServiceRequests();
@@ -7081,6 +7140,45 @@ function aiAsstResolveLabel(a) {
 // earlier messages stay visible in the transcript like a real chat.
 let adminAiPlanId = null;
 let adminAiPendingBubble = null; // the .ai-msg element holding the currently-actionable plan, if any
+let adminAiLastUserMsg = ''; // for the "regenerate" action — re-sends the last real user message
+
+function adminAiActionsRowHTML(){
+  return '<div class="ai-msg-actions">' +
+    '<button class="ai-msg-action-btn up" onclick="adminAiFeedback(this)" data-i18n-title="admin_ai_fb_up" title="' + aiT('admin_ai_fb_up', 'Faydalı') + '" aria-label="' + aiT('admin_ai_fb_up', 'Faydalı') + '">' +
+      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 10v12"/><path d="M15 5.88 14 10h5.83a2 2 0 0 1 1.92 2.56l-2.33 8A2 2 0 0 1 17.5 22H4a2 2 0 0 1-2-2v-8a2 2 0 0 1 2-2h2.76a2 2 0 0 0 1.79-1.11L12 2a3.13 3.13 0 0 1 3 3.88Z"/></svg>' +
+    '</button>' +
+    '<button class="ai-msg-action-btn down" onclick="adminAiFeedback(this)" data-i18n-title="admin_ai_fb_down" title="' + aiT('admin_ai_fb_down', 'Faydasız') + '" aria-label="' + aiT('admin_ai_fb_down', 'Faydasız') + '">' +
+      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 14V2"/><path d="M9 18.12 10 14H4.17a2 2 0 0 1-1.92-2.56l2.33-8A2 2 0 0 1 6.5 2H20a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2h-2.76a2 2 0 0 0-1.79 1.11L12 22a3.13 3.13 0 0 1-3-3.88Z"/></svg>' +
+    '</button>' +
+    '<button class="ai-msg-action-btn" onclick="adminAiCopyMsg(this)" data-i18n-title="admin_ai_copy" title="' + aiT('admin_ai_copy', 'Kopyala') + '" aria-label="' + aiT('admin_ai_copy', 'Kopyala') + '">' +
+      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>' +
+    '</button>' +
+    '<button class="ai-msg-action-btn" onclick="adminAiRegenerate(this)" data-i18n-title="admin_ai_regenerate" title="' + aiT('admin_ai_regenerate', 'Yeniden oluştur') + '" aria-label="' + aiT('admin_ai_regenerate', 'Yeniden oluştur') + '">' +
+      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 0 1 15-6.7L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-15 6.7L3 16"/><path d="M8 16H3v5"/></svg>' +
+    '</button>' +
+  '</div>';
+}
+function adminAiFeedback(btn){
+  const row = btn.closest('.ai-msg-actions');
+  const wasActive = btn.classList.contains('active');
+  row.querySelectorAll('.ai-msg-action-btn.up, .ai-msg-action-btn.down').forEach(b => b.classList.remove('active'));
+  if (!wasActive) btn.classList.add('active');
+}
+function adminAiCopyMsg(btn){
+  const bubble = btn.closest('.ai-msg').querySelector('.ai-bubble');
+  const text = bubble ? bubble.innerText.trim() : '';
+  if (!text || !navigator.clipboard) return;
+  navigator.clipboard.writeText(text).then(() => {
+    btn.classList.add('copied');
+    setTimeout(() => btn.classList.remove('copied'), 1200);
+  }).catch(() => {});
+}
+function adminAiRegenerate(btn){
+  if (!adminAiLastUserMsg) return;
+  const input = document.getElementById('aAiInput');
+  input.value = adminAiLastUserMsg;
+  adminAiSend();
+}
 
 function adminAiAutoGrow(el){
   el.style.height = 'auto';
@@ -7131,6 +7229,7 @@ async function adminAiSend(){
   const input = document.getElementById('aAiInput');
   const msg = (input.value || '').trim();
   if (!msg) return;
+  adminAiLastUserMsg = msg;
   adminAiCancel(); // superseding a still-pending plan by sending a new message
   const sendBtn = document.getElementById('aAiSendBtn');
   adminAiAppendMsg('user', adminAiUserBubbleHTML(msg));
@@ -7158,10 +7257,12 @@ async function adminAiSend(){
       const text = data.summary || aiT('admin_ai_no_actions', 'İsteğinizden uygulanabilir bir değişiklik çıkaramadım.');
       typingBubble.innerHTML = (data.unsupported && data.unsupported.length) ? adminAiPlanHTML(data)
         : '<div class="ai-bubble">' + aiAsstEsc(text) + '</div>';
+      typingBubble.insertAdjacentHTML('beforeend', adminAiActionsRowHTML());
       adminAiScrollToBottom();
       return;
     }
     typingBubble.innerHTML = adminAiPlanHTML(data);
+    typingBubble.insertAdjacentHTML('beforeend', adminAiActionsRowHTML());
     adminAiPlanId = data.planId || null;
     adminAiPendingBubble = data.planId ? typingBubble : null;
     adminAiScrollToBottom();
@@ -7477,13 +7578,13 @@ async function confirmDeleteMyRestaurant() {
     aiT('admin_danger_delete_confirm1_title', 'Emin misiniz?')
   );
   if (!ok) return;
-  const typed = window.prompt(
-    (aiT('admin_danger_delete_confirm2', 'Silme işlemini onaylamak için restoranınızın adını yazın:')) + '\n"' + restaurantName + '"'
+  const typed = await showCustomPrompt(
+    (aiT('admin_danger_delete_confirm2', 'Silme işlemini onaylamak için restoranınızın adını yazın:')) + ' <strong>"' + restaurantName + '"</strong>',
+    aiT('admin_danger_delete_confirm1_title', 'Emin misiniz?')
   );
   if (typed === null) return;
   if (typed.trim() !== restaurantName.trim()) {
-    if (typeof toast === 'function') toast(aiT('admin_danger_delete_mismatch', 'Yazdığınız isim eşleşmedi, silme işlemi iptal edildi.'));
-    else alert(aiT('admin_danger_delete_mismatch', 'Yazdığınız isim eşleşmedi, silme işlemi iptal edildi.'));
+    showCustomAlert(aiT('admin_danger_delete_mismatch', 'Yazdığınız isim eşleşmedi, silme işlemi iptal edildi.'));
     return;
   }
   const btn = document.getElementById('selfDeleteBtn');
@@ -8460,9 +8561,55 @@ function showCustomConfirm(message, title) {
     
     function onOk() { cleanup(true); }
     function onCancel() { cleanup(false); }
-    
+
     okBtn.addEventListener('click', onOk);
     cancelBtn.addEventListener('click', onCancel);
+  });
+}
+
+// Promise-based replacement for native window.prompt() — resolves with the typed string on OK,
+// null on Cancel/Escape (same contract as window.prompt, so existing `=== null` checks keep working).
+function showCustomPrompt(message, title, defaultValue) {
+  if (!title) {
+    title = window.currentLanguage === 'tr' ? 'Değer girin' : 'Enter a value';
+  }
+  return new Promise((resolve) => {
+    const overlay = document.getElementById('customPromptOverlay');
+    const msgEl = document.getElementById('customPromptMessage');
+    const titleEl = document.getElementById('customPromptTitle');
+    const inputEl = document.getElementById('customPromptInput');
+    const okBtn = document.getElementById('customPromptOkBtn');
+    const cancelBtn = document.getElementById('customPromptCancelBtn');
+
+    msgEl.innerHTML = message || '';
+    msgEl.style.display = message ? '' : 'none';
+    titleEl.textContent = title;
+    inputEl.value = defaultValue || '';
+
+    cancelBtn.textContent = window.currentLanguage === 'tr' ? 'Vazgeç' : 'Cancel';
+    okBtn.textContent = window.currentLanguage === 'tr' ? 'Tamam' : 'OK';
+
+    overlay.classList.add('open');
+    setTimeout(() => { inputEl.focus(); inputEl.select(); }, 50);
+
+    const cleanup = (result) => {
+      overlay.classList.remove('open');
+      okBtn.removeEventListener('click', onOk);
+      cancelBtn.removeEventListener('click', onCancel);
+      inputEl.removeEventListener('keydown', onKeydown);
+      resolve(result);
+    };
+
+    function onOk() { cleanup(inputEl.value); }
+    function onCancel() { cleanup(null); }
+    function onKeydown(e) {
+      if (e.key === 'Enter') { e.preventDefault(); onOk(); }
+      else if (e.key === 'Escape') { e.preventDefault(); onCancel(); }
+    }
+
+    okBtn.addEventListener('click', onOk);
+    cancelBtn.addEventListener('click', onCancel);
+    inputEl.addEventListener('keydown', onKeydown);
   });
 }
 
@@ -9441,14 +9588,31 @@ async function deletePush(id) {
   #adminPanelOverlay .dash-chart-tooltip .dct-dot{ width:7px; height:7px; border-radius:2px; flex:none; }
   #adminPanelOverlay .dash-chart-tooltip .dct-row b{ margin-left:auto; padding-left:10px; }
 
-  /* AI Assistant — chat UI (Phase 41), ported from root.html's Phase 39 version onto --ap-* tokens */
+  /* AI Assistant — chat UI (Phase 41), ported from root.html's Phase 39 version onto --ap-* tokens.
+     Phase 66: kullanıcının gönderdiği referans görsele göre siyah/beyaz temaya uyarlandı — panelin
+     GENELİ mavi kalmaya devam ediyor (kullanıcı talimatı), bu ekran BİLEREK --ai-accent adında ayrı,
+     yerel bir token çifti kullanıyor (var(--ap-gold) DEĞİL) sadece bu sohbet ekranı için. */
   #adminPanelOverlay .ai-chat{ display:flex; flex-direction:column; height:calc(100vh - 190px); min-height:440px;
-    background:var(--ap-panel); border:1px solid var(--ap-line); border-radius:16px; overflow:hidden; }
+    background:var(--ap-panel); border:1px solid var(--ap-line); border-radius:16px; overflow:hidden;
+    --ai-accent:#ffffff; --ai-accent-text:#0a0a0b; }
+  html[data-theme="light"] #adminPanelOverlay .ai-chat{ --ai-accent:#15171c; --ai-accent-text:#ffffff; }
   #adminPanelOverlay .ai-chat-top{ display:flex; align-items:flex-start; justify-content:space-between; gap:16px;
     padding:18px 20px; border-bottom:1px solid var(--ap-line); flex:none; }
   #adminPanelOverlay .ai-chat-top h3{ font-size:15px; margin-bottom:3px; }
 
-  #adminPanelOverlay .ai-chat-body{ flex:1; overflow-y:auto; padding:20px; display:flex; flex-direction:column; gap:14px; }
+  #adminPanelOverlay .ai-chat-body-wrap{ position:relative; flex:1; min-height:0; display:flex; }
+  #adminPanelOverlay .ai-chat-body{ flex:1; min-height:0; overflow-y:auto; padding:20px; display:flex; flex-direction:column; gap:14px; }
+  /* Keskin kesim yerine son mesajın composer'ın arkasında yumuşakça bulanıklaşıp kaybolması —
+     scroll ile TAŞINMAYAN bir kardeş overlay (.ai-chat-body'nin İÇİNDE değil, wrap'in içinde),
+     backdrop-filter:blur + kendi üstüne bindirilmiş bir mask-gradient: üstte tamamen görünmez
+     (içerik keskin), alta doğru hem bulanıklık hem opaklık artıyor. */
+  #adminPanelOverlay .ai-chat-fade{
+    position:absolute; left:0; right:0; bottom:0; height:56px; pointer-events:none; z-index:2;
+    background:linear-gradient(to bottom, transparent, var(--ap-panel) 85%);
+    -webkit-backdrop-filter:blur(6px); backdrop-filter:blur(6px);
+    -webkit-mask-image:linear-gradient(to bottom, transparent 0%, #000 65%);
+    mask-image:linear-gradient(to bottom, transparent 0%, #000 65%);
+  }
   #adminPanelOverlay .ai-chat-empty{ margin:auto; text-align:center; max-width:300px; color:var(--ap-muted); }
   #adminPanelOverlay .ai-chat-empty svg{ width:36px; height:36px; color:var(--ap-faint); margin-bottom:10px; }
   #adminPanelOverlay .ai-chat-empty .t{ color:var(--ap-text); font-weight:700; font-size:.95rem; margin-bottom:5px; }
@@ -9459,8 +9623,16 @@ async function deletePush(id) {
   #adminPanelOverlay .ai-msg.user{ align-self:flex-end; align-items:flex-end; }
   #adminPanelOverlay .ai-msg.assistant{ align-self:flex-start; align-items:flex-start; }
   #adminPanelOverlay .ai-bubble{ border-radius:16px; padding:11px 15px; font-size:.87rem; line-height:1.5; }
-  #adminPanelOverlay .ai-msg.user .ai-bubble{ background:var(--ap-gold); color:var(--ap-gold-text); border-bottom-right-radius:4px; }
+  #adminPanelOverlay .ai-msg.user .ai-bubble{ background:var(--ai-accent); color:var(--ai-accent-text); border-bottom-right-radius:4px; }
   #adminPanelOverlay .ai-msg.assistant .ai-bubble{ background:var(--ap-card); border:1px solid var(--ap-line); color:var(--ap-text); border-bottom-left-radius:4px; max-width:100%; }
+
+  #adminPanelOverlay .ai-msg-actions{ display:flex; align-items:center; gap:2px; margin-top:2px; }
+  #adminPanelOverlay .ai-msg-action-btn{ width:28px; height:28px; flex:none; border:none; background:none; border-radius:8px; color:var(--ap-faint); display:grid; place-items:center; cursor:pointer; padding:0; transition:background var(--ap-t), color var(--ap-t); }
+  #adminPanelOverlay .ai-msg-action-btn:hover{ background:var(--ap-card); color:var(--ap-text); }
+  #adminPanelOverlay .ai-msg-action-btn svg{ width:15px; height:15px; }
+  #adminPanelOverlay .ai-msg-action-btn.up.active{ color:var(--ap-ok); }
+  #adminPanelOverlay .ai-msg-action-btn.down.active{ color:var(--ap-bad); }
+  #adminPanelOverlay .ai-msg-action-btn.copied{ color:var(--ap-ok); }
 
   #adminPanelOverlay .ai-typing{ display:inline-flex; gap:4px; padding:2px 3px; }
   #adminPanelOverlay .ai-typing span{ width:6px; height:6px; border-radius:50%; background:var(--ap-faint); animation:apAiTyping 1.2s infinite ease-in-out; }
@@ -9474,10 +9646,11 @@ async function deletePush(id) {
   #adminPanelOverlay .ai-plan-diff{ display:flex; align-items:center; gap:6px; flex-wrap:wrap; font-size:.85rem; }
   #adminPanelOverlay .ai-plan-old{ color:var(--ap-muted); text-decoration:line-through; opacity:.75; }
   #adminPanelOverlay .ai-plan-arrow{ color:var(--ap-faint); }
-  #adminPanelOverlay .ai-plan-new{ color:var(--ap-gold); font-weight:700; }
+  #adminPanelOverlay .ai-plan-new{ color:var(--ai-accent); font-weight:700; }
   #adminPanelOverlay .ai-plan-unsupported{ margin-top:10px; padding-top:10px; border-top:1px dashed var(--ap-line); font-size:.78rem; color:var(--ap-muted); line-height:1.6; }
   #adminPanelOverlay .ai-plan-actions{ display:flex; gap:8px; margin-top:14px; }
   #adminPanelOverlay .ai-plan-actions .admin-btn{ width:auto; flex:none; margin:0; padding:8px 16px; font-size:.8rem; }
+  #adminPanelOverlay .ai-plan-actions .admin-btn:not(.secondary){ background:var(--ai-accent); color:var(--ai-accent-text); }
   #adminPanelOverlay .ai-msg.cancelled .ai-bubble{ opacity:.55; }
   #adminPanelOverlay .ai-msg.cancelled .ai-plan-old, #adminPanelOverlay .ai-msg.cancelled .ai-plan-new{ text-decoration:line-through; color:var(--ap-muted); }
   #adminPanelOverlay .ai-msg-tag{ display:inline-flex; align-items:center; gap:5px; font-size:.76rem; font-weight:700; margin-top:10px; }
@@ -9486,9 +9659,15 @@ async function deletePush(id) {
   #adminPanelOverlay .ai-msg-tag.err{ color:var(--ap-bad); }
   #adminPanelOverlay .ai-bubble.err{ color:var(--ap-bad); border-color:var(--ap-bad-soft); }
 
-  #adminPanelOverlay .ai-chat-composer{ flex:none; display:flex; align-items:flex-end; gap:10px; padding:14px 16px; border-top:1px solid var(--ap-line); }
-  #adminPanelOverlay .ai-chat-composer textarea{ flex:1; resize:none; max-height:120px; border-radius:14px; padding:11px 14px; font-size:.87rem; line-height:1.4; }
-  #adminPanelOverlay .ai-chat-send-btn{ flex:none; width:40px; height:40px; border-radius:50%; border:none; background:var(--ap-gold); color:var(--ap-gold-text);
+  #adminPanelOverlay .ai-chat-composer{ flex:none; display:flex; align-items:center; gap:8px; margin:0 16px 16px; padding:6px 6px 6px 8px;
+    border:1px solid var(--ap-line); border-radius:999px; background:var(--ap-bg-2); transition:border-color var(--ap-t), box-shadow var(--ap-t); }
+  #adminPanelOverlay .ai-chat-composer:focus-within{ border-color:var(--ai-accent); box-shadow:0 0 0 3px var(--ap-line-2); }
+  #adminPanelOverlay .ai-chat-composer-avatar{ flex:none; width:30px; height:30px; border-radius:50%; background:var(--ai-accent); color:var(--ai-accent-text); display:grid; place-items:center; }
+  #adminPanelOverlay .ai-chat-composer-avatar svg{ width:15px; height:15px; }
+  #adminPanelOverlay .ai-chat-composer textarea{ flex:1; resize:none; max-height:120px; padding:8px 0; font-size:.87rem; line-height:1.4;
+    background:transparent; border:none; border-radius:0; }
+  #adminPanelOverlay .ai-chat-composer textarea:focus{ outline:none; border:none; box-shadow:none; }
+  #adminPanelOverlay .ai-chat-send-btn{ flex:none; width:38px; height:38px; border-radius:50%; border:none; background:var(--ai-accent); color:var(--ai-accent-text);
     display:grid; place-items:center; cursor:pointer; transition:transform var(--ap-t); }
   #adminPanelOverlay .ai-chat-send-btn:hover:not(:disabled){ transform:scale(1.06); }
   #adminPanelOverlay .ai-chat-send-btn:disabled{ opacity:.5; cursor:not-allowed; }
@@ -9640,7 +9819,7 @@ async function createBulkTables(){
 }
 async function renameTablePrompt(id){
   const t = tablesData.find(x => x.id === id); if (!t) return;
-  const name = prompt(tblT('admin_tbl_rename_prompt'), t.name);
+  const name = await showCustomPrompt(tblT('admin_tbl_rename_prompt'), tblT('admin_tbl_rename'), t.name);
   if (name == null || !name.trim()) return;
   try {
     const res = await fetch('/api/tables/' + id, { method:'PUT', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ name: name.trim() }) });
@@ -9705,48 +9884,6 @@ async function printAllQr(){
     document.getElementById('qrPrintArea').innerHTML = items.map(buildPrintCard).join('');
     window.print();
   } catch(e){ showCustomAlert(tblT('admin_tbl_err')); }
-}
-
-// ---------- QR Style (Phase 29) ----------
-async function loadQrStyle(){
-  let cfg = window.__siteConfig;
-  if (!cfg) { try { cfg = await (await fetch('/api/site-config')).json(); window.__siteConfig = cfg; } catch(e){} }
-  const q = (cfg && cfg.settings && cfg.settings.qr_style) || {};
-  document.getElementById('qrStyleFg').value = (q.fg || '#000000ff').slice(0, 7);
-  document.getElementById('qrStyleBg').value = (q.bg || '#ffffffff').slice(0, 7);
-  document.getElementById('qrStyleMargin').value = Number.isInteger(q.margin) ? q.margin : 1;
-  document.getElementById('qrStyleEcc').value = q.ecc || 'M';
-}
-async function saveQrStyle(){
-  const btn = document.getElementById('qrStyleSaveBtn');
-  const statusEl = document.getElementById('qrStyleStatus');
-  btn.disabled = true;
-  try {
-    const res = await fetch('/api/admin/qr-style', {
-      method: 'PUT', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ qr_style: {
-        fg: document.getElementById('qrStyleFg').value,
-        bg: document.getElementById('qrStyleBg').value,
-        margin: parseInt(document.getElementById('qrStyleMargin').value, 10),
-        ecc: document.getElementById('qrStyleEcc').value
-      }})
-    });
-    const data = await res.json();
-    btn.disabled = false;
-    statusEl.style.display = 'block';
-    if (!res.ok) { statusEl.textContent = data.error || tblT('admin_tbl_err'); return; }
-    if (window.__siteConfig && window.__siteConfig.settings) window.__siteConfig.settings.qr_style = data.qr_style;
-    statusEl.textContent = tblT('admin_qrstyle_saved');
-    if (Array.isArray(tablesData) && tablesData.length) {
-      const preview = document.getElementById('qrStylePreview');
-      const r = await fetch('/api/tables/' + tablesData[0].id + '/qr');
-      if (r.ok) { const d = await r.json(); preview.src = d.png; preview.style.display = 'inline-block'; }
-    }
-  } catch(e){
-    btn.disabled = false;
-    statusEl.style.display = 'block';
-    statusEl.textContent = tblT('admin_tbl_err');
-  }
 }
 
 // ---------- Table Order Control ----------
