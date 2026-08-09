@@ -111,6 +111,11 @@
   --shadow:0 30px 80px -30px rgba(0,0,0,.85);
   --shadow-glow:0 0 0 1px var(--border), 0 24px 70px -25px rgba(0,0,0,.9);
   --maxw:1180px;
+  /* Norma uses atmospheric lifestyle photography behind several sections; we have no physical
+     product to photograph, so a soft radial brand-blue glow over the flat dark bg fills that
+     same "not just a plain background" role instead. */
+  --hero-gradient: radial-gradient(120% 90% at 50% -12%, rgba(var(--gold-rgb),.22) 0%, rgba(var(--gold-rgb),0) 58%), var(--bg);
+  --section-gradient: radial-gradient(110% 100% at 50% 100%, rgba(var(--gold-rgb),.14) 0%, rgba(var(--gold-rgb),0) 62%);
 }
 /* Black & White theme = a real WHITE background, dark text (not a gray filter over the dark
    look — a grayscale filter kept the page dark and was too subtle to read as "a different
@@ -139,10 +144,14 @@ html.theme-mono{
   --shine:linear-gradient(135deg,#0a0a0b 0%,#3c3c42 45%,#6e6e78 100%);
   --shadow:0 30px 80px -30px rgba(10,10,11,.18);
   --shadow-glow:0 0 0 1px var(--border), 0 24px 70px -25px rgba(10,10,11,.14);
+  --hero-gradient: radial-gradient(120% 90% at 50% -12%, rgba(var(--gold-rgb),.14) 0%, rgba(var(--gold-rgb),0) 58%), var(--bg);
+  --section-gradient: radial-gradient(110% 100% at 50% 100%, rgba(var(--gold-rgb),.08) 0%, rgba(var(--gold-rgb),0) 62%);
 }
 html.theme-mono body{ background:var(--bg); }
-html.theme-mono .nav{ background:rgba(255,255,255,.72); }
-html.theme-mono .nav.scrolled{ background:rgba(255,255,255,.88); }
+/* At the top of the page the nav floats over the hero card, which is dark in BOTH themes — so the
+   white glass tint is correct there even in light theme. Only once scrolled past the hero (where
+   light theme's page background is white) does the tint need to flip dark to stay visible. */
+html.theme-mono .nav.scrolled .nav-in{ background:rgba(10,10,11,.06); }
 html.theme-mono .nav.open .nav-links{ background:rgba(255,255,255,.97); }
 html.theme-mono .brand .mark,
 html.theme-mono .theme-switch.on{ color:var(--gold); }
@@ -153,22 +162,17 @@ html.theme-mono .btn-primary{ background:var(--gold); color:#fff; box-shadow:0 1
 html.theme-mono .nav-toggle{ color:#0a0a0b; }
 html.theme-mono ::selection{ background:var(--gold-soft); color:#0a0a0b; }
 html.theme-mono .foot-social a:hover{ color:#0a0a0b; }
-/* Everything below is a hardcoded (non-token) dark color used somewhere inside the hero device
-   mockup (.devices: .laptop/.phone), the 3 showcase screen mockups (.mock), the step-number
-   badges, the testimonial avatars, or the comparison table — none of these route through the
-   --bg/--text/etc. tokens above, so each needs its own explicit light-theme value. Nothing here
-   is skipped or left dark on purpose. */
-html.theme-mono .laptop .screen{ background:linear-gradient(160deg,#f1f1f3,#e4e4e8); }
-html.theme-mono .laptop .base{ background:linear-gradient(#e4e4e8,#d8d8dd); }
-html.theme-mono .laptop .base::after{ background:#9a9a9a; }
-html.theme-mono .ui-top .d{ background:#c7c7cf; }
-html.theme-mono .phone{ background:linear-gradient(160deg,#f1f1f3,#e4e4e8); }
-html.theme-mono .phone .phead{ background:linear-gradient(160deg,#eaeaee,#dcdce1); }
-html.theme-mono .phone .phead .qr{ border-color:#0a0a0b; }
+/* Everything below is a hardcoded (non-token) dark color used somewhere inside the 3 showcase
+   screen mockups (.mock), the step-number badges, or the comparison table — none of these route
+   through the --bg/--text/etc. tokens above, so each needs its own explicit light-theme value.
+   Nothing here is skipped or left dark on purpose. (The hero card itself is deliberately dark in
+   both themes and needs no override.) */
 html.theme-mono .mock{ background:linear-gradient(160deg,#f6f6f8,#eaeaee); }
 html.theme-mono .mock .m-top .d{ background:#c7c7cf; }
 html.theme-mono .bubble.me{ background:#0a0a0b; color:#fff; }
 html.theme-mono .cmp .yes{ color:#0a0a0b; }
+html.theme-mono .cmp .col-hasaca .yes,
+html.theme-mono .cmp .col-hasaca b{ color:#fff; }
 html.theme-mono .step .num{ background:linear-gradient(150deg,#f0f0f2,#e2e2e6); }
 html.theme-mono .step .num .shine{
   background:linear-gradient(135deg,#0a0a0b 0%,#3c3c42 45%,#6e6e78 100%);
@@ -202,13 +206,6 @@ section{ position:relative; z-index:1; }
 
 /* ── Text helpers ── */
 .shine{ background:var(--shine); -webkit-background-clip:text; background-clip:text; color:transparent; }
-.eyebrow{
-  display:inline-flex; align-items:center; gap:8px;
-  font-size:12.5px; letter-spacing:.14em; text-transform:uppercase;
-  color:var(--text-dim); padding:7px 14px; border-radius:999px;
-  background:var(--surface); border:1px solid var(--border);
-}
-.eyebrow .dot{ width:6px; height:6px; border-radius:50%; background:var(--gold); box-shadow:0 0 10px var(--gold); }
 h1,h2,h3{ line-height:1.08; letter-spacing:-.02em; }
 .sec-head{ max-width:660px; margin:0 auto 56px; text-align:center; }
 .sec-head h2{ font-size:clamp(28px,4.4vw,50px); margin:18px 0 16px; }
@@ -228,15 +225,19 @@ h1,h2,h3{ line-height:1.08; letter-spacing:-.02em; }
 .btn-ghost:hover{ background:rgba(255,255,255,.11); transform:translateY(-2px); }
 .btn-lg{ padding:16px 30px; font-size:16px; }
 
-/* ── Navbar ── */
-.nav{
-  position:sticky; top:0; z-index:100;
-  backdrop-filter:blur(18px) saturate(1.3); -webkit-backdrop-filter:blur(18px) saturate(1.3);
-  background:rgba(10,10,11,.72); border-bottom:1px solid transparent;
-  transition:border-color .3s, background .3s;
+/* ── Navbar — floating pill card that overlays the hero (fixed, so it takes no layout space
+   and the hero card can start at the very top of the page) ── */
+.nav{ position:fixed; top:28px; left:0; right:0; z-index:100; padding:0 20px; }
+/* Glass recipe measured directly off the live Norma reference (nor.ma) via computed styles:
+   translucent tint + blur(12px), no border, no box-shadow — no saturate boost either. */
+.nav-in{
+  max-width:1040px; margin:0 auto; padding:10px 12px 10px 22px; display:flex; align-items:center; gap:26px;
+  border-radius:999px; border:none;
+  backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px);
+  background:rgba(255,255,255,.15); box-shadow:none;
+  transition:background .3s;
 }
-.nav.scrolled{ border-bottom-color:var(--border); background:rgba(10,10,11,.86); }
-.nav-in{ max-width:var(--maxw); margin:0 auto; padding:15px 24px; display:flex; align-items:center; gap:26px; }
+.nav.scrolled .nav-in{ background:rgba(255,255,255,.22); }
 .brand{ display:flex; align-items:center; gap:11px; font-size:20px; letter-spacing:.02em; }
 .brand .mark{
   width:34px; height:34px; border-radius:var(--radius-sm); display:grid; place-items:center;
@@ -270,77 +271,52 @@ body.theme-bw .brand .mark, html.theme-bw .brand .mark, .theme-bw .brand .mark {
 .theme-switch.on{ background:var(--surface-2); color:var(--gold); }
 .nav-toggle svg{ width:20px; height:20px; margin:auto; }
 
-/* ── Hero ── */
-.hero{ padding:78px 0 70px; }
-.hero-grid{ display:grid; grid-template-columns:1.02fr .98fr; gap:40px; align-items:center; }
-.hero h1{ font-size:clamp(38px,6vw,72px); margin:22px 0 22px; }
-.hero-sub{ font-size:clamp(16px,1.8vw,19px); color:var(--text-dim); max-width:520px; margin-bottom:32px; }
-.hero-cta{ display:flex; gap:13px; flex-wrap:wrap; margin-bottom:30px; }
-.hero-mini{ display:flex; gap:26px; flex-wrap:wrap; }
+/* ── Hero — full-bleed rounded card, nav floats over it ──
+   Layout metrics mirror the reference structure: 16px page inset, 28px card radius, ~84vh min
+   height, content pinned to the TOP of the card (not vertically centred), headline on the left
+   and supporting copy + CTAs on the right of a 1.15fr/0.85fr grid. The card is dark in BOTH
+   themes (it is an image-style panel, same treatment as the CTA banner), so all hero text is
+   fixed white regardless of the page theme. */
+.hero{ padding:16px 16px 0; }
+.hero-card{
+  position:relative; overflow:hidden; border-radius:28px;
+  min-height:72vh; display:flex; flex-direction:column;
+  /* Stands in for the reference's lifestyle photo: a deep navy base lit from the upper right,
+     rather than a flat two-stop ramp (which read as empty poster paint at this size). */
+  background:
+    radial-gradient(90% 70% at 78% 8%, rgba(96,150,255,.42) 0%, rgba(96,150,255,0) 62%),
+    radial-gradient(70% 60% at 12% 92%, rgba(30,60,130,.55) 0%, rgba(30,60,130,0) 70%),
+    linear-gradient(160deg,#0a1226 0%,#132a52 55%,#1d3f78 100%);
+}
+.hero-scrim{
+  position:absolute; inset:0; z-index:0; pointer-events:none;
+  background:linear-gradient(180deg,rgba(0,0,0,.5) 0%,rgba(0,0,0,.18) 45%,rgba(0,0,0,.32) 100%);
+}
+/* width:100% is required, not decorative: .wrap carries margin:0 auto, and an auto cross-axis
+   margin cancels flex `stretch`, which would shrink this to fit-content inside the flex-column
+   card (the stats panel collapsed to ~584px without it). */
+/* Scoped with the parent (.hero .hero-inner) on purpose: these elements also carry .wrap, and
+   .wrap's `padding` SHORTHAND inside the ≤560px media query would otherwise reset padding-top to
+   0 at equal specificity, dropping the hero content behind the fixed nav. */
+.hero .hero-inner{ position:relative; z-index:1; width:100%; padding-top:144px; padding-bottom:56px; }
+.hero-badge{
+  display:inline-flex; align-items:center; gap:8px; height:36px; padding:0 14px;
+  border-radius:999px; background:rgba(255,255,255,.15); color:rgba(255,255,255,.8);
+  font-size:13px; white-space:nowrap;
+}
+.hero-grid{ display:grid; grid-template-columns:1.15fr .85fr; gap:32px; align-items:start; margin-top:28px; }
+.hero h1{ font-size:clamp(38px,5.2vw,56px); font-weight:600; line-height:1.02; letter-spacing:-.03em; color:#fff; }
+.hero h1 .dim{ color:rgba(255,255,255,.55); }
+.hero-sub{ font-size:17px; font-weight:500; line-height:1.5; color:rgba(255,255,255,.8); max-width:44ch; }
+.hero-cta{ display:flex; gap:12px; flex-wrap:wrap; align-items:center; margin-top:24px; }
+.btn-hero-primary{ height:36px; padding:0 16px; font-size:14px; font-weight:500; background:#fff; color:#0a0a0b; }
+.btn-hero-primary:hover{ background:rgba(255,255,255,.88); transform:translateY(-1px); }
+.btn-hero-ghost{ height:36px; padding:0 16px; font-size:14px; font-weight:500; background:rgba(255,255,255,.1); color:#fff; border-color:rgba(255,255,255,.3); }
+.btn-hero-ghost:hover{ background:rgba(255,255,255,.18); transform:translateY(-1px); }
+.hero-mini{ display:flex; gap:26px; flex-wrap:wrap; margin-top:32px; }
 .hero-mini .m{ display:flex; flex-direction:column; }
-.hero-mini .m b{ font-size:22px; }
-.hero-mini .m span{ font-size:12.5px; color:var(--text-mute); }
-
-/* Device cluster (pure CSS/SVG mockups) */
-.devices{ position:relative; height:440px; perspective:1400px; }
-@keyframes floaty{ 0%,100%{ transform:translateY(0); } 50%{ transform:translateY(-14px); } }
-/* The laptop is centred with a transform, so its float animation must carry the
-   centring too — a plain translateY keyframe would override it and shift the element. */
-@keyframes floaty-center{
-  0%,100%{ transform:translate(-50%,-50%); }
-  50%{ transform:translate(-50%,calc(-50% - 14px)); }
-}
-.laptop{
-  position:absolute; left:50%; top:52%; transform:translate(-50%,-50%);
-  width:min(100%,580px);
-  animation:floaty-center 7s ease-in-out infinite;
-}
-.laptop .screen{
-  border-radius:20px 20px 4px 4px; padding:11px; background:linear-gradient(160deg,#26262c,#0b0b0d);
-  border:1px solid var(--border-2); box-shadow:var(--shadow);
-}
-.laptop .base{ height:15px; background:linear-gradient(#1b1b20,#0c0c0e); border-radius:0 0 14px 14px; border:1px solid var(--border); border-top:none; position:relative; }
-.laptop .base::after{ content:''; position:absolute; left:50%; top:0; transform:translateX(-50%); width:80px; height:5px; background:#000; border-radius:0 0 7px 7px; }
-.ui{ background:var(--bg-2); border-radius:14px; overflow:hidden; }
-.ui-top{ display:flex; align-items:center; gap:6px; padding:9px 12px; border-bottom:1px solid var(--border); }
-.ui-top .d{ width:9px; height:9px; border-radius:50%; background:#333; }
-.ui-top .t{ margin-left:8px; font-size:10px; color:var(--text-mute); }
-.ui-body{ display:grid; grid-template-columns:56px 1fr; min-height:210px; }
-.ui-side{ border-right:1px solid var(--border); padding:12px 8px; display:flex; flex-direction:column; gap:9px; }
-.ui-side i{ height:9px; border-radius:999px; background:var(--surface-2); display:block; }
-.ui-side i:first-child{ background:var(--gold-soft); }
-.ui-main{ padding:14px; }
-.ui-cards{ display:grid; grid-template-columns:repeat(3,1fr); gap:9px; margin-bottom:12px; }
-.ui-card{ background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:9px; }
-.ui-card b{ font-size:14px; display:block; }
-.ui-card span{ font-size:8.5px; color:var(--text-mute); }
-.ui-chart{ height:78px; border:1px solid var(--border); border-radius:14px; background:var(--surface); position:relative; overflow:hidden; }
-.ui-chart svg{ position:absolute; inset:0; width:100%; height:100%; }
-.phone{
-  position:absolute; right:0; bottom:0; width:132px;
-  border-radius:22px; padding:7px; background:linear-gradient(160deg,#2a2a30,#0a0a0c);
-  border:1px solid var(--border-2); box-shadow:var(--shadow); animation:floaty 6s ease-in-out infinite .8s;
-}
-.phone .pscreen{ background:var(--bg-2); border-radius:16px; overflow:hidden; }
-.phone .phead{ padding:10px; background:linear-gradient(160deg,#17171b,#0d0d10); }
-.phone .phead .qr{ width:44px; height:44px; margin:2px auto 7px; border-radius:8px; background:
-  conic-gradient(#000 0 25%, #fff 0 50%, #000 0 75%, #fff 0) 0/12px 12px; border:3px solid #fff; }
-.phone .phead .l{ height:6px; width:70%; margin:5px auto; border-radius:3px; background:var(--surface-2); }
-.phone .pitem{ display:flex; gap:7px; align-items:center; padding:8px 9px; border-top:1px solid var(--border); }
-.phone .pitem .thumb{ width:22px; height:22px; border-radius:6px; background:var(--surface-2); }
-.phone .pitem .ln{ flex:1; height:5px; border-radius:3px; background:var(--surface-2); }
-.phone .pitem .pr{ font-size:8px; color:var(--gold); }
-.chip{
-  position:absolute; display:flex; align-items:center; gap:9px; padding:10px 13px;
-  background:var(--glass); backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px);
-  border:1px solid var(--border-2); border-radius:999px; box-shadow:var(--shadow);
-  font-size:12px;
-}
-.chip .ic{ width:26px; height:26px; border-radius:999px; display:grid; place-items:center; background:var(--gold-soft); color:var(--gold); }
-.chip .ic svg{ width:15px; height:15px; }
-.chip b{ font-size:12.5px; } .chip span{ font-size:10.5px; color:var(--text-mute); display:block; }
-.chip.c1{ top:6px; left:0; animation:floaty 6.5s ease-in-out infinite .3s; }
-.chip.c2{ bottom:34px; left:0; animation:floaty 7.5s ease-in-out infinite 1.1s; }
+.hero-mini .m b{ font-size:22px; color:#fff; }
+.hero-mini .m span{ font-size:12.5px; color:rgba(255,255,255,.6); }
 
 /* ── Trust ── */
 .trust{ padding:26px 0 8px; }
@@ -351,6 +327,41 @@ body.theme-bw .brand .mark, html.theme-bw .brand .mark, .theme-bw .brand .mark {
 
 /* ── Section spacing ── */
 .block{ padding:84px 0; }
+
+/* ── Device mockup frames — measured directly off nor.ma's own computed styles (no notch, no
+   browser chrome bar: just a rounded dark frame, screenshot filling it edge-to-edge). Dark bezel
+   in BOTH themes, same reasoning as the CTA banner/stats cards — a device frame is physically
+   dark regardless of page theme. ── */
+.browser-mockup{
+  position:relative; overflow:hidden; background:#1a1a1a;
+  border-radius:14px; border:1px solid rgba(255,255,255,.14);
+  aspect-ratio:1440/930; box-shadow:0 24px 60px -24px rgba(0,0,0,.35);
+}
+.phone-mockup{
+  position:relative; overflow:hidden; background:#1a1a1a;
+  border-radius:32px; border:1px solid rgba(255,255,255,.08);
+  aspect-ratio:1180/2556; max-width:280px; box-shadow:0 24px 60px -24px rgba(0,0,0,.3);
+}
+.browser-mockup img,.phone-mockup img{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover; display:block; }
+/* Placeholder shown until a real product screenshot is dropped in — deliberately plain so an
+   empty frame never reads as a broken image. */
+.mockup-ph{
+  position:absolute; inset:0; display:grid; place-items:center; text-align:center; padding:16px;
+  background:linear-gradient(140deg,#141c2e 0%,#223a63 55%,#3d5f9e 100%);
+  color:rgba(255,255,255,.55); font-size:13px; letter-spacing:.02em;
+}
+@media (min-width:640px){ .browser-mockup{ border-radius:20px; } }
+/* Dual composition ("one platform, every screen") — browser + phone side by side, bottom-aligned,
+   NOT overlapping: this is nor.ma's actual paired layout (~74%/20% split with a gap), not a
+   corner-overlay trick. */
+.mockup-duo{ display:flex; align-items:flex-end; justify-content:space-between; gap:6%; }
+.mockup-duo .browser-mockup{ width:74%; flex:none; }
+.mockup-duo .phone-mockup{ width:20%; flex:none; max-width:none; border-radius:18px; }
+@media (min-width:640px){ .mockup-duo .phone-mockup{ border-radius:24px; } }
+@media (max-width:760px){
+  .mockup-duo{ flex-direction:column; align-items:stretch; }
+  .mockup-duo .browser-mockup,.mockup-duo .phone-mockup{ width:100%; max-width:420px; margin:0 auto; }
+}
 
 /* ── Showcase ── */
 .showcase{ display:grid; grid-template-columns:1fr 1fr; gap:54px; align-items:center; margin-bottom:96px; }
@@ -406,46 +417,88 @@ html.theme-mono .feat .fi{ background:linear-gradient(150deg,#f0f0f2,#e2e2e6); c
 .feat h4{ font-size:16px; margin-bottom:7px; letter-spacing:-.01em; }
 .feat p{ font-size:13px; color:var(--text-dim); line-height:1.5; }
 
-/* ── How it works ── */
-.steps{ max-width:760px; margin:0 auto; position:relative; }
-.steps::before{ content:''; position:absolute; left:27px; top:12px; bottom:12px; width:2px; background:linear-gradient(var(--gold),transparent); opacity:.35; }
-.step{ display:flex; gap:22px; padding:16px 0; align-items:flex-start; }
-.step .num{
-  flex:none; width:56px; height:56px; border-radius:999px; display:grid; place-items:center; font-size:20px;
-  background:linear-gradient(150deg,#202026,#0c0c0e); border:1px solid var(--border-2); position:relative; z-index:1;
-  box-shadow:inset 0 1px 0 rgba(255,255,255,.1);
+/* ── How it works — card grid (badge + title + desc), matching nor.ma's own 3-col "how it
+   works" card exactly (36px radius, 28px circular badge, same spacing rhythm). Norma has 3
+   steps to our 6, so the grid just wraps to two rows instead of one. A screenshot slot can be
+   added under .sc per-card once real product screenshots are supplied (Faz 2). ── */
+.steps{ max-width:100%; margin:0 auto; display:grid; grid-template-columns:repeat(3,1fr); gap:20px; }
+.step{
+  display:flex; flex-direction:column; padding:28px; border:1px solid var(--border); border-radius:36px;
+  background:var(--surface); transition:border-color .3s;
 }
-.step .num .shine{ font-size:22px; }
-.step .sc h4{ font-size:19px; margin:9px 0 5px; }
-.step .sc p{ font-size:14px; color:var(--text-dim); }
+.step:hover{ border-color:var(--border-2); }
+.step .num{
+  flex:none; width:28px; height:28px; border-radius:999px; display:grid; place-items:center; font-size:13px; font-weight:600;
+  border:1px solid var(--border-2); color:var(--text-dim);
+}
+.step .sc h4{ font-size:19px; margin:16px 0 6px; }
+.step .sc p{ font-size:14.5px; color:var(--text-dim); line-height:1.45; }
+@media (max-width:760px){ .steps{ grid-template-columns:1fr; } }
 
-/* ── Comparison ── */
-.cmp{ max-width:900px; margin:0 auto; border:1px solid var(--border); border-radius:var(--radius-lg); overflow:hidden; background:var(--surface); }
+/* ── Comparison — Norma palette: a solid dark stripe runs down the whole "own platform" column
+   (header + every row), white checks inside it; the other column stays on the plain table
+   surface with near-black checks / pale-gray crosses — no green/red semantic coloring. ── */
+/* border-radius/shadow measured directly off nor.ma's own comparison-style card (24px,
+   0 24px 60px -24px rgba(0,0,0,.3)) rather than reusing our generic --radius-lg (30px). */
+.cmp{ max-width:900px; margin:0 auto; border:1px solid var(--border); border-radius:24px; overflow:hidden; background:var(--bg-3); box-shadow:0 24px 60px -24px rgba(0,0,0,.3); }
 .cmp-row{ display:grid; grid-template-columns:1.4fr 1fr 1fr; align-items:center; border-top:1px solid var(--border); }
 .cmp-row:first-child{ border-top:none; }
 .cmp-row > div{ padding:16px 20px; font-size:14.5px; }
 .cmp-head{ background:var(--bg-3); }
-.cmp-head .h-hasaca{ position:relative; }
+.cmp-head .h-hasaca{ position:relative; background:#0a0a0b; margin:-1px 0; padding-top:17px; padding-bottom:17px; }
 .cmp-head b{ font-size:16px; }
 .cmp-head .h-hasaca b{ background:var(--shine); -webkit-background-clip:text; background-clip:text; color:transparent; }
-.cmp-head .tag{ font-size:10px; color:var(--gold); display:block; }
+.cmp-head .tag{ font-size:10px; color:#8fb2ff; display:block; }
 .cmp .lbl{ color:var(--text-dim); }
 .cmp .cell{ text-align:center; }
-.cmp .yes{ color:#e9e9ee; } .cmp .no{ color:var(--text-mute); }
+.cmp .yes{ color:var(--text); } .cmp .no{ color:var(--text-mute); }
 .cmp .cell svg{ width:19px; height:19px; }
-.cmp .col-hasaca{ background:linear-gradient(180deg,rgba(var(--gold-rgb),.06),transparent); }
+.cmp .col-hasaca{ background:#0a0a0b; align-self:stretch; display:flex; align-items:center; justify-content:center; }
+.cmp .col-hasaca .yes,
+.cmp .col-hasaca b{ color:#fff; }
+.cmp .col-hasaca .no{ color:#7c7c86; }
 
-/* ── Stats ── */
-.stat-grid{ display:grid; grid-template-columns:repeat(4,1fr); gap:16px; }
-.statc{ background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:26px 20px; }
-.statc .n{ font-size:clamp(26px,3.2vw,38px); background:var(--shine); -webkit-background-clip:text; background-clip:text; color:transparent; }
-.statc .lb{ font-size:13.5px; color:var(--text-dim); margin-top:7px; }
+/* ── Full-bleed rounded panel — the page's main rhythm device, reused from the hero card
+   (16px page inset, 28px radius, dark in BOTH themes since it is an image-style panel). ── */
+.panel-section{ padding:0 16px; }
+.panel-card{
+  position:relative; overflow:hidden; border-radius:28px;
+  min-height:62vh; display:flex; flex-direction:column; justify-content:space-between;
+  background:
+    radial-gradient(85% 70% at 20% 10%, rgba(96,150,255,.34) 0%, rgba(96,150,255,0) 62%),
+    linear-gradient(150deg,#0a1226 0%,#132a52 58%,#1d3f78 100%);
+}
+.panel-scrim{
+  position:absolute; inset:0; z-index:0; pointer-events:none;
+  background:linear-gradient(90deg,rgba(0,0,0,.5) 0%,rgba(0,0,0,.2) 50%,rgba(0,0,0,.4) 100%);
+}
+/* flex:1 + space-between pins the heading to the top of the panel and the glass card to the
+   bottom, instead of both stacking at the top and leaving dead space underneath. */
+.panel-section .panel-inner{
+  position:relative; z-index:1; width:100%; padding-top:96px; padding-bottom:56px;
+  flex:1; display:flex; flex-direction:column; justify-content:space-between;
+}
+.panel-head{ margin:0; text-align:left; max-width:640px; }
+.panel-head h2{ color:#fff; }
+.panel-head p{ color:rgba(255,255,255,.8); }
+
+/* Stats sit in ONE glass card split by dividers (not four separate cards). */
+.stat-card{
+  margin-top:56px; overflow:hidden; border-radius:16px;
+  border:1px solid rgba(255,255,255,.15); background:rgba(255,255,255,.1);
+  backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px);
+  display:grid; grid-template-columns:repeat(4,1fr);
+}
+.statc{ padding:26px 24px; border-left:1px solid rgba(255,255,255,.15); }
+.statc:first-child{ border-left:none; }
+.statc .n{ font-size:clamp(26px,3.2vw,38px); color:#fff; }
+.statc .lb{ font-size:13.5px; color:rgba(255,255,255,.7); margin-top:7px; }
 
 
 /* ── Pricing ── */
 .price-grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:18px; align-items:stretch; }
 .plan{
-  background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-lg); padding:30px 26px;
+  background:var(--surface); border:1px solid var(--border); border-radius:28px; padding:30px 26px;
   display:flex; flex-direction:column; transition:transform .18s var(--ease), border-color .18s;
 }
 .plan:hover{ transform:translateY(-5px); border-color:var(--border-2); }
@@ -462,9 +515,11 @@ html.theme-mono .feat .fi{ background:linear-gradient(150deg,#f0f0f2,#e2e2e6); c
 .plan li svg{ width:16px; height:16px; color:var(--gold); flex:none; margin-top:2px; }
 .plan .btn{ margin-top:auto; width:100%; }
 
-/* ── FAQ ── */
-.faq{ max-width:780px; margin:0 auto; }
-.qa{ border:1px solid var(--border); border-radius:var(--radius); margin-bottom:12px; background:var(--surface); overflow:hidden; }
+/* ── FAQ — one grouped card (border+radius on the container, plain divider rows inside), matching
+   nor.ma's own FAQ list exactly, instead of a separate bordered card per question. ── */
+.faq{ max-width:780px; margin:0 auto; border:1px solid var(--border); border-radius:16px; overflow:hidden; background:var(--surface); }
+.qa{ border-radius:0; margin-bottom:0; background:transparent; border-top:1px solid var(--border); }
+.qa:first-child{ border-top:none; }
 .qa summary{ list-style:none; cursor:pointer; padding:19px 22px; display:flex; align-items:center; justify-content:space-between; gap:16px; font-size:16px; }
 .qa summary::-webkit-details-marker{ display:none; }
 .qa summary .pl{ flex:none; width:26px; height:26px; border-radius:999px; border:1px solid var(--border-2); display:grid; place-items:center; transition:transform .2s; color:var(--text-dim); }
@@ -536,12 +591,15 @@ html.theme-mono .feat .fi{ background:linear-gradient(150deg,#f0f0f2,#e2e2e6); c
 /* ── Responsive ── */
 @media (max-width:960px){
   .hero-grid{ grid-template-columns:1fr; gap:20px; }
-  .devices{ height:380px; margin-top:10px; }
+  .hero .hero-inner{ padding-top:120px; }
+  .panel-section .panel-inner{ padding-top:80px; }
   .showcase{ grid-template-columns:1fr; gap:28px; margin-bottom:64px; }
   .showcase.rev .sc-media{ order:0; }
   .feat-grid{ grid-template-columns:repeat(3,1fr); }
   .counters{ grid-template-columns:repeat(2,1fr); }
-  .stat-grid{ grid-template-columns:repeat(2,1fr); }
+  .stat-card{ grid-template-columns:repeat(2,1fr); }
+  .statc:nth-child(odd){ border-left:none; }
+  .statc:nth-child(n+3){ border-top:1px solid rgba(255,255,255,.15); }
   .price-grid{ grid-template-columns:1fr; max-width:440px; margin:0 auto; }
   .plan.pop{ order:-1; }
   .contact-grid{ grid-template-columns:1fr; gap:30px; }
@@ -552,8 +610,9 @@ html.theme-mono .feat .fi{ background:linear-gradient(150deg,#f0f0f2,#e2e2e6); c
   .nav-links{ display:none; }
   .nav-toggle{ display:grid; }
   .nav.open .nav-links{
-    display:flex; flex-direction:column; position:absolute; top:100%; left:0; right:0;
-    background:rgba(10,10,11,.97); backdrop-filter:blur(16px); border-bottom:1px solid var(--border); padding:12px; gap:2px;
+    display:flex; flex-direction:column; position:absolute; top:calc(100% + 8px); left:20px; right:20px;
+    background:rgba(10,10,11,.97); backdrop-filter:blur(16px); border:1px solid var(--border); border-radius:22px; padding:12px; gap:2px;
+    box-shadow:0 16px 40px -14px rgba(0,0,0,.65);
   }
   .nav.open .nav-links a{ padding:12px 14px; }
 }
@@ -579,11 +638,8 @@ html.theme-mono .feat .fi{ background:linear-gradient(150deg,#f0f0f2,#e2e2e6); c
   .hero-cta .btn{ flex:1; }
   .foot-cols-host{ grid-template-columns:repeat(2,1fr); }
   .foot-bottom{ justify-content:center; text-align:center; }
-  .devices{ height:340px; }
 }
 @media (prefers-reduced-motion:reduce){
-  .phone,.chip{ animation:none !important; }
-  .laptop{ animation:none !important; transform:translate(-50%,-50%) !important; }
   .js-anim .rv{ transition:none; opacity:1; transform:none; }
   html{ scroll-behavior:auto; }
 }
@@ -617,60 +673,32 @@ html.theme-mono .feat .fi{ background:linear-gradient(150deg,#f0f0f2,#e2e2e6); c
 
 <span id="top"></span>
 
-<!-- ══════════ HERO ══════════ -->
+<!-- ══════════ HERO ══════════
+     Full-bleed rounded hero card with the nav floating over it (structure/metrics matched to the
+     reference layout: 16px page inset, 28px card radius, ~84vh min height, content pinned to the
+     top of the card, headline left / supporting copy + CTAs right). The old CSS-drawn laptop
+     mockup moved out of the hero — a real product screenshot goes into its own section instead. -->
 <section class="hero">
-  <div class="wrap hero-grid">
-    <div class="hero-copy">
-      <span class="eyebrow"><span class="dot"></span><span data-i18n="hero_eyebrow">Komisyonsuz Restoran Platformu</span></span>
-      <h1><span data-i18n="hero_h1a">Restoranınızı Dijitalleştirin.</span><br><span class="shine" data-i18n="hero_h1b">Komisyon Ödemeyin.</span></h1>
-      <p class="hero-sub" data-i18n="hero_sub">HASACA ile restoranınıza özel web sitesi, QR menü, online sipariş, rezervasyon, yapay zekâ ve yönetim paneline tek platformdan sahip olun.</p>
-      <div class="hero-cta">
-        <a href="/demo-talep" class="btn btn-primary btn-lg" data-i18n="hero_cta1">Ücretsiz Demo Talep Et
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
-        <a href="/ozellikler" class="btn btn-ghost btn-lg" data-i18n="hero_cta2">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 5v14l11-7z"/></svg>Özellikleri İncele</a>
-      </div>
-      <div class="hero-mini">
-        <div class="m"><b class="shine">%0</b><span data-i18n="hero_m1">Komisyon</span></div>
-        <div class="m"><b class="shine">7/24</b><span data-i18n="hero_m2">Destek</span></div>
-        <div class="m"><b class="shine">5 dk</b><span data-i18n="hero_m3">Kurulum</span></div>
-      </div>
-    </div>
-
-    <!-- Device cluster -->
-    <div class="devices">
-      <div class="chip c1">
-        <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><path d="M3 6h18M16 10a4 4 0 0 1-8 0"/></svg></span>
-        <div><b data-i18n="chip1_t">Yeni Sipariş</b><span data-i18n="chip1_s">Masa 7 · ₺340</span></div>
-      </div>
-      <div class="chip c2">
-        <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></span>
-        <div><b data-i18n="chip2_t">Bugünkü Satış</b><span class="shine">₺18.240</span></div>
-      </div>
-      <div class="laptop">
-        <div class="screen">
-          <div class="ui">
-            <div class="ui-top"><i class="d"></i><i class="d"></i><i class="d"></i><span class="t">panel.hasaca.com</span></div>
-            <div class="ui-body">
-              <div class="ui-side"><i></i><i></i><i></i><i></i><i></i></div>
-              <div class="ui-main">
-                <div class="ui-cards">
-                  <div class="ui-card"><b>142</b><span data-i18n="ui_orders">Sipariş</span></div>
-                  <div class="ui-card"><b>₺18K</b><span data-i18n="ui_rev">Satış</span></div>
-                  <div class="ui-card"><b>4.9★</b><span data-i18n="ui_rate">Puan</span></div>
-                </div>
-                <div class="ui-chart">
-                  <svg viewBox="0 0 300 78" preserveAspectRatio="none">
-                    <defs><linearGradient id="g" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="rgba(var(--gold-rgb),.35)"/><stop offset="1" stop-color="rgba(var(--gold-rgb),0)"/></linearGradient></defs>
-                    <path d="M0,60 C40,54 60,30 100,34 C140,38 160,14 200,20 C240,26 260,8 300,12 L300,78 L0,78 Z" fill="url(#g)"/>
-                    <path d="M0,60 C40,54 60,30 100,34 C140,38 160,14 200,20 C240,26 260,8 300,12" fill="none" stroke="#e8e8ee" stroke-width="1.6"/>
-                  </svg>
-                </div>
-              </div>
-            </div>
+  <div class="hero-card">
+    <div class="hero-scrim"></div>
+    <div class="wrap hero-inner">
+      <span class="hero-badge" data-i18n="hero_badge">%0 komisyon · 14 gün ücretsiz deneme</span>
+      <div class="hero-grid">
+        <div class="hero-copy">
+          <h1><span class="dim" data-i18n="hero_h1a">Restoranınızı Dijitalleştirin.</span><br><span data-i18n="hero_h1b">Komisyon Ödemeyin.</span></h1>
+        </div>
+        <div class="hero-aside">
+          <p class="hero-sub" data-i18n="hero_sub">HASACA ile restoranınıza özel web sitesi, QR menü, online sipariş, rezervasyon, yapay zekâ ve yönetim paneline tek platformdan sahip olun.</p>
+          <div class="hero-cta">
+            <a href="/demo-talep" class="btn btn-hero-primary" data-i18n="hero_cta1">Ücretsiz Demo Talep Et</a>
+            <a href="/ozellikler" class="btn btn-hero-ghost" data-i18n="hero_cta2">Özellikleri İncele</a>
+          </div>
+          <div class="hero-mini">
+            <div class="m"><b>%0</b><span data-i18n="hero_m1">Komisyon</span></div>
+            <div class="m"><b>7/24</b><span data-i18n="hero_m2">Destek</span></div>
+            <div class="m"><b>5 dk</b><span data-i18n="hero_m3">Kurulum</span></div>
           </div>
         </div>
-        <div class="base"></div>
       </div>
     </div>
   </div>
@@ -692,7 +720,6 @@ html.theme-mono .feat .fi{ background:linear-gradient(150deg,#f0f0f2,#e2e2e6); c
 <section class="block" id="showcase">
   <div class="wrap">
     <div class="sec-head rv">
-      <span class="eyebrow"><span class="dot"></span><span data-i18n="sc_eyebrow">Platform</span></span>
       <h2 data-i18n="sc_title">Restoranınızın ihtiyacı olan her şey, tek yerde</h2>
       <p data-i18n="sc_sub">Müşteriden mutfağa, rezervasyondan analitiğe kadar tüm operasyonunuzu tek bir premium platformdan yönetin.</p>
     </div>
@@ -700,7 +727,6 @@ html.theme-mono .feat .fi{ background:linear-gradient(150deg,#f0f0f2,#e2e2e6); c
     <!-- 1 -->
     <div class="showcase rv">
       <div class="sc-copy">
-        <span class="eyebrow"><span class="dot"></span><span data-i18n="sc1_tag">Web Sitesi & QR Menü</span></span>
         <h3 data-i18n="sc1_h">Markanıza özel web sitesi ve akıllı QR menü</h3>
         <p data-i18n="sc1_p">Kendi alan adınızda, kendi renkleriniz ve logonuzla profesyonel bir restoran sitesi. Müşteriler QR'ı okutur, menüyü görür ve masadan sipariş verir.</p>
         <ul class="sc-list">
@@ -746,7 +772,6 @@ html.theme-mono .feat .fi{ background:linear-gradient(150deg,#f0f0f2,#e2e2e6); c
         </div>
       </div>
       <div class="sc-copy">
-        <span class="eyebrow"><span class="dot"></span><span data-i18n="sc2_tag">Yönetim & Mutfak</span></span>
         <h3 data-i18n="sc2_h">Canlı yönetim paneli ve mutfak ekranı</h3>
         <p data-i18n="sc2_p">Siparişler anında mutfak ekranına düşer. Garson çağrısı, hesap isteği ve masa durumları tek bakışta. Ekibiniz senkronize çalışır.</p>
         <ul class="sc-list">
@@ -760,7 +785,6 @@ html.theme-mono .feat .fi{ background:linear-gradient(150deg,#f0f0f2,#e2e2e6); c
     <!-- 3 -->
     <div class="showcase rv">
       <div class="sc-copy">
-        <span class="eyebrow"><span class="dot"></span><span data-i18n="sc3_tag">Yapay Zekâ & Analitik</span></span>
         <h3 data-i18n="sc3_h">Yapay zekâ asistanı ve derin analitik</h3>
         <p data-i18n="sc3_p">Menünüzü saniyeler içinde oluşturun, satış tahminleri alın ve müşteri davranışlarını anlayın. Verileriniz size ait, karar gücü sizde.</p>
         <ul class="sc-list">
@@ -789,7 +813,6 @@ html.theme-mono .feat .fi{ background:linear-gradient(150deg,#f0f0f2,#e2e2e6); c
 <section class="block" id="features">
   <div class="wrap">
     <div class="sec-head rv">
-      <span class="eyebrow"><span class="dot"></span><span data-i18n="ft_eyebrow">Özellikler</span></span>
       <h2 data-i18n="ft_title">Kurumsal seviyede, restoranlar için tasarlandı</h2>
       <p data-i18n="ft_sub">Büyümeniz için gereken tüm araçlar tek platformda — sade, hızlı ve tamamen sizin markanızla.</p>
     </div>
@@ -801,7 +824,6 @@ html.theme-mono .feat .fi{ background:linear-gradient(150deg,#f0f0f2,#e2e2e6); c
 <section class="block" id="how">
   <div class="wrap">
     <div class="sec-head rv">
-      <span class="eyebrow"><span class="dot"></span><span data-i18n="hw_eyebrow">Nasıl Çalışır</span></span>
       <h2 data-i18n="hw_title">Dakikalar içinde yayında</h2>
       <p data-i18n="hw_sub">Teknik bilgi gerektirmez. Altı basit adımda restoranınız dijitalde.</p>
     </div>
@@ -813,7 +835,6 @@ html.theme-mono .feat .fi{ background:linear-gradient(150deg,#f0f0f2,#e2e2e6); c
 <section class="block">
   <div class="wrap">
     <div class="sec-head rv">
-      <span class="eyebrow"><span class="dot"></span><span data-i18n="cmp_eyebrow">Karşılaştırma</span></span>
       <h2 data-i18n="cmp_title">Neden pazaryeri değil, HASACA?</h2>
       <p data-i18n="cmp_sub">Komisyona son verin, markanıza ve müşterinize sahip çıkın.</p>
     </div>
@@ -828,28 +849,47 @@ html.theme-mono .feat .fi{ background:linear-gradient(150deg,#f0f0f2,#e2e2e6); c
   </div>
 </section>
 
-<!-- ══════════ STATS ══════════ -->
-<section class="block">
-  <div class="wrap">
-    <div class="sec-head rv">
-      <span class="eyebrow"><span class="dot"></span><span data-i18n="st_eyebrow">Rakamlarla</span></span>
-      <h2 data-i18n="st_title">Ölçeklenen bir platform</h2>
-    </div>
-    <div class="stat-grid rv">
-      <div class="statc"><div class="n"><span class="count" data-count="1">0</span>.2M+</div><div class="lb" data-i18n="st1">İşlenen Sipariş</div></div>
-      <div class="statc"><div class="n">₺<span class="count" data-count="90">0</span>M+</div><div class="lb" data-i18n="st2">Yıllık Hacim</div></div>
-      <div class="statc"><div class="n"><span class="count" data-count="12">0</span>+</div><div class="lb" data-i18n="st3">Ülke</div></div>
-      <div class="statc"><div class="n">&lt;<span class="count" data-count="200">0</span>ms</div><div class="lb" data-i18n="st4">Yanıt Süresi</div></div>
+<!-- ══════════ STATS — full-bleed rounded panel (same treatment as the hero card) with the
+     figures grouped into ONE glass card rather than four separate ones ══════════ -->
+<section class="panel-section stats-block">
+  <div class="panel-card">
+    <div class="panel-scrim"></div>
+    <div class="wrap panel-inner">
+      <div class="sec-head panel-head rv">
+        <h2 data-i18n="st_title">Ölçeklenen bir platform</h2>
+      </div>
+      <div class="stat-card rv">
+        <div class="statc"><div class="n"><span class="count" data-count="1">0</span>.2M+</div><div class="lb" data-i18n="st1">İşlenen Sipariş</div></div>
+        <div class="statc"><div class="n">₺<span class="count" data-count="90">0</span>M+</div><div class="lb" data-i18n="st2">Yıllık Hacim</div></div>
+        <div class="statc"><div class="n"><span class="count" data-count="12">0</span>+</div><div class="lb" data-i18n="st3">Ülke</div></div>
+        <div class="statc"><div class="n">&lt;<span class="count" data-count="200">0</span>ms</div><div class="lb" data-i18n="st4">Yanıt Süresi</div></div>
+      </div>
     </div>
   </div>
 </section>
 
 
+<!-- ══════════ ONE PLATFORM, EVERY SCREEN ══════════
+     Paired browser + phone composition (bottom-aligned, side by side — not overlapping).
+     Both frames currently hold a gradient placeholder; they get swapped for real product
+     screenshots (admin panel / customer QR menu) once those are supplied. -->
+<section class="block" id="screens">
+  <div class="wrap">
+    <div class="sec-head rv">
+      <h2 data-i18n="scr_title">Tek platform, her ekran</h2>
+      <p data-i18n="scr_sub">Yönetim panelinden müşterinin telefonuna kadar aynı sistem — masaüstünde de, cepte de.</p>
+    </div>
+    <div class="mockup-duo rv">
+      <div class="browser-mockup"><div class="mockup-ph" data-i18n="scr_ph_admin">Yönetim Paneli</div></div>
+      <div class="phone-mockup"><div class="mockup-ph" data-i18n="scr_ph_menu">QR Menü</div></div>
+    </div>
+  </div>
+</section>
+
 <!-- ══════════ PRICING ══════════ -->
 <section class="block" id="pricing">
   <div class="wrap">
     <div class="sec-head rv">
-      <span class="eyebrow"><span class="dot"></span><span data-i18n="pr_eyebrow">Fiyatlandırma</span></span>
       <h2 data-i18n="pr_title">Her işletmeye uygun, esnek planlar</h2>
       <p data-i18n="pr_sub">Küçük bir kafe de olsanız zincir bir marka da — komisyon her zaman %0.</p>
     </div>
@@ -862,7 +902,6 @@ html.theme-mono .feat .fi{ background:linear-gradient(150deg,#f0f0f2,#e2e2e6); c
 <section class="block" id="faq">
   <div class="wrap">
     <div class="sec-head rv">
-      <span class="eyebrow"><span class="dot"></span><span data-i18n="fq_eyebrow">SSS</span></span>
       <h2 data-i18n="fq_title">Sıkça sorulan sorular</h2>
     </div>
     <div class="faq rv" id="faqList"></div>
@@ -885,7 +924,6 @@ html.theme-mono .feat .fi{ background:linear-gradient(150deg,#f0f0f2,#e2e2e6); c
 <section class="block" id="contact">
   <div class="wrap contact-grid">
     <div class="contact-copy rv">
-      <span class="eyebrow"><span class="dot"></span><span data-i18n="ct_eyebrow">İletişim</span></span>
       <h2 data-i18n="ct_title">Restoranınızı dijitale taşıyalım</h2>
       <p data-i18n="ct_sub">Formu doldurun, ekibimiz 24 saat içinde size özel bir demo ile geri dönsün. Hiçbir taahhüt yok.</p>
       <ul class="c-points">
@@ -997,30 +1035,31 @@ tr:{
   nav_solutions:'Çözümler', nav_docs:'Dokümantasyon',
   nav_cta_register:'Kayıt Ol', nav_cta_login:'Giriş Yap',
   p_trial_note:'İlk 14 gün ücretsiz',
-  hero_eyebrow:'Komisyonsuz Restoran Platformu',
   hero_h1a:'Restoranınızı Dijitalleştirin.', hero_h1b:'Komisyon Ödemeyin.',
   hero_sub:'HASACA ile restoranınıza özel web sitesi, QR menü, online sipariş, rezervasyon, yapay zekâ ve yönetim paneline tek platformdan sahip olun.',
   hero_cta1:'Ücretsiz Demo Talep Et', hero_cta2:'Canlı Demoyu İncele',
   hero_m1:'Komisyon', hero_m2:'Destek', hero_m3:'Kurulum',
-  chip1_t:'Yeni Sipariş', chip1_s:'Masa 7 · ₺340', chip2_t:'Bugünkü Satış',
-  ui_orders:'Sipariş', ui_rev:'Satış', ui_rate:'Puan',
+  hero_badge:'%0 komisyon · 14 gün ücretsiz deneme',
+  scr_title:'Tek platform, her ekran',
+  scr_sub:'Yönetim panelinden müşterinin telefonuna kadar aynı sistem — masaüstünde de, cepte de.',
+  scr_ph_admin:'Yönetim Paneli', scr_ph_menu:'QR Menü',
   tr_restaurants:'Restoran', tr_orders:'Sipariş', tr_uptime:'Çalışma Süresi', tr_commission:'Komisyon',
-  sc_eyebrow:'Platform', sc_title:'Restoranınızın ihtiyacı olan her şey, tek yerde',
+  sc_title:'Restoranınızın ihtiyacı olan her şey, tek yerde',
   sc_sub:'Müşteriden mutfağa, rezervasyondan analitiğe kadar tüm operasyonunuzu tek bir premium platformdan yönetin.', sc_more:'Daha Fazla Bilgi',
-  sc1_tag:'Web Sitesi & QR Menü', sc1_h:'Markanıza özel web sitesi ve akıllı QR menü',
+  sc1_h:'Markanıza özel web sitesi ve akıllı QR menü',
   sc1_p:'Kendi alan adınızda, kendi renkleriniz ve logonuzla profesyonel bir restoran sitesi. Müşteriler QR\'ı okutur, menüyü görür ve masadan sipariş verir.',
   sc1_l1:'Özel alan adı ve tam white-label markalaşma', sc1_l2:'Masaya özel QR ile temassız sipariş', sc1_l3:'Çoklu dil desteği ile uluslararası misafirler',
   sc1_t1:'Bugün', sc1_t1s:'QR sipariş', sc1_t2:'Ortalama', sc1_t2s:'sepet', sc1_t3:'Popüler ürünler',
-  sc2_tag:'Yönetim & Mutfak', sc2_h:'Canlı yönetim paneli ve mutfak ekranı',
+  sc2_h:'Canlı yönetim paneli ve mutfak ekranı',
   sc2_p:'Siparişler anında mutfak ekranına düşer. Garson çağrısı, hesap isteği ve masa durumları tek bakışta. Ekibiniz senkronize çalışır.',
   sc2_l1:'Gerçek zamanlı sipariş akışı (anlık bildirim)', sc2_l2:'Garson çağırma ve hesap isteme yönetimi', sc2_l3:'Rol tabanlı yetkilendirme ile ekip kontrolü',
   sc2_scr:'Mutfak Ekranı', sc2_k1:'Yeni', sc2_k2:'Hazırlanıyor', sc2_k3:'Hazır',
-  sc3_tag:'Yapay Zekâ & Analitik', sc3_h:'Yapay zekâ asistanı ve derin analitik',
+  sc3_h:'Yapay zekâ asistanı ve derin analitik',
   sc3_p:'Menünüzü saniyeler içinde oluşturun, satış tahminleri alın ve müşteri davranışlarını anlayın. Verileriniz size ait, karar gücü sizde.',
   sc3_l1:'AI ile menü ve açıklama üretimi', sc3_l2:'Gelir, sipariş ve en çok satan ürün raporları', sc3_l3:'Tüm müşteri verisi sizin mülkiyetinizde',
   sc3_c1:'"Izgara kategorisi için 3 yeni ürün açıklaması yaz."', sc3_c2:'Hazır! Közde pişmiş, el yapımı 3 açıklama menünüze eklendi ✓',
   sc3_t1:'Bu ay', sc3_t1s:'gelir artışı', sc3_t2:'Tahmin', sc3_t2s:'gelecek hafta',
-  ft_eyebrow:'Özellikler', ft_title:'Kurumsal seviyede, restoranlar için tasarlandı',
+  ft_title:'Kurumsal seviyede, restoranlar için tasarlandı',
   ft_sub:'Büyümeniz için gereken tüm araçlar tek platformda — sade, hızlı ve tamamen sizin markanızla.',
   f_qr_t:'QR Sipariş', f_qr_d:'Masaya özel QR ile temassız, hızlı sipariş deneyimi.',
   f_kitchen_t:'Mutfak Ekranı', f_kitchen_d:'Siparişler anında mutfağa düşer, hazırlık durumu canlı.',
@@ -1038,21 +1077,21 @@ tr:{
   f_theme_t:'Tema Motoru', f_theme_d:'Renk ve stil temalarıyla sitenizi özelleştirin.',
   f_roles_t:'Rol Yönetimi', f_roles_d:'Ekibinize yetki tabanlı erişim tanımlayın.',
   f_lang_t:'Çoklu Dil', f_lang_d:'Menü ve siteniz birden fazla dilde otomatik.',
-  hw_eyebrow:'Nasıl Çalışır', hw_title:'Dakikalar içinde yayında', hw_sub:'Teknik bilgi gerektirmez. Altı basit adımda restoranınız dijitalde.',
+  hw_title:'Dakikalar içinde yayında', hw_sub:'Teknik bilgi gerektirmez. Altı basit adımda restoranınız dijitalde.',
   s1_t:'Restoran Oluştur', s1_d:'Birkaç bilgiyle restoran hesabınızı saniyeler içinde açın.',
   s2_t:'Logo Yükle', s2_d:'Logonuz ve renklerinizle markanızı yansıtın.',
   s3_t:'Menü Aktar', s3_d:'Ürünlerinizi ekleyin veya AI ile otomatik oluşturun.',
   s4_t:'QR Üret', s4_d:'Her masa için özel QR kodlarını anında oluşturun.',
   s5_t:'Sipariş Al', s5_d:'Müşteriler QR ile sipariş verir, mutfağa anında düşer.',
   s6_t:'Her Şeyi Yönet', s6_d:'Siparişler, analitik ve rezervasyonlar tek panelde.',
-  cmp_eyebrow:'Karşılaştırma', cmp_title:'Neden pazaryeri değil, HASACA?', cmp_sub:'Komisyona son verin, markanıza ve müşterinize sahip çıkın.',
+  cmp_title:'Neden pazaryeri değil, HASACA?', cmp_sub:'Komisyona son verin, markanıza ve müşterinize sahip çıkın.',
   cmp_you:'Sizin platformunuz', cmp_other:'Pazaryeri Uygulamaları',
   cmp_commission:'Komisyon', cmp_brand:'Marka Sahipliği', cmp_data:'Müşteri Verisi', cmp_website:'Web Sitesi',
   cmp_reservation:'Rezervasyon', cmp_ai:'Yapay Zekâ', cmp_analytics:'Analitik', cmp_seo:'SEO', cmp_speed:'Hız', cmp_freedom:'Özgürlük',
   no_high:'%15 - %20', yes_zero:'%0', cmp_partial:'Kısıtlı',
-  st_eyebrow:'Rakamlarla', st_title:'Ölçeklenen bir platform',
+  st_title:'Ölçeklenen bir platform',
   st1:'İşlenen Sipariş', st2:'Yıllık Hacim', st3:'Ülke', st4:'Yanıt Süresi',
-  pr_eyebrow:'Fiyatlandırma', pr_title:'Her işletmeye uygun, esnek planlar', pr_sub:'Küçük bir kafe de olsanız zincir bir marka da — komisyon her zaman %0.',
+  pr_title:'Her işletmeye uygun, esnek planlar', pr_sub:'Küçük bir kafe de olsanız zincir bir marka da — komisyon her zaman %0.',
   pr_note:'Tüm planlar 14 gün ücretsiz denemeyle başlar. Kredi kartı gerekmez.',
   p_start:'Başlangıç', p_start_d:'Dijitale ilk adım için ideal.',
   p_pro:'Profesyonel', p_pro_d:'Büyüyen restoranlar için en popüler seçim.',
@@ -1064,7 +1103,7 @@ tr:{
   pf_all_pro:'Profesyonel\'deki her şey', pf_ai:'AI Asistan', pf_wl:'White Label (HASACA logosuz)', pf_roles:'Rol Yönetimi',
   pf_multibranch:'Çoklu Şube Yönetimi', pf_delivery:'Teslimat Modülü', pf_analytics_adv:'Gelişmiş Analitik',
   pf_priority:'Öncelikli Destek', pf_api:'API Entegrasyonları', pf_manager:'Özel Başarı Danışmanı', pf_sla:'SLA Garantisi',
-  fq_eyebrow:'SSS', fq_title:'Sıkça sorulan sorular',
+  fq_title:'Sıkça sorulan sorular',
   q1_q:'HASACA gerçekten komisyon almıyor mu?', q1_a:'Evet. Siparişlerinizden hiçbir komisyon almıyoruz. Sabit bir aylık/yıllık plan ödersiniz, geri kalan tamamen size kalır.',
   q2_q:'Kurulum ne kadar sürer?', q2_a:'Ortalama 5 dakika. Restoranınızı oluşturur, logonuzu yükler ve menünüzü eklersiniz. Ekibimiz veri aktarımında ücretsiz yardımcı olur.',
   q3_q:'Kendi alan adımı kullanabilir miyim?', q3_a:'Kesinlikle. Profesyonel ve Kurumsal planlarda kendi alan adınızda, tamamen sizin markanızla yayına geçersiniz.',
@@ -1072,7 +1111,7 @@ tr:{
   q5_q:'Teknik bilgi gerekiyor mu?', q5_a:'Hayır. Panel sürükle-bırak kadar basittir. Kod veya sunucu bilgisi gerekmez.',
   q6_q:'İstediğim zaman iptal edebilir miyim?', q6_a:'Evet. Taahhüt yoktur, dilediğiniz an iptal edebilirsiniz. 14 gün ücretsiz deneme ile risksiz başlarsınız.',
   cta2_title:'Hemen başlayın', cta2_sub:'Kurulum 5 dakika sürer, kredi kartı gerekmez. Restoranınızı bugün dijitale taşıyın.', cta2_btn:'Ücretsiz Demo Talep Et',
-  ct_eyebrow:'İletişim', ct_title:'Restoranınızı dijitale taşıyalım',
+  ct_title:'Restoranınızı dijitale taşıyalım',
   ct_sub:'Formu doldurun, ekibimiz 24 saat içinde size özel bir demo ile geri dönsün. Hiçbir taahhüt yok.',
   ct_p1:'Kişisel kurulum ve ücretsiz veri aktarımı', ct_p2:'Size özel bir başarı danışmanı', ct_p3:'%0 komisyon, iptal koşulu yok',
   ct_name:'Ad Soyad *', ct_name_ph:'Adınız', ct_rest:'Restoran', ct_rest_ph:'Restoran adı', ct_email:'E-posta *', ct_phone:'Telefon',
@@ -1092,30 +1131,31 @@ en:{
   nav_solutions:'Solutions', nav_docs:'Documentation',
   nav_cta_register:'Sign Up', nav_cta_login:'Log In',
   p_trial_note:'First 14 days free',
-  hero_eyebrow:'Commission-Free Restaurant Platform',
   hero_h1a:'Digitize Your Restaurant.', hero_h1b:'Pay Zero Commission.',
   hero_sub:'With HASACA, get a branded website, QR menu, online ordering, reservations, AI and a management panel — all from a single platform.',
   hero_cta1:'Request a Free Demo', hero_cta2:'Explore Live Demo',
   hero_m1:'Commission', hero_m2:'Support', hero_m3:'Setup',
-  chip1_t:'New Order', chip1_s:'Table 7 · ₺340', chip2_t:'Today\'s Sales',
-  ui_orders:'Orders', ui_rev:'Sales', ui_rate:'Rating',
+  hero_badge:'0% commission · 14-day free trial',
+  scr_title:'One platform, every screen',
+  scr_sub:'From the management panel to your guest\'s phone — the same system, on desktop and in hand.',
+  scr_ph_admin:'Management Panel', scr_ph_menu:'QR Menu',
   tr_restaurants:'Restaurants', tr_orders:'Orders', tr_uptime:'Uptime', tr_commission:'Commission',
-  sc_eyebrow:'Platform', sc_title:'Everything your restaurant needs, in one place',
+  sc_title:'Everything your restaurant needs, in one place',
   sc_sub:'Run your whole operation — from guest to kitchen, reservations to analytics — from one premium platform.', sc_more:'Learn More',
-  sc1_tag:'Website & QR Menu', sc1_h:'A branded website and a smart QR menu',
+  sc1_h:'A branded website and a smart QR menu',
   sc1_p:'A professional restaurant site on your own domain, with your colors and logo. Guests scan the QR, browse the menu and order right from the table.',
   sc1_l1:'Custom domain and full white-label branding', sc1_l2:'Contactless ordering with per-table QR', sc1_l3:'Multi-language support for international guests',
   sc1_t1:'Today', sc1_t1s:'QR orders', sc1_t2:'Average', sc1_t2s:'basket', sc1_t3:'Popular items',
-  sc2_tag:'Management & Kitchen', sc2_h:'Live management panel and kitchen display',
+  sc2_h:'Live management panel and kitchen display',
   sc2_p:'Orders hit the kitchen display instantly. Waiter calls, bill requests and table status at a glance. Your team stays in sync.',
   sc2_l1:'Real-time order flow (instant alerts)', sc2_l2:'Waiter-call and bill-request handling', sc2_l3:'Role-based access to control your team',
   sc2_scr:'Kitchen Display', sc2_k1:'New', sc2_k2:'Preparing', sc2_k3:'Ready',
-  sc3_tag:'AI & Analytics', sc3_h:'AI assistant and deep analytics',
+  sc3_h:'AI assistant and deep analytics',
   sc3_p:'Build your menu in seconds, get sales forecasts and understand customer behavior. Your data is yours, decisions are yours.',
   sc3_l1:'AI menu and description generation', sc3_l2:'Revenue, orders and best-seller reports', sc3_l3:'You own all of your customer data',
   sc3_c1:'"Write 3 new product descriptions for the grill category."', sc3_c2:'Done! 3 handcrafted, chargrilled descriptions added to your menu ✓',
   sc3_t1:'This month', sc3_t1s:'revenue growth', sc3_t2:'Forecast', sc3_t2s:'next week',
-  ft_eyebrow:'Features', ft_title:'Enterprise-grade, designed for restaurants',
+  ft_title:'Enterprise-grade, designed for restaurants',
   ft_sub:'Every tool you need to grow, on one platform — simple, fast and fully your brand.',
   f_qr_t:'QR Ordering', f_qr_d:'Contactless, fast ordering with per-table QR codes.',
   f_kitchen_t:'Kitchen Display', f_kitchen_d:'Orders hit the kitchen instantly, prep status live.',
@@ -1133,21 +1173,21 @@ en:{
   f_theme_t:'Theme Engine', f_theme_d:'Customize your site with color and style themes.',
   f_roles_t:'Role Management', f_roles_d:'Grant permission-based access to your team.',
   f_lang_t:'Multi Language', f_lang_d:'Your menu and site in multiple languages automatically.',
-  hw_eyebrow:'How it works', hw_title:'Live in minutes', hw_sub:'No technical skills needed. Your restaurant goes digital in six simple steps.',
+  hw_title:'Live in minutes', hw_sub:'No technical skills needed. Your restaurant goes digital in six simple steps.',
   s1_t:'Create Restaurant', s1_d:'Open your restaurant account in seconds with a few details.',
   s2_t:'Upload Logo', s2_d:'Reflect your brand with your logo and colors.',
   s3_t:'Import Menu', s3_d:'Add your products or generate them automatically with AI.',
   s4_t:'Generate QR', s4_d:'Instantly create per-table QR codes.',
   s5_t:'Receive Orders', s5_d:'Guests order via QR, it hits the kitchen instantly.',
   s6_t:'Manage Everything', s6_d:'Orders, analytics and reservations in one panel.',
-  cmp_eyebrow:'Comparison', cmp_title:'Why HASACA, not a marketplace?', cmp_sub:'End commissions, own your brand and your guests.',
+  cmp_title:'Why HASACA, not a marketplace?', cmp_sub:'End commissions, own your brand and your guests.',
   cmp_you:'Your platform', cmp_other:'Marketplace Apps',
   cmp_commission:'Commission', cmp_brand:'Brand Ownership', cmp_data:'Customer Data', cmp_website:'Website',
   cmp_reservation:'Reservations', cmp_ai:'AI', cmp_analytics:'Analytics', cmp_seo:'SEO', cmp_speed:'Speed', cmp_freedom:'Freedom',
   no_high:'15-20%', yes_zero:'0%', cmp_partial:'Limited',
-  st_eyebrow:'By the numbers', st_title:'A platform that scales',
+  st_title:'A platform that scales',
   st1:'Orders Processed', st2:'Annual Volume', st3:'Countries', st4:'Response Time',
-  pr_eyebrow:'Pricing', pr_title:'Flexible plans for every business', pr_sub:'A small café or a chain brand — commission is always 0%.',
+  pr_title:'Flexible plans for every business', pr_sub:'A small café or a chain brand — commission is always 0%.',
   pr_note:'All plans start with a 14-day free trial. No credit card required.',
   p_start:'Starter', p_start_d:'Ideal for a first step into digital.',
   p_pro:'Professional', p_pro_d:'The most popular choice for growing restaurants.',
@@ -1159,7 +1199,7 @@ en:{
   pf_all_pro:'Everything in Professional', pf_ai:'AI Assistant', pf_wl:'White Label (no HASACA branding)', pf_roles:'Role Management',
   pf_multibranch:'Multi-branch Management', pf_delivery:'Delivery Module', pf_analytics_adv:'Advanced Analytics',
   pf_priority:'Priority Support', pf_api:'API Integrations', pf_manager:'Dedicated Success Manager', pf_sla:'SLA Guarantee',
-  fq_eyebrow:'FAQ', fq_title:'Frequently asked questions',
+  fq_title:'Frequently asked questions',
   q1_q:'Does HASACA really charge no commission?', q1_a:'Yes. We take no commission on your orders. You pay a fixed monthly/yearly plan and keep the rest entirely.',
   q2_q:'How long does setup take?', q2_a:'About 5 minutes. You create your restaurant, upload your logo and add your menu. Our team helps with data migration for free.',
   q3_q:'Can I use my own domain?', q3_a:'Absolutely. On Professional and Enterprise plans you go live on your own domain, fully your brand.',
@@ -1167,7 +1207,7 @@ en:{
   q5_q:'Do I need technical skills?', q5_a:'No. The panel is as simple as drag-and-drop. No code or server knowledge needed.',
   q6_q:'Can I cancel anytime?', q6_a:'Yes. No commitment, cancel whenever you like. Start risk-free with a 14-day free trial.',
   cta2_title:'Get started now', cta2_sub:'Setup takes 5 minutes, no credit card required. Take your restaurant digital today.', cta2_btn:'Request a Free Demo',
-  ct_eyebrow:'Contact', ct_title:'Let\'s take your restaurant digital',
+  ct_title:'Let\'s take your restaurant digital',
   ct_sub:'Fill in the form and our team will get back within 24 hours with a tailored demo. No commitment.',
   ct_p1:'Personal setup and free data migration', ct_p2:'A dedicated success manager', ct_p3:'0% commission, cancel anytime',
   ct_name:'Full Name *', ct_name_ph:'Your name', ct_rest:'Restaurant', ct_rest_ph:'Restaurant name', ct_email:'Email *', ct_phone:'Phone',
@@ -1205,7 +1245,7 @@ function renderFeatures(){
 }
 function renderSteps(){
   document.getElementById('steps').innerHTML = STEPS.map((s,i)=>`
-    <div class="step"><div class="num"><span class="shine">${i+1}</span></div>
+    <div class="step"><div class="num">${i+1}</div>
       <div class="sc"><h4 data-i18n="${s}_t">${T(s+'_t')}</h4><p data-i18n="${s}_d">${T(s+'_d')}</p></div></div>`).join('');
 }
 const ckSvg = '<svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>';
