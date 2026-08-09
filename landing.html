@@ -280,7 +280,7 @@ body.theme-bw .brand .mark, html.theme-bw .brand .mark, .theme-bw .brand .mark {
 .hero{ padding:16px 16px 0; }
 .hero-card{
   position:relative; overflow:hidden; border-radius:28px;
-  min-height:72vh; display:flex; flex-direction:column;
+  min-height:78vh; display:flex; flex-direction:column;
   /* Stands in for the reference's lifestyle photo: a deep navy base lit from the upper right,
      rather than a flat two-stop ramp (which read as empty poster paint at this size). */
   background:
@@ -317,6 +317,10 @@ body.theme-bw .brand .mark, html.theme-bw .brand .mark, .theme-bw .brand .mark {
 .hero-mini .m{ display:flex; flex-direction:column; }
 .hero-mini .m b{ font-size:22px; color:#fff; }
 .hero-mini .m span{ font-size:12.5px; color:rgba(255,255,255,.6); }
+/* Negative bottom margin lets the frame run past the card's edge; .hero-card's overflow:hidden
+   clips it, so the panel reads as rising into the hero rather than sitting in a box. */
+.hero-shot{ position:relative; z-index:1; width:100%; margin-top:36px; margin-bottom:-8%; padding:0 24px; }
+.hero-shot .browser-mockup{ max-width:860px; margin:0 auto; box-shadow:0 -20px 70px -20px rgba(0,0,0,.6); }
 
 /* ── Trust ── */
 .trust{ padding:26px 0 8px; }
@@ -343,12 +347,69 @@ body.theme-bw .brand .mark, html.theme-bw .brand .mark, .theme-bw .brand .mark {
   aspect-ratio:1180/2556; max-width:280px; box-shadow:0 24px 60px -24px rgba(0,0,0,.3);
 }
 .browser-mockup img,.phone-mockup img{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover; display:block; }
-/* Placeholder shown until a real product screenshot is dropped in — deliberately plain so an
-   empty frame never reads as a broken image. */
-.mockup-ph{
-  position:absolute; inset:0; display:grid; place-items:center; text-align:center; padding:16px;
-  background:linear-gradient(140deg,#141c2e 0%,#223a63 55%,#3d5f9e 100%);
-  color:rgba(255,255,255,.55); font-size:13px; letter-spacing:.02em;
+/* ── Screen contents drawn in CSS (no screenshot dependency) ──
+   Everything below is scaled with container query units (cqw) so one markup block fills the hero
+   frame, the section frame and the phone frame at wildly different sizes without separate
+   variants. Fixed dark palette: these are device screens, not themed page surfaces. */
+.browser-mockup,.phone-mockup{ container-type:inline-size; }
+.scr{ position:absolute; inset:0; overflow:hidden; background:#0e1220; color:#e8eaf0; display:flex; }
+
+/* --- desktop admin panel --- */
+.scr-side{ width:17cqw; border-right:1px solid rgba(255,255,255,.07); padding:2.4cqw 1.6cqw; display:flex; flex-direction:column; gap:1.5cqw; background:rgba(255,255,255,.02); }
+.scr-logo{ display:flex; align-items:center; gap:.9cqw; margin-bottom:1.4cqw; }
+.scr-logo i{ width:2.6cqw; height:2.6cqw; border-radius:.8cqw; background:var(--gold); display:block; flex:none; }
+.scr-logo b{ font-size:1.7cqw; letter-spacing:.02em; }
+.scr-nav{ display:flex; flex-direction:column; gap:.7cqw; }
+.scr-nav i{ height:2.4cqw; border-radius:.7cqw; background:rgba(255,255,255,.05); display:block; }
+.scr-nav i.on{ background:rgba(var(--gold-rgb),.22); }
+.scr-main{ flex:1; padding:2.4cqw 2.6cqw; display:flex; flex-direction:column; gap:1.8cqw; min-width:0; }
+.scr-top{ display:flex; align-items:baseline; justify-content:space-between; }
+.scr-top h4{ font-size:2.1cqw; font-weight:600; letter-spacing:-.02em; }
+.scr-top span{ font-size:1.2cqw; color:rgba(255,255,255,.45); }
+.scr-kpis{ display:grid; grid-template-columns:repeat(3,1fr); gap:1.2cqw; }
+.scr-kpi{ background:rgba(255,255,255,.045); border:1px solid rgba(255,255,255,.07); border-radius:1.2cqw; padding:1.3cqw; }
+.scr-kpi b{ font-size:2.2cqw; display:block; letter-spacing:-.02em; }
+.scr-kpi span{ font-size:1.05cqw; color:rgba(255,255,255,.45); }
+.scr-kpi em{ font-style:normal; font-size:1.05cqw; color:#5ad18a; }
+.scr-chart{ flex:1; min-height:0; background:rgba(255,255,255,.03); border:1px solid rgba(255,255,255,.07); border-radius:1.2cqw; position:relative; overflow:hidden; }
+.scr-chart svg{ position:absolute; inset:0; width:100%; height:100%; }
+.scr-rows{ display:flex; flex-direction:column; gap:.8cqw; }
+.scr-row{ display:flex; align-items:center; gap:1cqw; background:rgba(255,255,255,.035); border:1px solid rgba(255,255,255,.06); border-radius:1cqw; padding:1cqw 1.2cqw; }
+.scr-row .dot{ width:1.6cqw; height:1.6cqw; border-radius:999px; background:var(--gold); flex:none; }
+.scr-row .ln{ height:1cqw; border-radius:999px; background:rgba(255,255,255,.13); flex:1; }
+.scr-row .ln.s{ flex:none; width:18%; background:rgba(255,255,255,.08); }
+.scr-row b{ font-size:1.25cqw; margin-left:auto; }
+
+/* --- phone: customer QR menu --- */
+.scr.phone-scr{ flex-direction:column; padding:5cqw 4.5cqw; gap:3.4cqw; }
+.scr-ph-top{ display:flex; align-items:center; justify-content:space-between; }
+.scr-ph-top b{ font-size:5cqw; letter-spacing:-.02em; }
+.scr-ph-top i{ width:7cqw; height:7cqw; border-radius:999px; background:rgba(255,255,255,.08); display:block; }
+.scr-tabs{ display:flex; gap:2cqw; }
+.scr-tabs i{ height:6.5cqw; border-radius:999px; background:rgba(255,255,255,.06); flex:1; display:block; }
+.scr-tabs i.on{ background:var(--gold); }
+.scr-items{ display:flex; flex-direction:column; gap:3cqw; }
+.scr-item{ display:flex; align-items:center; gap:3cqw; }
+.scr-item .th{ width:15cqw; height:15cqw; border-radius:3.5cqw; background:linear-gradient(150deg,rgba(255,255,255,.14),rgba(255,255,255,.05)); flex:none; }
+.scr-item .tx{ flex:1; display:flex; flex-direction:column; gap:1.6cqw; }
+.scr-item .tx i{ height:3cqw; border-radius:999px; background:rgba(255,255,255,.14); display:block; }
+.scr-item .tx i:last-child{ width:58%; height:2.4cqw; background:rgba(255,255,255,.07); }
+.scr-item b{ font-size:3.6cqw; color:var(--gold); }
+
+/* When the desktop frame itself gets narrow (mobile), the full dashboard shrinks to unreadable
+   ~7px text. Drop the two lowest-value regions and scale the rest up so what remains stays
+   legible. Keyed on the FRAME width (container query), not the viewport, so it holds wherever
+   the frame is reused. */
+@container (max-width:460px){
+  .scr-side,.scr-rows{ display:none; }
+  .scr-main{ padding:4cqw 4.5cqw; gap:3.5cqw; }
+  .scr-top h4{ font-size:4.4cqw; }
+  .scr-top span{ font-size:2.6cqw; }
+  .scr-kpis{ gap:2.5cqw; }
+  .scr-kpi{ border-radius:2.6cqw; padding:2.8cqw; }
+  .scr-kpi b{ font-size:4.4cqw; }
+  .scr-kpi span,.scr-kpi em{ font-size:2.4cqw; }
+  .scr-chart{ border-radius:2.6cqw; }
 }
 @media (min-width:640px){ .browser-mockup{ border-radius:20px; } }
 /* Dual composition ("one platform, every screen") — browser + phone side by side, bottom-aligned,
@@ -593,6 +654,10 @@ html.theme-mono .feat .fi{ background:linear-gradient(150deg,#f0f0f2,#e2e2e6); c
   .hero-grid{ grid-template-columns:1fr; gap:20px; }
   .hero .hero-inner{ padding-top:120px; }
   .panel-section .panel-inner{ padding-top:80px; }
+  /* A desktop dashboard shrunk to ~260px is illegible noise, not a product shot — the paired
+     browser/phone frames in the "every screen" section carry the visuals on mobile instead. */
+  .hero-shot{ display:none; }
+  .hero-card{ min-height:0; }
   .showcase{ grid-template-columns:1fr; gap:28px; margin-bottom:64px; }
   .showcase.rev .sc-media{ order:0; }
   .feat-grid{ grid-template-columns:repeat(3,1fr); }
@@ -638,6 +703,7 @@ html.theme-mono .feat .fi{ background:linear-gradient(150deg,#f0f0f2,#e2e2e6); c
   .hero-cta .btn{ flex:1; }
   .foot-cols-host{ grid-template-columns:repeat(2,1fr); }
   .foot-bottom{ justify-content:center; text-align:center; }
+  .cta-banner-in{ padding:32px 22px; }
 }
 @media (prefers-reduced-motion:reduce){
   .js-anim .rv{ transition:none; opacity:1; transform:none; }
@@ -697,6 +763,39 @@ html.theme-mono .feat .fi{ background:linear-gradient(150deg,#f0f0f2,#e2e2e6); c
             <div class="m"><b>%0</b><span data-i18n="hero_m1">Komisyon</span></div>
             <div class="m"><b>7/24</b><span data-i18n="hero_m2">Destek</span></div>
             <div class="m"><b>5 dk</b><span data-i18n="hero_m3">Kurulum</span></div>
+          </div>
+        </div>
+      </div>
+      <!-- Panel peeks up from the bottom edge of the hero card (clipped by its overflow:hidden),
+           filling the space the reference fills with photography. -->
+      <div class="hero-shot">
+        <div class="browser-mockup">
+          <div class="scr">
+            <div class="scr-side">
+              <div class="scr-logo"><i></i><b>HASACA</b></div>
+              <div class="scr-nav"><i class="on"></i><i></i><i></i><i></i><i></i><i></i></div>
+            </div>
+            <div class="scr-main">
+              <div class="scr-top"><h4 data-i18n="scr_ui_dash">Panel</h4><span data-i18n="scr_ui_today">Bugün</span></div>
+              <div class="scr-kpis">
+                <div class="scr-kpi"><b>142</b><span data-i18n="scr_ui_orders">Sipariş</span></div>
+                <div class="scr-kpi"><b>₺18.240</b><span data-i18n="scr_ui_sales">Satış</span></div>
+                <div class="scr-kpi"><b>4.9</b><em>▲ %12</em></div>
+              </div>
+              <div class="scr-chart">
+                <svg viewBox="0 0 300 100" preserveAspectRatio="none">
+                  <defs><linearGradient id="herog" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0" stop-color="rgba(var(--gold-rgb),.45)"/><stop offset="1" stop-color="rgba(var(--gold-rgb),0)"/>
+                  </linearGradient></defs>
+                  <path d="M0,78 C36,70 58,40 96,46 C134,52 156,20 196,26 C236,32 262,10 300,16 L300,100 L0,100 Z" fill="url(#herog)"/>
+                  <path d="M0,78 C36,70 58,40 96,46 C134,52 156,20 196,26 C236,32 262,10 300,16" fill="none" stroke="#e8eaf0" stroke-width="2" vector-effect="non-scaling-stroke"/>
+                </svg>
+              </div>
+              <div class="scr-rows">
+                <div class="scr-row"><span class="dot"></span><span class="ln"></span><span class="ln s"></span><b>₺340</b></div>
+                <div class="scr-row"><span class="dot"></span><span class="ln"></span><span class="ln s"></span><b>₺185</b></div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -880,8 +979,47 @@ html.theme-mono .feat .fi{ background:linear-gradient(150deg,#f0f0f2,#e2e2e6); c
       <p data-i18n="scr_sub">Yönetim panelinden müşterinin telefonuna kadar aynı sistem — masaüstünde de, cepte de.</p>
     </div>
     <div class="mockup-duo rv">
-      <div class="browser-mockup"><div class="mockup-ph" data-i18n="scr_ph_admin">Yönetim Paneli</div></div>
-      <div class="phone-mockup"><div class="mockup-ph" data-i18n="scr_ph_menu">QR Menü</div></div>
+      <div class="browser-mockup">
+        <div class="scr">
+          <div class="scr-side">
+            <div class="scr-logo"><i></i><b>HASACA</b></div>
+            <div class="scr-nav"><i class="on"></i><i></i><i></i><i></i><i></i><i></i></div>
+          </div>
+          <div class="scr-main">
+            <div class="scr-top"><h4 data-i18n="scr_ui_dash">Panel</h4><span data-i18n="scr_ui_today">Bugün</span></div>
+            <div class="scr-kpis">
+              <div class="scr-kpi"><b>142</b><span data-i18n="scr_ui_orders">Sipariş</span></div>
+              <div class="scr-kpi"><b>₺18.240</b><span data-i18n="scr_ui_sales">Satış</span></div>
+              <div class="scr-kpi"><b>4.9</b><em>▲ %12</em></div>
+            </div>
+            <div class="scr-chart">
+              <svg viewBox="0 0 300 100" preserveAspectRatio="none">
+                <defs><linearGradient id="scrg" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0" stop-color="rgba(var(--gold-rgb),.45)"/><stop offset="1" stop-color="rgba(var(--gold-rgb),0)"/>
+                </linearGradient></defs>
+                <path d="M0,78 C36,70 58,40 96,46 C134,52 156,20 196,26 C236,32 262,10 300,16 L300,100 L0,100 Z" fill="url(#scrg)"/>
+                <path d="M0,78 C36,70 58,40 96,46 C134,52 156,20 196,26 C236,32 262,10 300,16" fill="none" stroke="#e8eaf0" stroke-width="2" vector-effect="non-scaling-stroke"/>
+              </svg>
+            </div>
+            <div class="scr-rows">
+              <div class="scr-row"><span class="dot"></span><span class="ln"></span><span class="ln s"></span><b>₺340</b></div>
+              <div class="scr-row"><span class="dot"></span><span class="ln"></span><span class="ln s"></span><b>₺185</b></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="phone-mockup">
+        <div class="scr phone-scr">
+          <div class="scr-ph-top"><b data-i18n="scr_ui_menu">Menü</b><i></i></div>
+          <div class="scr-tabs"><i class="on"></i><i></i><i></i></div>
+          <div class="scr-items">
+            <div class="scr-item"><span class="th"></span><span class="tx"><i></i><i></i></span><b>₺180</b></div>
+            <div class="scr-item"><span class="th"></span><span class="tx"><i></i><i></i></span><b>₺145</b></div>
+            <div class="scr-item"><span class="th"></span><span class="tx"><i></i><i></i></span><b>₺95</b></div>
+            <div class="scr-item"><span class="th"></span><span class="tx"><i></i><i></i></span><b>₺60</b></div>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 </section>
@@ -910,13 +1048,15 @@ html.theme-mono .feat .fi{ background:linear-gradient(150deg,#f0f0f2,#e2e2e6); c
 
 <!-- ══════════ CTA BANNER ══════════ -->
 <section class="cta-banner">
-  <div class="wrap cta-banner-in rv">
-    <div>
-      <h2 data-i18n="cta2_title">Hemen başlayın</h2>
-      <p data-i18n="cta2_sub">Kurulum 5 dakika sürer, kredi kartı gerekmez. Restoranınızı bugün dijitale taşıyın.</p>
+  <div class="wrap">
+    <div class="cta-banner-in rv">
+      <div>
+        <h2 data-i18n="cta2_title">Hemen başlayın</h2>
+        <p data-i18n="cta2_sub">Kurulum 5 dakika sürer, kredi kartı gerekmez. Restoranınızı bugün dijitale taşıyın.</p>
+      </div>
+      <a href="/demo-talep" class="btn btn-primary btn-lg" data-i18n="cta2_btn">Ücretsiz Demo Talep Et
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
     </div>
-    <a href="/demo-talep" class="btn btn-primary btn-lg" data-i18n="cta2_btn">Ücretsiz Demo Talep Et
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
   </div>
 </section>
 
@@ -1042,7 +1182,7 @@ tr:{
   hero_badge:'%0 komisyon · 14 gün ücretsiz deneme',
   scr_title:'Tek platform, her ekran',
   scr_sub:'Yönetim panelinden müşterinin telefonuna kadar aynı sistem — masaüstünde de, cepte de.',
-  scr_ph_admin:'Yönetim Paneli', scr_ph_menu:'QR Menü',
+  scr_ui_dash:'Panel', scr_ui_today:'Bugün', scr_ui_orders:'Sipariş', scr_ui_sales:'Satış', scr_ui_menu:'Menü',
   tr_restaurants:'Restoran', tr_orders:'Sipariş', tr_uptime:'Çalışma Süresi', tr_commission:'Komisyon',
   sc_title:'Restoranınızın ihtiyacı olan her şey, tek yerde',
   sc_sub:'Müşteriden mutfağa, rezervasyondan analitiğe kadar tüm operasyonunuzu tek bir premium platformdan yönetin.', sc_more:'Daha Fazla Bilgi',
@@ -1138,7 +1278,7 @@ en:{
   hero_badge:'0% commission · 14-day free trial',
   scr_title:'One platform, every screen',
   scr_sub:'From the management panel to your guest\'s phone — the same system, on desktop and in hand.',
-  scr_ph_admin:'Management Panel', scr_ph_menu:'QR Menu',
+  scr_ui_dash:'Dashboard', scr_ui_today:'Today', scr_ui_orders:'Orders', scr_ui_sales:'Sales', scr_ui_menu:'Menu',
   tr_restaurants:'Restaurants', tr_orders:'Orders', tr_uptime:'Uptime', tr_commission:'Commission',
   sc_title:'Everything your restaurant needs, in one place',
   sc_sub:'Run your whole operation — from guest to kitchen, reservations to analytics — from one premium platform.', sc_more:'Learn More',
