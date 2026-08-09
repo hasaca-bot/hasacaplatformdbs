@@ -165,7 +165,12 @@ h1,h2,h3{ line-height:1.1; letter-spacing:-.02em; }
    the vertical padding to 0 on mobile — every section ended up jammed against the next one.
    .wrap keeps owning the horizontal gutter; .block owns only the vertical rhythm. */
 section.block{ padding-top:44px; padding-bottom:44px; }
-.b-head{ max-width:680px; margin-bottom:34px; }
+/* Centred like landing.html's .sec-head — these were capped at 680px with no auto margin, so
+   every section heading hugged the left edge while the grid below it spanned the full width. */
+.b-head{ max-width:680px; margin:0 auto 34px; text-align:center; }
+/* ...except inside the two-column form layout, where the heading is the left column sitting
+   beside the form and must stay left-aligned. */
+.form-wrap .b-head{ margin:0 0 34px; text-align:left; }
 .b-head h2{ font-size:clamp(24px,3.4vw,38px); margin-bottom:12px; }
 .b-head p{ color:var(--text-dim); font-size:16px; }
 
@@ -181,7 +186,7 @@ section.block{ padding-top:44px; padding-bottom:44px; }
   background:linear-gradient(150deg,#232329,#0e0e11); border:1px solid var(--border-2); color:var(--gold); font-size:15px; }
 
 /* PROSE */
-.prose{ max-width:820px; }
+.prose{ max-width:820px; margin:0 auto; }
 .prose .sec{ padding:22px 0; border-top:1px solid var(--border); }
 .prose .sec:first-child{ border-top:none; padding-top:0; }
 .prose h3{ font-size:19px; margin-bottom:10px; }
@@ -205,7 +210,7 @@ section.block{ padding-top:44px; padding-bottom:44px; }
 
 /* FAQ — one grouped card with divider rows, matching landing.html (was a separate bordered
    card per question). */
-.faq{ max-width:820px; border:1px solid var(--border); border-radius:16px; overflow:hidden; background:var(--surface); }
+.faq{ max-width:820px; margin:0 auto; border:1px solid var(--border); border-radius:16px; overflow:hidden; background:var(--surface); }
 .qa{ border-radius:0; margin-bottom:0; background:transparent; border-top:1px solid var(--border); }
 .qa:first-child{ border-top:none; }
 .qa summary{ list-style:none; cursor:pointer; padding:18px 20px; display:flex; align-items:center; justify-content:space-between; gap:16px; font-size:15.5px; }
@@ -327,10 +332,12 @@ table.cmp tbody tr:hover{ background:rgba(255,255,255,.02); }
 @media (max-width:960px){
   .grid3{ grid-template-columns:repeat(2,1fr); }
   .stat-grid{ grid-template-columns:repeat(2,1fr); }
-  .price-grid{ grid-template-columns:1fr; max-width:430px; }
+  /* margin auto matters once max-width kicks in — without it the single column hugs the left. */
+  .price-grid{ grid-template-columns:1fr; max-width:430px; margin:0 auto; }
   .plan.pop{ order:-1; }
   .form-wrap{ grid-template-columns:1fr; gap:26px; }
   .posts{ grid-template-columns:1fr; }
+  .steps{ grid-template-columns:repeat(2,1fr); }
   .foot-grid{ grid-template-columns:repeat(auto-fit,minmax(130px,1fr)); gap:24px 18px; }
 }
 @media (max-width:1080px){
