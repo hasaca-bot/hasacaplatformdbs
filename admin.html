@@ -3255,6 +3255,7 @@ body.theme-bw .rez-select-trigger:hover {
                 <h3 data-i18n="admin_ai_title">AI Asistanı</h3>
                 <p class="hint" data-i18n="admin_ai_desc">Ürün, kategori ve fiyatlarınızı doğal dille yönetin. Örn: "Tüm içeceklerin fiyatını %10 artır" veya "Kahve kategorisini İçecekler yap".</p>
               </div>
+              <span class="ai-quota-badge" id="aAiQuotaBadge" style="display:none"></span>
             </div>
 
             <div class="ai-chat-body-wrap">
@@ -3269,9 +3270,13 @@ body.theme-bw .rez-select-trigger:hover {
             </div>
 
             <div class="ai-chat-composer">
-              <div class="ai-chat-composer-avatar" aria-hidden="true">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a4 4 0 0 1 4 4v1a4 4 0 0 1-8 0V6a4 4 0 0 1 4-4z"/><path d="M5 21v-2a7 7 0 0 1 14 0v2"/></svg>
-              </div>
+              <input type="file" id="aAiFileInput" accept="image/*" style="display:none;" onchange="adminAiUploadOwnImage(this)">
+              <button class="ai-chat-attach-btn" type="button" onclick="document.getElementById('aAiFileInput').click()" data-i18n-title="admin_ai_add_own_image" title="Kendi Görselimi Ekle" aria-label="Kendi Görselimi Ekle">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.44 11.05 12.25 20.24a5 5 0 0 1-7.07-7.07L14.36 3.9a3.5 3.5 0 0 1 4.95 4.95L10.13 18a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
+              </button>
+              <button class="ai-chat-attach-btn" type="button" onclick="adminAiCompleteMenu()" data-i18n-title="admin_ai_complete_menu" title="Menüyü Tamamla" aria-label="Menüyü Tamamla">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>
+              </button>
               <textarea id="aAiInput" rows="1" data-i18n-placeholder="ph_ai_asst" placeholder="Ne yapmak istersiniz?" oninput="adminAiAutoGrow(this)" onkeydown="adminAiComposerKey(event)"></textarea>
               <button class="ai-chat-send-btn" id="aAiSendBtn" onclick="adminAiSend()" aria-label="Gönder">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
@@ -4559,12 +4564,36 @@ const i18nData = {
     admin_ai_unsupported: "Desteklenmeyen istekler:",
     admin_ai_not_configured: "AI asistanı henüz yapılandırılmadı. Lütfen Root panelinden AI ayarlarını etkinleştirin.",
     admin_ai_error_generic: "Bir hata oluştu. Lütfen tekrar deneyin.",
+    admin_ai_quota_remaining: "{remaining}/{limit} mesaj kaldı",
+    admin_ai_quota_exceeded: "Ücretsiz deneme mesaj hakkınız doldu. Devam etmek için bizimle iletişime geçin — yakında ödeme sistemi eklenecek.",
+    admin_ai_onboarding_welcome: "Hoş geldiniz! Restoranınızı birlikte oluşturalım. Önce restoranınızın adını ve mutfak türünü, ardından menünüzdeki kategorileri ve ürünleri (isim, açıklama, fiyat) yazabilirsiniz — istediğiniz zaman düzenleyip değiştirebiliriz.",
+    admin_ai_table_products: "Ürün",
+    admin_ai_table_categories: "Kategori",
     admin_ai_conn_error: "Bağlantı hatası.",
     admin_ai_no_actions: "İsteğinizden uygulanabilir bir değişiklik çıkaramadım.",
     admin_ai_fb_up: "Faydalı",
     admin_ai_fb_down: "Faydasız",
     admin_ai_copy: "Kopyala",
     admin_ai_regenerate: "Yeniden oluştur",
+    admin_ai_hf_not_configured: "Görsel oluşturma henüz yapılandırılmadı. Lütfen Root panelinden Hugging Face anahtarını ekleyin.",
+    admin_ai_hf_error: "Görsel oluşturulamadı: ",
+    admin_ai_set_as_image: "Ürün görseli olarak ayarla",
+    admin_ai_image_applied: "Ürün görseli güncellendi ✓",
+    admin_ai_image_apply_error: "Görsel ürüne atanamadı, tekrar deneyin.",
+    admin_ai_add_own_image: "Kendi Görselimi Ekle",
+    admin_ai_assign_to_product: "Bu ürüne ata",
+    admin_ai_own_image_bad_type: "Lütfen bir görsel dosyası seçin.",
+    admin_ai_own_image_too_big: "Görsel 5MB'tan küçük olmalı.",
+    admin_ai_own_image_uploaded: "Görsel yüklendi. Hangi ürüne ait olduğunu seçin:",
+    admin_ai_own_image_upload_error: "Görsel yüklenemedi, tekrar deneyin.",
+    admin_ai_complete_menu: "Menüyü Tamamla",
+    admin_ai_menu_complete_none: "Tüm ürünlerin zaten görseli var, eksik yok.",
+    admin_ai_menu_complete_found: "Görseli olmayan {n} ürün bulundu:",
+    admin_ai_menu_complete_generate: "Seçilenler İçin Oluştur",
+    admin_ai_menu_complete_error: "Eksik görseller kontrol edilemedi, tekrar deneyin.",
+    admin_ai_menu_complete_partial: "{n} ürün için görsel oluşturulamadı.",
+    admin_ai_menu_complete_apply_all: "Tümünü Uygula",
+    admin_ai_candidate_prompt_template: "{name} için görsel oluştur",
     admin_ai_empty_title: "Nasıl yardımcı olabilirim?",
     admin_ai_empty_sub: "Ürün, kategori ve fiyatlarınızı doğal dille düzenleyebilirim.",
     admin_nav_widgets: "Widget Ayarları",
@@ -4970,12 +4999,36 @@ const i18nData = {
     admin_ai_unsupported: "Unsupported requests:",
     admin_ai_not_configured: "The AI assistant isn't configured yet. Please enable AI settings from the Root panel.",
     admin_ai_error_generic: "Something went wrong. Please try again.",
+    admin_ai_quota_remaining: "{remaining}/{limit} messages left",
+    admin_ai_quota_exceeded: "You've used up your free trial messages. Contact us to continue — a payment plan is coming soon.",
+    admin_ai_onboarding_welcome: "Welcome! Let's build your restaurant together. Start with your restaurant's name and cuisine type, then list your menu categories and items (name, description, price) — you can edit anything anytime.",
+    admin_ai_table_products: "Product",
+    admin_ai_table_categories: "Category",
     admin_ai_conn_error: "Connection error.",
     admin_ai_no_actions: "I couldn't derive an actionable change from your request.",
     admin_ai_fb_up: "Helpful",
     admin_ai_fb_down: "Not helpful",
     admin_ai_copy: "Copy",
     admin_ai_regenerate: "Regenerate",
+    admin_ai_hf_not_configured: "Image generation isn't configured yet. Please add the Hugging Face key from the Root panel.",
+    admin_ai_hf_error: "Couldn't generate the image: ",
+    admin_ai_set_as_image: "Set as product image",
+    admin_ai_image_applied: "Product image updated ✓",
+    admin_ai_image_apply_error: "Couldn't apply the image, please try again.",
+    admin_ai_add_own_image: "Add My Own Image",
+    admin_ai_assign_to_product: "Assign to this product",
+    admin_ai_own_image_bad_type: "Please select an image file.",
+    admin_ai_own_image_too_big: "Image must be under 5MB.",
+    admin_ai_own_image_uploaded: "Image uploaded. Choose which product it belongs to:",
+    admin_ai_own_image_upload_error: "Couldn't upload the image, please try again.",
+    admin_ai_complete_menu: "Complete the Menu",
+    admin_ai_menu_complete_none: "All products already have an image, nothing missing.",
+    admin_ai_menu_complete_found: "Found {n} product(s) with no image:",
+    admin_ai_menu_complete_generate: "Generate for Selected",
+    admin_ai_menu_complete_error: "Couldn't check for missing images, please try again.",
+    admin_ai_menu_complete_partial: "Couldn't generate an image for {n} product(s).",
+    admin_ai_menu_complete_apply_all: "Apply All",
+    admin_ai_candidate_prompt_template: "Generate an image for {name}",
     admin_ai_empty_title: "How can I help?",
     admin_ai_empty_sub: "I can edit your products, categories and prices in plain language.",
     admin_nav_widgets: "Widget Settings",
@@ -5544,6 +5597,7 @@ function renderCategoriesDropdown() {
 }
 
 // Fetch data from server API database
+let __adminInitialAuthGateDone = false;
 async function loadMenuDatabase() {
   console.log("[DB DEBUG] loadMenuDatabase started.");
   try {
@@ -5617,14 +5671,20 @@ async function loadMenuDatabase() {
     
     // Standalone admin: go through the auth gate. openAdminLogin() validates any stored token via
     // /api/auth/me and only then opens the panel; otherwise it shows the login modal. This prevents
-    // an unauthenticated visit from opening a blank panel whose data calls all 401.
-    if (window.isStandaloneAdmin) {
+    // an unauthenticated visit from opening a blank panel whose data calls all 401. Gated to the
+    // FIRST call only — openAdminLogin() -> openAdminPanel() forces the view back to Dashboard, so
+    // re-running it on every later loadMenuDatabase() refresh (after saving a product, applying an
+    // AI plan, applying an AI-generated image, etc.) was silently kicking the admin out of whatever
+    // screen they were on and back to the Dashboard — a real, reproducible bug, not intended re-auth.
+    if (window.isStandaloneAdmin && !__adminInitialAuthGateDone) {
+      __adminInitialAuthGateDone = true;
       openAdminLogin();
     }
   } catch (error) {
     console.error('Error loading menu data:', error);
     window.menuData = window.menuData || [];
-    if (window.isStandaloneAdmin) {
+    if (window.isStandaloneAdmin && !__adminInitialAuthGateDone) {
+      __adminInitialAuthGateDone = true;
       openAdminLogin();
     }
     document.getElementById('menuCardsContainer').innerHTML = `
@@ -6492,7 +6552,18 @@ function openAdminPanel() {
   apInitTheme(); // Phase 25: panel theme (scoped to the overlay; customer site untouched)
 
   // Phase 25 REVISION: default landing view is the Dashboard (mirrors root.html's showShell())
-  showAdminView('dashboard');
+  // ...UNLESS this is a fresh self-service signup fresh off /restoran-olustur (?onboarding=1),
+  // in which case we drop them straight into the AI Assistant with a kickoff message instead of
+  // an empty Dashboard — the whole point of that signup path was "let AI build my menu".
+  const isOnboarding = new URLSearchParams(window.location.search).get('onboarding') === '1';
+  if (isOnboarding) {
+    showAdminView('ai-assistant');
+    adminAiShowOnboardingWelcome();
+    // Strip the query param so a refresh/reshare of this URL doesn't replay the welcome message.
+    try { window.history.replaceState({}, '', window.location.pathname + window.location.search.replace(/[?&]onboarding=1\b/, '').replace(/^&/, '?')); } catch (e) {}
+  } else {
+    showAdminView('dashboard');
+  }
 
   // Eager loads that must run regardless of the active view (badges, live feed, cached config)
   loadAdminProfile(); // real Google photo/name in the top-right, if this account has one
@@ -6974,12 +7045,27 @@ async function loadAdminDashboardAnalytics(){
       wrap.innerHTML = '<div class="hint" style="padding-top:64px;text-align:center;">' + adminT('admin_dash_empty') + '</div>';
       return;
     }
-    renderDashAreaChart(wrap, series, 'ap');
+    renderDashAreaChart(wrap, dcSmoothSeries(series), 'ap');
   } catch (e) {
     wrap.innerHTML = '<div class="hint" style="color:var(--ap-bad);">' + adminT('admin_dash_err') + '</div>';
   }
 }
 
+// Centered moving average (window 3, clamped at the edges to whatever neighbors exist) over the
+// raw daily order counts BEFORE they become chart points — Catmull-Rom smoothing (below) only
+// curves the line BETWEEN points, it still passes exactly through each one, so a single noisy day
+// still shows up as a sharp spike. Dampening the series itself is what actually calms that down.
+function dcSmoothSeries(series){
+  return series.map((d, i) => {
+    // Window of 5 (2 days either side, clamped at the edges) — window 3 still left sharp
+    // back-to-back swings between a quiet day and a busy one.
+    const win = series.slice(Math.max(0, i - 2), Math.min(series.length, i + 3));
+    // Rounded — the hover tooltip displays these same numbers, and "3.33 sipariş" would look
+    // like a bug rather than a smoothed trend.
+    const avg = key => Math.round(win.reduce((s, x) => s + (x[key] || 0), 0) / win.length);
+    return { ...d, dinein: avg('dinein'), delivery: avg('delivery') };
+  });
+}
 // Catmull-Rom -> cubic-bezier smoothing, converted to an SVG path string. (Ported from root.html.)
 function dcSmoothPath(points){
   if (!points.length) return '';
@@ -7016,7 +7102,11 @@ function renderDashAreaChart(wrapEl, series, tokenPrefix){
   const maxTotal = Math.max(1, ...series.map(d => (d.dinein || 0) + (d.delivery || 0)));
 
   const xAt = i => padSide + (n <= 1 ? plotW / 2 : (i / (n - 1)) * plotW);
-  const yAt = v => padTop + plotH - (v / maxTotal) * plotH;
+  // Values map into the MIDDLE band of the plot (15%-85%), not edge-to-edge — a quiet day no
+  // longer touches the floor and a busy day no longer touches the ceiling, so the line reads as
+  // "hovering in a healthy range" instead of swinging between empty and maxed-out.
+  const bandTop = padTop + plotH * 0.15, bandH = plotH * 0.70;
+  const yAt = v => bandTop + bandH - (v / maxTotal) * bandH;
 
   const dineinTop = series.map((d, i) => ({ x: xAt(i), y: yAt(d.dinein || 0) }));
   const baseline = series.map((d, i) => ({ x: xAt(i), y: yAt(0) }));
@@ -7115,6 +7205,578 @@ async function loadAdminAnalytics() {
   } catch (e) { console.warn('loadAdminAnalytics:', e); }
 }
 
+// ── ThinkingOrb (Phase 70) — FAITHFUL vanilla-JS port of the real npm package "thinking-orbs"
+// (Jakub Antalik, github.com/Jakubantalik/thinking-orbs, MIT) — this project has no bundler/React
+// runtime to consume the actual React component, so the engine was ported directly from the
+// library's own source (src/engine/*.ts, src/presets.ts, src/ThinkingOrb.tsx as published on
+// GitHub) — same math, same tuned preset numbers, TypeScript types stripped, function/const names
+// prefixed aiOrb* to stay collision-free in this single-file page. Only real structural change:
+// React's useEffect mount/unmount lifecycle became this class's start()/stop(), and dark-mode
+// detection reads this page's own html[data-theme] instead of the library's generic ancestor-DOM
+// auto-detection (this page already knows its own theme state, no need to re-derive it).
+
+// engine/core.ts — shared primitives (honestly-3D dotted sphere: rotated, depth-shaded, z-sorted).
+function aiOrbHashD(a, b) { const h = Math.sin(a * 12.9898 + b * 78.233) * 43758.5453; return h - Math.floor(h); }
+function aiOrbVnoise(x, y) {
+  const xi = Math.floor(x), yi = Math.floor(y);
+  let fx = x - xi, fy = y - yi;
+  fx = fx * fx * (3 - 2 * fx); fy = fy * fy * (3 - 2 * fy);
+  const a = aiOrbHashD(xi, yi), b = aiOrbHashD(xi + 1, yi), c = aiOrbHashD(xi, yi + 1), d = aiOrbHashD(xi + 1, yi + 1);
+  return a + (b - a) * fx + (c - a) * fy + (a - b - c + d) * fx * fy;
+}
+function aiOrbFibDir(i, n) {
+  const golden = Math.PI * (3 - Math.sqrt(5));
+  const y = 1 - (2 * (i + 0.5)) / n;
+  const rad = Math.sqrt(1 - y * y);
+  const a = i * golden;
+  return [rad * Math.cos(a), y, rad * Math.sin(a)];
+}
+function aiOrbAngleDelta(a, b) { return Math.atan2(Math.sin(a - b), Math.cos(a - b)); }
+function aiOrbLerp(a, b, f) { return a + (b - a) * f; }
+function aiOrbFrac(x) { return x - Math.floor(x); }
+function aiOrbMakeProj(yaw, tilt, cx, cy, scale) {
+  const st = Math.sin(tilt), ct = Math.cos(tilt), sy = Math.sin(yaw), cyw = Math.cos(yaw);
+  return (x, y, z) => {
+    const x1 = x * cyw + z * sy;
+    const z1 = -x * sy + z * cyw;
+    const y1 = y * ct - z1 * st;
+    const z2 = y * st + z1 * ct;
+    return [cx + x1 * scale, cy - y1 * scale, z2];
+  };
+}
+function aiOrbPaint(ctx, dots, dark, rMin) {
+  rMin = rMin == null ? 0.3 : rMin;
+  dots.sort((a, b) => a.z - b.z);
+  for (const d of dots) {
+    const alpha = d.a == null ? 1 : d.a;
+    if (alpha < 0.02) continue;
+    const w = Math.min(1, Math.max(0, d.white));
+    const g = Math.round((dark ? 1 - w : w) * 255);
+    ctx.fillStyle = 'rgba(' + g + ',' + g + ',' + g + ',' + alpha + ')';
+    ctx.beginPath();
+    ctx.arc(d.x, d.y, Math.max(rMin, d.r), 0, Math.PI * 2);
+    ctx.fill();
+  }
+}
+function aiOrbPaintLines(ctx, lines, dark) {
+  for (const l of lines) {
+    const alpha = l.a == null ? 1 : l.a;
+    if (alpha < 0.02) continue;
+    const w = Math.min(1, Math.max(0, l.white));
+    const g = Math.round((dark ? 1 - w : w) * 255);
+    ctx.strokeStyle = 'rgba(' + g + ',' + g + ',' + g + ',' + alpha + ')';
+    ctx.lineWidth = l.w;
+    ctx.beginPath();
+    ctx.moveTo(l.x1, l.y1);
+    ctx.lineTo(l.x2, l.y2);
+    ctx.stroke();
+  }
+}
+function aiOrbRadiusScale(size, pow) { return Math.pow(size / 300, pow); }
+
+// engine/profiles.ts — density profiles + the multiplier machinery that scales them.
+const AI_ORB_COUNT_PAIRS = [['latRings', 'lonDensity'], ['rings', 'lonDensity'], ['lanes', 'segs']];
+const AI_ORB_COUNT_KEYS = ['orbitN', 'ghostN', 'nodeN', 'strandN', 'signals'];
+const AI_ORB_RADIUS_KEYS = ['rBase', 'rDepth', 'rActive', 'rDot', 'ghostR', 'partR', 'partRDepth', 'nodeR', 'nodeRDepth'];
+function aiOrbScaleCounts(opts, scale) {
+  const out = Object.assign({}, opts);
+  const done = new Set();
+  const rt = Math.sqrt(scale);
+  for (const pair of AI_ORB_COUNT_PAIRS) {
+    const a = pair[0], b = pair[1];
+    const va = out[a], vb = out[b];
+    if (va != null && vb != null && !done.has(a) && !done.has(b)) {
+      out[a] = Math.max(2, Math.round(va * rt));
+      out[b] = Math.max(2, Math.round(vb * rt));
+      done.add(a); done.add(b);
+    }
+  }
+  for (const k of AI_ORB_COUNT_KEYS) {
+    const v = out[k];
+    if (v != null && v !== 0 && !done.has(k)) out[k] = Math.max(1, Math.round(v * scale));
+  }
+  if (out.iconD != null) out.iconD = Math.max(0.02, out.iconD * scale);
+  return out;
+}
+function aiOrbScaleRadii(opts, scale) {
+  const out = Object.assign({}, opts);
+  for (const k of AI_ORB_RADIUS_KEYS) {
+    const v = out[k];
+    if (v != null) out[k] = v * scale;
+  }
+  out.rSizeMul = (out.rSizeMul == null ? 1 : out.rSizeMul) * scale;
+  return out;
+}
+const AI_ORB_BASE_PROFILES = {
+  globe: { latRings:17, lonDensity:44, rBase:0.6, rDepth:1.7, rBoost:1.0, inkFar:0.62, inkSpan:0.54, rsPow:0.6, rMin:0.3 },
+  orbits: { orbitN:12, ghostN:40, ghostR:0.9, ghostA:0.5, particles:3, partR:1.2, partRDepth:1.6, rsPow:0.6, rMin:0.3 },
+  rubik: { latRings:15, lonDensity:40, moveCount:14, rBase:0.6, rDepth:1.7, rActive:0.3, inkFar:0.62, inkSpan:0.54, rsPow:0.6, rMin:0.3 },
+  wave: { rings:15, lonDensity:40, rBase:0.6, rDepth:1.7, rsPow:0.6, rMin:0.3 },
+  web: { nodeN:30, thr:0.72, signals:5, nodeR:1.4, nodeRDepth:1.8, lineW:0.8, rsPow:0.6, rMin:0.3 },
+  braid: { strandN:52, turns:3.0, ghostN:150, rBase:1.2, rDepth:1.8, rsPow:0.6, rMin:0.3 },
+  ribbon: { lanes:5, segs:88, ghostN:150, rBase:1.1, rDepth:1.7, rsPow:0.6, rMin:0.3 },
+  ring: { lanes:5, segs:88, ghostN:0, faceOn:1, rBase:1.1, rDepth:1.7, rsPow:0.6, rMin:0.3 },
+  morph: { rDot:0.021, iconD:1, rMin:0.25 }
+};
+
+// engine/orbits.ts — "working": particles on tilted orbits, coreless.
+function aiOrbDrawOrbits(ctx, size, t, dark, o) {
+  const cx = size / 2, cy = size / 2;
+  const R = (size / 2) * 0.82;
+  const pt = aiOrbMakeProj(t * 0.12, 0.3, cx, cy, 1);
+  const rs = aiOrbRadiusScale(size, o.rsPow == null ? 0.6 : o.rsPow);
+  const dots = [];
+  const orbitN = o.orbitN == null ? 12 : o.orbitN;
+  const ghostN = o.ghostN == null ? 40 : o.ghostN;
+  const particles = o.particles == null ? 3 : o.particles;
+  for (let orb = 0; orb < orbitN; orb++) {
+    const h1 = aiOrbHashD(orb, 1.7), h2 = aiOrbHashD(orb, 5.2), h3 = aiOrbHashD(orb, 8.9);
+    const ro = R * (0.45 + 0.52 * h1);
+    const th = h1 * 2 * Math.PI;
+    const phi = Math.acos(2 * h2 - 1);
+    const nx = Math.sin(phi) * Math.cos(th), ny = Math.cos(phi), nz = Math.sin(phi) * Math.sin(th);
+    let ux = -ny, uy = nx; const uz = 0;
+    const ul = Math.max(1e-6, Math.sqrt(ux * ux + uy * uy));
+    ux /= ul; uy /= ul;
+    const vx = ny * uz - nz * uy, vy = nz * ux - nx * uz, vz = nx * uy - ny * ux;
+    const speed = (0.25 + 0.55 * h3) * (h3 > 0.5 ? 1 : -1);
+    for (let k = 0; k < ghostN; k++) {
+      const a = (k / ghostN) * 2 * Math.PI;
+      const p = pt((ux * Math.cos(a) + vx * Math.sin(a)) * ro, (uy * Math.cos(a) + vy * Math.sin(a)) * ro, (uz * Math.cos(a) + vz * Math.sin(a)) * ro);
+      const depth = (p[2] / ro + 1) / 2;
+      dots.push({ x: p[0], y: p[1], z: p[2], r: (o.ghostR == null ? 0.9 : o.ghostR) * rs, white: 0.72, a: (o.ghostA == null ? 0.5 : o.ghostA) * (0.4 + 0.6 * depth) });
+    }
+    for (let m = 0; m < particles; m++) {
+      const a = t * speed + (m / particles) * 2 * Math.PI + h2 * 6;
+      const p = pt((ux * Math.cos(a) + vx * Math.sin(a)) * ro, (uy * Math.cos(a) + vy * Math.sin(a)) * ro, (uz * Math.cos(a) + vz * Math.sin(a)) * ro);
+      const depth = (p[2] / ro + 1) / 2;
+      dots.push({ x: p[0], y: p[1], z: p[2], r: ((o.partR == null ? 1.2 : o.partR) + (o.partRDepth == null ? 1.6 : o.partRDepth) * depth) * rs, white: 0.3 - 0.22 * depth });
+    }
+  }
+  aiOrbPaint(ctx, dots, dark, o.rMin);
+}
+
+// engine/lattice.ts — globe (searching), rubik (solving), wave (listening): a lat/long dot field
+// with mode-specific motion.
+function aiOrbSolveCycle(time, count, slotDur, rest) {
+  const cyc = 2 * count * slotDur + rest;
+  const tc = time % cyc;
+  const amount = new Array(count).fill(0);
+  let active = -1;
+  if (tc < 2 * count * slotDur) {
+    const slot = Math.floor(tc / slotDur);
+    const p = (tc - slot * slotDur) / slotDur;
+    const cl = Math.min(1, p / 0.7);
+    const ep = 1 - Math.pow(1 - cl, 3);
+    if (slot < count) {
+      for (let i = 0; i < slot; i++) amount[i] = 1;
+      amount[slot] = ep; active = slot;
+    } else {
+      const u = 2 * count - 1 - slot;
+      for (let i = 0; i < u; i++) amount[i] = 1;
+      amount[u] = 1 - ep; active = u;
+    }
+  }
+  return { amount: amount, active: active };
+}
+function aiOrbApplyMoves(pt3, moves, sc) {
+  let x = pt3[0], y = pt3[1], z = pt3[2];
+  let inActive = false;
+  for (let i = 0; i < moves.length; i++) {
+    if (sc.amount[i] <= 0) continue;
+    const mv = moves[i];
+    const coord = mv.axis === 0 ? x : mv.axis === 1 ? y : z;
+    if (coord < mv.lo || coord >= mv.hi) continue;
+    if (i === sc.active) inActive = true;
+    const a = mv.ang * sc.amount[i];
+    const ca = Math.cos(a), sa = Math.sin(a);
+    if (mv.axis === 0) { const y2 = y * ca - z * sa; z = y * sa + z * ca; y = y2; }
+    else if (mv.axis === 1) { const x2 = x * ca + z * sa; z = -x * sa + z * ca; x = x2; }
+    else { const x2 = x * ca - y * sa; y = x * sa + y * ca; x = x2; }
+  }
+  return [x, y, z, inActive];
+}
+function aiOrbMakeMoves(count) {
+  const moves = [];
+  for (let i = 0; i < count; i++) {
+    const axis = Math.min(2, Math.floor(aiOrbHashD(i, 2.3) * 3));
+    const lo = -1.0 + 0.5 * Math.min(3, Math.floor(aiOrbHashD(i, 5.9) * 4));
+    const dir = aiOrbHashD(i, 7.7) < 0.5 ? 1 : -1;
+    moves.push({ axis: axis, lo: lo, hi: lo + 0.5, ang: (dir * Math.PI) / 2 });
+  }
+  return moves;
+}
+function aiOrbDrawGlobe(ctx, size, t, dark, o) {
+  const spin = 0.5;
+  const cx = size / 2, cy = size / 2;
+  const radius = (size / 2) * 0.82;
+  const tilt = 0.4 + 0.06 * Math.sin(t * 0.35);
+  const pt = aiOrbMakeProj(t * spin, tilt, cx, cy, radius);
+  const scan = t * (spin + (1.7 - spin) * (o.scanMul == null ? 1 : o.scanMul));
+  const rs = aiOrbRadiusScale(size, o.rsPow == null ? 0.6 : o.rsPow);
+  const dimBase = o.dimBase == null ? 1 : o.dimBase;
+  const dots = [];
+  const latRings = o.latRings == null ? 17 : o.latRings;
+  const lonDensity = o.lonDensity == null ? 44 : o.lonDensity;
+  for (let li = 0; li <= latRings; li++) {
+    const lat = -Math.PI / 2 + (li / latRings) * Math.PI;
+    const cosLat = Math.cos(lat), sinLat = Math.sin(lat);
+    const lonCount = Math.max(1, Math.round(Math.abs(cosLat) * lonDensity));
+    for (let lj = 0; lj < lonCount; lj++) {
+      const lon = (lj / lonCount) * 2 * Math.PI;
+      const p = pt(cosLat * Math.cos(lon), sinLat, cosLat * Math.sin(lon));
+      const depth = (p[2] + 1) / 2;
+      const d = aiOrbAngleDelta(lon + t * spin, scan);
+      const boost = Math.exp(-(d * d) / 0.18) * Math.max(0, p[2]);
+      dots.push({ x: p[0], y: p[1], z: p[2], r: ((o.rBase == null ? 0.6 : o.rBase) + (o.rDepth == null ? 1.7 : o.rDepth) * depth + (o.rBoost == null ? 1 : o.rBoost) * boost) * rs, white: (o.inkFar == null ? 0.62 : o.inkFar) - (o.inkSpan == null ? 0.54 : o.inkSpan) * depth, a: dimBase + (1 - dimBase) * Math.min(1, boost) });
+    }
+  }
+  aiOrbPaint(ctx, dots, dark, o.rMin);
+}
+function aiOrbDrawRubik(ctx, size, t, dark, o) {
+  const cx = size / 2, cy = size / 2;
+  const R = (size / 2) * 0.82;
+  const pt = aiOrbMakeProj(t * 0.55, 0.35 + 0.1 * Math.sin(t * 0.9), cx, cy, R);
+  const rs = aiOrbRadiusScale(size, o.rsPow == null ? 0.6 : o.rsPow);
+  const moveCount = o.moveCount == null ? 14 : o.moveCount;
+  const moves = aiOrbMakeMoves(moveCount);
+  const sc = aiOrbSolveCycle(t, moveCount, 0.42, 1.2);
+  const dots = [];
+  const latRings = o.latRings == null ? 15 : o.latRings;
+  const lonDensity = o.lonDensity == null ? 40 : o.lonDensity;
+  for (let li = 0; li <= latRings; li++) {
+    const lat = -Math.PI / 2 + (li / latRings) * Math.PI;
+    const cosLat = Math.cos(lat), sinLat = Math.sin(lat);
+    const lonCount = Math.max(1, Math.round(Math.abs(cosLat) * lonDensity));
+    for (let lj = 0; lj < lonCount; lj++) {
+      const lon = (lj / lonCount) * 2 * Math.PI;
+      const r3 = aiOrbApplyMoves([cosLat * Math.cos(lon), sinLat, cosLat * Math.sin(lon)], moves, sc);
+      const p = pt(r3[0], r3[1], r3[2]);
+      const depth = (p[2] + 1) / 2;
+      dots.push({ x: p[0], y: p[1], z: p[2], r: ((o.rBase == null ? 0.6 : o.rBase) + (o.rDepth == null ? 1.7 : o.rDepth) * depth + (r3[3] ? (o.rActive == null ? 0.3 : o.rActive) : 0)) * rs, white: (o.inkFar == null ? 0.62 : o.inkFar) - (o.inkSpan == null ? 0.54 : o.inkSpan) * depth - (r3[3] ? 0.14 : 0) });
+    }
+  }
+  aiOrbPaint(ctx, dots, dark, o.rMin);
+}
+function aiOrbDrawWave(ctx, size, t, dark, o) {
+  const cx = size / 2, cy = size / 2;
+  const R = (size / 2) * 0.874;
+  const pt = aiOrbMakeProj(t * 0.18, 0.38, cx, cy, 1);
+  const rs = aiOrbRadiusScale(size, o.rsPow == null ? 0.6 : o.rsPow);
+  const dots = [];
+  const rings = o.rings == null ? 15 : o.rings;
+  const lonDensity = o.lonDensity == null ? 40 : o.lonDensity;
+  for (let ri = 0; ri <= rings; ri++) {
+    const lat = -Math.PI / 2 + (ri / rings) * Math.PI;
+    const cosLat = Math.cos(lat), sinLat = Math.sin(lat);
+    const w = 0.62 * Math.sin(t * 2.1 - ri * 0.52) + 0.38 * Math.sin(t * 1.27 + ri * 0.83);
+    const rr = R * (0.88 + 0.105 * w);
+    const lonCount = Math.max(1, Math.round(Math.abs(cosLat) * lonDensity));
+    for (let lj = 0; lj < lonCount; lj++) {
+      const lon = (lj / lonCount) * 2 * Math.PI;
+      const p = pt(cosLat * Math.cos(lon) * rr, sinLat * rr, cosLat * Math.sin(lon) * rr);
+      const depth = (p[2] / R + 1) / 2;
+      const crest = Math.max(0, w);
+      dots.push({ x: p[0], y: p[1], z: p[2], r: ((o.rBase == null ? 0.6 : o.rBase) + (o.rDepth == null ? 1.7 : o.rDepth) * depth) * (1 + 0.4 * crest) * rs, white: 0.66 - 0.56 * depth - 0.1 * crest });
+    }
+  }
+  aiOrbPaint(ctx, dots, dark, o.rMin);
+}
+
+// engine/web.ts — "connecting": a constellation wires itself.
+function aiOrbDrawWeb(ctx, size, t, dark, o) {
+  const cx = size / 2, cy = size / 2;
+  const R = (size / 2) * 0.8 * (o.spread == null ? 1 : o.spread);
+  const pt = aiOrbMakeProj(t * 0.12, 0.32, cx, cy, R);
+  const rs = aiOrbRadiusScale(size, o.rsPow == null ? 0.6 : o.rsPow);
+  const nodeN = o.nodeN == null ? 30 : o.nodeN;
+  const thr = o.thr == null ? 0.72 : o.thr;
+  const nodeR = o.nodeR == null ? 1.4 : o.nodeR;
+  const nodeRDepth = o.nodeRDepth == null ? 1.8 : o.nodeRDepth;
+  const nodes = [];
+  for (let i = 0; i < nodeN; i++) {
+    const d = aiOrbFibDir(i, nodeN);
+    const x = d[0] + 0.3 * (aiOrbVnoise(i * 0.31 + 9, t * 0.24) - 0.5) * 2;
+    const y = d[1] + 0.3 * (aiOrbVnoise(i * 0.53 + 27, t * 0.21) - 0.5) * 2;
+    const z = d[2] + 0.3 * (aiOrbVnoise(i * 0.77 + 55, t * 0.27) - 0.5) * 2;
+    const l = Math.sqrt(x * x + y * y + z * z);
+    nodes.push([x / l, y / l, z / l]);
+  }
+  const lines = [], dots = [];
+  for (let i = 0; i < nodeN; i++) {
+    for (let j = i + 1; j < nodeN; j++) {
+      const dx = nodes[i][0] - nodes[j][0], dy = nodes[i][1] - nodes[j][1], dz = nodes[i][2] - nodes[j][2];
+      const dist = Math.sqrt(dx * dx + dy * dy + dz * dz);
+      if (dist >= thr) continue;
+      const p1 = pt(nodes[i][0], nodes[i][1], nodes[i][2]);
+      const p2 = pt(nodes[j][0], nodes[j][1], nodes[j][2]);
+      const depth = ((p1[2] + p2[2]) / 2 + 1) / 2;
+      lines.push({ x1: p1[0], y1: p1[1], x2: p2[0], y2: p2[1], white: 0.42, a: (1 - dist / thr) * (0.3 + 0.55 * depth), w: Math.max(0.6, (o.lineW == null ? 0.8 : o.lineW) * rs) });
+    }
+  }
+  for (let i = 0; i < nodeN; i++) {
+    const p = pt(nodes[i][0], nodes[i][1], nodes[i][2]);
+    const depth = (p[2] + 1) / 2;
+    const pulse = 1 + 0.25 * Math.sin(t * 1.4 + i * 2.7);
+    dots.push({ x: p[0], y: p[1], z: p[2], r: (nodeR + nodeRDepth * depth) * pulse * rs, white: 0.55 - 0.45 * depth });
+  }
+  const signals = o.signals == null ? 5 : o.signals;
+  for (let s = 0; s < signals; s++) {
+    const seg = Math.floor(t * 0.55 + s * 7.31);
+    const a = Math.floor(aiOrbHashD(seg, s * 3.1 + 1.7) * nodeN);
+    const b = Math.floor(aiOrbHashD(seg, s * 5.7 + 4.2) * nodeN);
+    if (a === b) continue;
+    const f = aiOrbFrac(t * 0.55 + s * 7.31);
+    const x = aiOrbLerp(nodes[a][0], nodes[b][0], f), y = aiOrbLerp(nodes[a][1], nodes[b][1], f), z = aiOrbLerp(nodes[a][2], nodes[b][2], f);
+    const l = Math.max(1e-6, Math.sqrt(x * x + y * y + z * z));
+    const p = pt(x / l, y / l, z / l);
+    const depth = (p[2] + 1) / 2;
+    dots.push({ x: p[0], y: p[1], z: p[2], r: (nodeR * 1.5 + nodeRDepth * depth) * rs, white: 0.05, a: 0.5 + 0.5 * depth });
+  }
+  aiOrbPaintLines(ctx, lines, dark);
+  aiOrbPaint(ctx, dots, dark, o.rMin);
+}
+
+// engine/braid.ts — "weaving": three strands plait around the sphere.
+function aiOrbDrawBraid(ctx, size, t, dark, o) {
+  const cx = size / 2, cy = size / 2;
+  const R = (size / 2) * 0.76;
+  const pt = aiOrbMakeProj(t * 0.4, 0.3, cx, cy, 1);
+  const rs = aiOrbRadiusScale(size, o.rsPow == null ? 0.6 : o.rsPow);
+  const dots = [];
+  const ghostN = o.ghostN == null ? 150 : o.ghostN;
+  for (let i = 0; i < ghostN; i++) {
+    const d = aiOrbFibDir(i, ghostN);
+    const p = pt(d[0] * R, d[1] * R, d[2] * R);
+    const depth = (p[2] / R + 1) / 2;
+    dots.push({ x: p[0], y: p[1], z: p[2], r: 0.8 * rs, white: 0.78, a: 0.1 + 0.22 * depth });
+  }
+  const strandN = o.strandN == null ? 52 : o.strandN;
+  const turns = o.turns == null ? 3 : o.turns;
+  for (let s = 0; s < 3; s++) {
+    const phase = (s / 3) * 2 * Math.PI;
+    for (let i = 0; i < strandN; i++) {
+      const u = (aiOrbFrac(i / strandN + t * 0.045) * 2 - 1) * 0.96;
+      const surf = Math.sqrt(Math.max(0, 1 - u * u));
+      const endFade = Math.min(1, (1 - Math.abs(u)) / 0.1);
+      const a = u * Math.PI * turns + phase;
+      const weave = 1 + 0.075 * Math.sin(u * Math.PI * turns * 2 + phase * 2 + t * 0.8);
+      const rr = surf * R * weave;
+      const p = pt(Math.cos(a) * rr, u * R * weave, Math.sin(a) * rr);
+      const depth = (p[2] / R + 1) / 2;
+      dots.push({ x: p[0], y: p[1], z: p[2], r: ((o.rBase == null ? 1.2 : o.rBase) + (o.rDepth == null ? 1.8 : o.rDepth) * depth) * rs, white: 0.55 - 0.45 * depth, a: endFade * (0.45 + 0.55 * depth) });
+    }
+  }
+  aiOrbPaint(ctx, dots, dark, o.rMin);
+}
+
+// engine/ribbon.ts — "composing" (band undulates, tumbles) and "breathing" (`ring`, shares this
+// painter via the `faceOn` profile flag — face-on circle whose radius undulates instead).
+function aiOrbDrawRibbon(ctx, size, t, dark, o) {
+  const cx = size / 2, cy = size / 2;
+  const R = (size / 2) * 0.78;
+  const spin = o.spin == null ? 1 : o.spin;
+  const camTilt = 0.3;
+  const pt = aiOrbMakeProj(t * 0.1 * spin, camTilt, cx, cy, 1);
+  const rs = aiOrbRadiusScale(size, o.rsPow == null ? 0.6 : o.rsPow);
+  const dots = [];
+  const ghostN = o.ghostN == null ? 150 : o.ghostN;
+  for (let i = 0; i < ghostN; i++) {
+    const d = aiOrbFibDir(i, ghostN);
+    const p = pt(d[0] * R, d[1] * R, d[2] * R);
+    const depth = (p[2] / R + 1) / 2;
+    dots.push({ x: p[0], y: p[1], z: p[2], r: 0.8 * rs, white: 0.78, a: 0.1 + 0.22 * depth });
+  }
+  const ya = t * 0.24 * spin;
+  const ta = o.faceOn ? -camTilt : 0.55 + 0.3 * Math.sin(t * 0.18) * spin;
+  const ux = Math.cos(ya), uy = 0, uz = Math.sin(ya);
+  const vx = -uz * Math.sin(ta), vy = Math.cos(ta), vz = ux * Math.sin(ta);
+  const nx = uy * vz - uz * vy, ny = uz * vx - ux * vz, nz = ux * vy - uy * vx;
+  const wobAmp = 0.23 * (o.wobMul == null ? 1 : o.wobMul);
+  const baseR = o.faceOn ? R / (1 + 0.85 * wobAmp) : R;
+  const baseLanes = o.lanes == null ? 5 : o.lanes;
+  const segs = o.segs == null ? 88 : o.segs;
+  const lanes = Math.max(1, Math.round(baseLanes * (o.bandMul == null ? 1 : o.bandMul)));
+  for (let w = 0; w < lanes; w++) {
+    const laneOff = (w - (lanes - 1) / 2) * 0.075;
+    const edge = Math.abs(w - (lanes - 1) / 2) / Math.max(1, (lanes - 1) / 2);
+    for (let k = 0; k < segs; k++) {
+      const a = (k / segs) * 2 * Math.PI;
+      const wob = (0.16 * Math.sin(a * 3 - t * 1.7 + w * 0.22) + 0.07 * Math.sin(a * 5 + t * 1.1)) * (o.wobMul == null ? 1 : o.wobMul);
+      const radial = o.faceOn ? 1 + wob : 1;
+      const off = o.faceOn ? laneOff : laneOff + wob;
+      const x = ux * Math.cos(a) + vx * Math.sin(a) + nx * off;
+      const y = uy * Math.cos(a) + vy * Math.sin(a) + ny * off;
+      const z = uz * Math.cos(a) + vz * Math.sin(a) + nz * off;
+      const l = Math.sqrt(x * x + y * y + z * z);
+      const rr = baseR * radial;
+      const p = pt((x / l) * rr, (y / l) * rr, (z / l) * rr);
+      const depth = (p[2] / R + 1) / 2;
+      dots.push({ x: p[0], y: p[1], z: p[2], r: ((o.rBase == null ? 1.1 : o.rBase) + (o.rDepth == null ? 1.7 : o.rDepth) * depth) * (1 - 0.25 * edge) * rs, white: 0.52 - 0.44 * depth + 0.18 * edge, a: 0.4 + 0.6 * depth });
+    }
+  }
+  aiOrbPaint(ctx, dots, dark, o.rMin);
+}
+
+// engine/morph.ts — "shaping": a dotted outline cycling circle → triangle → square → circle.
+function aiOrbSmoothE(x) { return x * x * (3 - 2 * x); }
+function aiOrbPolyPath(verts) {
+  const V = verts.length;
+  const L = []; let total = 0;
+  for (let i = 0; i < V; i++) {
+    const a = verts[i], b = verts[(i + 1) % V];
+    const l = Math.hypot(b[0] - a[0], b[1] - a[1]);
+    L.push(l); total += l;
+  }
+  return function (f) {
+    let target = f * total, i = 0;
+    while (target > L[i] && i < V - 1) { target -= L[i]; i++; }
+    const a = verts[i], b = verts[(i + 1) % V];
+    const ff = L[i] ? Math.min(1, target / L[i]) : 0;
+    return [a[0] + (b[0] - a[0]) * ff, a[1] + (b[1] - a[1]) * ff];
+  };
+}
+const AI_ORB_CIRCLE = function (f) { const a = -Math.PI / 2 + f * 2 * Math.PI; return [Math.cos(a) * 0.24, Math.sin(a) * 0.24]; };
+const AI_ORB_TRIANGLE = aiOrbPolyPath([[0.0, -0.26], [0.24, 0.16], [-0.24, 0.16]]);
+const AI_ORB_SQUARE = aiOrbPolyPath([[0, -0.2], [0.2, -0.2], [0.2, 0.2], [-0.2, 0.2], [-0.2, -0.2]]);
+const AI_ORB_CYCLE = [AI_ORB_CIRCLE, AI_ORB_TRIANGLE, AI_ORB_SQUARE];
+function aiOrbMorphN(d) { return Math.max(6, Math.round(34 * d)); }
+const AI_ORB_HOLD = 1.4, AI_ORB_MORPH = 0.9, AI_ORB_SEG = AI_ORB_HOLD + AI_ORB_MORPH;
+function aiOrbDrawMorph(ctx, size, t, dark, o) {
+  const K = AI_ORB_CYCLE.length;
+  const tc = t % (AI_ORB_SEG * K);
+  const k = Math.floor(tc / AI_ORB_SEG);
+  const local = tc - k * AI_ORB_SEG;
+  const m = local > AI_ORB_HOLD ? aiOrbSmoothE((local - AI_ORB_HOLD) / AI_ORB_MORPH) : 0;
+  const sprd = o.spread == null ? 1 : o.spread;
+  const pA = AI_ORB_CYCLE[k], pB = AI_ORB_CYCLE[(k + 1) % K];
+  const M = 160;
+  const pts = [];
+  for (let i = 0; i < M; i++) {
+    const f = i / M, a = pA(f), b = pB(f);
+    pts.push([(a[0] + (b[0] - a[0]) * m) * sprd, (a[1] + (b[1] - a[1]) * m) * sprd]);
+  }
+  const L = []; let total = 0;
+  for (let i = 0; i < M; i++) {
+    const a = pts[i], b = pts[(i + 1) % M];
+    const l = Math.hypot(b[0] - a[0], b[1] - a[1]);
+    L.push(l); total += l;
+  }
+  const n = aiOrbMorphN(o.iconD == null ? 1 : o.iconD);
+  const re = (o.rDot == null ? 0.021 : o.rDot) * 1.35 * sprd;
+  const pulse = 1 + 0.02 * Math.sin(local * 3.1);
+  const dots = [];
+  const c2 = size / 2;
+  let seg = 0, acc = 0;
+  for (let k2 = 0; k2 < n; k2++) {
+    const target = (k2 / n) * total;
+    while (acc + L[seg] < target && seg < M - 1) { acc += L[seg]; seg++; }
+    const a = pts[seg], b = pts[(seg + 1) % M];
+    const f = L[seg] ? Math.min(1, (target - acc) / L[seg]) : 0;
+    const x = (a[0] + (b[0] - a[0]) * f) * pulse;
+    const y = (a[1] + (b[1] - a[1]) * f) * pulse;
+    dots.push({ x: c2 + x * size, y: c2 + y * size, z: 0, r: Math.max(0.35, re * size), white: 0.1 });
+  }
+  aiOrbPaint(ctx, dots, dark, o.rMin);
+}
+
+// registry.ts — mode key → frame painter. ring shares ribbon's painter (faceOn flag switches it).
+const AI_ORB_MODE_DRAWS = {
+  orbits: aiOrbDrawOrbits, globe: aiOrbDrawGlobe, rubik: aiOrbDrawRubik, wave: aiOrbDrawWave,
+  web: aiOrbDrawWeb, braid: aiOrbDrawBraid, ribbon: aiOrbDrawRibbon, ring: aiOrbDrawRibbon, morph: aiOrbDrawMorph
+};
+
+// presets.ts — the shipped tunings: nine states × two sizes (64/20), baked from the library's own
+// tuning session. Resolved once per (state, size) pair and cached.
+const AI_ORB_STATE_TO_MODE = {
+  working: 'orbits', searching: 'globe', solving: 'rubik', listening: 'wave', connecting: 'web',
+  weaving: 'braid', composing: 'ribbon', breathing: 'ring', shaping: 'morph'
+};
+const AI_ORB_PRESETS = {
+  orbits: { 64: { speed: 1.885, count: 1, size: 1 }, 20: { speed: 3.9, count: 0.238, size: 2.4 } },
+  globe: { 64: { speed: 2.015, count: 0.42, size: 1.15, extra: { scanMul: 4.08, dimBase: 0.45 } }, 20: { speed: 2.665, count: 0.105, size: 1.75, extra: { scanMul: 4.335, dimBase: 0.45 } } },
+  rubik: { 64: { speed: 1.82, count: 0.35, size: 1.05 }, 20: { speed: 1.95, count: 0.088, size: 1.9 } },
+  wave: { 64: { speed: 4.388, count: 0.341, size: 1 }, 20: { speed: 3.998, count: 0.105, size: 1.6 } },
+  web: { 64: { speed: 3.315, count: 1.35, size: 0.95 }, 20: { speed: 6.63, count: 0.25, size: 1.52 } },
+  braid: { 64: { speed: 1.625, count: 0.5, size: 1 }, 20: { speed: 2.75, count: 0.1125, size: 1.36 } },
+  ribbon: { 64: { speed: 2.34, count: 0.25, size: 0.85, extra: { spin: 0, bandMul: 3.9, wobMul: 1 } }, 20: { speed: 3.12, count: 0.051, size: 1.073, extra: { spin: 0, bandMul: 4.94, wobMul: 1 } } },
+  ring: { 64: { speed: 3.24, count: 0.25, size: 0.956, extra: { spin: 0, bandMul: 3.627, wobMul: 0.368 } }, 20: { speed: 3.78, count: 0.028, size: 1.622, extra: { spin: 0, bandMul: 3.968, wobMul: 0.565 } } },
+  morph: { 64: { speed: 2.405, count: 0.702, size: 0.395, extra: { spread: 1.45 } }, 20: { speed: 2.08, count: 0.53, size: 1.011, extra: { spread: 1.45 } } }
+};
+const aiOrbPresetCache = new Map();
+function aiOrbResolvePreset(state, size) {
+  const key = state + '-' + size;
+  const hit = aiOrbPresetCache.get(key);
+  if (hit) return hit;
+  const mode = AI_ORB_STATE_TO_MODE[state];
+  const preset = AI_ORB_PRESETS[mode][size];
+  let opts = Object.assign({}, AI_ORB_BASE_PROFILES[mode]);
+  if (preset.count !== 1) opts = aiOrbScaleCounts(opts, preset.count);
+  if (preset.size !== 1) opts = aiOrbScaleRadii(opts, preset.size);
+  if (preset.extra) opts = Object.assign({}, opts, preset.extra);
+  const resolved = { mode: mode, speed: preset.speed, opts: opts };
+  aiOrbPresetCache.set(key, resolved);
+  return resolved;
+}
+
+// ThinkingOrb.tsx → vanilla class. start()/stop() replace React's useEffect mount/unmount; dark
+// detection reads this page's own theme attribute (html[data-theme]) rather than the library's
+// generic ancestor-DOM/system-preference auto-detection, since this page already tracks that itself.
+class ThinkingOrb {
+  constructor(canvas, opts) {
+    opts = opts || {};
+    this.canvas = canvas;
+    this.state = opts.state || 'composing';
+    this.size = opts.size || 64; // only 64 (chat-avatar) and 20 (inline-text) have tuned presets
+    this.speed = opts.speed || 1;
+    this._raf = 0;
+    this._running = false;
+    this._onVis = null;
+  }
+  _isDark() {
+    return document.documentElement.getAttribute('data-theme') !== 'light';
+  }
+  start() {
+    const canvas = this.canvas;
+    if (!canvas) return;
+    const dpr = Math.min(2, window.devicePixelRatio || 1);
+    canvas.width = Math.round(this.size * dpr);
+    canvas.height = Math.round(this.size * dpr);
+    canvas.style.width = this.size + 'px';
+    canvas.style.height = this.size + 'px';
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+    const resolved = aiOrbResolvePreset(this.state, this.size);
+    const draw = AI_ORB_MODE_DRAWS[resolved.mode];
+    const effSpeed = resolved.speed * this.speed;
+    const reduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const frame = (tSec) => {
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      ctx.clearRect(0, 0, this.size, this.size);
+      draw(ctx, this.size, tSec, this._isDark(), resolved.opts);
+    };
+    if (reduced) { frame(0.6); return; }
+    const self = this;
+    const loop = function () {
+      frame((performance.now() / 1000) * effSpeed);
+      if (self._running) self._raf = requestAnimationFrame(loop);
+    };
+    this._running = true;
+    frame((performance.now() / 1000) * effSpeed);
+    this._raf = requestAnimationFrame(loop);
+    this._onVis = function () {
+      if (document.visibilityState === 'hidden') { self._running = false; cancelAnimationFrame(self._raf); }
+      else if (!self._running) { self._running = true; self._raf = requestAnimationFrame(loop); }
+    };
+    document.addEventListener('visibilitychange', this._onVis);
+  }
+  stop() {
+    this._running = false;
+    cancelAnimationFrame(this._raf);
+    if (this._onVis) { document.removeEventListener('visibilitychange', this._onVis); this._onVis = null; }
+  }
+}
+
 // ── AI Assistant (Phase 27; redesigned as chat UI in Phase 41) — thin UI over
 // /api/admin/ai-assistant/plan|execute. Writes nothing until Confirm; the server re-validates
 // tenant ownership and applies through the exact same product/category update code the manual
@@ -7179,6 +7841,273 @@ function adminAiRegenerate(btn){
   input.value = adminAiLastUserMsg;
   adminAiSend();
 }
+function adminAiImageHTML(data){
+  if (Array.isArray(data.imageCandidates) && data.imageCandidates.length >= 2) {
+    const btns = data.imageCandidates.map(c =>
+      '<button class="admin-btn secondary" style="width:auto;font-size:.8rem;padding:8px 14px;" onclick="adminAiPickImageCandidate(this)" data-name="' + aiAsstEsc(c.name) + '">' + aiAsstEsc(c.name) + '</button>'
+    ).join('');
+    return '<div style="margin-top:10px;display:flex;flex-wrap:wrap;gap:8px;">' + btns + '</div>';
+  }
+  if (data.imageUrl) {
+    let html = '<img src="' + aiAsstEsc(data.imageUrl) + '" alt="" style="display:block;width:100%;max-width:360px;aspect-ratio:1;object-fit:cover;border-radius:14px;margin-top:10px;">';
+    if (data.imageProductId) {
+      html += '<button class="admin-btn secondary ai-apply-img-btn" style="width:auto;margin-top:8px;font-size:.8rem;padding:8px 14px;" ' +
+        'data-product-id="' + aiAsstEsc(data.imageProductId) + '" data-image-url="' + aiAsstEsc(data.imageUrl) + '" ' +
+        'onclick="adminAiApplyProductImage(this)">' +
+        aiT('admin_ai_set_as_image', 'Ürün görseli olarak ayarla') +
+        (data.imageProductName ? ' — ' + aiAsstEsc(data.imageProductName) : '') +
+      '</button>';
+    }
+    return html;
+  }
+  if (data.imageError) {
+    const msg = data.imageError === 'hf_not_configured'
+      ? aiT('admin_ai_hf_not_configured', 'Görsel oluşturma henüz yapılandırılmadı. Lütfen Root panelinden Hugging Face anahtarını ekleyin.')
+      : aiT('admin_ai_hf_error', 'Görsel oluşturulamadı: ') + aiAsstEsc(data.imageError);
+    return '<div style="margin-top:10px;color:var(--ap-bad);font-size:.85rem;">' + msg + '</div>';
+  }
+  return '';
+}
+// Belirsiz ürün ismi (Faz C) — birden fazla gerçek ürün eşleştiğinde kullanıcı hangisini
+// kastettiğini seçiyor; seçim, o ürün için AÇIK bir yeni istek olarak yeniden gönderiliyor
+// (mevcut tekli-görsel akışı aynen yeniden kullanılıyor, ekstra bir state/endpoint gerekmiyor).
+function adminAiPickImageCandidate(btn){
+  const name = btn.dataset.name;
+  const row = btn.closest('.ai-msg-actions') ? null : btn.parentElement;
+  if (row) row.querySelectorAll('button').forEach(b => b.disabled = true);
+  const input = document.getElementById('aAiInput');
+  input.value = aiT('admin_ai_candidate_prompt_template', '{name} için görsel oluştur').replace('{name}', name);
+  adminAiSend();
+}
+async function adminAiApplyProductImage(btn){
+  const productId = btn.dataset.productId;
+  const imageUrl = btn.dataset.imageUrl;
+  if (!productId || !imageUrl) return;
+  btn.disabled = true;
+  const originalText = btn.textContent;
+  try {
+    const res = await fetch('/api/admin/ai-assistant/apply-image', {
+      method: 'PUT', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ productId, imageUrl })
+    });
+    if (!res.ok) throw new Error();
+    btn.textContent = aiT('admin_ai_image_applied', 'Ürün görseli güncellendi ✓');
+    btn.classList.add('applied');
+    if (typeof loadMenuDatabase === 'function') {
+      await loadMenuDatabase();
+      if (typeof renderAdminProductList === 'function') renderAdminProductList();
+    }
+  } catch (e) {
+    btn.disabled = false;
+    btn.textContent = originalText;
+    showCustomAlert(aiT('admin_ai_image_apply_error', 'Görsel ürüne atanamadı, tekrar deneyin.'));
+  }
+}
+
+// "Kendi Görselimi Ekle" — kullanıcı kendi fotoğrafını yükler, hangi ürüne ait olduğunu kendisi
+// seçer, aynı dar apply-image endpoint'iyle atar (AI-üretilen görsellerle AYNI güvenli yol).
+// Ürün seçici — native <select>'in açılır listesi tarayıcı-native (CSS ile giydirilemiyor), bu
+// yüzden sitenin zaten var olan .custom-select-container desenini (kategori filtresi, ürün formu
+// vb. ile aynı) kullanıyor. Her yüklenen görsel kendi benzersiz id'sine sahip bir örnek alır.
+function adminAiOwnImagePickerHTML(imageUrl){
+  const products = Array.isArray(window.menuData) ? window.menuData : [];
+  const uid = 'aiOwnImgPick_' + Math.random().toString(36).slice(2, 10);
+  const first = products[0];
+  const firstId = first ? first.id : '';
+  const firstName = first ? (first.name_tr || first.name || first.id) : '';
+  const options = products.map((p, i) => {
+    const name = p.name_tr || p.name || p.id;
+    return '<div class="custom-select-option' + (i === 0 ? ' active' : '') + '" onclick="adminAiPickOwnImgProduct(\'' + uid + '\',\'' + aiAsstEsc(p.id) + '\',this)">' +
+      '<span>' + aiAsstEsc(name) + '</span></div>';
+  }).join('');
+  return '<div class="ai-own-img-picker">' +
+    '<div class="custom-select-container ai-own-img-select" id="' + uid + '" data-product-id="' + aiAsstEsc(firstId) + '">' +
+      '<div class="custom-select-trigger" onclick="adminAiToggleOwnImgDropdown(event,\'' + uid + '\')">' +
+        '<span id="' + uid + '_label">' + aiAsstEsc(firstName) + '</span>' +
+        '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="margin-left:auto;"><polyline points="6 9 12 15 18 9"/></svg>' +
+      '</div>' +
+      '<div class="custom-select-options">' + options + '</div>' +
+    '</div>' +
+    '<button class="admin-btn ai-apply-img-btn" style="width:auto;font-size:.8rem;padding:8px 14px;" ' +
+      'data-image-url="' + aiAsstEsc(imageUrl) + '" data-select-id="' + uid + '" onclick="adminAiAssignOwnImage(this)">' +
+      aiT('admin_ai_assign_to_product', 'Bu ürüne ata') +
+    '</button>' +
+  '</div>';
+}
+function adminAiToggleOwnImgDropdown(event, uid){
+  event.stopPropagation();
+  document.querySelectorAll('.ai-own-img-select.open').forEach(el => { if (el.id !== uid) el.classList.remove('open'); });
+  const el = document.getElementById(uid);
+  if (el) el.classList.toggle('open');
+}
+function adminAiPickOwnImgProduct(uid, productId, optEl){
+  const container = document.getElementById(uid);
+  if (!container) return;
+  container.dataset.productId = productId;
+  const label = document.getElementById(uid + '_label');
+  if (label) label.textContent = optEl.textContent;
+  container.querySelectorAll('.custom-select-option').forEach(o => o.classList.remove('active'));
+  optEl.classList.add('active');
+  container.classList.remove('open');
+}
+document.addEventListener('click', (e) => {
+  if (e.target.closest('.ai-own-img-select')) return;
+  document.querySelectorAll('.ai-own-img-select.open').forEach(el => el.classList.remove('open'));
+});
+async function adminAiAssignOwnImage(btn){
+  const imageUrl = btn.dataset.imageUrl;
+  const container = document.getElementById(btn.dataset.selectId);
+  const productId = container && container.dataset.productId;
+  if (!productId || !imageUrl) return;
+  btn.disabled = true;
+  if (container) container.classList.add('disabled');
+  const originalText = btn.textContent;
+  try {
+    const res = await fetch('/api/admin/ai-assistant/apply-image', {
+      method: 'PUT', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ productId, imageUrl })
+    });
+    if (!res.ok) throw new Error();
+    btn.textContent = aiT('admin_ai_image_applied', 'Ürün görseli güncellendi ✓');
+    btn.classList.add('applied');
+    if (typeof loadMenuDatabase === 'function') {
+      await loadMenuDatabase();
+      if (typeof renderAdminProductList === 'function') renderAdminProductList();
+    }
+  } catch (e) {
+    btn.disabled = false;
+    if (container) container.classList.remove('disabled');
+    btn.textContent = originalText;
+    showCustomAlert(aiT('admin_ai_image_apply_error', 'Görsel ürüne atanamadı, tekrar deneyin.'));
+  }
+}
+async function adminAiUploadOwnImage(input){
+  const file = input.files && input.files[0];
+  input.value = '';
+  if (!file) return;
+  if (!file.type.startsWith('image/')) { showCustomAlert(aiT('admin_ai_own_image_bad_type', 'Lütfen bir görsel dosyası seçin.')); return; }
+  if (file.size > 5 * 1024 * 1024) { showCustomAlert(aiT('admin_ai_own_image_too_big', 'Görsel 5MB\'tan küçük olmalı.')); return; }
+  const reader = new FileReader();
+  reader.onload = async () => {
+    adminAiAppendMsg('user', '<div class="ai-bubble"><img src="' + reader.result + '" alt="" style="display:block;max-width:100%;border-radius:12px;"></div>');
+    const typingBubble = adminAiAppendMsg('assistant', adminAiTypingHTML());
+    adminAiStartThinkingOrb('working');
+    try {
+      const res = await fetch('/api/admin/upload-image', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ image: reader.result })
+      });
+      const data = await res.json();
+      adminAiStopThinkingOrb();
+      if (!res.ok || !data.url) throw new Error(data.error || 'upload_failed');
+      typingBubble.innerHTML = '<div class="ai-bubble">' + aiAsstEsc(aiT('admin_ai_own_image_uploaded', 'Görsel yüklendi. Hangi ürüne ait olduğunu seçin:')) + adminAiOwnImagePickerHTML(data.url) + '</div>';
+      adminAiScrollToBottom();
+    } catch (e) {
+      adminAiStopThinkingOrb();
+      typingBubble.innerHTML = '<div class="ai-bubble err">' + aiAsstEsc(aiT('admin_ai_own_image_upload_error', 'Görsel yüklenemedi, tekrar deneyin.')) + '</div>';
+    }
+  };
+  reader.readAsDataURL(file);
+}
+
+// "Menüyü Tamamla" — görseli olmayan ürünleri tespit edip toplu görsel oluşturma teklif ediyor.
+// Hangi ürünlerin eksik olduğu deterministik bir DB sorgusuyla bulunuyor (modele "hangileri eksik"
+// diye sormuyoruz — aynı "modele sadece kendisine verilen gerçek veriye güven" ilkesi).
+async function adminAiCompleteMenu(){
+  adminAiAppendMsg('user', '<div class="ai-bubble">' + aiAsstEsc(aiT('admin_ai_complete_menu', 'Menüyü Tamamla')) + '</div>');
+  const typingBubble = adminAiAppendMsg('assistant', adminAiTypingHTML());
+  adminAiStartThinkingOrb('searching');
+  try {
+    const res = await fetch('/api/admin/ai-assistant/missing-images');
+    const data = await res.json();
+    adminAiStopThinkingOrb();
+    if (!res.ok) throw new Error(data.error || 'fetch_failed');
+    const products = data.products || [];
+    if (!products.length) {
+      typingBubble.innerHTML = '<div class="ai-bubble">' + aiAsstEsc(aiT('admin_ai_menu_complete_none', 'Tüm ürünlerin zaten görseli var, eksik yok.')) + '</div>';
+      adminAiScrollToBottom();
+      return;
+    }
+    const rows = products.map(p =>
+      '<label class="ai-menu-complete-row"><input type="checkbox" checked value="' + aiAsstEsc(p.id) + '"><span>' + aiAsstEsc(p.name_tr || p.name_en || p.id) + '</span></label>'
+    ).join('');
+    typingBubble.innerHTML = '<div class="ai-bubble">' +
+      aiAsstEsc(aiT('admin_ai_menu_complete_found', 'Görseli olmayan {n} ürün bulundu:').replace('{n}', products.length)) +
+      '<div class="ai-menu-complete-list">' + rows + '</div>' +
+      '<button class="admin-btn" style="width:auto;margin-top:10px;" onclick="adminAiRunBulkGenerate(this)">' +
+        aiT('admin_ai_menu_complete_generate', 'Seçilenler İçin Oluştur') +
+      '</button>' +
+    '</div>';
+    adminAiScrollToBottom();
+  } catch (e) {
+    adminAiStopThinkingOrb();
+    typingBubble.innerHTML = '<div class="ai-bubble err">' + aiAsstEsc(aiT('admin_ai_menu_complete_error', 'Eksik görseller kontrol edilemedi, tekrar deneyin.')) + '</div>';
+  }
+}
+async function adminAiRunBulkGenerate(btn){
+  const bubble = btn.closest('.ai-bubble');
+  const checked = Array.from(bubble.querySelectorAll('input[type=checkbox]:checked')).map(c => c.value);
+  if (!checked.length) return;
+  bubble.querySelectorAll('input[type=checkbox]').forEach(c => c.disabled = true);
+  btn.disabled = true;
+  const msgWrap = btn.closest('.ai-msg');
+  const typingBubble = adminAiAppendMsg('assistant', adminAiTypingHTML());
+  adminAiStartThinkingOrb('weaving');
+  try {
+    const res = await fetch('/api/admin/ai-assistant/bulk-generate-images', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ productIds: checked })
+    });
+    const data = await res.json();
+    adminAiStopThinkingOrb();
+    if (!res.ok) throw new Error(data.error || 'bulk_failed');
+    typingBubble.innerHTML = '<div class="ai-bubble">' + adminAiBulkResultsHTML(data.results || []) + '</div>';
+    adminAiScrollToBottom();
+  } catch (e) {
+    adminAiStopThinkingOrb();
+    const msg = e.message === 'hf_not_configured'
+      ? aiT('admin_ai_hf_not_configured', 'Görsel oluşturma henüz yapılandırılmadı. Lütfen Root panelinden Hugging Face anahtarını ekleyin.')
+      : aiT('admin_ai_menu_complete_error', 'Eksik görseller kontrol edilemedi, tekrar deneyin.');
+    typingBubble.innerHTML = '<div class="ai-bubble err">' + aiAsstEsc(msg) + '</div>';
+  }
+}
+function adminAiBulkResultsHTML(results){
+  const ok = results.filter(r => r.imageUrl);
+  const failed = results.filter(r => !r.imageUrl);
+  let html = '<div class="ai-bulk-results">';
+  ok.forEach(r => {
+    html += '<div class="ai-bulk-result-item">' +
+      '<img src="' + aiAsstEsc(r.imageUrl) + '" alt="">' +
+      '<span>' + aiAsstEsc(r.productName) + '</span>' +
+      '<button class="admin-btn secondary ai-apply-img-btn" style="width:auto;font-size:.75rem;padding:6px 10px;" ' +
+        'data-product-id="' + aiAsstEsc(r.productId) + '" data-image-url="' + aiAsstEsc(r.imageUrl) + '" onclick="adminAiApplyProductImage(this)">' +
+        aiT('admin_ai_set_as_image', 'Ürün görseli olarak ayarla') +
+      '</button>' +
+    '</div>';
+  });
+  html += '</div>';
+  if (failed.length) {
+    html += '<div style="margin-top:10px;color:var(--ap-bad);font-size:.8rem;">' +
+      aiAsstEsc(aiT('admin_ai_menu_complete_partial', '{n} ürün için görsel oluşturulamadı.').replace('{n}', failed.length)) +
+    '</div>';
+  }
+  if (ok.length > 1) {
+    html = '<button class="admin-btn" style="width:auto;margin-bottom:10px;" onclick="adminAiApplyAllBulk(this)">' +
+      aiT('admin_ai_menu_complete_apply_all', 'Tümünü Uygula') +
+    '</button>' + html;
+  }
+  return html;
+}
+async function adminAiApplyAllBulk(btn){
+  btn.disabled = true;
+  const bubble = btn.closest('.ai-bubble');
+  const buttons = Array.from(bubble.querySelectorAll('.ai-apply-img-btn:not(.applied)'));
+  for (const b of buttons) {
+    await adminAiApplyProductImage(b);
+  }
+  btn.textContent = aiT('admin_ai_image_applied', 'Ürün görseli güncellendi ✓');
+  btn.classList.add('applied');
+}
 
 function adminAiAutoGrow(el){
   el.style.height = 'auto';
@@ -7190,6 +8119,17 @@ function adminAiComposerKey(e){
 function adminAiScrollToBottom(){
   const box = document.getElementById('aAiMessages');
   box.scrollTop = box.scrollHeight;
+}
+// Shows/updates the free-trial quota pill in the chat header. `quota` is either
+// {limit,used,remaining} (from the backend) or null/undefined (no limit — hide the pill).
+function adminAiUpdateQuotaBadge(quota){
+  const el = document.getElementById('aAiQuotaBadge');
+  if (!el) return;
+  if (!quota) { el.style.display = 'none'; return; }
+  el.style.display = 'inline-block';
+  el.textContent = aiT('admin_ai_quota_remaining', '{remaining}/{limit} mesaj kaldı')
+    .replace('{remaining}', quota.remaining).replace('{limit}', quota.limit);
+  el.classList.toggle('low', quota.remaining <= 5);
 }
 function adminAiAppendMsg(role, innerHTML, extraClass){
   const empty = document.getElementById('aAiEmpty');
@@ -7206,14 +8146,51 @@ function adminAiUserBubbleHTML(text){
   return '<div class="ai-bubble">' + aiAsstEsc(text).replace(/\n/g, '<br>') + '</div>';
 }
 function adminAiTypingHTML(){
-  return '<div class="ai-bubble"><span class="ai-typing"><span></span><span></span><span></span></span></div>';
+  return '<div class="ai-bubble ai-thinking-bubble"><canvas id="aAiThinkingOrb"></canvas></div>';
+}
+let adminAiOrbInstance = null;
+// Picks the orb state that best matches what kind of request was just sent — a simple client-side
+// keyword read on the outgoing message (the backend call is a single non-streaming round trip, so
+// there's no real "phase" signal to reflect; this is the closest honest approximation of "show a
+// fitting thinking animation for the situation").
+function adminAiPickOrbState(message){
+  const m = (message || '').toLowerCase();
+  if (/görsel|resim|fotoğraf|image|photo|picture/.test(m) && /oluştur|yap|üret|değiştir|generate|create/.test(m)) return 'weaving';
+  if (/%|fiyat|price|artır|azalt|indirim|zam\b|increase|decrease/.test(m)) return 'solving';
+  if (/hangi|kaç|listele|göster|bul|ara\b|search|find|which|list/.test(m)) return 'searching';
+  if (m.length < 40) return 'listening';
+  return 'composing';
+}
+function adminAiStartThinkingOrb(state){
+  const canvas = document.getElementById('aAiThinkingOrb');
+  if (!canvas || typeof ThinkingOrb === 'undefined') return;
+  if (adminAiOrbInstance) adminAiOrbInstance.stop();
+  adminAiOrbInstance = new ThinkingOrb(canvas, { state: state || 'composing', size: 20, speed: 1 });
+  adminAiOrbInstance.start();
+}
+function adminAiStopThinkingOrb(){
+  if (adminAiOrbInstance) { adminAiOrbInstance.stop(); adminAiOrbInstance = null; }
+}
+// One row per action — 'update' keeps the old→new diff layout; 'create'/'delete' have no
+// old/new pair (a row that doesn't exist yet, or one about to stop existing), so they render as
+// a single labeled value instead of forcing a diff shape that doesn't apply.
+function adminAiPlanRowHTML(a){
+  const tableLabel = a.table === 'products' ? aiT('admin_ai_table_products', 'Ürün') : aiT('admin_ai_table_categories', 'Kategori');
+  if (a.type === 'create') {
+    const priceStr = a.table === 'products' && a.fields.price ? ' · ₺' + aiAsstEsc(a.fields.price) : '';
+    return '<div class="ai-plan-row"><div class="ai-plan-field">+ ' + aiAsstEsc(tableLabel) + '</div>' +
+      '<div class="ai-plan-diff"><span class="ai-plan-new">' + aiAsstEsc(a.fields.name_tr) + priceStr + '</span></div></div>';
+  }
+  if (a.type === 'delete') {
+    return '<div class="ai-plan-row"><div class="ai-plan-field">&minus; ' + aiAsstEsc(tableLabel) + '</div>' +
+      '<div class="ai-plan-diff"><span class="ai-plan-old">' + aiAsstEsc(a.label) + '</span></div></div>';
+  }
+  return '<div class="ai-plan-row"><div class="ai-plan-field">' + aiAsstEsc(aiAsstResolveLabel(a)) + '</div>' +
+    '<div class="ai-plan-diff"><span class="ai-plan-old">' + aiAsstEsc(a.oldValue) + '</span>' +
+    '<span class="ai-plan-arrow">→</span><span class="ai-plan-new">' + aiAsstEsc(a.newValue) + '</span></div></div>';
 }
 function adminAiPlanHTML(data){
-  const rows = (data.actions || []).map(a =>
-    '<div class="ai-plan-row"><div class="ai-plan-field">' + aiAsstEsc(aiAsstResolveLabel(a)) + '</div>' +
-    '<div class="ai-plan-diff"><span class="ai-plan-old">' + aiAsstEsc(a.oldValue) + '</span>' +
-    '<span class="ai-plan-arrow">→</span><span class="ai-plan-new">' + aiAsstEsc(a.newValue) + '</span></div></div>'
-  ).join('');
+  const rows = (data.actions || []).map(adminAiPlanRowHTML).join('');
   const unsupported = (data.unsupported && data.unsupported.length)
     ? '<div class="ai-plan-unsupported"><b>' + aiT('admin_ai_unsupported', 'Desteklenmeyen istekler:') + '</b><br>' + data.unsupported.map(aiAsstEsc).join('<br>') + '</div>'
     : '';
@@ -7223,6 +8200,19 @@ function adminAiPlanHTML(data){
     : '';
   return '<div class="ai-bubble"><div class="ai-plan"><div class="ai-plan-summary">' + aiAsstEsc(data.summary || '') + '</div>' +
     rows + unsupported + actions + '</div></div>';
+}
+
+// Fresh self-service signup (?onboarding=1, see openAdminPanel) — a static kickoff message, NOT
+// a real AI call (no Groq request, no quota spent), just pointing the new owner at what to type.
+let __aiOnboardingWelcomeShown = false;
+function adminAiShowOnboardingWelcome(){
+  if (__aiOnboardingWelcomeShown) return;
+  __aiOnboardingWelcomeShown = true;
+  const html = '<div class="ai-bubble">' + aiAsstEsc(aiT('admin_ai_onboarding_welcome',
+    'Hoş geldiniz! Restoranınızı birlikte oluşturalım. Önce restoranınızın adını ve mutfak türünü, ' +
+    'ardından menünüzdeki kategorileri ve ürünleri (isim, açıklama, fiyat) yazabilirsiniz — ' +
+    'istediğiniz zaman düzenleyip değiştirebiliriz.')) + '</div>';
+  adminAiAppendMsg('assistant', html);
 }
 
 async function adminAiSend(){
@@ -7236,6 +8226,7 @@ async function adminAiSend(){
   input.value = '';
   adminAiAutoGrow(input);
   const typingBubble = adminAiAppendMsg('assistant', adminAiTypingHTML());
+  adminAiStartThinkingOrb(adminAiPickOrbState(msg));
   sendBtn.disabled = true; input.disabled = true;
   try {
     const res = await fetch('/api/admin/ai-assistant/plan', {
@@ -7243,20 +8234,24 @@ async function adminAiSend(){
       body: JSON.stringify({ message: msg })
     });
     const data = await res.json();
+    adminAiStopThinkingOrb();
     sendBtn.disabled = false; input.disabled = false; input.focus();
     // The backend can report a real failure (bad key, provider error, etc.) with HTTP 200 —
     // data.error is the actual source of truth, not res.ok (same bug class fixed in root.html's
     // Phase 39 chat redesign — checking res.ok alone here would mislabel a broken key as
     // "no actionable change found").
+    if (data.quota !== undefined) adminAiUpdateQuotaBadge(data.quota);
     if (!res.ok || data.error) {
-      const errMsg = data.error === 'ai_not_configured' ? aiT('admin_ai_not_configured', 'AI asistanı henüz yapılandırılmadı.') : (data.error || aiT('admin_ai_error_generic', 'Bir hata oluştu.'));
+      const errMsg = data.error === 'ai_not_configured' ? aiT('admin_ai_not_configured', 'AI asistanı henüz yapılandırılmadı.')
+        : data.error === 'ai_quota_exceeded' ? aiT('admin_ai_quota_exceeded', 'Ücretsiz deneme mesaj hakkınız doldu. Devam etmek için bizimle iletişime geçin — yakında ödeme sistemi eklenecek.')
+        : (data.error || aiT('admin_ai_error_generic', 'Bir hata oluştu.'));
       typingBubble.innerHTML = '<div class="ai-bubble err">' + aiAsstEsc(errMsg) + '</div>';
       return;
     }
     if (!data.planId && !(data.actions && data.actions.length)) {
       const text = data.summary || aiT('admin_ai_no_actions', 'İsteğinizden uygulanabilir bir değişiklik çıkaramadım.');
       typingBubble.innerHTML = (data.unsupported && data.unsupported.length) ? adminAiPlanHTML(data)
-        : '<div class="ai-bubble">' + aiAsstEsc(text) + '</div>';
+        : '<div class="ai-bubble">' + aiAsstEsc(text) + adminAiImageHTML(data) + '</div>';
       typingBubble.insertAdjacentHTML('beforeend', adminAiActionsRowHTML());
       adminAiScrollToBottom();
       return;
@@ -7267,6 +8262,7 @@ async function adminAiSend(){
     adminAiPendingBubble = data.planId ? typingBubble : null;
     adminAiScrollToBottom();
   } catch(e) {
+    adminAiStopThinkingOrb();
     sendBtn.disabled = false; input.disabled = false;
     typingBubble.innerHTML = '<div class="ai-bubble err">' + aiAsstEsc(aiT('admin_ai_conn_error', 'Bağlantı hatası.')) + '</div>';
   }
@@ -9396,12 +10392,8 @@ async function deletePush(id) {
     transition:transform .22s var(--ap-ease);
   }
   #adminPanelOverlay .side-brand{ display:flex; align-items:center; gap:11px; padding:6px 8px 16px; }
-  #adminPanelOverlay .side-brand .mark{ width:34px; height:34px; border-radius:var(--ap-radius-sm); flex:none; display:grid; place-items:center;
-    background:linear-gradient(150deg,#2a2a30,#0c0c0e); border:1px solid var(--ap-line-2); box-shadow:inset 0 1px 0 rgba(255,255,255,.14); color:#fff; }
-  #adminPanelOverlay .side-brand .mark span{ font-size:16px; background:linear-gradient(135deg,#fff 0%,#c9c9d2 45%,#8f8f9c 100%); -webkit-background-clip:text; background-clip:text; color:transparent; }
-  html[data-theme="light"] #adminPanelOverlay .side-brand .mark{
-    background:#eceef2; border-color:var(--ap-line-2); box-shadow:inset 0 1px 0 rgba(255,255,255,.8); color:#15171c;
-  }
+  #adminPanelOverlay .side-brand .mark{ width:34px; height:34px; flex:none; display:grid; place-items:center; color:#fff; }
+  html[data-theme="light"] #adminPanelOverlay .side-brand .mark{ color:#15171c; }
   #adminPanelOverlay .side-brand .txt{ display:flex; flex-direction:column; line-height:1.2; white-space:nowrap; overflow:hidden; }
   #adminPanelOverlay .side-brand .txt b{ font-size:16px; color:var(--ap-text); }
   #adminPanelOverlay .side-brand .txt small{ font-size:11px; color:var(--ap-faint); letter-spacing:.05em; }
@@ -9599,6 +10591,12 @@ async function deletePush(id) {
   #adminPanelOverlay .ai-chat-top{ display:flex; align-items:flex-start; justify-content:space-between; gap:16px;
     padding:18px 20px; border-bottom:1px solid var(--ap-line); flex:none; }
   #adminPanelOverlay .ai-chat-top h3{ font-size:15px; margin-bottom:3px; }
+  /* Free-trial quota indicator — only shown when the backend returns a quota object (self-serve
+     signups), so tenants with no limit never see it at all. */
+  #adminPanelOverlay .ai-quota-badge{ flex:none; font-size:12px; font-weight:600; color:var(--ap-muted);
+    background:var(--ap-bg-2); border:1px solid var(--ap-line); border-radius:999px; padding:6px 12px;
+    white-space:nowrap; }
+  #adminPanelOverlay .ai-quota-badge.low{ color:#c0463a; border-color:rgba(192,70,58,.35); background:rgba(192,70,58,.08); }
 
   #adminPanelOverlay .ai-chat-body-wrap{ position:relative; flex:1; min-height:0; display:flex; }
   #adminPanelOverlay .ai-chat-body{ flex:1; min-height:0; overflow-y:auto; padding:20px; display:flex; flex-direction:column; gap:14px; }
@@ -9634,10 +10632,8 @@ async function deletePush(id) {
   #adminPanelOverlay .ai-msg-action-btn.down.active{ color:var(--ap-bad); }
   #adminPanelOverlay .ai-msg-action-btn.copied{ color:var(--ap-ok); }
 
-  #adminPanelOverlay .ai-typing{ display:inline-flex; gap:4px; padding:2px 3px; }
-  #adminPanelOverlay .ai-typing span{ width:6px; height:6px; border-radius:50%; background:var(--ap-faint); animation:apAiTyping 1.2s infinite ease-in-out; }
-  #adminPanelOverlay .ai-typing span:nth-child(2){ animation-delay:.15s; } #adminPanelOverlay .ai-typing span:nth-child(3){ animation-delay:.3s; }
-  @keyframes apAiTyping{ 0%,60%,100%{ transform:translateY(0); opacity:.4;} 30%{ transform:translateY(-4px); opacity:1;} }
+  #adminPanelOverlay .ai-thinking-bubble{ display:flex; align-items:center; justify-content:center; padding:9px !important; }
+  #adminPanelOverlay .ai-thinking-bubble canvas{ display:block; }
 
   #adminPanelOverlay .ai-plan-summary{ font-weight:700; margin-bottom:8px; }
   #adminPanelOverlay .ai-plan-row{ display:flex; flex-direction:column; gap:2px; padding:8px 0; border-top:1px solid var(--ap-line); }
@@ -9650,7 +10646,8 @@ async function deletePush(id) {
   #adminPanelOverlay .ai-plan-unsupported{ margin-top:10px; padding-top:10px; border-top:1px dashed var(--ap-line); font-size:.78rem; color:var(--ap-muted); line-height:1.6; }
   #adminPanelOverlay .ai-plan-actions{ display:flex; gap:8px; margin-top:14px; }
   #adminPanelOverlay .ai-plan-actions .admin-btn{ width:auto; flex:none; margin:0; padding:8px 16px; font-size:.8rem; }
-  #adminPanelOverlay .ai-plan-actions .admin-btn:not(.secondary){ background:var(--ai-accent); color:var(--ai-accent-text); }
+  #adminPanelOverlay .ai-chat .admin-btn:not(.secondary){ background:var(--ai-accent); color:var(--ai-accent-text); }
+  #adminPanelOverlay .ai-apply-img-btn.applied{ background:transparent !important; color:var(--ap-ok) !important; border:1px solid var(--ap-ok) !important; cursor:default; }
   #adminPanelOverlay .ai-msg.cancelled .ai-bubble{ opacity:.55; }
   #adminPanelOverlay .ai-msg.cancelled .ai-plan-old, #adminPanelOverlay .ai-msg.cancelled .ai-plan-new{ text-decoration:line-through; color:var(--ap-muted); }
   #adminPanelOverlay .ai-msg-tag{ display:inline-flex; align-items:center; gap:5px; font-size:.76rem; font-weight:700; margin-top:10px; }
@@ -9659,12 +10656,10 @@ async function deletePush(id) {
   #adminPanelOverlay .ai-msg-tag.err{ color:var(--ap-bad); }
   #adminPanelOverlay .ai-bubble.err{ color:var(--ap-bad); border-color:var(--ap-bad-soft); }
 
-  #adminPanelOverlay .ai-chat-composer{ flex:none; display:flex; align-items:center; gap:8px; margin:0 16px 16px; padding:6px 6px 6px 8px;
+  #adminPanelOverlay .ai-chat-composer{ flex:none; display:flex; align-items:center; gap:8px; margin:0 16px 16px; padding:6px 8px;
     border:1px solid var(--ap-line); border-radius:999px; background:var(--ap-bg-2); transition:border-color var(--ap-t), box-shadow var(--ap-t); }
   #adminPanelOverlay .ai-chat-composer:focus-within{ border-color:var(--ai-accent); box-shadow:0 0 0 3px var(--ap-line-2); }
-  #adminPanelOverlay .ai-chat-composer-avatar{ flex:none; width:30px; height:30px; border-radius:50%; background:var(--ai-accent); color:var(--ai-accent-text); display:grid; place-items:center; }
-  #adminPanelOverlay .ai-chat-composer-avatar svg{ width:15px; height:15px; }
-  #adminPanelOverlay .ai-chat-composer textarea{ flex:1; resize:none; max-height:120px; padding:8px 0; font-size:.87rem; line-height:1.4;
+  #adminPanelOverlay .ai-chat-composer textarea{ flex:1; resize:none; max-height:120px; padding:8px 4px 8px 10px; font-size:.87rem; line-height:1.4;
     background:transparent; border:none; border-radius:0; }
   #adminPanelOverlay .ai-chat-composer textarea:focus{ outline:none; border:none; box-shadow:none; }
   #adminPanelOverlay .ai-chat-send-btn{ flex:none; width:38px; height:38px; border-radius:50%; border:none; background:var(--ai-accent); color:var(--ai-accent-text);
@@ -9672,6 +10667,21 @@ async function deletePush(id) {
   #adminPanelOverlay .ai-chat-send-btn:hover:not(:disabled){ transform:scale(1.06); }
   #adminPanelOverlay .ai-chat-send-btn:disabled{ opacity:.5; cursor:not-allowed; }
   #adminPanelOverlay .ai-chat-send-btn svg{ width:18px; height:18px; }
+  #adminPanelOverlay .ai-chat-attach-btn{ flex:none; width:32px; height:32px; border-radius:50%; border:none; background:none; color:var(--ap-muted);
+    display:grid; place-items:center; cursor:pointer; transition:background var(--ap-t), color var(--ap-t); }
+  #adminPanelOverlay .ai-chat-attach-btn:hover{ background:var(--ap-card); color:var(--ap-text); }
+  #adminPanelOverlay .ai-chat-attach-btn svg{ width:17px; height:17px; }
+  #adminPanelOverlay .ai-own-img-picker{ display:flex; flex-wrap:wrap; align-items:center; gap:8px; margin-top:10px; }
+  #adminPanelOverlay .ai-own-img-select{ flex:1; min-width:140px; position:relative; }
+  #adminPanelOverlay .ai-own-img-select.disabled{ pointer-events:none; opacity:.6; }
+  #adminPanelOverlay .ai-menu-complete-list{ display:flex; flex-direction:column; gap:6px; margin-top:10px; max-height:220px; overflow-y:auto; }
+  #adminPanelOverlay .ai-menu-complete-row{ display:flex; align-items:center; gap:8px; padding:6px 8px; border-radius:10px; cursor:pointer; font-size:.85rem; }
+  #adminPanelOverlay .ai-menu-complete-row:hover{ background:var(--ap-card); }
+  #adminPanelOverlay .ai-menu-complete-row input{ accent-color:var(--ai-accent); width:auto; }
+  #adminPanelOverlay .ai-bulk-results{ display:flex; flex-direction:column; gap:8px; margin-top:6px; }
+  #adminPanelOverlay .ai-bulk-result-item{ display:flex; align-items:center; gap:10px; padding:8px; border-radius:12px; background:var(--ap-card); border:1px solid var(--ap-line); }
+  #adminPanelOverlay .ai-bulk-result-item img{ width:44px; height:44px; border-radius:8px; object-fit:cover; flex:none; }
+  #adminPanelOverlay .ai-bulk-result-item span{ flex:1; font-size:.85rem; }
   @media(max-width:640px){
     #adminPanelOverlay .ai-chat{ height:calc(100vh - 210px); }
     #adminPanelOverlay .ai-msg{ max-width:92%; }

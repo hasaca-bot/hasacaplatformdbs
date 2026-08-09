@@ -76,9 +76,7 @@ html.theme-mono .nav.scrolled{ background:rgba(255,255,255,.88); }
 html.theme-mono .nav.open .nav-links{ background:rgba(255,255,255,.97); }
 html.theme-mono .brand .mark,
 html.theme-mono .theme-switch.on{ color:var(--gold); }
-html.theme-mono .brand .mark{
-  background:#f0f0f2; border-color:rgba(10,10,11,.15); box-shadow:inset 0 1px 0 rgba(255,255,255,.8); color:#0a0a0b;
-}
+html.theme-mono .brand .mark{ color:#0a0a0b; }
 html.theme-mono .btn-primary{ background:#0a0a0b; color:#fff; box-shadow:0 10px 30px -8px rgba(10,10,11,.35); }
 html.theme-mono .nav-toggle{ color:#0a0a0b; }
 html.theme-mono ::selection{ background:var(--gold-soft); color:#0a0a0b; }
@@ -138,10 +136,7 @@ h1,h2,h3{ line-height:1.1; letter-spacing:-.02em; }
 .nav.scrolled{ border-bottom-color:var(--border); background:rgba(10,10,11,.88); }
 .nav-in{ max-width:var(--maxw); margin:0 auto; padding:15px 24px; display:flex; align-items:center; gap:22px; }
 .brand{ display:flex; align-items:center; gap:11px; font-size:20px; }
-.brand .mark{ width:34px; height:34px; border-radius:10px; display:grid; place-items:center;
-  background:linear-gradient(150deg,#2a2a30,#0c0c0e); border:1px solid var(--border-2);
-  box-shadow:inset 0 1px 0 rgba(255,255,255,.14); }
-.brand .mark span{ font-size:16px; background:var(--shine); -webkit-background-clip:text; background-clip:text; color:transparent; }
+.brand .mark{ width:34px; height:34px; display:grid; place-items:center; color:#ffffff; }
 .nav-links{ display:flex; gap:4px; margin-left:10px; }
 .nav-links a{ color:var(--text-dim); font-size:14.5px; padding:8px 13px; border-radius:10px; transition:color .15s, background .15s; }
 .nav-links a:hover,.nav-links a.on{ color:var(--text); background:var(--surface); }
@@ -375,7 +370,7 @@ table.cmp tbody tr:hover{ background:rgba(255,255,255,.02); }
     </div>
     <div class="nav-right">
       <button class="theme-switch" id="themeSwitchBtn" onclick="toggleLandingTheme()" aria-label="Tema" title="Siyah &amp; Beyaz Tema">
-        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 3a9 9 0 0 0 0 18z" fill="currentColor" stroke="none"/></svg>
+        <svg class="theme-switch-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 14.5A8.5 8.5 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z" fill="currentColor" stroke="none"/></svg>
       </button>
       <div class="lang">
         <button data-lang="tr" class="on" onclick="setLang('tr')">TR</button>
@@ -397,7 +392,7 @@ table.cmp tbody tr:hover{ background:rgba(255,255,255,.02); }
   <div class="foot-bottom">
     <p>© <span id="year"></span> HASACA. <span id="rights">Tüm hakları saklıdır.</span></p>
     <button class="theme-switch" id="themeSwitchBtnFoot" onclick="toggleLandingTheme()" aria-label="Tema" title="Siyah &amp; Beyaz Tema">
-      <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 3a9 9 0 0 0 0 18z" fill="currentColor" stroke="none"/></svg>
+      <svg class="theme-switch-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 14.5A8.5 8.5 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z" fill="currentColor" stroke="none"/></svg>
     </button>
     <div class="lang">
       <button data-lang="tr" class="on" onclick="setLang('tr')">Türkçe</button>
@@ -645,11 +640,17 @@ function setLang(l){ LANG=l; try{ localStorage.setItem('hasaca_landing_lang', l)
 
 /* Ported from landing.html verbatim — shared localStorage key, so the toggle-button .on state
    stays in sync no matter which of the two files the visitor toggled it from. */
+const THEME_ICON_SUN = '<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/>';
+const THEME_ICON_MOON = '<path d="M20 14.5A8.5 8.5 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z" fill="currentColor" stroke="none"/>';
 function applyLandingTheme(theme){
   document.documentElement.classList.toggle('theme-mono', theme === 'mono');
+  const iconHTML = theme === 'mono' ? THEME_ICON_SUN : THEME_ICON_MOON;
   ['themeSwitchBtn', 'themeSwitchBtnFoot'].forEach(id => {
     const btn = document.getElementById(id);
-    if (btn) btn.classList.toggle('on', theme === 'mono');
+    if (!btn) return;
+    btn.classList.toggle('on', theme === 'mono');
+    const svg = btn.querySelector('.theme-switch-icon');
+    if (svg) svg.innerHTML = iconHTML;
   });
 }
 function toggleLandingTheme(){

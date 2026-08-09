@@ -673,9 +673,9 @@
       [x('Geliştiriliyor', 'In progress'), x('Panel arayüz yenilemesi', 'Panel UI refresh'), x('Yönetim panelleri modern masaüstü deneyimine kavuşuyor.', 'Admin panels are moving to a modern desktop experience.'), 'active'],
       [x('Sırada', 'Next up'), x('Yapay zekâ asistanı', 'AI assistant'), x('Menü üretimi, açıklama yazımı ve satış öngörüleri.', 'Menu generation, copywriting and sales forecasts.'), 'next'],
       [x('Sırada', 'Next up'), x('QR tasarım aracı', 'QR designer'), x('QR kodlarını markanıza göre renklendirin.', 'Colour your QR codes to match your brand.'), 'next'],
-      [x('Planlanıyor', 'Planned'), x('Widget yönetimi', 'Widget management'), x('Sitenizdeki bileşenleri açıp kapatın.', 'Toggle components on your site.'), 'plan'],
-      [x('Planlanıyor', 'Planned'), x('Gelişmiş rol yönetimi', 'Advanced roles'), x('Daha ince ayarlı yetkilendirme seviyeleri.', 'More granular permission levels.'), 'plan'],
-      [x('Planlanıyor', 'Planned'), x('Mobil uygulama', 'Mobile app'), x('İşletme sahipleri için native mobil panel.', 'A native mobile panel for owners.'), 'plan']
+      [x('Planlanıyor', 'Planned'), x('Widget yönetimi', 'Widget management'), x('Sitenizdeki bileşenleri açıp kapatın.', 'Toggle components on your site.'), 'planned'],
+      [x('Planlanıyor', 'Planned'), x('Gelişmiş rol yönetimi', 'Advanced roles'), x('Daha ince ayarlı yetkilendirme seviyeleri.', 'More granular permission levels.'), 'planned'],
+      [x('Planlanıyor', 'Planned'), x('Mobil uygulama', 'Mobile app'), x('İşletme sahipleri için native mobil panel.', 'A native mobile panel for owners.'), 'planned']
     ]),
     cta(x('Bir özellik mi istiyorsunuz?', 'Want a feature?'), x('Talebinizi iletin; yol haritamızı müşteri ihtiyacına göre önceliklendiriyoruz.', 'Send us your request — we prioritise the roadmap by customer need.'), [{ label: x('Özellik Öner', 'Suggest a Feature'), href: '/iletisim', primary: true }, { label: x('Sürüm Notları', 'Changelog'), href: '/surum-notlari' }])
   ]);

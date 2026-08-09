@@ -209,57 +209,74 @@ app.post('/api/products/reset', adminAuth, async (req, res) => {
   }
 });
 
+// Shared insert used by BOTH the real REST endpoint below AND the AI assistant's "create product"
+// action (POST /api/admin/ai-assistant/execute) — one tested INSERT shape, not two.
+async function createProductRow(tenantId, body) {
+  const name_tr = body.name_tr || body.name || '';
+  const name_en = body.name_en || name_tr;
+  const description_tr = body.description_tr || body.description || '';
+  const description_en = body.description_en || description_tr;
+  const portion_tr = body.portion_tr || (body.besin_degerleri && body.besin_degerleri.porsiyon) || '1 Porsiyon';
+  const portion_en = body.portion_en || portion_tr;
+  const ingredients_tr = body.ingredients_tr || body.icindekiler || '';
+  const ingredients_en = body.ingredients_en || ingredients_tr;
+  const calories = parseFloat(body.calories || (body.besin_degerleri && body.besin_degerleri.enerji) || 0);
+  const protein = parseFloat(body.protein || (body.besin_degerleri && body.besin_degerleri.protein) || 0);
+  const carbs = parseFloat(body.carbs || (body.besin_degerleri && body.besin_degerleri.karbonhidrat) || 0);
+  const fat = parseFloat(body.fat || (body.besin_degerleri && body.besin_degerleri.yag) || 0);
+  const saturated_fat = parseFloat(body.saturated_fat || (body.besin_degerleri && body.besin_degerleri.doymus_yag) || 0);
+  const sugars = parseFloat(body.sugars || (body.besin_degerleri && body.besin_degerleri.sekerler) || 0);
+  const fiber = parseFloat(body.fiber || (body.besin_degerleri && body.besin_degerleri.lif) || 0);
+  const salt = parseFloat(body.salt || (body.besin_degerleri && body.besin_degerleri.tuz) || 0);
+
+  const id = body.id || `prod-${Date.now()}`;
+  const category = body.category || 'diger';
+  const price = parseFloat(body.price || 0);
+  const image = body.image || '';
+  const allergens = JSON.stringify(body.allergens || body.alerjenler || []);
+  const katki_maddesi_icermez = (body.katki_maddesi_icermez || body.katki_maddesi_icermez === 1) ? 1 : 0;
+
+  const paramValues = [id, tenantId, name_tr, name_en, description_tr, description_en, category, price, image,
+    portion_tr, portion_en, ingredients_tr, ingredients_en, calories, protein, carbs, fat,
+    saturated_fat, sugars, fiber, salt, allergens, katki_maddesi_icermez];
+
+  if (isPg) {
+    await db.run(`
+      INSERT INTO products (
+        id, tenant_id, name_tr, name_en, description_tr, description_en, category, price, image,
+        portion_tr, portion_en, ingredients_tr, ingredients_en, calories, protein, carbs, fat,
+        saturated_fat, sugars, fiber, salt, allergens, katki_maddesi_icermez, created_at, updated_at
+      ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,CURRENT_TIMESTAMP,CURRENT_TIMESTAMP)
+    `, paramValues);
+  } else {
+    await db.run(`
+      INSERT INTO products (
+        id, tenant_id, name_tr, name_en, description_tr, description_en, category, price, image,
+        portion_tr, portion_en, ingredients_tr, ingredients_en, calories, protein, carbs, fat,
+        saturated_fat, sugars, fiber, salt, allergens, katki_maddesi_icermez, created_at, updated_at
+      ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,CURRENT_TIMESTAMP,CURRENT_TIMESTAMP)
+    `, paramValues);
+  }
+  return id;
+}
+
+// Standalone (not shared with POST /api/categories below, which expects the CALLER to supply an
+// id — a different contract) — the AI assistant always invents its own id here since the model
+// only ever proposes a human-meaningless tempId, never a real one.
+async function createCategoryRow(tenantId, { name_tr, name_en, sort_order, icon }) {
+  const id = `cat-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+  await db.run(
+    isPg ? 'INSERT INTO categories (id, tenant_id, name_tr, name_en, sort_order, icon) VALUES ($1,$2,$3,$4,$5,$6)'
+         : 'INSERT INTO categories (id, tenant_id, name_tr, name_en, sort_order, icon) VALUES (?,?,?,?,?,?)',
+    [id, tenantId, name_tr, name_en || name_tr, sort_order || 0, icon || '']
+  );
+  return id;
+}
+
 // POST /api/products (Admin Only, tenant-scoped)
 app.post('/api/products', adminAuth, async (req, res) => {
   try {
-    const body = req.body;
-
-    const name_tr = body.name_tr || body.name || '';
-    const name_en = body.name_en || name_tr;
-    const description_tr = body.description_tr || body.description || '';
-    const description_en = body.description_en || description_tr;
-    const portion_tr = body.portion_tr || (body.besin_degerleri && body.besin_degerleri.porsiyon) || '1 Porsiyon';
-    const portion_en = body.portion_en || portion_tr;
-    const ingredients_tr = body.ingredients_tr || body.icindekiler || '';
-    const ingredients_en = body.ingredients_en || ingredients_tr;
-    const calories = parseFloat(body.calories || (body.besin_degerleri && body.besin_degerleri.enerji) || 0);
-    const protein = parseFloat(body.protein || (body.besin_degerleri && body.besin_degerleri.protein) || 0);
-    const carbs = parseFloat(body.carbs || (body.besin_degerleri && body.besin_degerleri.karbonhidrat) || 0);
-    const fat = parseFloat(body.fat || (body.besin_degerleri && body.besin_degerleri.yag) || 0);
-    const saturated_fat = parseFloat(body.saturated_fat || (body.besin_degerleri && body.besin_degerleri.doymus_yag) || 0);
-    const sugars = parseFloat(body.sugars || (body.besin_degerleri && body.besin_degerleri.sekerler) || 0);
-    const fiber = parseFloat(body.fiber || (body.besin_degerleri && body.besin_degerleri.lif) || 0);
-    const salt = parseFloat(body.salt || (body.besin_degerleri && body.besin_degerleri.tuz) || 0);
-
-    const id = body.id || `prod-${Date.now()}`;
-    const category = body.category || 'diger';
-    const price = parseFloat(body.price || 0);
-    const image = body.image || '';
-    const allergens = JSON.stringify(body.allergens || body.alerjenler || []);
-    const katki_maddesi_icermez = (body.katki_maddesi_icermez || body.katki_maddesi_icermez === 1) ? 1 : 0;
-
-    const paramValues = [id, req.tenantId, name_tr, name_en, description_tr, description_en, category, price, image,
-      portion_tr, portion_en, ingredients_tr, ingredients_en, calories, protein, carbs, fat,
-      saturated_fat, sugars, fiber, salt, allergens, katki_maddesi_icermez];
-
-    if (isPg) {
-      await db.run(`
-        INSERT INTO products (
-          id, tenant_id, name_tr, name_en, description_tr, description_en, category, price, image,
-          portion_tr, portion_en, ingredients_tr, ingredients_en, calories, protein, carbs, fat,
-          saturated_fat, sugars, fiber, salt, allergens, katki_maddesi_icermez, created_at, updated_at
-        ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,CURRENT_TIMESTAMP,CURRENT_TIMESTAMP)
-      `, paramValues);
-    } else {
-      await db.run(`
-        INSERT INTO products (
-          id, tenant_id, name_tr, name_en, description_tr, description_en, category, price, image,
-          portion_tr, portion_en, ingredients_tr, ingredients_en, calories, protein, carbs, fat,
-          saturated_fat, sugars, fiber, salt, allergens, katki_maddesi_icermez, created_at, updated_at
-        ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,CURRENT_TIMESTAMP,CURRENT_TIMESTAMP)
-      `, paramValues);
-    }
-
+    const id = await createProductRow(req.tenantId, req.body);
     const newRow = await db.get(
       isPg ? 'SELECT * FROM products WHERE id = $1 AND tenant_id = $2' : 'SELECT * FROM products WHERE id = ? AND tenant_id = ?',
       [id, req.tenantId]
@@ -1153,6 +1170,11 @@ app.get('/api/auth/me', adminAuth, async (req, res) => {
   });
 });
 
+// Free-trial AI message allowance for self-serve (Google sign-up) tenants — see
+// provisionTenantForGoogleAccount() below and the quota gate in POST /api/admin/ai-assistant/plan.
+// No payment system exists yet, so this is a soft cap, not a real billing mechanism.
+const AI_ONBOARDING_QUOTA_LIMIT = 30;
+
 // POST /api/auth/google — { credential } is the Google ID token (a JWT) delivered by Google
 // Identity Services' client-side button. Verified ONCE here against Google's own keys; every
 // subsequent authenticated request on this platform still uses our own signToken()/verifyToken()
@@ -1180,7 +1202,7 @@ async function provisionTenantForGoogleAccount(payload, clientIp, nameOverride) 
     if (!SLUG_RE.test(slug)) { slug = `restoran-${Date.now()}`.slice(0, 31); break; }
   }
 
-  await createTenantWithDemoContent({
+  const provisioned = await createTenantWithDemoContent({
     slug, name: displayName, display_name: displayName,
     body: { contact_email: payload.email },
     adminOverride: {
@@ -1190,6 +1212,15 @@ async function provisionTenantForGoogleAccount(payload, clientIp, nameOverride) 
       display_name: payload.name || displayName
     }
   });
+  // Free trial quota on the AI Assistant's Groq calls — self-serve tenants only. Root's manual
+  // "create tenant" form never sets this, so those tenants have no `ai_quota` key at all and stay
+  // unlimited (see the quota check in POST /api/admin/ai-assistant/plan, which treats a missing
+  // key as "no limit"). Piggybacks on the existing `settings` JSON blob — no migration needed.
+  const settingsWithQuota = { ...(provisioned.tenant.settings || {}), ai_quota: { limit: AI_ONBOARDING_QUOTA_LIMIT, used: 0 } };
+  await db.run(
+    isPg ? 'UPDATE tenants SET settings = $1 WHERE id = $2' : 'UPDATE tenants SET settings = ? WHERE id = ?',
+    [JSON.stringify(settingsWithQuota), slug]
+  );
   invalidateTenantCache(slug);
   logActivity({ tenantId: slug, actor: slug, role: 'tenant_admin', action: 'tenant_self_signup', target: slug, details: payload.email, ip: clientIp });
   return slug;
@@ -1987,7 +2018,77 @@ function cleanAiModel(m) { return (m && !/^gemini/i.test(m)) ? m : ''; }
 async function getAiConfig() {
   const row = await db.get(isPg ? 'SELECT settings FROM platform_settings WHERE id = $1' : 'SELECT settings FROM platform_settings WHERE id = ?', ['platform']);
   let s = {}; try { s = JSON.parse((row && row.settings) || '{}') || {}; } catch (e) {}
-  return { ai_enabled: !!s.ai_enabled, ai_model: cleanAiModel(s.ai_model) || DEFAULT_AI_MODEL, ai_key: s.ai_key || '' };
+  return { ai_enabled: !!s.ai_enabled, ai_model: cleanAiModel(s.ai_model) || DEFAULT_AI_MODEL, ai_key: s.ai_key || '', hf_key: s.hf_key || '' };
+}
+
+// Hugging Face Inference API (text-to-image) — the AI Assistant's "generate an image" capability.
+// Hugging Face retired the old api-inference.huggingface.co host in favor of a unified router
+// (huggingface_hub's own JS/Python clients point here too) — the old host no longer resolves.
+// Individual models on the free hf-inference provider get deprecated/swapped out over time, so this
+// tries a short list in order and only surfaces an error once all of them have failed — found live
+// while testing: FLUX.1-schnell came back "deprecated and no longer supported by provider
+// hf-inference", so a same-provider fallback chain is worth more than hardcoding one model id.
+const HF_IMAGE_MODELS = [
+  'stabilityai/stable-diffusion-3-medium-diffusers',
+  'black-forest-labs/FLUX.1-schnell',
+  'stabilityai/stable-diffusion-xl-base-1.0',
+  'stabilityai/stable-diffusion-2-1'
+];
+// Appended to EVERY image request regardless of what the model wrote — deterministic, not left to
+// the LLM to remember every time. Positive quality descriptors (some SD pipelines ignore
+// negative_prompt) + an explicit negative_prompt for pipelines that do support it.
+// "text" alone in the negative prompt wasn't enough — live testing showed the model still baking
+// words/labels into the image (a known diffusion-model failure mode: modern SD checkpoints render
+// legible text quite readily once anything prompt-adjacent to a menu/label concept is present). Both
+// a strong negative list AND a same-message positive counter-instruction ("no text ... photograph
+// only") since some pipelines on the free hf-inference tier under-weight negative_prompt.
+const HF_IMAGE_QUALITY_SUFFIX = ', professional white studio food photography, bright even studio lighting, sharp focus throughout, high resolution, crisp fine detail, appetizing, realistic texture, plain photograph only, no text, no writing, no words, no letters, no labels, no captions, no menu card, no signage';
+const HF_IMAGE_NEGATIVE_PROMPT = 'text, words, letters, writing, typography, font, caption, label, title, menu card, signage, sign, watermark, logo, subtitle, blurry, out of focus, bokeh, shallow depth of field, plastic-looking food, fake food, deformed, mutated, disfigured, low resolution, low quality, artifacts, cartoon, illustration, painting';
+async function generateImageHF(hfKey, prompt) {
+  const fullPrompt = prompt + HF_IMAGE_QUALITY_SUFFIX;
+  let lastErr = null;
+  for (const model of HF_IMAGE_MODELS) {
+    try {
+      const r = await fetch(`https://router.huggingface.co/hf-inference/models/${model}`, {
+        method: 'POST',
+        headers: { 'Authorization': 'Bearer ' + hfKey, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ inputs: fullPrompt, parameters: { negative_prompt: HF_IMAGE_NEGATIVE_PROMPT } })
+      });
+      if (!r.ok) {
+        let errMsg = 'http_' + r.status;
+        try { const j = await r.json(); errMsg = j.error || errMsg; } catch (e) {}
+        throw new Error(errMsg);
+      }
+      const buf = Buffer.from(await r.arrayBuffer());
+      const contentType = r.headers.get('content-type') || 'image/jpeg';
+      return `data:${contentType};base64,${buf.toString('base64')}`;
+    } catch (e) {
+      lastErr = e;
+      // "deprecated"/"not supported" means this model id is dead — worth trying the next one.
+      // Any other error (bad key, cold-start 503, etc.) would fail identically for every model in
+      // the list, so stop immediately instead of wasting time/quota on doomed retries.
+      if (!/deprecated|not supported|not found/i.test(e.message)) break;
+    }
+  }
+  throw lastErr;
+}
+
+// Persists an AI-generated image (base64 data URI) the same way POST /api/admin/upload-image does
+// — a file under /uploads, referenced by URL — so it can be (a) shown in chat via a small hosted
+// URL instead of a multi-hundred-KB JSON payload, and (b) later applied to a product's `image`
+// column, which per that route's own convention never stores base64 directly.
+function saveGeneratedImageFile(dataUri, tenantId) {
+  const matches = dataUri.match(/^data:image\/([a-zA-Z0-9.+-]+);base64,(.+)$/);
+  if (!matches) return null;
+  let ext = matches[1].toLowerCase().replace('svg+xml', 'svg').replace('jpeg', 'jpg');
+  if (!['png', 'jpg', 'webp', 'gif'].includes(ext)) ext = 'jpg';
+  const buffer = Buffer.from(matches[2], 'base64');
+  const uploadsDir = path.join(rootDir, 'uploads');
+  if (!fs.existsSync(uploadsDir)) fs.mkdirSync(uploadsDir, { recursive: true });
+  const tid = (tenantId || 'default').replace(/[^a-z0-9_-]/gi, '');
+  const filename = `${tid}-ai-${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
+  fs.writeFileSync(path.join(uploadsDir, filename), buffer);
+  return `/uploads/${filename}`;
 }
 
 // Groq's chat completions endpoint is OpenAI-compatible: Bearer auth, messages array,
@@ -2021,6 +2122,19 @@ app.post('/api/admin/ai-assistant/plan', adminAuth, async (req, res) => {
     const cfg = await getAiConfig();
     if (!cfg.ai_enabled || !cfg.ai_key) return res.status(400).json({ error: 'ai_not_configured' });
 
+    // Free-trial quota gate — only tenants with an `ai_quota` key (self-serve signups, see
+    // provisionTenantForGoogleAccount) are limited; a missing key means unlimited (every existing
+    // tenant, and every tenant Root creates manually, behaves exactly as before this change).
+    const tenantRow = await db.get(
+      isPg ? 'SELECT settings FROM tenants WHERE id = $1' : 'SELECT settings FROM tenants WHERE id = ?', [req.tenantId]
+    );
+    let tenantSettings = {};
+    try { tenantSettings = JSON.parse((tenantRow && tenantRow.settings) || '{}') || {}; } catch (e) {}
+    const quota = tenantSettings.ai_quota || null;
+    if (quota && (quota.used || 0) >= quota.limit) {
+      return res.status(429).json({ error: 'ai_quota_exceeded', quota });
+    }
+
     const products = await db.all(
       isPg ? 'SELECT id, name_tr, name_en, description_tr, description_en, category, price FROM products WHERE tenant_id = $1'
            : 'SELECT id, name_tr, name_en, description_tr, description_en, category, price FROM products WHERE tenant_id = ?',
@@ -2031,16 +2145,65 @@ app.post('/api/admin/ai-assistant/plan', adminAuth, async (req, res) => {
       [req.tenantId]
     );
 
-    const systemPrompt = `Sen bir restoran yönetim panelinin asistanısın. Sana restoranın ürün ve kategori
-verisi JSON olarak verilecek. Kullanıcının isteğini SADECE aşağıdaki JSON şemasıyla, SADECE verilen
-id'leri kullanarak yanıtla. Hesaplama gerekiyorsa (yüzde artış, büyük harf, metin değişimi, çeviri vb.)
-SONUCU SEN HESAPLA ve newValue alanına nihai değeri yaz — asla formül yazma.
-Şema: {"summary": string, "actions": [{"type": string, "table": "products"|"categories",
-"targetId": string, "field": string, "newValue": string}], "unsupported": [string]}
-İzin verilen alanlar — products: name_tr, name_en, description_tr, description_en, price, category.
-categories: name_tr, name_en. Sistemde OLMAYAN bir şey istenirse (örn. açılış saati, telefon numarası,
-adres) onu "unsupported" listesine kısa bir açıklamayla ekle, ASLA action üretme. Fiyat (price) her
-zaman sayı olarak string'e çevrilip yazılmalı (örn. "112.5").
+    const systemPrompt = `Sen bir restoran yönetim panelinin genel amaçlı AI asistanısın. Konuşduğun kişi
+restoranın sahibi/yöneticisi. Sadece menü düzenlemeyle sınırlı değilsin — sorulara doğal ve serbestçe
+cevap ver, tavsiye ver, sohbet et, görsel oluşturma isteklerini karşıla. Yanıtını HER ZAMAN aşağıdaki
+JSON şemasıyla ver, başka hiçbir şey yazma:
+{"summary": string, "actions": [
+  {"type":"update", "table":"products"|"categories", "targetId": string, "field": string, "newValue": string},
+  {"type":"create", "table":"products"|"categories", "tempId": string, "fields": object},
+  {"type":"delete", "table":"products"|"categories", "targetId": string}
+], "unsupported": [string], "image_prompt": string|null,
+"image_target_product_id": string|null, "image_target_candidates": [string]|null}
+
+Üç action tipi var:
+- "update": var olan bir ürün/kategoriyi düzenler. SADECE verilen GERÇEK id'leri ve izin verilen
+  alanları kullan. Hesaplama gerekiyorsa (yüzde artış, çeviri vb.) SONUCU SEN HESAPLA ve newValue'ya
+  nihai değeri yaz — asla formül yazma. Fiyat (price) her zaman sayı string'i olmalı (örn. "112.5").
+- "create": YENİ bir ürün veya kategori oluşturur — kullanıcı "menüme X ekle", "Y kategorisi aç",
+  "restoranımın menüsü şöyle: ..." gibi var olmayan bir şeyi tarif ettiğinde kullan. "tempId" alanına
+  bu plan içinde bu yeni kaydı referans vermek için kendi uydurduğun kısa bir metin yaz (örn. "new-1",
+  "cat-icecekler") — gerçek veritabanı id'si SUNUCU tarafından üretilecek, senin tempId'n sadece AYNI
+  plan içindeki bağımlılıklar için (örn. yeni oluşturduğun bir kategoriye yeni bir ürün atamak
+  istediğinde, o ürünün "fields.category" alanına kategorinin GERÇEK id'si yerine SENİN VERDİĞİN
+  tempId'yi yaz, sunucu bunu otomatik eşleştirecek). products için "fields": {name_tr, name_en,
+  description_tr, description_en, price, category} (name_tr zorunlu, category bir GERÇEK kategori
+  id'si veya AYNI planda oluşturduğun bir kategori tempId'si olmalı). categories için "fields":
+  {name_tr, name_en} (name_tr zorunlu). Kullanıcı "menümü baştan kur" gibi büyük bir istek yaparsa
+  birden fazla create action'ı tek planda üretmekten çekinme (önce kategoriler, sonra o kategorilere
+  ait ürünler sırayla).
+- "delete": var olan bir ürün/kategoriyi SİLER — kullanıcı açıkça "X'i kaldır/sil" dediğinde kullan,
+  asla kendi kararınla silme. "targetId" GERÇEK id olmalı. Bir kategori silinirse içindeki ürünler
+  otomatik silinmez — kullanıcı "kategoriyi ürünleriyle birlikte kaldır" derse o ürünler için de ayrı
+  delete action'ları ekle.
+Sistemde OLMAYAN bir alan istenirse (açılış saati, telefon, adres vb.) onu "unsupported"a kısa bir
+açıklamayla ekle, ASLA action üretme.
+- Kullanıcı bir görsel oluşturmanı isterse: "image_prompt" alanına SADECE yemeğin/görselin KENDİSİNİ
+  (malzemeler, sunum, tabak/ortam) net bir İngilizce tanımla yaz (örn. "a margherita pizza with fresh
+  basil, melted mozzarella, tomato sauce, wood-fired crust") — stüdyo/kalite/ışık talimatları YAZMA,
+  bunlar otomatik ekleniyor, sadece YEMEĞİN NE OLDUĞUNU tarif et. "summary"ye kısaca ne yaptığını
+  yaz, "actions" boş kalsın. İstek belirli bir menü ürününe atıfta bulunuyorsa (örn. "Margherita
+  Pizza için görsel oluştur", "şu ürün için bir görsel yap", "bu ürünün görselini değiştir", TR/EN
+  fark etmez) — SANA VERİLEN Ürünler listesindeki o ürünün GERÇEK adını, açıklamasını ve kategorisini
+  bul, "image_prompt"u bu gerçek bilgiye göre oluştur (malzemeler, sunum tarzı vb. açıklamadan/
+  isimden çıkar) — asla ürünün ne olduğunu uydurma veya görmezden gelip jenerik bir görsel isteme.
+  Üründe hiç açıklama yoksa sadece ismine göre makul bir tanım oluştur. Görsel belirli bir ürün İÇİN
+  isteniyorsa (o ürünün menü fotoğrafı olacaksa) "image_target_product_id"ye o ürünün GERÇEK id'sini
+  yaz — kullanıcı görseli daha sonra o ürüne fotoğraf olarak atayabilecek. Görsel bir ürünle ilgili
+  DEĞİLSE (genel/dekoratif bir istek) "image_target_product_id" null kalsın. İstek BELİRSİZSE —
+  verilen isim birden fazla GERÇEK ürüne uyabiliyorsa (örn. sadece "burger" dendi ve listede birden
+  fazla burger-benzeri ürün var) — "image_target_product_id"yi null bırak, bunun yerine
+  "image_target_candidates"e olası ürünlerin GERÇEK id'lerini yaz (en az 2), "image_prompt" yine de
+  makul bir genel tanımla doldurulsun (kullanıcı hangi ürünü kastettiğini seçtikten sonra kullanılacak).
+  Belirsizlik yoksa "image_target_candidates" null kalsın.
+- Diğer HER TÜRLÜ soru/sohbet/tavsiye isteğinde (menüyle ilgili olsun olmasın): doğal, yardımcı,
+  samimi bir cevabı "summary" alanına yaz; "actions" ve "image_prompt" boş/null kalsın.
+- SADECE sana aşağıda verilen ürün/kategori JSON verisine erişimin var. Bunun dışında (siparişler,
+  müşteri bilgileri, ödeme/finansal veri, diğer restoranların verisi, sistem/güvenlik ayarları, API
+  anahtarları vb.) HİÇBİR VERİN YOK ve göremezsin/değiştiremezsin — böyle bir şey istenirse elinde
+  olmadığını "summary"de nazikçe belirt, asla veri uydurma.
+İzin verilen düzenlenebilir alanlar — products: name_tr, name_en, description_tr, description_en,
+price, category. categories: name_tr, name_en.
 Ürünler: ${JSON.stringify(products)}
 Kategoriler: ${JSON.stringify(categories)}`;
 
@@ -2051,23 +2214,101 @@ Kategoriler: ${JSON.stringify(categories)}`;
       return res.json({ planId: null, summary: '', actions: [], unsupported: [], error: e.message });
     }
 
+    // Counts against quota once the Groq call actually succeeds — a real API call was spent
+    // either way, but only a successful one produced anything the tenant can act on.
+    if (quota) {
+      quota.used = (quota.used || 0) + 1;
+      tenantSettings.ai_quota = quota;
+      await db.run(
+        isPg ? 'UPDATE tenants SET settings = $1 WHERE id = $2' : 'UPDATE tenants SET settings = ? WHERE id = ?',
+        [JSON.stringify(tenantSettings), req.tenantId]
+      );
+    }
+    const quotaInfo = quota ? { limit: quota.limit, used: quota.used, remaining: Math.max(0, quota.limit - quota.used) } : null;
+
     const productsById = Object.fromEntries(products.map(p => [p.id, p]));
     const categoriesById = Object.fromEntries(categories.map(c => [c.id, c]));
-    const unsupported = Array.isArray(plan.unsupported) ? plan.unsupported.slice(0, 20) : [];
-    const actions = [];
-    for (const a of (Array.isArray(plan.actions) ? plan.actions : []).slice(0, 50)) {
-      const table = a.table === 'categories' ? 'categories' : (a.table === 'products' ? 'products' : null);
-      if (!table || !AI_FIELD_WHITELIST[table].includes(a.field)) { unsupported.push(`Desteklenmeyen alan: ${a.field}`); continue; }
-      const row = table === 'products' ? productsById[a.targetId] : categoriesById[a.targetId];
-      if (!row) { unsupported.push(`Bulunamayan kayıt: ${a.targetId}`); continue; }
-      actions.push({ type: String(a.type || 'update').slice(0, 40), table, targetId: a.targetId, field: a.field, oldValue: row[a.field], newValue: String(a.newValue ?? '').slice(0, 2000) });
+
+    let imageUrl = null;
+    let imageError = null;
+    let imageProductId = null;
+    let imageProductName = null;
+    let imageCandidates = null;
+    if (plan.image_prompt && String(plan.image_prompt).trim()) {
+      // Ambiguous name (matches 2+ real products, per the model) — validate each candidate id is
+      // actually one of this tenant's own products (same trust boundary as everything else here),
+      // then ask the user to pick BEFORE spending an image-generation call on a guess.
+      const rawCandidates = Array.isArray(plan.image_target_candidates) ? plan.image_target_candidates : [];
+      const validCandidates = rawCandidates.filter(id => productsById[id]).slice(0, 8);
+      if (!plan.image_target_product_id && validCandidates.length >= 2) {
+        imageCandidates = validCandidates.map(id => ({ id, name: productsById[id].name_tr }));
+      } else if (!cfg.hf_key) {
+        imageError = 'hf_not_configured';
+      } else {
+        try {
+          const dataUri = await generateImageHF(cfg.hf_key, String(plan.image_prompt).trim().slice(0, 500));
+          imageUrl = saveGeneratedImageFile(dataUri, req.tenantId);
+          // Only trust a target-product id that's actually one of THIS tenant's real products —
+          // same validate-against-the-real-row pattern as the actions loop below.
+          if (plan.image_target_product_id && productsById[plan.image_target_product_id]) {
+            imageProductId = plan.image_target_product_id;
+            imageProductName = productsById[imageProductId].name_tr;
+          }
+        } catch (e) { imageError = e.message; }
+      }
     }
 
-    if (!actions.length) return res.json({ planId: null, summary: plan.summary || '', actions: [], unsupported });
+    const unsupported = Array.isArray(plan.unsupported) ? plan.unsupported.slice(0, 20) : [];
+    const actions = [];
+    const productLabel = t => t === 'products' ? 'ürün' : 'kategori';
+    for (const a of (Array.isArray(plan.actions) ? plan.actions : []).slice(0, 50)) {
+      const table = a.table === 'categories' ? 'categories' : (a.table === 'products' ? 'products' : null);
+      if (!table) { unsupported.push(`Desteklenmeyen tablo: ${a.table}`); continue; }
+      const type = a.type === 'create' ? 'create' : (a.type === 'delete' ? 'delete' : 'update');
+
+      if (type === 'update') {
+        if (!AI_FIELD_WHITELIST[table].includes(a.field)) { unsupported.push(`Desteklenmeyen alan: ${a.field}`); continue; }
+        const row = table === 'products' ? productsById[a.targetId] : categoriesById[a.targetId];
+        if (!row) { unsupported.push(`Bulunamayan kayıt: ${a.targetId}`); continue; }
+        actions.push({ type: 'update', table, targetId: a.targetId, field: a.field, oldValue: row[a.field], newValue: String(a.newValue ?? '').slice(0, 2000) });
+      } else if (type === 'delete') {
+        const row = table === 'products' ? productsById[a.targetId] : categoriesById[a.targetId];
+        if (!row) { unsupported.push(`Bulunamayan kayıt: ${a.targetId}`); continue; }
+        actions.push({ type: 'delete', table, targetId: a.targetId, label: row.name_tr || a.targetId });
+      } else {
+        // create — targetId doesn't exist yet, so there's nothing to validate ownership against;
+        // the model's own tempId is only meaningful WITHIN this plan (see execute below), never a
+        // real database id.
+        const fields = (a.fields && typeof a.fields === 'object') ? a.fields : {};
+        const name_tr = String(fields.name_tr || '').trim().slice(0, 200);
+        if (!name_tr) { unsupported.push(`Ad belirtilmeden yeni ${productLabel(table)} oluşturulamaz`); continue; }
+        const tempId = String(a.tempId || '').trim().slice(0, 60) || `temp-${actions.length}`;
+        if (table === 'categories') {
+          actions.push({ type: 'create', table, tempId, fields: { name_tr, name_en: String(fields.name_en || name_tr).trim().slice(0, 200) } });
+        } else {
+          const category = String(fields.category || '').trim();
+          const referencesTempCategory = actions.some(x => x.type === 'create' && x.table === 'categories' && x.tempId === category);
+          if (!category || (!categoriesById[category] && !referencesTempCategory)) {
+            unsupported.push(`"${name_tr}" için geçerli bir kategori belirtilmedi`); continue;
+          }
+          actions.push({
+            type: 'create', table, tempId,
+            fields: {
+              name_tr, name_en: String(fields.name_en || name_tr).trim().slice(0, 200),
+              description_tr: String(fields.description_tr || '').slice(0, 2000),
+              description_en: String(fields.description_en || fields.description_tr || '').slice(0, 2000),
+              price: String(parseFloat(fields.price) || 0), category
+            }
+          });
+        }
+      }
+    }
+
+    if (!actions.length) return res.json({ planId: null, summary: plan.summary || '', actions: [], unsupported, imageUrl, imageError, imageProductId, imageProductName, imageCandidates, quota: quotaInfo });
 
     const planId = 'aip-' + Date.now() + '-' + Math.random().toString(36).slice(2, 10);
     aiPlanCache.set(planId, { tenantId: req.tenantId, actions, createdAt: Date.now() });
-    res.json({ planId, summary: plan.summary || '', actions, unsupported });
+    res.json({ planId, summary: plan.summary || '', actions, unsupported, imageUrl, imageError, imageProductId, imageProductName, imageCandidates, quota: quotaInfo });
   } catch (err) {
     console.error('[API ERROR] POST /api/admin/ai-assistant/plan:', err);
     res.status(500).json({ error: err.message });
@@ -2085,24 +2326,145 @@ app.post('/api/admin/ai-assistant/execute', adminAuth, async (req, res) => {
     if (Date.now() - cached.createdAt > AI_PLAN_TTL_MS) return res.status(410).json({ error: 'plan_expired' });
 
     const applied = [];
+    // tempId -> real generated id, so a same-plan product create can reference a category also
+    // being created in this plan. Categories are created FIRST for exactly this reason.
+    const tempIdToRealId = {};
+
     for (const a of cached.actions) {
-      // Re-verify the target still belongs to this tenant immediately before writing.
-      const exists = await db.get(
-        isPg ? `SELECT id FROM ${a.table} WHERE id = $1 AND tenant_id = $2` : `SELECT id FROM ${a.table} WHERE id = ? AND tenant_id = ?`,
-        [a.targetId, req.tenantId]
-      );
-      if (!exists) continue;
-      await db.run(
-        isPg ? `UPDATE ${a.table} SET ${a.field} = $1 WHERE id = $2 AND tenant_id = $3` : `UPDATE ${a.table} SET ${a.field} = ? WHERE id = ? AND tenant_id = ?`,
-        [a.newValue, a.targetId, req.tenantId]
-      );
-      applied.push(a);
+      if (a.type === 'create' && a.table === 'categories') {
+        const maxSortRow = await db.get(
+          isPg ? 'SELECT COALESCE(MAX(sort_order),0) AS m FROM categories WHERE tenant_id = $1' : 'SELECT COALESCE(MAX(sort_order),0) AS m FROM categories WHERE tenant_id = ?',
+          [req.tenantId]
+        );
+        const id = await createCategoryRow(req.tenantId, { ...a.fields, sort_order: (maxSortRow && maxSortRow.m || 0) + 1 });
+        tempIdToRealId[a.tempId] = id;
+        applied.push({ ...a, realId: id });
+      }
+    }
+    for (const a of cached.actions) {
+      if (a.type === 'update') {
+        // Re-verify the target still belongs to this tenant immediately before writing.
+        const exists = await db.get(
+          isPg ? `SELECT id FROM ${a.table} WHERE id = $1 AND tenant_id = $2` : `SELECT id FROM ${a.table} WHERE id = ? AND tenant_id = ?`,
+          [a.targetId, req.tenantId]
+        );
+        if (!exists) continue;
+        await db.run(
+          isPg ? `UPDATE ${a.table} SET ${a.field} = $1 WHERE id = $2 AND tenant_id = $3` : `UPDATE ${a.table} SET ${a.field} = ? WHERE id = ? AND tenant_id = ?`,
+          [a.newValue, a.targetId, req.tenantId]
+        );
+        applied.push(a);
+      } else if (a.type === 'delete') {
+        const result = await db.run(
+          isPg ? `DELETE FROM ${a.table} WHERE id = $1 AND tenant_id = $2` : `DELETE FROM ${a.table} WHERE id = ? AND tenant_id = ?`,
+          [a.targetId, req.tenantId]
+        );
+        if (result.changes) applied.push(a);
+      } else if (a.type === 'create' && a.table === 'products') {
+        let category = a.fields.category;
+        if (tempIdToRealId[category]) category = tempIdToRealId[category];
+        // Final ownership check — the category must now be real AND belong to this tenant,
+        // whether it pre-existed or was just created above in this same plan.
+        const catRow = await db.get(
+          isPg ? 'SELECT id FROM categories WHERE id = $1 AND tenant_id = $2' : 'SELECT id FROM categories WHERE id = ? AND tenant_id = ?',
+          [category, req.tenantId]
+        );
+        if (!catRow) continue;
+        const id = await createProductRow(req.tenantId, { ...a.fields, category });
+        applied.push({ ...a, realId: id });
+      }
     }
 
-    logActivity({ tenantId: req.tenantId, actor: (req.auth && req.auth.username) || 'admin', role: 'tenant_admin', action: 'ai_assistant_applied', target: `${applied.length} field(s)`, details: applied.map(a => `${a.table}.${a.field}`).join(','), ip: (req.headers['x-forwarded-for'] || '').split(',')[0].trim() || req.socket?.remoteAddress || '' });
+    logActivity({ tenantId: req.tenantId, actor: (req.auth && req.auth.username) || 'admin', role: 'tenant_admin', action: 'ai_assistant_applied', target: `${applied.length} change(s)`, details: applied.map(a => `${a.type}:${a.table}${a.field ? '.' + a.field : ''}`).join(','), ip: (req.headers['x-forwarded-for'] || '').split(',')[0].trim() || req.socket?.remoteAddress || '' });
     res.json({ success: true, applied, summary: `${applied.length} değişiklik uygulandı.` });
   } catch (err) {
     console.error('[API ERROR] POST /api/admin/ai-assistant/execute:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// PUT /api/admin/ai-assistant/apply-image — { productId, imageUrl } -> sets ONLY that product's
+// `image` column. Deliberately narrow (not the general PUT /api/products/:id, which is a full-row
+// replace and would wipe name/price/etc. if called with just an image field from a possibly-stale
+// frontend cache) — this touches exactly one column. Only accepts a URL this same server hosted
+// under /uploads (the AI's own generated-image output), never an arbitrary external URL.
+app.put('/api/admin/ai-assistant/apply-image', adminAuth, async (req, res) => {
+  try {
+    const productId = req.body && req.body.productId;
+    const imageUrl = req.body && req.body.imageUrl;
+    if (!productId || !imageUrl || typeof imageUrl !== 'string' || !/^\/uploads\/[a-zA-Z0-9._-]+$/.test(imageUrl)) {
+      return res.status(400).json({ error: 'invalid_request' });
+    }
+    const result = await db.run(
+      isPg ? 'UPDATE products SET image = $1, updated_at = CURRENT_TIMESTAMP WHERE id = $2 AND tenant_id = $3'
+           : 'UPDATE products SET image = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ? AND tenant_id = ?',
+      [imageUrl, productId, req.tenantId]
+    );
+    if (result.changes === 0) return res.status(404).json({ error: 'product_not_found' });
+    logActivity({ tenantId: req.tenantId, actor: (req.auth && req.auth.username) || 'admin', role: 'tenant_admin', action: 'ai_assistant_image_applied', target: productId, details: imageUrl, ip: (req.headers['x-forwarded-for'] || '').split(',')[0].trim() || req.socket?.remoteAddress || '' });
+    res.json({ success: true });
+  } catch (err) {
+    console.error('[API ERROR] PUT /api/admin/ai-assistant/apply-image:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// GET /api/admin/ai-assistant/missing-images — this tenant's own products with no image set yet.
+// Powers "Menüyü Tamamla" (bulk-generate for whatever's missing) — deterministic DB query, not left
+// to the model to enumerate (same "don't trust the LLM with data it wasn't given exactly" posture
+// as the rest of this feature).
+app.get('/api/admin/ai-assistant/missing-images', adminAuth, async (req, res) => {
+  try {
+    const rows = await db.all(
+      `SELECT id, name_tr, name_en, description_tr, description_en FROM products WHERE tenant_id = ${p(1)} AND (image IS NULL OR image = '')`,
+      [req.tenantId]
+    );
+    res.json({ products: rows });
+  } catch (err) {
+    console.error('[API ERROR] GET /api/admin/ai-assistant/missing-images:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// POST /api/admin/ai-assistant/bulk-generate-images — { productIds: string[] } -> generates (but
+// does NOT apply — same "never change the real image without explicit confirmation" rule as the
+// single-image flow) one image per product. Prompt is built directly from name+description
+// (deterministic string template, no per-item Groq call) rather than reusing the chat's
+// LLM-authored-prompt path: a bulk run can cover many products at once, and skipping the extra
+// model round trip per item keeps it fast and avoids hammering the free Groq rate limit. Quality
+// suffix + negative_prompt (Phase 71) still apply identically inside generateImageHF().
+app.post('/api/admin/ai-assistant/bulk-generate-images', adminAuth, async (req, res) => {
+  try {
+    const ids = Array.isArray(req.body && req.body.productIds) ? req.body.productIds.filter(x => typeof x === 'string').slice(0, 20) : [];
+    if (!ids.length) return res.status(400).json({ error: 'no_products' });
+    const cfg = await getAiConfig();
+    if (!cfg.hf_key) return res.status(400).json({ error: 'hf_not_configured' });
+
+    // NOTE: SQLite's `?` binds purely by textual position (unlike Postgres' numbered $N), so the
+    // params array order below MUST match the order placeholders appear in the SQL text — tenant_id
+    // first, then the IN-list — not the "logical" grouping.
+    const placeholders = ids.map((_, i) => p(i + 2)).join(',');
+    const rows = await db.all(
+      `SELECT id, name_tr, name_en, description_tr, description_en FROM products WHERE tenant_id = ${p(1)} AND id IN (${placeholders})`,
+      [req.tenantId, ...ids]
+    );
+
+    const results = [];
+    for (const row of rows) {
+      const name = row.name_en || row.name_tr || '';
+      const desc = row.description_en || row.description_tr || '';
+      const promptText = name + (desc ? ', ' + desc : '');
+      try {
+        const dataUri = await generateImageHF(cfg.hf_key, promptText);
+        const url = saveGeneratedImageFile(dataUri, req.tenantId);
+        results.push({ productId: row.id, productName: row.name_tr, imageUrl: url, error: null });
+      } catch (e) {
+        results.push({ productId: row.id, productName: row.name_tr, imageUrl: null, error: e.message });
+      }
+    }
+    res.json({ results });
+  } catch (err) {
+    console.error('[API ERROR] POST /api/admin/ai-assistant/bulk-generate-images:', err);
     res.status(500).json({ error: err.message });
   }
 });
@@ -2573,6 +2935,13 @@ app.get(MARKETING_SLUGS.map((s) => '/' + s), (req, res) => {
 // Auth entry points — one login page, tenant + root tabs. Auth logic itself is unchanged.
 app.get(['/login', '/giris', '/yonetici-girisi', '/restoran-girisi', '/root-girisi'], (req, res) => {
   res.sendFile(path.join(rootDir, 'login.html'));
+});
+
+// AI-driven self-service signup — same "explicit local-dev route mirroring the Netlify
+// _redirects entry" pattern as /login above (production traffic hits _redirects directly and
+// never reaches Render for this, but local dev and any direct Render request still need it).
+app.get(['/restoran-olustur', '/ai-ile-baslayin'], (req, res) => {
+  res.sendFile(path.join(rootDir, 'restoran-olustur.html'));
 });
 
 // ── Dynamic, per-tenant SEO: robots.txt + sitemap.xml (host-derived, no hardcoded domain) ──

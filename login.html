@@ -8,6 +8,16 @@
 <meta name="robots" content="noindex,nofollow">
 <link rel="icon" type="image/svg+xml" href="/icons/favicon.svg">
 <link rel="icon" href="/favicon.ico">
+<script>
+/* Applied synchronously before <body> parses (same 'landing_theme' key landing.html/marketing.html
+   share) so a theme choice made on either page carries over here with no flash of the wrong theme. */
+(function(){
+  var saved = null;
+  try { saved = localStorage.getItem('landing_theme'); } catch(e){}
+  var theme = saved || (window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches ? 'mono' : 'dark');
+  if (theme === 'mono') document.documentElement.classList.add('theme-mono');
+})();
+</script>
 <script src="https://accounts.google.com/gsi/client" async defer></script>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
@@ -27,6 +37,26 @@
   --shine:linear-gradient(135deg,#ffffff 0%,#c9c9d2 45%,#8f8f9c 100%);
   --radius:26px; --ease:cubic-bezier(.22,.61,.36,1);
 }
+/* Black & White theme — most of the page already routes through --bg/--surface/--border/--text
+   tokens above, so redefining them here is enough; only the handful of components below use a
+   hardcoded hex instead of a token (card glass, brand mark, ambient background) and need an
+   explicit override each. */
+html.theme-mono{
+  --bg:#ffffff; --bg-2:#f5f5f7;
+  --surface:rgba(10,10,11,.035); --surface-2:rgba(10,10,11,.06);
+  --border:rgba(10,10,11,.1); --border-2:rgba(10,10,11,.16);
+  --text:#0a0a0b; --text-dim:#4a4a52; --text-mute:#78787f;
+  --shine:linear-gradient(135deg,#0a0a0b 0%,#3c3c42 45%,#6e6e78 100%);
+}
+html.theme-mono .card{
+  background:rgba(255,255,255,.7); box-shadow:0 40px 90px -30px rgba(10,10,11,.16), inset 0 1px 0 rgba(255,255,255,.9);
+}
+html.theme-mono .grid-lines{
+  background-image:linear-gradient(rgba(10,10,11,.035) 1px,transparent 1px),linear-gradient(90deg,rgba(10,10,11,.035) 1px,transparent 1px);
+}
+html.theme-mono .bg i:nth-child(3){ background:rgba(10,10,11,.04); }
+html.theme-mono .box svg{ color:#fff; }
+html.theme-mono ::selection{ background:var(--gold-soft); color:#0a0a0b; }
 *{ font-family:var(--font-primary) !important; }
 body{
   background:var(--bg); color:var(--text); min-height:100vh; line-height:1.55;
@@ -52,10 +82,7 @@ svg{ stroke-width:2.25; stroke-linecap:round; stroke-linejoin:round; }
 
 .top{ text-align:center; margin-bottom:26px; }
 .brand{ display:inline-flex; align-items:center; gap:11px; font-size:22px; margin-bottom:18px; }
-.brand .mark{ width:38px; height:38px; border-radius:14px; display:grid; place-items:center;
-  background:linear-gradient(150deg,#2a2a30,#0c0c0e); border:1px solid var(--border-2);
-  box-shadow:inset 0 1px 0 rgba(255,255,255,.14); }
-.brand .mark span{ font-size:18px; background:var(--shine); -webkit-background-clip:text; background-clip:text; color:transparent; }
+.brand .mark{ width:38px; height:38px; display:grid; place-items:center; }
 .top h1{ font-size:27px; letter-spacing:-.02em; margin-bottom:8px; }
 .top p{ color:var(--text-dim); font-size:14.5px; }
 
@@ -70,6 +97,9 @@ svg{ stroke-width:2.25; stroke-linecap:round; stroke-linejoin:round; }
 .tabs button{ flex:1; background:none; border:none; color:var(--text-mute); font-size:13px; cursor:pointer; padding:9px 8px; border-radius:999px; transition:all .16s var(--ease); }
 .tabs button.on{ background:var(--surface-2); color:var(--text); }
 
+.signup-row{ display:flex; align-items:center; justify-content:center; gap:6px; font-size:13px; color:var(--text-dim); margin-bottom:18px; }
+.signup-row a{ color:var(--gold); font-weight:600; }
+.signup-row a:hover{ text-decoration:underline; }
 .gwrap{ display:none; }
 .gwrap .gbtn{ display:flex; justify-content:center; }
 .divider{ display:flex; align-items:center; gap:10px; margin:18px 0; color:var(--text-mute); font-size:12.5px; }
@@ -127,6 +157,13 @@ svg{ stroke-width:2.25; stroke-linecap:round; stroke-linejoin:round; }
 .lang{ display:inline-flex; gap:2px; background:var(--surface); border:1px solid var(--border); border-radius:999px; padding:3px; }
 .lang button{ background:none; border:none; color:var(--text-mute); font-size:12px; cursor:pointer; padding:5px 11px; border-radius:999px; }
 .lang button.on{ background:var(--surface-2); color:var(--text); }
+.below-row{ display:flex; align-items:center; gap:8px; }
+.theme-switch{ display:flex; align-items:center; justify-content:center; width:30px; height:30px; flex:none;
+  background:var(--surface); border:1px solid var(--border); border-radius:999px; color:var(--text-mute);
+  cursor:pointer; transition:all .15s; }
+.theme-switch:hover{ color:var(--text); border-color:var(--border-2); }
+.theme-switch.on{ background:var(--surface-2); color:var(--gold); }
+.theme-switch svg{ width:15px; height:15px; }
 
 @media (max-width:480px){
   .card{ padding:24px 20px; }
@@ -150,6 +187,11 @@ svg{ stroke-width:2.25; stroke-linecap:round; stroke-linejoin:round; }
     <div class="tabs">
       <button type="button" data-panel="tenant" class="on" onclick="setPanel('tenant')" id="tabTenant">Restoran</button>
       <button type="button" data-panel="root" onclick="setPanel('root')" id="tabRoot">Root Panel</button>
+    </div>
+
+    <div class="signup-row" id="signupRow">
+      <span id="lblNoAccount">Hesabınız yok mu?</span>
+      <a href="/restoran-olustur" id="lblSignup">Kayıt Ol</a>
     </div>
 
     <div class="msg" id="msg"></div>
@@ -211,9 +253,14 @@ svg{ stroke-width:2.25; stroke-linecap:round; stroke-linejoin:round; }
       <a href="/kullanim-sartlari" id="lnkTerms">Kullanım Şartları</a>
       <a href="/demo-talep" id="lnkDemo">Demo Talep Et</a>
     </div>
-    <div class="lang">
-      <button data-lang="tr" class="on" onclick="setLang('tr')">TR</button>
-      <button data-lang="en" onclick="setLang('en')">EN</button>
+    <div class="below-row">
+      <div class="lang">
+        <button data-lang="tr" class="on" onclick="setLang('tr')">TR</button>
+        <button data-lang="en" onclick="setLang('en')">EN</button>
+      </div>
+      <button class="theme-switch" id="themeSwitchBtn" onclick="toggleLandingTheme()" aria-label="Tema" title="Siyah &amp; Beyaz Tema">
+        <svg class="theme-switch-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 14.5A8.5 8.5 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z" fill="currentColor" stroke="none"/></svg>
+      </button>
     </div>
   </div>
 </div>
@@ -224,7 +271,7 @@ const I = {
   tr:{ ttlT:'Yönetici Girişi', ttlR:'Root Panel Girişi',
     subT:'Restoran yönetim panelinize erişmek için giriş yapın.',
     subR:'Platform yönetim paneline erişmek için giriş yapın.',
-    tabT:'Restoran', tabR:'Root Panel', user:'Kullanıcı Adı', pass:'Şifre',
+    tabT:'Restoran', tabR:'Root Panel', user:'Kullanıcı Adı', userPh:'kullanici_adi', pass:'Şifre',
     remember:'Beni hatırla', forgot:'Şifremi unuttum', submit:'Giriş Yap', signing:'Giriş yapılıyor...',
     secure:'Bağlantınız şifrelidir. Şifreniz geri döndürülemez biçimde saklanır ve hiçbir zaman düz metin olarak tutulmaz.',
     back:'Web sitesine dön', support:'Destek', privacy:'Gizlilik', terms:'Kullanım Şartları', demo:'Demo Talep Et',
@@ -232,11 +279,12 @@ const I = {
     err:'Giriş yapılamadı. Lütfen tekrar deneyin.', ok:'Giriş başarılı, yönlendiriliyorsunuz...',
     noRoot:'Bu hesap Root paneline erişim yetkisine sahip değil.',
     or:'veya', provisioned:'Restoranınız oluşturuldu, yönlendiriliyorsunuz...',
-    googleErr:'Google ile giriş yapılamadı. Lütfen tekrar deneyin.' },
+    googleErr:'Google ile giriş yapılamadı. Lütfen tekrar deneyin.',
+    noAccount:'Hesabınız yok mu?', signup:'Kayıt Ol' },
   en:{ ttlT:'Admin Login', ttlR:'Root Panel Login',
     subT:'Sign in to reach your restaurant admin panel.',
     subR:'Sign in to reach the platform admin panel.',
-    tabT:'Restaurant', tabR:'Root Panel', user:'Username', pass:'Password',
+    tabT:'Restaurant', tabR:'Root Panel', user:'Username', userPh:'username', pass:'Password',
     remember:'Remember me', forgot:'Forgot password', submit:'Sign In', signing:'Signing in...',
     secure:'Your connection is encrypted. Your password is stored irreversibly and never kept in plain text.',
     back:'Back to website', support:'Support', privacy:'Privacy', terms:'Terms of Use', demo:'Request a Demo',
@@ -244,7 +292,8 @@ const I = {
     err:'Could not sign in. Please try again.', ok:'Signed in, redirecting...',
     noRoot:'This account does not have access to the Root panel.',
     or:'or', provisioned:'Your restaurant has been created, redirecting...',
-    googleErr:'Could not sign in with Google. Please try again.' }
+    googleErr:'Could not sign in with Google. Please try again.',
+    noAccount:"Don't have an account?", signup:'Sign Up' }
 };
 let LANG = 'tr';
 let PANEL = new URLSearchParams(location.search).get('panel') === 'root' ? 'root' : 'tenant';
@@ -264,6 +313,7 @@ function apply(){
   document.getElementById('tabTenant').textContent = T('tabT');
   document.getElementById('tabRoot').textContent = T('tabR');
   document.getElementById('lblUser').textContent = T('user');
+  document.getElementById('username').placeholder = T('userPh');
   document.getElementById('lblPass').textContent = T('pass');
   document.getElementById('lblRemember').textContent = T('remember');
   document.getElementById('lblForgot').textContent = T('forgot');
@@ -275,12 +325,40 @@ function apply(){
   document.getElementById('lnkTerms').textContent = T('terms');
   document.getElementById('lnkDemo').textContent = T('demo');
   document.getElementById('lblOr').textContent = T('or');
+  document.getElementById('lblNoAccount').textContent = T('noAccount');
+  document.getElementById('lblSignup').textContent = T('signup');
+  // Self-service signup only makes sense for a restaurant tenant, not Root staff.
+  document.getElementById('signupRow').style.display = isRoot ? 'none' : 'flex';
   document.querySelectorAll('.tabs button').forEach(b=>b.classList.toggle('on', b.dataset.panel===PANEL));
   document.querySelectorAll('.lang button').forEach(b=>b.classList.toggle('on', b.dataset.lang===LANG));
   // Google Sign-In only ever appears on the "Restoran" tab — Root login stays password-only.
   document.getElementById('googleWrap').style.display = (GOOGLE_CLIENT_ID && PANEL === 'tenant') ? 'block' : 'none';
 }
 function setLang(l){ LANG=l; try{ localStorage.setItem('hasaca_landing_lang', l); }catch(e){} apply(); }
+/* Same 'landing_theme' key + toggle pattern as landing.html/marketing.html. */
+// Sun (light active) / crescent moon (dark active) — same icon pair as landing.html.
+const THEME_ICON_SUN = '<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/>';
+const THEME_ICON_MOON = '<path d="M20 14.5A8.5 8.5 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z" fill="currentColor" stroke="none"/>';
+function applyLandingTheme(theme){
+  document.documentElement.classList.toggle('theme-mono', theme === 'mono');
+  const btn = document.getElementById('themeSwitchBtn');
+  if (btn) {
+    btn.classList.toggle('on', theme === 'mono');
+    const svg = btn.querySelector('.theme-switch-icon');
+    if (svg) svg.innerHTML = theme === 'mono' ? THEME_ICON_SUN : THEME_ICON_MOON;
+  }
+}
+function toggleLandingTheme(){
+  const next = document.documentElement.classList.contains('theme-mono') ? 'dark' : 'mono';
+  try { localStorage.setItem('landing_theme', next); } catch(e){}
+  applyLandingTheme(next);
+  // Google's button is a same-origin iframe with its own baked-in colors — swapping the
+  // container's theme alone won't repaint it, so it's re-rendered with the matching variant.
+  if (window.google && google.accounts && google.accounts.id && GOOGLE_CLIENT_ID) {
+    document.getElementById('googleBtn').innerHTML = '';
+    google.accounts.id.renderButton(document.getElementById('googleBtn'), { theme: next === 'mono' ? 'outline' : 'filled_black', size: 'large', shape: 'pill', width: 320 });
+  }
+}
 function setPanel(p){ PANEL=p; hide(); apply(); }
 function togglePw(){
   const i = document.getElementById('password');
@@ -393,7 +471,8 @@ function initGoogleButton(attemptsLeft) {
     return;
   }
   google.accounts.id.initialize({ client_id: GOOGLE_CLIENT_ID, callback: onGoogleCredential });
-  google.accounts.id.renderButton(document.getElementById('googleBtn'), { theme: 'filled_black', size: 'large', shape: 'pill', width: 320 });
+  const isMono = document.documentElement.classList.contains('theme-mono');
+  google.accounts.id.renderButton(document.getElementById('googleBtn'), { theme: isMono ? 'outline' : 'filled_black', size: 'large', shape: 'pill', width: 320 });
 }
 (async () => {
   try {
@@ -405,6 +484,7 @@ function initGoogleButton(attemptsLeft) {
 })();
 
 try { const s = localStorage.getItem('hasaca_landing_lang'); if (s) LANG = s; } catch (e) {}
+applyLandingTheme(document.documentElement.classList.contains('theme-mono') ? 'mono' : 'dark');
 apply();
 document.getElementById('username').focus();
 </script>

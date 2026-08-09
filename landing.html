@@ -155,9 +155,7 @@ html.theme-mono .nav.scrolled .nav-in{ background:rgba(10,10,11,.06); }
 html.theme-mono .nav.open .nav-links{ background:rgba(255,255,255,.97); }
 html.theme-mono .brand .mark,
 html.theme-mono .theme-switch.on{ color:var(--gold); }
-html.theme-mono .brand .mark{
-  background:#f0f0f2; border-color:rgba(10,10,11,.15); box-shadow:inset 0 1px 0 rgba(255,255,255,.8); color:#0a0a0b;
-}
+html.theme-mono .brand .mark{ color:#0a0a0b; }
 html.theme-mono .btn-primary{ background:var(--gold); color:#fff; box-shadow:0 10px 30px -8px rgba(56,122,255,.35); }
 html.theme-mono .nav-toggle{ color:#0a0a0b; }
 html.theme-mono ::selection{ background:var(--gold-soft); color:#0a0a0b; }
@@ -240,15 +238,10 @@ h1,h2,h3{ line-height:1.08; letter-spacing:-.02em; }
 .nav.scrolled .nav-in{ background:rgba(255,255,255,.22); }
 .brand{ display:flex; align-items:center; gap:11px; font-size:20px; letter-spacing:.02em; }
 .brand .mark{
-  width:34px; height:34px; border-radius:var(--radius-sm); display:grid; place-items:center;
-  background:linear-gradient(150deg,#2a2a30,#0c0c0e); border:1px solid var(--border-2);
-  box-shadow:inset 0 1px 0 rgba(255,255,255,.14); color:#ffffff;
-  transition: background .3s, color .3s, border-color .3s;
+  width:34px; height:34px; display:grid; place-items:center; color:#ffffff;
+  transition: color .3s;
 }
 .brand .mark svg{ width:20px; height:20px; stroke:currentColor; display:block; }
-body.theme-bw .brand .mark, html.theme-bw .brand .mark, .theme-bw .brand .mark {
-  background:#f0f0f2; border-color:rgba(0,0,0,.15); box-shadow:inset 0 1px 0 rgba(255,255,255,.8); color:#0a0a0b;
-}
 .nav-links{ display:flex; gap:6px; margin-left:14px; }
 .nav-links a{ color:var(--text-dim); font-size:14.5px; padding:8px 14px; border-radius:999px; transition:color .15s, background .15s; }
 .nav-links a:hover{ color:var(--text); background:var(--surface); }
@@ -555,6 +548,34 @@ html.theme-mono .feat .fi{ background:linear-gradient(150deg,#f0f0f2,#e2e2e6); c
 .statc .n{ font-size:clamp(26px,3.2vw,38px); color:#fff; }
 .statc .lb{ font-size:13.5px; color:rgba(255,255,255,.7); margin-top:7px; }
 
+/* ── AI CTA — same rounded-panel recipe as the hero/stats cards, sized to its own shorter
+   content instead of a forced viewport height. ── */
+.ai-cta-section{ padding:0 16px; margin:20px 0; }
+.ai-cta-card{
+  position:relative; overflow:hidden; border-radius:28px;
+  background:
+    radial-gradient(80% 90% at 85% 15%, rgba(96,150,255,.32) 0%, rgba(96,150,255,0) 62%),
+    linear-gradient(155deg,#0a1226 0%,#132a52 55%,#1d3f78 100%);
+}
+.ai-cta-scrim{
+  position:absolute; inset:0; z-index:0; pointer-events:none;
+  background:linear-gradient(120deg,rgba(0,0,0,.42) 0%,rgba(0,0,0,.12) 55%,rgba(0,0,0,.3) 100%);
+}
+/* padding-top/bottom ONLY — this element also carries .wrap, whose own padding:0 24px supplies
+   the left/right gutter; a padding SHORTHAND here would zero that out (the exact bug already
+   fixed twice elsewhere this session: marketing.html's .block.wrap and landing.html's own
+   .cta-banner-in.wrap — same collision, reintroduced here by not rechecking the pattern). */
+.ai-cta-inner{ position:relative; z-index:1; padding-top:64px; padding-bottom:64px; display:grid; grid-template-columns:1.1fr .9fr; gap:48px; align-items:center; }
+.ai-cta-copy h2{ color:#fff; font-size:clamp(26px,3.4vw,40px); margin:18px 0 14px; }
+.ai-cta-copy p{ color:rgba(255,255,255,.8); font-size:16px; max-width:440px; margin-bottom:26px; }
+.ai-cta-chat{ display:flex; flex-direction:column; gap:11px; }
+.ai-cta-bubble{ padding:12px 16px; border-radius:16px; font-size:14px; line-height:1.4; max-width:88%; }
+.ai-cta-bubble.bot{ background:rgba(255,255,255,.1); color:#fff; align-self:flex-start; border-bottom-left-radius:4px; }
+.ai-cta-bubble.user{ background:#fff; color:#0a0a0b; align-self:flex-end; border-bottom-right-radius:4px; font-weight:500; }
+@media (max-width:760px){
+  .ai-cta-inner{ grid-template-columns:1fr; padding-top:44px; padding-bottom:44px; gap:32px; }
+  .ai-cta-chat{ order:-1; }
+}
 
 /* ── Pricing ── */
 .price-grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:18px; align-items:stretch; }
@@ -727,7 +748,7 @@ html.theme-mono .feat .fi{ background:linear-gradient(150deg,#f0f0f2,#e2e2e6); c
     </div>
     <div class="nav-right">
       <button class="theme-switch" id="themeSwitchBtn" onclick="toggleLandingTheme()" aria-label="Tema" title="Siyah &amp; Beyaz Tema">
-        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 3a9 9 0 0 0 0 18z" fill="currentColor" stroke="none"/></svg>
+        <svg class="theme-switch-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 14.5A8.5 8.5 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z" fill="currentColor" stroke="none"/></svg>
       </button>
       <a href="/giris" class="btn btn-primary" id="navCtaBtn">Kayıt Ol</a>
       <button class="nav-toggle" onclick="document.getElementById('nav').classList.toggle('open')" aria-label="Menu">
@@ -762,7 +783,7 @@ html.theme-mono .feat .fi{ background:linear-gradient(150deg,#f0f0f2,#e2e2e6); c
           <div class="hero-mini">
             <div class="m"><b>%0</b><span data-i18n="hero_m1">Komisyon</span></div>
             <div class="m"><b>7/24</b><span data-i18n="hero_m2">Destek</span></div>
-            <div class="m"><b>5 dk</b><span data-i18n="hero_m3">Kurulum</span></div>
+            <div class="m"><b data-i18n="hero_m3v">5 dakika</b><span data-i18n="hero_m3">Kurulum</span></div>
           </div>
         </div>
       </div>
@@ -779,7 +800,7 @@ html.theme-mono .feat .fi{ background:linear-gradient(150deg,#f0f0f2,#e2e2e6); c
               <div class="scr-top"><h4 data-i18n="scr_ui_dash">Panel</h4><span data-i18n="scr_ui_today">Bugün</span></div>
               <div class="scr-kpis">
                 <div class="scr-kpi"><b>142</b><span data-i18n="scr_ui_orders">Sipariş</span></div>
-                <div class="scr-kpi"><b>₺18.240</b><span data-i18n="scr_ui_sales">Satış</span></div>
+                <div class="scr-kpi"><b data-try="18240">₺18.240</b><span data-i18n="scr_ui_sales">Satış</span></div>
                 <div class="scr-kpi"><b>4.9</b><em>▲ %12</em></div>
               </div>
               <div class="scr-chart">
@@ -792,8 +813,8 @@ html.theme-mono .feat .fi{ background:linear-gradient(150deg,#f0f0f2,#e2e2e6); c
                 </svg>
               </div>
               <div class="scr-rows">
-                <div class="scr-row"><span class="dot"></span><span class="ln"></span><span class="ln s"></span><b>₺340</b></div>
-                <div class="scr-row"><span class="dot"></span><span class="ln"></span><span class="ln s"></span><b>₺185</b></div>
+                <div class="scr-row"><span class="dot"></span><span class="ln"></span><span class="ln s"></span><b data-try="340">₺340</b></div>
+                <div class="scr-row"><span class="dot"></span><span class="ln"></span><span class="ln s"></span><b data-try="185">₺185</b></div>
               </div>
             </div>
           </div>
@@ -811,6 +832,31 @@ html.theme-mono .feat .fi{ background:linear-gradient(150deg,#f0f0f2,#e2e2e6); c
       <div class="counter"><div class="n"><span class="count" data-count="150">0</span>K+</div><div class="lb" data-i18n="tr_orders">Sipariş</div></div>
       <div class="counter"><div class="n">%<span class="count" data-count="99" data-suffix=".9">0</span></div><div class="lb" data-i18n="tr_uptime">Çalışma Süresi</div></div>
       <div class="counter"><div class="n">%<span class="count" data-count="0">0</span></div><div class="lb" data-i18n="tr_commission">Komisyon</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════ AI CTA — "Yapay Zekâ ile Restoranınızı Oluşturun" ══════════
+     Same full-bleed rounded panel look as the hero/stats cards, sized to its own (shorter)
+     content instead of a forced viewport-height. Links to the new /restoran-olustur signup
+     flow (Google Sign-In → auto-provisioned tenant → AI Assistant opens straight into a
+     guided setup, see restoran-olustur.html + admin.html's onboarding mode). -->
+<section class="ai-cta-section">
+  <div class="ai-cta-card">
+    <div class="ai-cta-scrim"></div>
+    <div class="wrap ai-cta-inner rv">
+      <div class="ai-cta-copy">
+        <span class="hero-badge" data-i18n="aicta_badge">Yeni · Yapay Zekâ ile Kurulum</span>
+        <h2 data-i18n="aicta_title">Yapay Zekâ ile Restoranınızı Oluşturun</h2>
+        <p data-i18n="aicta_sub">Birkaç soruya cevap verin, yapay zekâmız menünüzü ve restoranınızı sizin için hazırlasın.</p>
+        <a href="/restoran-olustur" class="btn btn-hero-primary" data-i18n="aicta_cta">Hemen Ücretsiz Deneyin
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
+      </div>
+      <div class="ai-cta-chat" aria-hidden="true">
+        <div class="ai-cta-bubble bot"><span data-i18n="aicta_q1">Restoranınızın adı ve mutfak türü nedir?</span></div>
+        <div class="ai-cta-bubble user"><span data-i18n="aicta_a1">Deniz Feneri — deniz ürünleri</span></div>
+        <div class="ai-cta-bubble bot"><span data-i18n="aicta_q2">Harika! Şimdi menünüzdeki ilk kategoriyle başlayalım.</span></div>
+      </div>
     </div>
   </div>
 </section>
@@ -841,7 +887,7 @@ html.theme-mono .feat .fi{ background:linear-gradient(150deg,#f0f0f2,#e2e2e6); c
           <div class="m-top"><i class="d"></i><i class="d"></i><i class="d"></i><span class="tt">restoran.hasaca.com</span></div>
           <div class="grid-tiles">
             <div class="tile"><div class="lab" data-i18n="sc1_t1">Bugün</div><div class="big">142</div><div class="sub" data-i18n="sc1_t1s">QR sipariş</div></div>
-            <div class="tile"><div class="lab" data-i18n="sc1_t2">Ortalama</div><div class="big">₺128</div><div class="sub" data-i18n="sc1_t2s">sepet</div></div>
+            <div class="tile"><div class="lab" data-i18n="sc1_t2">Ortalama</div><div class="big" data-try="128">₺128</div><div class="sub" data-i18n="sc1_t2s">sepet</div></div>
             <div class="tile" style="grid-column:span 2"><div class="lab" data-i18n="sc1_t3">Popüler ürünler</div>
               <div class="bars"><i style="height:40%"></i><i style="height:70%"></i><i style="height:55%"></i><i style="height:90%"></i><i style="height:48%"></i><i style="height:75%"></i><i style="height:60%"></i></div>
             </div>
@@ -900,7 +946,7 @@ html.theme-mono .feat .fi{ background:linear-gradient(150deg,#f0f0f2,#e2e2e6); c
           <div class="chatline"><div class="bubble me" data-i18n="sc3_c2">Hazır! Közde pişmiş, el yapımı 3 açıklama menünüze eklendi ✓</div></div>
           <div class="grid-tiles">
             <div class="tile"><div class="lab" data-i18n="sc3_t1">Bu ay</div><div class="big">+24%</div><div class="sub" data-i18n="sc3_t1s">gelir artışı</div></div>
-            <div class="tile"><div class="lab" data-i18n="sc3_t2">Tahmin</div><div class="big">₺62K</div><div class="sub" data-i18n="sc3_t2s">gelecek hafta</div></div>
+            <div class="tile"><div class="lab" data-i18n="sc3_t2">Tahmin</div><div class="big" data-try-compact="62000">₺62K</div><div class="sub" data-i18n="sc3_t2s">gelecek hafta</div></div>
           </div>
         </div>
       </div>
@@ -959,7 +1005,7 @@ html.theme-mono .feat .fi{ background:linear-gradient(150deg,#f0f0f2,#e2e2e6); c
       </div>
       <div class="stat-card rv">
         <div class="statc"><div class="n"><span class="count" data-count="1">0</span>.2M+</div><div class="lb" data-i18n="st1">İşlenen Sipariş</div></div>
-        <div class="statc"><div class="n">₺<span class="count" data-count="90">0</span>M+</div><div class="lb" data-i18n="st2">Yıllık Hacim</div></div>
+        <div class="statc"><div class="n"><span id="annualVolumePrefix">₺</span><span class="count" id="annualVolumeCount" data-count="90">0</span><span id="annualVolumeSuffix">M+</span></div><div class="lb" data-i18n="st2">Yıllık Hacim</div></div>
         <div class="statc"><div class="n"><span class="count" data-count="12">0</span>+</div><div class="lb" data-i18n="st3">Ülke</div></div>
         <div class="statc"><div class="n">&lt;<span class="count" data-count="200">0</span>ms</div><div class="lb" data-i18n="st4">Yanıt Süresi</div></div>
       </div>
@@ -989,7 +1035,7 @@ html.theme-mono .feat .fi{ background:linear-gradient(150deg,#f0f0f2,#e2e2e6); c
             <div class="scr-top"><h4 data-i18n="scr_ui_dash">Panel</h4><span data-i18n="scr_ui_today">Bugün</span></div>
             <div class="scr-kpis">
               <div class="scr-kpi"><b>142</b><span data-i18n="scr_ui_orders">Sipariş</span></div>
-              <div class="scr-kpi"><b>₺18.240</b><span data-i18n="scr_ui_sales">Satış</span></div>
+              <div class="scr-kpi"><b data-try="18240">₺18.240</b><span data-i18n="scr_ui_sales">Satış</span></div>
               <div class="scr-kpi"><b>4.9</b><em>▲ %12</em></div>
             </div>
             <div class="scr-chart">
@@ -1002,8 +1048,8 @@ html.theme-mono .feat .fi{ background:linear-gradient(150deg,#f0f0f2,#e2e2e6); c
               </svg>
             </div>
             <div class="scr-rows">
-              <div class="scr-row"><span class="dot"></span><span class="ln"></span><span class="ln s"></span><b>₺340</b></div>
-              <div class="scr-row"><span class="dot"></span><span class="ln"></span><span class="ln s"></span><b>₺185</b></div>
+              <div class="scr-row"><span class="dot"></span><span class="ln"></span><span class="ln s"></span><b data-try="340">₺340</b></div>
+              <div class="scr-row"><span class="dot"></span><span class="ln"></span><span class="ln s"></span><b data-try="185">₺185</b></div>
             </div>
           </div>
         </div>
@@ -1013,10 +1059,10 @@ html.theme-mono .feat .fi{ background:linear-gradient(150deg,#f0f0f2,#e2e2e6); c
           <div class="scr-ph-top"><b data-i18n="scr_ui_menu">Menü</b><i></i></div>
           <div class="scr-tabs"><i class="on"></i><i></i><i></i></div>
           <div class="scr-items">
-            <div class="scr-item"><span class="th"></span><span class="tx"><i></i><i></i></span><b>₺180</b></div>
-            <div class="scr-item"><span class="th"></span><span class="tx"><i></i><i></i></span><b>₺145</b></div>
-            <div class="scr-item"><span class="th"></span><span class="tx"><i></i><i></i></span><b>₺95</b></div>
-            <div class="scr-item"><span class="th"></span><span class="tx"><i></i><i></i></span><b>₺60</b></div>
+            <div class="scr-item"><span class="th"></span><span class="tx"><i></i><i></i></span><b data-try="180">₺180</b></div>
+            <div class="scr-item"><span class="th"></span><span class="tx"><i></i><i></i></span><b data-try="145">₺145</b></div>
+            <div class="scr-item"><span class="th"></span><span class="tx"><i></i><i></i></span><b data-try="95">₺95</b></div>
+            <div class="scr-item"><span class="th"></span><span class="tx"><i></i><i></i></span><b data-try="60">₺60</b></div>
           </div>
         </div>
       </div>
@@ -1110,7 +1156,7 @@ html.theme-mono .feat .fi{ background:linear-gradient(150deg,#f0f0f2,#e2e2e6); c
       <p>© <span id="year"></span> HASACA. <span data-i18n="ft_rights">Tüm hakları saklıdır.</span></p>
       <div style="display:flex; align-items:center; gap:10px;">
         <button class="theme-switch" id="themeSwitchBtnFoot" onclick="toggleLandingTheme()" aria-label="Tema" title="Siyah &amp; Beyaz Tema">
-          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 3a9 9 0 0 0 0 18z" fill="currentColor" stroke="none"/></svg>
+          <svg class="theme-switch-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 14.5A8.5 8.5 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z" fill="currentColor" stroke="none"/></svg>
         </button>
       </div>
     </div>
@@ -1168,6 +1214,74 @@ const PLANS = [
 ];
 const FAQS = ['q1','q2','q3','q4','q5','q6'];
 
+/* ─────────────── CURRENCY LOCALIZATION ───────────────
+   Every price/figure on this page is authored in TRY (₺) — HASACA's home market. For a visitor
+   whose browser locale suggests a different country, the same TRY-denominated figures are
+   converted and reformatted in their local currency via Intl.NumberFormat. FX_TRY_PER_UNIT is an
+   approximate snapshot (real rates looked up 2026-08-09: USD≈47.7, EUR≈55.13, GBP≈64.35 TRY) —
+   NOT a live feed, since this is a static file with no backend currency API. Update periodically. */
+const CURRENCY_BY_REGION = {
+  TR:'TRY', US:'USD', GB:'GBP',
+  DE:'EUR', FR:'EUR', ES:'EUR', IT:'EUR', NL:'EUR', PT:'EUR', IE:'EUR',
+  AT:'EUR', BE:'EUR', FI:'EUR', GR:'EUR', LU:'EUR', SK:'EUR', SI:'EUR',
+  EE:'EUR', LV:'EUR', LT:'EUR', CY:'EUR', MT:'EUR', HR:'EUR'
+};
+const FX_TRY_PER_UNIT = { TRY:1, USD:47.7, EUR:55.13, GBP:64.35 };
+const CURRENCY_LOCALE = { TRY:'tr-TR', USD:'en-US', EUR:'de-DE', GBP:'en-GB' };
+function detectCurrency(){
+  try{
+    const langs = (navigator.languages && navigator.languages.length) ? navigator.languages : [navigator.language || 'tr-TR'];
+    for (const l of langs){
+      const parts = l.split('-');
+      const lang = (parts[0] || '').toLowerCase();
+      const region = (parts[1] || '').toUpperCase();
+      // Checked together, per language-list entry, in order — a bare "tr" (language, no region
+      // subtag; a real browser configuration, confirmed live) must resolve to TRY immediately
+      // rather than falling through to a later, less-preferred language in the list.
+      if (lang === 'tr' || region === 'TR') return 'TRY';
+      if (CURRENCY_BY_REGION[region]) return CURRENCY_BY_REGION[region];
+    }
+  } catch(e){}
+  return 'USD'; // no recognizable region (or the browser withheld it) — USD is the most broadly understood fallback
+}
+const SITE_CURRENCY = detectCurrency();
+function formatMoneyFromTRY(tryAmount, opts){
+  const amount = SITE_CURRENCY === 'TRY' ? tryAmount : tryAmount / FX_TRY_PER_UNIT[SITE_CURRENCY];
+  return new Intl.NumberFormat(CURRENCY_LOCALE[SITE_CURRENCY],
+    Object.assign({style:'currency', currency:SITE_CURRENCY, maximumFractionDigits:2, minimumFractionDigits:0}, opts||{})).format(amount);
+}
+function formatCompactFromTRY(tryAmount){
+  return formatMoneyFromTRY(tryAmount, {notation:'compact', maximumFractionDigits:1, minimumFractionDigits:0});
+}
+// Swaps every static ₺ figure on the page for the visitor's local currency — a no-op for TR
+// visitors, who see the original authored TRY values untouched.
+function localizeCurrency(){
+  if (SITE_CURRENCY === 'TRY') return;
+  document.querySelectorAll('[data-try]').forEach(el=>{
+    const amt = parseFloat(el.getAttribute('data-try'));
+    if (!isNaN(amt)) el.textContent = formatMoneyFromTRY(amt);
+  });
+  document.querySelectorAll('[data-try-compact]').forEach(el=>{
+    const amt = parseFloat(el.getAttribute('data-try-compact'));
+    if (!isNaN(amt)) el.textContent = formatCompactFromTRY(amt);
+  });
+  // Annual-volume stat counter animates via animateCount(), which reads data-count/data-suffix
+  // at the moment it scrolls into view — rewriting them here (before that ever fires) is enough
+  // for the count-up to land on the converted figure instead of the authored TRY one.
+  const volEl = document.getElementById('annualVolumeCount');
+  if (volEl) {
+    const compact = formatCompactFromTRY(90000000);
+    const m = compact.match(/^(\D*)([\d.,]+)(\D*)$/);
+    if (m) {
+      const prefixEl = document.getElementById('annualVolumePrefix');
+      const suffixEl = document.getElementById('annualVolumeSuffix');
+      if (prefixEl) prefixEl.textContent = m[1];
+      volEl.setAttribute('data-count', m[2].replace(/,/g,''));
+      if (suffixEl) suffixEl.textContent = m[3] + '+';
+    }
+  }
+}
+
 /* ─────────────── i18n ─────────────── */
 const I18N = {
 tr:{
@@ -1178,8 +1292,15 @@ tr:{
   hero_h1a:'Restoranınızı Dijitalleştirin.', hero_h1b:'Komisyon Ödemeyin.',
   hero_sub:'HASACA ile restoranınıza özel web sitesi, QR menü, online sipariş, rezervasyon, yapay zekâ ve yönetim paneline tek platformdan sahip olun.',
   hero_cta1:'Ücretsiz Demo Talep Et', hero_cta2:'Canlı Demoyu İncele',
-  hero_m1:'Komisyon', hero_m2:'Destek', hero_m3:'Kurulum',
+  hero_m1:'Komisyon', hero_m2:'Destek', hero_m3:'Kurulum', hero_m3v:'5 dakika',
   hero_badge:'%0 komisyon · 14 gün ücretsiz deneme',
+  aicta_badge:'Yeni · Yapay Zekâ ile Kurulum',
+  aicta_title:'Yapay Zekâ ile Restoranınızı Oluşturun',
+  aicta_sub:'Birkaç soruya cevap verin, yapay zekâmız menünüzü ve restoranınızı sizin için hazırlasın.',
+  aicta_cta:'Hemen Ücretsiz Deneyin',
+  aicta_q1:'Restoranınızın adı ve mutfak türü nedir?',
+  aicta_a1:'Deniz Feneri — deniz ürünleri',
+  aicta_q2:'Harika! Şimdi menünüzdeki ilk kategoriyle başlayalım.',
   scr_title:'Tek platform, her ekran',
   scr_sub:'Yönetim panelinden müşterinin telefonuna kadar aynı sistem — masaüstünde de, cepte de.',
   scr_ui_dash:'Panel', scr_ui_today:'Bugün', scr_ui_orders:'Sipariş', scr_ui_sales:'Satış', scr_ui_menu:'Menü',
@@ -1274,8 +1395,15 @@ en:{
   hero_h1a:'Digitize Your Restaurant.', hero_h1b:'Pay Zero Commission.',
   hero_sub:'With HASACA, get a branded website, QR menu, online ordering, reservations, AI and a management panel — all from a single platform.',
   hero_cta1:'Request a Free Demo', hero_cta2:'Explore Live Demo',
-  hero_m1:'Commission', hero_m2:'Support', hero_m3:'Setup',
+  hero_m1:'Commission', hero_m2:'Support', hero_m3:'Setup', hero_m3v:'5 minutes',
   hero_badge:'0% commission · 14-day free trial',
+  aicta_badge:'New · AI-Powered Setup',
+  aicta_title:'Create Your Restaurant with AI',
+  aicta_sub:'Answer a few questions and let our AI set up your menu and restaurant for you.',
+  aicta_cta:'Try It Free Now',
+  aicta_q1:"What's your restaurant's name and cuisine type?",
+  aicta_a1:'Lighthouse Kitchen — seafood',
+  aicta_q2:"Great! Let's start with the first category on your menu.",
   scr_title:'One platform, every screen',
   scr_sub:'From the management panel to your guest\'s phone — the same system, on desktop and in hand.',
   scr_ui_dash:'Dashboard', scr_ui_today:'Today', scr_ui_orders:'Orders', scr_ui_sales:'Sales', scr_ui_menu:'Menu',
@@ -1406,8 +1534,13 @@ function renderCmp(){
 }
 function renderPlans(){
   document.getElementById('priceGrid').innerHTML = PLANS.map(p=>{
-    const price = p.price.startsWith('p_') ? T(p.price) : p.price;
-    const showPer = !p.price.startsWith('p_') && p.price !== '₺0';
+    const isKey = p.price.startsWith('p_');
+    // p.price is always authored in TRY ("₺749") — converted to the visitor's local currency
+    // (a no-op for TR visitors, see localizeCurrency()).
+    // Whole units only for pricing — a converted approximate rate producing "$15.7" reads as a
+    // typo, not a price; every other converted figure on the page keeps up-to-2-decimal precision.
+    const price = isKey ? T(p.price) : (SITE_CURRENCY === 'TRY' ? p.price : formatMoneyFromTRY(parseFloat(p.price.replace(/[^\d.]/g,'')), {maximumFractionDigits:0}));
+    const showPer = !isKey && p.price !== '₺0';
     return `<div class="plan ${p.pop?'pop':''}">
       ${p.pop?`<span class="badge" data-i18n="p_badge">${T('p_badge')}</span>`:''}
       <h4 data-i18n="${p.k}">${T(p.k)}</h4>
@@ -1543,11 +1676,19 @@ function initForm(){
 /* Black & White theme toggle — landing.html's own key (not the shared 'theme' key the rest of the
    platform uses), since 'bw'/'mono' mean different things on different pages in this codebase and
    landing.html only ever has one look to toggle against, not a 3-way engine. */
+// Sun (light active) / crescent moon (dark active) — swapped into the button's <svg> on every
+// theme change rather than two separate hidden/shown icons, so there's only ever one element.
+const THEME_ICON_SUN = '<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/>';
+const THEME_ICON_MOON = '<path d="M20 14.5A8.5 8.5 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z" fill="currentColor" stroke="none"/>';
 function applyLandingTheme(theme){
   document.documentElement.classList.toggle('theme-mono', theme === 'mono');
+  const iconHTML = theme === 'mono' ? THEME_ICON_SUN : THEME_ICON_MOON;
   ['themeSwitchBtn', 'themeSwitchBtnFoot'].forEach(id => {
     const btn = document.getElementById(id);
-    if (btn) btn.classList.toggle('on', theme === 'mono');
+    if (!btn) return;
+    btn.classList.toggle('on', theme === 'mono');
+    const svg = btn.querySelector('.theme-switch-icon');
+    if (svg) svg.innerHTML = iconHTML;
   });
 }
 function toggleLandingTheme(){
@@ -1570,6 +1711,7 @@ document.addEventListener('DOMContentLoaded', ()=>{
   renderFeatures(); renderSteps(); renderCmp(); renderPlans(); renderFaq(); renderFooter();
   setLang(LANG);
   applyI18n();
+  localizeCurrency(); // must run before initObservers() — rewrites data-count for the stat counter below
   initObservers();
   initForm();
   // nav scrolled state + close mobile menu on click
