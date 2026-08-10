@@ -131,6 +131,17 @@ function params(...args) {
   return args;
 }
 
+// Menu-content languages beyond tr/en (see backend/db.js for the matching schema migration).
+// Products get all 4 field types per language; categories (no description field at all, even
+// for tr/en) get only name. Every CRUD path below derives its column lists from these arrays
+// instead of hand-typing the same 30 field names in multiple places — a single missed spot
+// would be a silent data-loss bug, not a crash.
+const CONTENT_LANGS = ['zh', 'ja', 'de', 'fr', 'es', 'ko'];
+const PRODUCT_LANG_FIELD_TYPES = ['name', 'description', 'portion', 'ingredients'];
+const CATEGORY_LANG_FIELD_TYPES = ['name'];
+const PRODUCT_LANG_COLUMNS = CONTENT_LANGS.flatMap(lang => PRODUCT_LANG_FIELD_TYPES.map(f => `${f}_${lang}`));
+const CATEGORY_LANG_COLUMNS = CONTENT_LANGS.flatMap(lang => CATEGORY_LANG_FIELD_TYPES.map(f => `${f}_${lang}`));
+
 // Helper: Map DB Product Row to JSON format expected by UI
 function mapProductRow(row) {
   const totalMacros = (row.protein || 0) + (row.carbs || 0) + (row.fat || 0);
@@ -145,7 +156,7 @@ function mapProductRow(row) {
     console.error(`[SERVER] Error parsing allergens for product ${row.id}:`, e);
   }
 
-  return {
+  const mapped = {
     id: row.id,
     name: row.name_tr,
     name_en: row.name_en,
@@ -176,6 +187,9 @@ function mapProductRow(row) {
     portion_en: row.portion_en,
     katki_maddesi_icermez: row.katki_maddesi_icermez === 1
   };
+  // zh/ja/de/fr/es/ko name/description/portion/ingredients — raw pass-through, same as name_en etc.
+  for (const col of PRODUCT_LANG_COLUMNS) mapped[col] = row[col];
+  return mapped;
 }
 
 // ==========================================
@@ -236,40 +250,40 @@ async function createProductRow(tenantId, body) {
   const allergens = JSON.stringify(body.allergens || body.alerjenler || []);
   const katki_maddesi_icermez = (body.katki_maddesi_icermez || body.katki_maddesi_icermez === 1) ? 1 : 0;
 
+  // zh/ja/de/fr/es/ko: left empty when not supplied — deliberately NOT falling back to the
+  // Turkish value (unlike name_en/description_en above), so the AI's bulk-translate feature can
+  // tell "not yet translated" apart from "translated, and happens to match the Turkish text".
+  const langValues = PRODUCT_LANG_COLUMNS.map(col => body[col] || '');
+
+  const baseColumns = ['id', 'tenant_id', 'name_tr', 'name_en', 'description_tr', 'description_en', 'category', 'price', 'image',
+    'portion_tr', 'portion_en', 'ingredients_tr', 'ingredients_en', 'calories', 'protein', 'carbs', 'fat',
+    'saturated_fat', 'sugars', 'fiber', 'salt', 'allergens', 'katki_maddesi_icermez'];
+  const allColumns = [...baseColumns, ...PRODUCT_LANG_COLUMNS];
   const paramValues = [id, tenantId, name_tr, name_en, description_tr, description_en, category, price, image,
     portion_tr, portion_en, ingredients_tr, ingredients_en, calories, protein, carbs, fat,
-    saturated_fat, sugars, fiber, salt, allergens, katki_maddesi_icermez];
+    saturated_fat, sugars, fiber, salt, allergens, katki_maddesi_icermez, ...langValues];
 
-  if (isPg) {
-    await db.run(`
-      INSERT INTO products (
-        id, tenant_id, name_tr, name_en, description_tr, description_en, category, price, image,
-        portion_tr, portion_en, ingredients_tr, ingredients_en, calories, protein, carbs, fat,
-        saturated_fat, sugars, fiber, salt, allergens, katki_maddesi_icermez, created_at, updated_at
-      ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,CURRENT_TIMESTAMP,CURRENT_TIMESTAMP)
-    `, paramValues);
-  } else {
-    await db.run(`
-      INSERT INTO products (
-        id, tenant_id, name_tr, name_en, description_tr, description_en, category, price, image,
-        portion_tr, portion_en, ingredients_tr, ingredients_en, calories, protein, carbs, fat,
-        saturated_fat, sugars, fiber, salt, allergens, katki_maddesi_icermez, created_at, updated_at
-      ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,CURRENT_TIMESTAMP,CURRENT_TIMESTAMP)
-    `, paramValues);
-  }
+  const placeholders = isPg ? allColumns.map((_, i) => `$${i + 1}`).join(',') : allColumns.map(() => '?').join(',');
+  await db.run(`
+    INSERT INTO products (${allColumns.join(', ')}, created_at, updated_at)
+    VALUES (${placeholders}, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+  `, paramValues);
   return id;
 }
 
 // Standalone (not shared with POST /api/categories below, which expects the CALLER to supply an
 // id — a different contract) — the AI assistant always invents its own id here since the model
 // only ever proposes a human-meaningless tempId, never a real one.
-async function createCategoryRow(tenantId, { name_tr, name_en, sort_order, icon }) {
+async function createCategoryRow(tenantId, fields) {
+  const { name_tr, name_en, sort_order, icon } = fields;
   const id = `cat-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
-  await db.run(
-    isPg ? 'INSERT INTO categories (id, tenant_id, name_tr, name_en, sort_order, icon) VALUES ($1,$2,$3,$4,$5,$6)'
-         : 'INSERT INTO categories (id, tenant_id, name_tr, name_en, sort_order, icon) VALUES (?,?,?,?,?,?)',
-    [id, tenantId, name_tr, name_en || name_tr, sort_order || 0, icon || '']
-  );
+  // zh/ja/de/fr/es/ko: left empty when not supplied, no fallback to Turkish (see createProductRow).
+  const langValues = CATEGORY_LANG_COLUMNS.map(col => fields[col] || '');
+  const baseColumns = ['id', 'tenant_id', 'name_tr', 'name_en', 'sort_order', 'icon'];
+  const allColumns = [...baseColumns, ...CATEGORY_LANG_COLUMNS];
+  const paramValues = [id, tenantId, name_tr, name_en || name_tr, sort_order || 0, icon || '', ...langValues];
+  const placeholders = isPg ? allColumns.map((_, i) => `$${i + 1}`).join(',') : allColumns.map(() => '?').join(',');
+  await db.run(`INSERT INTO categories (${allColumns.join(', ')}) VALUES (${placeholders})`, paramValues);
   return id;
 }
 
@@ -316,30 +330,21 @@ app.put('/api/products/:id', adminAuth, async (req, res) => {
     const allergens = JSON.stringify(body.allergens || body.alerjenler || []);
     const katki_maddesi_icermez = (body.katki_maddesi_icermez || body.katki_maddesi_icermez === 1) ? 1 : 0;
 
+    // zh/ja/de/fr/es/ko: left empty when not supplied, no fallback to Turkish (see createProductRow).
+    const langValues = PRODUCT_LANG_COLUMNS.map(col => body[col] || '');
+    const baseColumns = ['name_tr', 'name_en', 'description_tr', 'description_en', 'category', 'price', 'image',
+      'portion_tr', 'portion_en', 'ingredients_tr', 'ingredients_en', 'calories', 'protein', 'carbs', 'fat',
+      'saturated_fat', 'sugars', 'fiber', 'salt', 'allergens', 'katki_maddesi_icermez'];
+    const allColumns = [...baseColumns, ...PRODUCT_LANG_COLUMNS];
     const paramValues = [name_tr, name_en, description_tr, description_en, category, price, image,
       portion_tr, portion_en, ingredients_tr, ingredients_en, calories, protein, carbs, fat,
-      saturated_fat, sugars, fiber, salt, allergens, katki_maddesi_icermez, id, req.tenantId];
+      saturated_fat, sugars, fiber, salt, allergens, katki_maddesi_icermez, ...langValues, id, req.tenantId];
 
-    let result;
-    if (isPg) {
-      result = await db.run(`
-        UPDATE products SET
-          name_tr=$1, name_en=$2, description_tr=$3, description_en=$4, category=$5,
-          price=$6, image=$7, portion_tr=$8, portion_en=$9, ingredients_tr=$10, ingredients_en=$11,
-          calories=$12, protein=$13, carbs=$14, fat=$15, saturated_fat=$16, sugars=$17, fiber=$18,
-          salt=$19, allergens=$20, katki_maddesi_icermez=$21, updated_at=CURRENT_TIMESTAMP
-        WHERE id=$22 AND tenant_id=$23
-      `, paramValues);
-    } else {
-      result = await db.run(`
-        UPDATE products SET
-          name_tr=?, name_en=?, description_tr=?, description_en=?, category=?,
-          price=?, image=?, portion_tr=?, portion_en=?, ingredients_tr=?, ingredients_en=?,
-          calories=?, protein=?, carbs=?, fat=?, saturated_fat=?, sugars=?, fiber=?,
-          salt=?, allergens=?, katki_maddesi_icermez=?, updated_at=CURRENT_TIMESTAMP
-        WHERE id=? AND tenant_id=?
-      `, paramValues);
-    }
+    const setClause = isPg
+      ? allColumns.map((col, i) => `${col}=$${i + 1}`).join(', ')
+      : allColumns.map(col => `${col}=?`).join(', ');
+    const whereClause = isPg ? `WHERE id=$${allColumns.length + 1} AND tenant_id=$${allColumns.length + 2}` : 'WHERE id=? AND tenant_id=?';
+    const result = await db.run(`UPDATE products SET ${setClause}, updated_at=CURRENT_TIMESTAMP ${whereClause}`, paramValues);
 
     if (result.changes === 0) {
       return res.status(404).json({ error: 'Product not found' });
@@ -405,17 +410,13 @@ app.post('/api/categories', adminAuth, async (req, res) => {
       return res.status(400).json({ error: 'ID and name_tr are required' });
     }
 
-    if (isPg) {
-      await db.run(
-        'INSERT INTO categories (id, tenant_id, name_tr, name_en, sort_order, icon) VALUES ($1, $2, $3, $4, $5, $6)',
-        [id, req.tenantId, name_tr, name_en || name_tr, sort_order || 0, icon || '']
-      );
-    } else {
-      await db.run(
-        'INSERT INTO categories (id, tenant_id, name_tr, name_en, sort_order, icon) VALUES (?, ?, ?, ?, ?, ?)',
-        [id, req.tenantId, name_tr, name_en || name_tr, sort_order || 0, icon || '']
-      );
-    }
+    // zh/ja/de/fr/es/ko: left empty when not supplied, no fallback to Turkish (see createProductRow).
+    const langValues = CATEGORY_LANG_COLUMNS.map(col => req.body[col] || '');
+    const baseColumns = ['id', 'tenant_id', 'name_tr', 'name_en', 'sort_order', 'icon'];
+    const allColumns = [...baseColumns, ...CATEGORY_LANG_COLUMNS];
+    const paramValues = [id, req.tenantId, name_tr, name_en || name_tr, sort_order || 0, icon || '', ...langValues];
+    const placeholders = isPg ? allColumns.map((_, i) => `$${i + 1}`).join(',') : allColumns.map(() => '?').join(',');
+    await db.run(`INSERT INTO categories (${allColumns.join(', ')}) VALUES (${placeholders})`, paramValues);
 
     const row = await db.get(
       isPg ? 'SELECT * FROM categories WHERE id = $1 AND tenant_id = $2' : 'SELECT * FROM categories WHERE id = ? AND tenant_id = ?',
@@ -434,18 +435,16 @@ app.put('/api/categories/:id', adminAuth, async (req, res) => {
     const id = req.params.id;
     const { name_tr, name_en, sort_order, icon } = req.body;
 
-    let result;
-    if (isPg) {
-      result = await db.run(
-        'UPDATE categories SET name_tr=$1, name_en=$2, sort_order=$3, icon=$4 WHERE id=$5 AND tenant_id=$6',
-        [name_tr, name_en, sort_order, icon, id, req.tenantId]
-      );
-    } else {
-      result = await db.run(
-        'UPDATE categories SET name_tr=?, name_en=?, sort_order=?, icon=? WHERE id=? AND tenant_id=?',
-        [name_tr, name_en, sort_order, icon, id, req.tenantId]
-      );
-    }
+    // zh/ja/de/fr/es/ko: left empty when not supplied, no fallback to Turkish (see createProductRow).
+    const langValues = CATEGORY_LANG_COLUMNS.map(col => req.body[col] || '');
+    const baseColumns = ['name_tr', 'name_en', 'sort_order', 'icon'];
+    const allColumns = [...baseColumns, ...CATEGORY_LANG_COLUMNS];
+    const paramValues = [name_tr, name_en, sort_order, icon, ...langValues, id, req.tenantId];
+    const setClause = isPg
+      ? allColumns.map((col, i) => `${col}=$${i + 1}`).join(', ')
+      : allColumns.map(col => `${col}=?`).join(', ');
+    const whereClause = isPg ? `WHERE id=$${allColumns.length + 1} AND tenant_id=$${allColumns.length + 2}` : 'WHERE id=? AND tenant_id=?';
+    const result = await db.run(`UPDATE categories SET ${setClause} ${whereClause}`, paramValues);
 
     if (result.changes === 0) {
       return res.status(404).json({ error: 'Category not found' });
@@ -2004,9 +2003,12 @@ app.get('/api/admin/analytics', adminAuth, async (req, res) => {
 // above. Plans are held in-memory (never persisted) and are single-use + tenant-locked.
 const aiPlanCache = new Map(); // planId -> { tenantId, actions, createdAt }
 const AI_PLAN_TTL_MS = 10 * 60 * 1000;
+// Note: portion_tr/en and ingredients_tr/en are NOT whitelisted (the AI has never been able to
+// touch those, even before the 6-language expansion below) — only the 6 new languages' versions
+// of those fields are added here, deliberately not retroactively expanding tr/en capability.
 const AI_FIELD_WHITELIST = {
-  products: ['name_tr', 'name_en', 'description_tr', 'description_en', 'price', 'category'],
-  categories: ['name_tr', 'name_en']
+  products: ['name_tr', 'name_en', 'description_tr', 'description_en', 'price', 'category', ...PRODUCT_LANG_COLUMNS],
+  categories: ['name_tr', 'name_en', ...CATEGORY_LANG_COLUMNS]
 };
 
 const DEFAULT_AI_MODEL = 'llama-3.3-70b-versatile';
@@ -2102,7 +2104,15 @@ async function callAiJSON(key, model, systemPrompt, userMessage) {
       { role: 'system', content: systemPrompt },
       { role: 'user', content: userMessage }
     ],
-    response_format: { type: 'json_object' }
+    response_format: { type: 'json_object' },
+    // Explicit ceiling: a full-menu translate-to-one-language request can produce a much larger
+    // JSON response than any prior use of this endpoint (one update action per product per new
+    // field) — without this, a large menu risks a silently-truncated response that fails
+    // JSON.parse (caught below, surfaces as a generic chat error, not data corruption).
+    // Kept modest on purpose: this account's Groq tier caps input+output at 12000 tokens PER
+    // MINUTE (live-tested: 8000 pushed a themed 11-product/4-category tenant over that limit
+    // outright). 4000 leaves headroom for the prompt + product/category data on top.
+    max_tokens: 4000
   };
   const r = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + key }, body: JSON.stringify(body) });
   const data = await r.json();
@@ -2135,13 +2145,18 @@ app.post('/api/admin/ai-assistant/plan', adminAuth, async (req, res) => {
       return res.status(429).json({ error: 'ai_quota_exceeded', quota });
     }
 
+    // portion_tr/ingredients_tr are fetched (so the model has source text to translate from) but
+    // stay OUT of AI_FIELD_WHITELIST — the model can see them, never write them (same
+    // defense-in-depth pattern as everywhere else: the whitelist is the real security gate,
+    // regardless of what the system prompt below says or what the model can see).
+    const productColumns = ['id', 'name_tr', 'name_en', 'description_tr', 'description_en', 'portion_tr', 'ingredients_tr', 'category', 'price', ...PRODUCT_LANG_COLUMNS];
+    const categoryColumns = ['id', 'name_tr', 'name_en', ...CATEGORY_LANG_COLUMNS];
     const products = await db.all(
-      isPg ? 'SELECT id, name_tr, name_en, description_tr, description_en, category, price FROM products WHERE tenant_id = $1'
-           : 'SELECT id, name_tr, name_en, description_tr, description_en, category, price FROM products WHERE tenant_id = ?',
+      isPg ? `SELECT ${productColumns.join(', ')} FROM products WHERE tenant_id = $1` : `SELECT ${productColumns.join(', ')} FROM products WHERE tenant_id = ?`,
       [req.tenantId]
     );
     const categories = await db.all(
-      isPg ? 'SELECT id, name_tr, name_en FROM categories WHERE tenant_id = $1' : 'SELECT id, name_tr, name_en FROM categories WHERE tenant_id = ?',
+      isPg ? `SELECT ${categoryColumns.join(', ')} FROM categories WHERE tenant_id = $1` : `SELECT ${categoryColumns.join(', ')} FROM categories WHERE tenant_id = ?`,
       [req.tenantId]
     );
 
@@ -2156,10 +2171,22 @@ JSON şemasıyla ver, başka hiçbir şey yazma:
 ], "unsupported": [string], "image_prompt": string|null,
 "image_target_product_id": string|null, "image_target_candidates": [string]|null}
 
+Dil kodları (çok dilli menü alanlarında SADECE bu kodları kullan): Türkçe=tr, İngilizce=en,
+Almanca=de, Fransızca=fr, İspanyolca=es, Japonca=ja, Korece=ko, Çince=zh. "tr" TEMEL/ANA dildir —
+çeviri isteklerinde ASLA name_tr/description_tr/portion_tr/ingredients_tr alanlarına dokunma,
+sadece hedef dilin alanlarını (örn. name_de, description_de) doldur/güncelle.
+
 Üç action tipi var:
 - "update": var olan bir ürün/kategoriyi düzenler. SADECE verilen GERÇEK id'leri ve izin verilen
   alanları kullan. Hesaplama gerekiyorsa (yüzde artış, çeviri vb.) SONUCU SEN HESAPLA ve newValue'ya
   nihai değeri yaz — asla formül yazma. Fiyat (price) her zaman sayı string'i olmalı (örn. "112.5").
+  ÇOK DİLLİ TOPLU ÇEVİRİ: kullanıcı "menümü Almanca'ya çevir" gibi bir dile TÜM menüyü çevirmeni
+  isterse, bu bir TOPLU "update" işidir, "create" DEĞİL — ürünler/kategoriler zaten var. Sana
+  verilen HER ürün için ilgili alanları (name_XX, description_XX; portion_tr/ingredients_tr doluysa
+  portion_XX/ingredients_XX da) GERÇEK targetId ile ayrı ayrı "update" action'ı olarak öner, aynı
+  şekilde HER kategori için name_XX update'i. Bir ürünün ilgili tr alanı boşsa o alan için action
+  üretme. Kullanıcı "sadece eksik olanları çevir" demediyse, hedef dilde zaten bir değer olsa bile
+  YENİDEN çevir (güncel/tutarlı bir çeviri olarak ele al, atlama).
 - "create": YENİ bir ürün veya kategori oluşturur — kullanıcı "menüme X ekle", "Y kategorisi aç",
   "restoranımın menüsü şöyle: ..." gibi var olmayan bir şeyi tarif ettiğinde kullan. "tempId" alanına
   bu plan içinde bu yeni kaydı referans vermek için kendi uydurduğun kısa bir metin yaz (örn. "new-1",
@@ -2168,8 +2195,10 @@ JSON şemasıyla ver, başka hiçbir şey yazma:
   istediğinde, o ürünün "fields.category" alanına kategorinin GERÇEK id'si yerine SENİN VERDİĞİN
   tempId'yi yaz, sunucu bunu otomatik eşleştirecek). products için "fields": {name_tr, name_en,
   description_tr, description_en, price, category} (name_tr zorunlu, category bir GERÇEK kategori
-  id'si veya AYNI planda oluşturduğun bir kategori tempId'si olmalı). categories için "fields":
-  {name_tr, name_en} (name_tr zorunlu). Kullanıcı "menümü baştan kur" gibi büyük bir istek yaparsa
+  id'si veya AYNI planda oluşturduğun bir kategori tempId'si olmalı) — kullanıcı yeni ürünü birden
+  fazla dilde tarif ettiyse name_de/description_de gibi diğer dil alanlarını da fields'a ekleyebilirsin
+  (hepsi opsiyonel). categories için "fields": {name_tr, name_en} (name_tr zorunlu, name_de gibi
+  diğer dil alanları opsiyonel). Kullanıcı "menümü baştan kur" gibi büyük bir istek yaparsa
   birden fazla create action'ı tek planda üretmekten çekinme (önce kategoriler, sonra o kategorilere
   ait ürünler sırayla).
 - "delete": var olan bir ürün/kategoriyi SİLER — kullanıcı açıkça "X'i kaldır/sil" dediğinde kullan,
@@ -2202,8 +2231,8 @@ açıklamayla ekle, ASLA action üretme.
   müşteri bilgileri, ödeme/finansal veri, diğer restoranların verisi, sistem/güvenlik ayarları, API
   anahtarları vb.) HİÇBİR VERİN YOK ve göremezsin/değiştiremezsin — böyle bir şey istenirse elinde
   olmadığını "summary"de nazikçe belirt, asla veri uydurma.
-İzin verilen düzenlenebilir alanlar — products: name_tr, name_en, description_tr, description_en,
-price, category. categories: name_tr, name_en.
+İzin verilen düzenlenebilir alanlar — products: ${AI_FIELD_WHITELIST.products.join(', ')}.
+categories: ${AI_FIELD_WHITELIST.categories.join(', ')}.
 Ürünler: ${JSON.stringify(products)}
 Kategoriler: ${JSON.stringify(categories)}`;
 
@@ -2261,7 +2290,11 @@ Kategoriler: ${JSON.stringify(categories)}`;
     const unsupported = Array.isArray(plan.unsupported) ? plan.unsupported.slice(0, 20) : [];
     const actions = [];
     const productLabel = t => t === 'products' ? 'ürün' : 'kategori';
-    for (const a of (Array.isArray(plan.actions) ? plan.actions : []).slice(0, 50)) {
+    // 600 (was 50): a full-menu translate-to-one-language request produces roughly
+    // products × 2-4 fields + categories × 1 field — comfortably covers 100+ product menus.
+    // Extremely large menus (200+ products) could still exceed this; a real fix there would be
+    // multi-round/chunked translation, out of scope for now.
+    for (const a of (Array.isArray(plan.actions) ? plan.actions : []).slice(0, 600)) {
       const table = a.table === 'categories' ? 'categories' : (a.table === 'products' ? 'products' : null);
       if (!table) { unsupported.push(`Desteklenmeyen tablo: ${a.table}`); continue; }
       const type = a.type === 'create' ? 'create' : (a.type === 'delete' ? 'delete' : 'update');
@@ -2283,21 +2316,30 @@ Kategoriler: ${JSON.stringify(categories)}`;
         const name_tr = String(fields.name_tr || '').trim().slice(0, 200);
         if (!name_tr) { unsupported.push(`Ad belirtilmeden yeni ${productLabel(table)} oluşturulamaz`); continue; }
         const tempId = String(a.tempId || '').trim().slice(0, 60) || `temp-${actions.length}`;
+        // zh/ja/de/fr/es/ko: not covered by AI_FIELD_WHITELIST (that only gates "update") — sent
+        // as-is if the model provided them, empty string otherwise, NO fallback to Turkish (same
+        // rule as createProductRow/createCategoryRow — lets "not yet translated" stay distinguishable).
         if (table === 'categories') {
-          actions.push({ type: 'create', table, tempId, fields: { name_tr, name_en: String(fields.name_en || name_tr).trim().slice(0, 200) } });
+          const langFields = Object.fromEntries(CATEGORY_LANG_COLUMNS.map(col => [col, String(fields[col] || '').trim().slice(0, 200)]));
+          actions.push({ type: 'create', table, tempId, fields: { name_tr, name_en: String(fields.name_en || name_tr).trim().slice(0, 200), ...langFields } });
         } else {
           const category = String(fields.category || '').trim();
           const referencesTempCategory = actions.some(x => x.type === 'create' && x.table === 'categories' && x.tempId === category);
           if (!category || (!categoriesById[category] && !referencesTempCategory)) {
             unsupported.push(`"${name_tr}" için geçerli bir kategori belirtilmedi`); continue;
           }
+          const langFields = Object.fromEntries(PRODUCT_LANG_COLUMNS.map(col => {
+            const maxLen = col.startsWith('name_') ? 200 : 2000;
+            return [col, String(fields[col] || '').trim().slice(0, maxLen)];
+          }));
           actions.push({
             type: 'create', table, tempId,
             fields: {
               name_tr, name_en: String(fields.name_en || name_tr).trim().slice(0, 200),
               description_tr: String(fields.description_tr || '').slice(0, 2000),
               description_en: String(fields.description_en || fields.description_tr || '').slice(0, 2000),
-              price: String(parseFloat(fields.price) || 0), category
+              price: String(parseFloat(fields.price) || 0), category,
+              ...langFields
             }
           });
         }

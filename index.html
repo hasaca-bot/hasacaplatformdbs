@@ -472,6 +472,64 @@ body.theme-bw .lang-btn:hover {
   border-color: var(--fire);
   color: #fff;
 }
+
+/* ── LANGUAGE DROPDOWN (replaces the old binary TR/EN toggle button) ──
+   Same open/close + outside-click mechanics as .category-dropdown-*, just compact enough for
+   the topbar (that one is a full-width block dropdown used inline in the page body). */
+.lang-dropdown-container { position: relative; }
+.lang-dropdown-btn {
+  background: rgba(244,244,246, 0.06);
+  border: 1.5px solid rgba(244,244,246, 0.1);
+  color: var(--cream);
+  border-radius: 50px;
+  padding: 8px 12px;
+  font-family: 'Syne', sans-serif;
+  font-size: 0.8rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  transition: all 0.2s;
+  -webkit-tap-highlight-color: transparent;
+}
+.lang-dropdown-btn:hover {
+  background:var(--fire); color:var(--fire-text); border-color: var(--fire);
+}
+body.theme-bw .lang-dropdown-btn {
+  background: rgba(15,18,25, 0.05);
+  border-color: rgba(15,18,25, 0.12);
+  color: var(--cream);
+}
+body.theme-bw .lang-dropdown-btn:hover {
+  background:var(--fire); color:var(--fire-text); border-color: var(--fire);
+}
+.lang-dropdown-btn .chevron-icon { transition: transform 0.2s; }
+.lang-dropdown-container.open .lang-dropdown-btn .chevron-icon { transform: rotate(180deg); }
+.lang-dropdown-list {
+  position: absolute; top: calc(100% + 8px); right: 0; min-width: 150px; max-height: 320px;
+  overflow-y: auto;
+  background: var(--dark2); border: 1px solid rgba(244,244,246, 0.1); border-radius: 16px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+  display: none; flex-direction: column; z-index: 50;
+  animation: dropdownSlideDown 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+body.theme-bw .lang-dropdown-list {
+  background: #FFFFFF; border-color: rgba(0, 0, 0, 0.12); box-shadow: 0 10px 24px rgba(0,0,0,0.1);
+}
+.lang-dropdown-container.open .lang-dropdown-list { display: flex; }
+.lang-dropdown-option {
+  padding: 10px 16px;
+  color: var(--muted);
+  font-family: 'Syne', sans-serif;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.lang-dropdown-option:hover { background: rgba(244,244,246, 0.04); color: var(--cream); }
+body.theme-bw .lang-dropdown-option:hover { background: rgba(0, 0, 0, 0.03); }
+.lang-dropdown-option.active { background:var(--fire); color:var(--fire-text); }
 /* Responsive PC Admin Panel */
 @media(min-width: 992px) {
   .admin-panel {
@@ -2642,11 +2700,13 @@ body.theme-bw .dinein-actions button.primary {
   </a>
   <div style="flex-grow:1;"></div>
 
-  <div>
-    <button id="lang-btn" class="lang-btn" onclick="toggleLanguage()">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: middle; margin-right: 4px;"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
-      <span id="lang-btn-text">EN</span>
+  <div class="lang-dropdown-container" id="langDropdownContainer">
+    <button class="lang-dropdown-btn" id="langDropdownBtn" onclick="toggleLangDropdown(event)">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: middle;"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+      <span id="langDropdownSelectedText">TR</span>
+      <svg class="chevron-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
     </button>
+    <div class="lang-dropdown-list" id="langDropdownList"></div>
   </div>
 </header>
 <!-- HERO -->
@@ -3936,8 +3996,73 @@ const i18nData = {
     push_prompt_allow: "Allow"
   }
 };
+// Interface chrome only has tr/en dictionaries. Every one of the dozens of `i18nData[lang]`
+// lookups scattered through this file (menu detail view, category labels, toasts, dkT()...)
+// would either silently do nothing or throw for a language it doesn't recognize now that
+// window.currentLanguage can be zh/ja/de/fr/es/ko too — aliasing those codes straight to the
+// English object here fixes every one of those call sites at the source, without having to
+// hunt down and edit each one individually. Menu CONTENT (dish names/descriptions) is
+// unaffected — that's resolved separately via localizedField(), which reads the real language.
+for (const code of ['de', 'fr', 'es', 'zh', 'ja', 'ko']) { i18nData[code] = i18nData.en; }
 // (legacy static item translations removed — menu translations are built from tenant DB data)
 let itemTranslations = {};
+
+// Menu-content languages beyond tr/en — mirrors backend/server.js's CONTENT_LANGS. Menu CONTENT
+// (dish names/descriptions) can render in any of these; interface chrome (buttons/labels) stays
+// tr/en only and falls back to English for the rest — see localizedField()/CHROME_LANG below.
+const SUPPORTED_LANGS = [
+  { code: 'tr', label: 'Türkçe' },
+  { code: 'en', label: 'English' },
+  { code: 'de', label: 'Deutsch' },
+  { code: 'fr', label: 'Français' },
+  { code: 'es', label: 'Español' },
+  { code: 'zh', label: '中文' },
+  { code: 'ja', label: '日本語' },
+  { code: 'ko', label: '한국어' }
+];
+
+// Resolves a language-suffixed content field (name/description/portion/ingredients) with a
+// selected-language → English → Turkish fallback chain. `item` is a raw /api/products or
+// /api/categories record — those already carry name_XX/description_XX etc. once translated.
+// `field` is the unsuffixed base name for the TRANSLATED variants (name_de, portion_ja, ...),
+// which mapProductRow names consistently — but the Turkish/base value itself does NOT follow
+// that pattern for every field (name/description are bare `name`/`description`, but ingredients
+// is the legacy Turkish key `icindekiler`, and portion is nested under `besin_degerleri.porsiyon`
+// rather than a flat key) — so the tr/no-translation-available fallback is field-specific.
+function localizedField(item, field, lang) {
+  if (!item) return '';
+  if (lang !== 'tr') {
+    const translated = item[`${field}_${lang}`] || item[`${field}_en`];
+    if (translated) return translated;
+  }
+  if (field === 'ingredients') return item.icindekiler || '';
+  if (field === 'portion') return (item.besin_degerleri && item.besin_degerleri.porsiyon) || '';
+  return item[field] || '';
+}
+
+function renderLangDropdown() {
+  const list = document.getElementById('langDropdownList');
+  if (!list) return;
+  list.innerHTML = SUPPORTED_LANGS.map(l =>
+    `<div class="lang-dropdown-option${l.code === window.currentLanguage ? ' active' : ''}" data-lang="${l.code}" onclick="selectLangOption('${l.code}')">${l.label}</div>`
+  ).join('');
+  const selectedText = document.getElementById('langDropdownSelectedText');
+  if (selectedText) selectedText.textContent = window.currentLanguage.toUpperCase();
+}
+function toggleLangDropdown(event) {
+  event.stopPropagation();
+  const container = document.getElementById('langDropdownContainer');
+  if (container) container.classList.toggle('open');
+}
+function selectLangOption(code) {
+  const container = document.getElementById('langDropdownContainer');
+  if (container) container.classList.remove('open');
+  applyLanguage(code);
+}
+document.addEventListener('click', () => {
+  const container = document.getElementById('langDropdownContainer');
+  if (container) container.classList.remove('open');
+});
 
 function toggleLanguage() {
   const nextLang = window.currentLanguage === 'tr' ? 'en' : 'tr';
@@ -3950,17 +4075,18 @@ function applyLanguage(lang) {
   safeSetItem('lang', lang);
   document.title = window.__siteTitle || 'My Restaurant';
 
-  // Update top bar language button text
-  const langText = document.getElementById('lang-btn-text');
-  if (langText) {
-    langText.textContent = lang === 'tr' ? 'EN' : 'TR';
-  }
+  // Interface chrome (buttons/labels) only has tr/en dictionaries — any other selected language
+  // (menu CONTENT still renders in the real `lang`, see localizedField()) falls back to English
+  // here, not Turkish, so picking e.g. Japanese doesn't leave Turkish button labels behind.
+  const chromeLang = lang === 'tr' ? 'tr' : 'en';
+
+  renderLangDropdown();
 
   // Update elements with data-i18n attribute
   document.querySelectorAll('[data-i18n]').forEach(el => {
     const key = el.getAttribute('data-i18n');
-    if (i18nData[lang] && i18nData[lang][key]) {
-      const val = i18nData[lang][key];
+    const val = (i18nData[chromeLang] && i18nData[chromeLang][key]);
+    if (val) {
       if (val.includes('<')) {
         el.innerHTML = val;
       } else {
@@ -3984,16 +4110,16 @@ function applyLanguage(lang) {
   // Update input placeholders with data-i18n-placeholder attribute
   document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
     const key = el.getAttribute('data-i18n-placeholder');
-    if (i18nData[lang] && i18nData[lang][key]) {
-      el.setAttribute('placeholder', i18nData[lang][key]);
+    if (i18nData[chromeLang] && i18nData[chromeLang][key]) {
+      el.setAttribute('placeholder', i18nData[chromeLang][key]);
     }
   });
 
   // Update alt text with data-i18n-alt attribute
   document.querySelectorAll('[data-i18n-alt]').forEach(el => {
     const key = el.getAttribute('data-i18n-alt');
-    if (i18nData[lang] && i18nData[lang][key]) {
-      el.setAttribute('alt', i18nData[lang][key]);
+    if (i18nData[chromeLang] && i18nData[chromeLang][key]) {
+      el.setAttribute('alt', i18nData[chromeLang][key]);
     }
   });
 
@@ -4010,25 +4136,25 @@ function applyLanguage(lang) {
   const rezGunSelect = document.getElementById('rezGun');
   const rezGunText = document.getElementById('rezGunSelectedText');
   if (rezGunSelect && rezGunText && rezGunSelect.value === '') {
-    rezGunText.textContent = i18nData[lang].select_day || 'Gün';
+    rezGunText.textContent = i18nData[chromeLang].select_day || 'Gün';
   }
-  
+
   const rezAySelect = document.getElementById('rezAy');
   const rezAyText = document.getElementById('rezAySelectedText');
   if (rezAySelect && rezAyText && rezAySelect.value === '') {
-    rezAyText.textContent = i18nData[lang].select_month || 'Ay';
+    rezAyText.textContent = i18nData[chromeLang].select_month || 'Ay';
   }
-  
+
   const rezYilSelect = document.getElementById('rezYil');
   const rezYilText = document.getElementById('rezYilSelectedText');
   if (rezYilSelect && rezYilText && rezYilSelect.value === '') {
-    rezYilText.textContent = i18nData[lang].select_year || 'Yıl';
+    rezYilText.textContent = i18nData[chromeLang].select_year || 'Yıl';
   }
-  
+
   const rezSaatSelectVal = document.getElementById('rezSaat');
   const rezSaatText = document.getElementById('rezSaatSelectedText');
   if (rezSaatSelectVal && rezSaatText && rezSaatSelectVal.value === '') {
-    rezSaatText.textContent = i18nData[lang].select_hour || 'Seçin';
+    rezSaatText.textContent = i18nData[chromeLang].select_hour || 'Seçin';
   }
 
   // Update reservation dates
@@ -4047,12 +4173,7 @@ function applyLanguage(lang) {
     } else {
       const cat = categoriesMap[activeTab];
       if (cat) {
-        let catName = cat.name;
-        if (lang === 'en') {
-          const catTranslations = {};
-          catName = catTranslations[cat.name] || cat.name;
-        }
-        selectedText.textContent = catName;
+        selectedText.textContent = localizedField(cat, 'name', lang);
       }
     }
   }
@@ -4094,12 +4215,7 @@ let categoriesMap = {};
 
 function getCategoryTranslatedName(key, lang) {
   if (!categoriesMap[key]) return '';
-  const cat = categoriesMap[key];
-  if (lang === 'en') {
-    const catTranslations = {};
-    return catTranslations[cat.name] || cat.name;
-  }
-  return cat.name;
+  return localizedField(categoriesMap[key], 'name', lang);
 }
 
 function updateFormCategoryOptions() {
@@ -4416,12 +4532,8 @@ function renderCategoriesDropdown() {
     option.setAttribute('data-tab', key);
     
     // Translate category name dynamically
-    let catName = cat.name;
-    if (window.currentLanguage === 'en') {
-      const catTranslations = {};
-      catName = catTranslations[cat.name] || cat.name;
-    }
-    
+    const catName = localizedField(cat, 'name', window.currentLanguage);
+
     option.onclick = function() { selectCategoryOption(this, catName); };
     option.innerHTML = `
       ${cat.icon}
@@ -4454,12 +4566,9 @@ async function loadMenuDatabase() {
         const categories = await catResponse.json();
         categoriesMap = {};
         categories.forEach(c => {
-          categoriesMap[c.id] = {
-            name: c.name_tr,
-            name_en: c.name_en,
-            icon: c.icon,
-            sort_order: c.sort_order
-          };
+          // Spread every raw API field (including name_zh/name_ja/etc.) so new languages need
+          // no change here — then override `name` to the Turkish value for existing callers.
+          categoriesMap[c.id] = { ...c, name: c.name_tr };
         });
       }
     } catch (e) {
@@ -4544,12 +4653,8 @@ function renderMenuCards(category) {
   const cartAddText = (i18nData[window.currentLanguage] && i18nData[window.currentLanguage].cart_add) || 'Sepete Ekle';
 
   container.innerHTML = filteredItems.map(item => {
-    let itemName = item.name;
-    let itemDesc = item.description;
-    if (window.currentLanguage === 'en' && itemTranslations[item.id]) {
-      itemName = itemTranslations[item.id].name || item.name;
-      itemDesc = itemTranslations[item.id].description || item.description;
-    }
+    const itemName = localizedField(item, 'name', window.currentLanguage);
+    const itemDesc = localizedField(item, 'description', window.currentLanguage);
     
     return `
       <div class="food-card" onclick="openFoodDetail('${item.id}')">
@@ -4622,26 +4727,16 @@ function openFoodDetail(id, updateHash = true) {
   
   // Language translations variables
   const lang = window.currentLanguage;
-  let itemName = item.name;
-  let itemDesc = item.description;
-  let itemIngredients = item.icindekiler;
-  
-  if (lang === 'en' && itemTranslations[item.id]) {
-    itemName = itemTranslations[item.id].name || item.name;
-    itemDesc = itemTranslations[item.id].description || item.description;
-    itemIngredients = itemTranslations[item.id].ingredients || item.icindekiler;
-  }
-  
-  let portionText = item.besin_degerleri.porsiyon;
-  if (lang === 'en' && itemTranslations[item.id] && itemTranslations[item.id].portion) {
-    portionText = itemTranslations[item.id].portion;
-  } else if (lang === 'en') {
-    portionText = portionText.replace('Menü', 'Menu').replace('Porsiyon', 'Portion');
-  }
+  const itemName = localizedField(item, 'name', lang);
+  const itemDesc = localizedField(item, 'description', lang);
+  const itemIngredients = localizedField(item, 'ingredients', lang);
+  const portionText = localizedField(item, 'portion', lang);
 
-  // Allergen badge names translation
+  // Allergen names are a small fixed vocabulary, English-only (not translated into the 6 new
+  // languages — see the "interface chrome stays tr/en" scope note above); any non-Turkish
+  // language shows the English versions rather than leaving Turkish text behind.
   function translateAllergenName(name) {
-    if (lang !== 'en') return name;
+    if (lang === 'tr') return name;
     if (name.includes('Gluten')) return 'Gluten';
     if (name.includes('Soya')) return 'Soy';
     if (name.includes('Süt')) return 'Dairy';
@@ -4650,7 +4745,7 @@ function openFoodDetail(id, updateHash = true) {
   }
 
   function translateAllergenFullName(name) {
-    if (lang !== 'en') return name;
+    if (lang === 'tr') return name;
     if (name === 'Gluten içerir') return 'Contains gluten';
     if (name === 'Soya içerebilir') return 'May contain soy';
     if (name === 'Süt ve süt ürünleri içerir') return 'Contains milk & dairy products';
@@ -6786,8 +6881,7 @@ function dkValidateCart() {
 }
 
 function dkItemName(entry){
-  const lang = window.currentLanguage || 'tr';
-  return (lang === 'en' ? (entry.name_en || entry.name) : entry.name) || entry.name;
+  return localizedField(entry, 'name', window.currentLanguage || 'tr');
 }
 
 function addToCart(productId){
@@ -6797,12 +6891,15 @@ function addToCart(productId){
   if (existing){
     existing.qty = Math.min(99, existing.qty + 1);   // duplicate -> increase quantity
   } else {
-    const nameEn = item.name_en || (typeof itemTranslations !== 'undefined' && itemTranslations[item.id] && itemTranslations[item.id].name) || item.name;
-    dkCart.push({ id: item.id, name: item.name, name_en: nameEn, price: Number(item.price) || 0, image: item.image || '', qty: 1 });
+    // Snapshot every language's name at add-time (not just en) so dkItemName() can render the
+    // cart correctly regardless of which language is active when the customer views it later.
+    const cartEntry = { id: item.id, name: item.name, price: Number(item.price) || 0, image: item.image || '', qty: 1 };
+    for (const l of ['en', 'de', 'fr', 'es', 'zh', 'ja', 'ko']) cartEntry[`name_${l}`] = item[`name_${l}`] || '';
+    dkCart.push(cartEntry);
   }
   dkSaveCart();
   refreshCartUI();
-  const shownName = (window.currentLanguage === 'en' ? (item.name_en || item.name) : item.name);
+  const shownName = localizedField(item, 'name', window.currentLanguage);
   dkToast(shownName + ' ' + dkT('cart_added_toast'));
 }
 
@@ -7102,7 +7199,7 @@ function dkRenderDineinActions(){
 
 async function dkCallService(type){
   if (!window.dkDineinToken) {
-    const msg = (window.currentLanguage === 'en')
+    const msg = (window.currentLanguage !== 'tr')
       ? 'Please scan the table QR code first.'
       : 'Lütfen masa QR kodunu okutun.';
     if (typeof dkToast === 'function') dkToast(msg);
@@ -7118,7 +7215,7 @@ async function dkCallService(type){
     if (!res.ok) throw new Error();
     dkToast(dkT(type === 'bill' ? 'dinein_bill_requested' : 'dinein_waiter_called'));
   } catch(e){
-    dkToast(window.currentLanguage === 'en' ? 'Request failed. Please try again.' : 'İstek gönderilemedi. Tekrar deneyin.');
+    dkToast(window.currentLanguage !== 'tr' ? 'Request failed. Please try again.' : 'İstek gönderilemedi. Tekrar deneyin.');
   }
 }
 

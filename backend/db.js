@@ -562,6 +562,19 @@ async function runPlatformMigrations() {
   await ensureColumn('admin_users', 'avatar_url', 'TEXT');
   await dbDriver.exec(`DROP INDEX IF EXISTS idx_admin_users_google_sub;`);
   await dbDriver.exec(`CREATE INDEX IF NOT EXISTS idx_admin_users_google_sub ON admin_users(google_sub);`);
+
+  // 7) Menu-content languages beyond tr/en. Unlike name_en/description_en (which fall back to
+  // the tr value when blank), these are left NULL/empty when untranslated on purpose — the AI
+  // assistant's bulk-translate feature needs a reliable way to tell "not yet translated" apart
+  // from "translated, and it happens to match the Turkish text". Categories have no description
+  // field at all (not even tr/en today), so only name_XX is added for them.
+  for (const lang of ['zh', 'ja', 'de', 'fr', 'es', 'ko']) {
+    await ensureColumn('products', `name_${lang}`, 'TEXT');
+    await ensureColumn('products', `description_${lang}`, 'TEXT');
+    await ensureColumn('products', `portion_${lang}`, 'TEXT');
+    await ensureColumn('products', `ingredients_${lang}`, 'TEXT');
+    await ensureColumn('categories', `name_${lang}`, 'TEXT');
+  }
 }
 
 // Seed the master-template menu (generic "My Restaurant" demo) into a tenant.

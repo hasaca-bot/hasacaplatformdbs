@@ -1781,6 +1781,41 @@ body.theme-bw .admin-prod-btn {
   display: block;
   margin-bottom: 6px;
 }
+/* Language tabs for product/category forms — one pill row switches which language's
+   name/description/portion/ingredients panels are visible (TR + EN + 6 new languages). */
+.admin-lang-tabs {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+.admin-lang-tab {
+  background: rgba(244,244,246,0.06);
+  border: 1.5px solid rgba(244,244,246,0.1);
+  color: var(--muted);
+  border-radius: 999px;
+  padding: 6px 14px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.admin-lang-tab.active {
+  background: var(--fire);
+  border-color: var(--fire);
+  color: var(--fire-text);
+}
+body.theme-bw .admin-lang-tab {
+  background: rgba(15,18,25, 0.04);
+  border-color: rgba(15,18,25, 0.1);
+  color: var(--cream);
+}
+body.theme-bw .admin-lang-tab.active {
+  background: var(--fire);
+  border-color: var(--fire);
+  color: var(--fire-text);
+}
+.admin-lang-panel .admin-form-row { grid-template-columns: 1fr; }
 
 /* ── CUSTOM MINIMAL STEPPER ── */
 .custom-stepper {
@@ -3769,17 +3804,55 @@ body.theme-bw .rez-select-trigger:hover {
     </div>
   </div>
   
-  <div class="admin-form-row" style="grid-template-columns: 1fr 1fr; gap:16px; margin-bottom:16px;">
+  <div class="admin-lang-tabs" id="categoryLangTabs">
+    <button type="button" class="admin-lang-tab active" data-lang="tr" onclick="setCategoryFormLang('tr')">TR</button>
+    <button type="button" class="admin-lang-tab" data-lang="en" onclick="setCategoryFormLang('en')">EN</button>
+    <button type="button" class="admin-lang-tab" data-lang="de" onclick="setCategoryFormLang('de')">DE</button>
+    <button type="button" class="admin-lang-tab" data-lang="fr" onclick="setCategoryFormLang('fr')">FR</button>
+    <button type="button" class="admin-lang-tab" data-lang="es" onclick="setCategoryFormLang('es')">ES</button>
+    <button type="button" class="admin-lang-tab" data-lang="zh" onclick="setCategoryFormLang('zh')">中文</button>
+    <button type="button" class="admin-lang-tab" data-lang="ja" onclick="setCategoryFormLang('ja')">日本語</button>
+    <button type="button" class="admin-lang-tab" data-lang="ko" onclick="setCategoryFormLang('ko')">한국어</button>
+  </div>
+
+  <div class="admin-form-row admin-lang-panel" data-lang="tr">
     <div>
-      <label class="admin-form-label" data-i18n="admin_lbl_category_name">Kategori Adı</label>
+      <label class="admin-form-label" data-i18n="admin_lbl_category_name">Kategori Adı (Türkçe)</label>
       <input type="text" id="formCategoryName" class="admin-input" data-i18n-placeholder="ph_category_name_example" placeholder="Örn: Tatlılar" />
     </div>
+  </div>
+  <div class="admin-form-row admin-lang-panel" data-lang="en" style="display:none;">
+    <div>
+      <label class="admin-form-label">Kategori Adı (İngilizce)</label>
+      <input type="text" id="formCategoryNameEn" class="admin-input" placeholder="e.g. Desserts" />
+    </div>
+  </div>
+  <div class="admin-form-row admin-lang-panel" data-lang="de" style="display:none;">
+    <div><label class="admin-form-label">Kategori Adı (Almanca)</label><input type="text" id="formCategoryName_de" class="admin-input" /></div>
+  </div>
+  <div class="admin-form-row admin-lang-panel" data-lang="fr" style="display:none;">
+    <div><label class="admin-form-label">Kategori Adı (Fransızca)</label><input type="text" id="formCategoryName_fr" class="admin-input" /></div>
+  </div>
+  <div class="admin-form-row admin-lang-panel" data-lang="es" style="display:none;">
+    <div><label class="admin-form-label">Kategori Adı (İspanyolca)</label><input type="text" id="formCategoryName_es" class="admin-input" /></div>
+  </div>
+  <div class="admin-form-row admin-lang-panel" data-lang="zh" style="display:none;">
+    <div><label class="admin-form-label">Kategori Adı (Çince)</label><input type="text" id="formCategoryName_zh" class="admin-input" /></div>
+  </div>
+  <div class="admin-form-row admin-lang-panel" data-lang="ja" style="display:none;">
+    <div><label class="admin-form-label">Kategori Adı (Japonca)</label><input type="text" id="formCategoryName_ja" class="admin-input" /></div>
+  </div>
+  <div class="admin-form-row admin-lang-panel" data-lang="ko" style="display:none;">
+    <div><label class="admin-form-label">Kategori Adı (Korece)</label><input type="text" id="formCategoryName_ko" class="admin-input" /></div>
+  </div>
+
+  <div class="admin-form-row" style="grid-template-columns: 1fr; gap:16px; margin-bottom:16px;">
     <div>
       <label class="admin-form-label" data-i18n="admin_lbl_category_slug">Kategori Kodu (Küçük harf, ingilizce karakter)</label>
       <input type="text" id="formCategorySlug" class="admin-input" data-i18n-placeholder="ph_category_slug_example" placeholder="Örn: tatlilar" />
     </div>
   </div>
-  
+
   <div style="margin-bottom:20px;">
     <label class="admin-form-label" data-i18n="admin_lbl_category_icon">SVG İkon Kodu (Boş bırakılırsa varsayılan ikon atanır)</label>
     <textarea id="formCategoryIcon" class="admin-input" rows="4" placeholder='<svg ...>...</svg>' style="resize:vertical; font-family:monospace; font-size:0.8rem;"></textarea>
@@ -3797,16 +3870,47 @@ body.theme-bw .rez-select-trigger:hover {
   </div>
   
   <input type="hidden" id="formProductId" />
-  
-  <div class="admin-form-row" style="grid-template-columns: 1fr 1fr; gap:16px;">
+
+  <div class="admin-lang-tabs" id="productLangTabs">
+    <button type="button" class="admin-lang-tab active" data-lang="tr" onclick="setProductFormLang('tr')">TR</button>
+    <button type="button" class="admin-lang-tab" data-lang="en" onclick="setProductFormLang('en')">EN</button>
+    <button type="button" class="admin-lang-tab" data-lang="de" onclick="setProductFormLang('de')">DE</button>
+    <button type="button" class="admin-lang-tab" data-lang="fr" onclick="setProductFormLang('fr')">FR</button>
+    <button type="button" class="admin-lang-tab" data-lang="es" onclick="setProductFormLang('es')">ES</button>
+    <button type="button" class="admin-lang-tab" data-lang="zh" onclick="setProductFormLang('zh')">中文</button>
+    <button type="button" class="admin-lang-tab" data-lang="ja" onclick="setProductFormLang('ja')">日本語</button>
+    <button type="button" class="admin-lang-tab" data-lang="ko" onclick="setProductFormLang('ko')">한국어</button>
+  </div>
+
+  <div class="admin-form-row admin-lang-panel" data-lang="tr">
     <div>
       <label class="admin-form-label" data-i18n="admin_lbl_prod_name_tr">Ürün Adı (Türkçe)</label>
       <input type="text" id="formProductName" class="admin-input" data-i18n-placeholder="form_product_name_placeholder_tr" placeholder="Örn: Zurna Tavuk" />
     </div>
+  </div>
+  <div class="admin-form-row admin-lang-panel" data-lang="en" style="display:none;">
     <div>
       <label class="admin-form-label" data-i18n="admin_lbl_prod_name_en">Ürün Adı (İngilizce - English)</label>
       <input type="text" id="formProductNameEn" class="admin-input" data-i18n-placeholder="form_product_name_placeholder_en" placeholder="Örn: Zurna Chicken" />
     </div>
+  </div>
+  <div class="admin-form-row admin-lang-panel" data-lang="de" style="display:none;">
+    <div><label class="admin-form-label">Ürün Adı (Almanca)</label><input type="text" id="formProductName_de" class="admin-input" /></div>
+  </div>
+  <div class="admin-form-row admin-lang-panel" data-lang="fr" style="display:none;">
+    <div><label class="admin-form-label">Ürün Adı (Fransızca)</label><input type="text" id="formProductName_fr" class="admin-input" /></div>
+  </div>
+  <div class="admin-form-row admin-lang-panel" data-lang="es" style="display:none;">
+    <div><label class="admin-form-label">Ürün Adı (İspanyolca)</label><input type="text" id="formProductName_es" class="admin-input" /></div>
+  </div>
+  <div class="admin-form-row admin-lang-panel" data-lang="zh" style="display:none;">
+    <div><label class="admin-form-label">Ürün Adı (Çince)</label><input type="text" id="formProductName_zh" class="admin-input" /></div>
+  </div>
+  <div class="admin-form-row admin-lang-panel" data-lang="ja" style="display:none;">
+    <div><label class="admin-form-label">Ürün Adı (Japonca)</label><input type="text" id="formProductName_ja" class="admin-input" /></div>
+  </div>
+  <div class="admin-form-row admin-lang-panel" data-lang="ko" style="display:none;">
+    <div><label class="admin-form-label">Ürün Adı (Korece)</label><input type="text" id="formProductName_ko" class="admin-input" /></div>
   </div>
   
   <div class="admin-form-row" style="grid-template-columns: 1fr 1fr; gap:16px;">
@@ -3853,28 +3957,68 @@ body.theme-bw .rez-select-trigger:hover {
     </div>
   </div>
 
-  <div class="admin-form-row" style="grid-template-columns: 1fr 1fr; gap:16px;">
+  <div class="admin-form-row admin-lang-panel" data-lang="tr">
     <div>
       <label class="admin-form-label" data-i18n="admin_lbl_prod_desc_tr">Açıklama (Türkçe)</label>
       <textarea id="formProductDesc" class="admin-input" rows="2" data-i18n-placeholder="ph_prod_desc_tr" placeholder="Ürün açıklaması..." style="resize:vertical;"></textarea>
     </div>
+  </div>
+  <div class="admin-form-row admin-lang-panel" data-lang="en" style="display:none;">
     <div>
       <label class="admin-form-label" data-i18n="admin_lbl_prod_desc_en">Açıklama (İngilizce - English)</label>
       <textarea id="formProductDescEn" class="admin-input" rows="2" data-i18n-placeholder="ph_prod_desc_en" placeholder="Product description..." style="resize:vertical;"></textarea>
     </div>
   </div>
+  <div class="admin-form-row admin-lang-panel" data-lang="de" style="display:none;">
+    <div><label class="admin-form-label">Açıklama (Almanca)</label><textarea id="formProductDesc_de" class="admin-input" rows="2" style="resize:vertical;"></textarea></div>
+  </div>
+  <div class="admin-form-row admin-lang-panel" data-lang="fr" style="display:none;">
+    <div><label class="admin-form-label">Açıklama (Fransızca)</label><textarea id="formProductDesc_fr" class="admin-input" rows="2" style="resize:vertical;"></textarea></div>
+  </div>
+  <div class="admin-form-row admin-lang-panel" data-lang="es" style="display:none;">
+    <div><label class="admin-form-label">Açıklama (İspanyolca)</label><textarea id="formProductDesc_es" class="admin-input" rows="2" style="resize:vertical;"></textarea></div>
+  </div>
+  <div class="admin-form-row admin-lang-panel" data-lang="zh" style="display:none;">
+    <div><label class="admin-form-label">Açıklama (Çince)</label><textarea id="formProductDesc_zh" class="admin-input" rows="2" style="resize:vertical;"></textarea></div>
+  </div>
+  <div class="admin-form-row admin-lang-panel" data-lang="ja" style="display:none;">
+    <div><label class="admin-form-label">Açıklama (Japonca)</label><textarea id="formProductDesc_ja" class="admin-input" rows="2" style="resize:vertical;"></textarea></div>
+  </div>
+  <div class="admin-form-row admin-lang-panel" data-lang="ko" style="display:none;">
+    <div><label class="admin-form-label">Açıklama (Korece)</label><textarea id="formProductDesc_ko" class="admin-input" rows="2" style="resize:vertical;"></textarea></div>
+  </div>
   
   <div style="border-top: 1px solid rgba(244,244,246,0.06); padding-top: 16px; margin-top: 10px; margin-bottom: 20px;">
     <h3 style="font-family:'Syne',sans-serif; font-size:1rem; color:var(--ember); margin-bottom:12px;" data-i18n="admin_lbl_nutrition_section">Besin Değerleri & Makrolar</h3>
-    <div class="admin-form-row" style="grid-template-columns: 1fr 1fr; gap:16px;">
+    <div class="admin-form-row admin-lang-panel" data-lang="tr">
       <div>
         <label class="admin-form-label" data-i18n="admin_lbl_portion_tr">Porsiyon Ölçüsü (Türkçe)</label>
         <input type="text" id="formProductPortion" class="admin-input" data-i18n-placeholder="ph_portion_tr" placeholder="Örn: 1 Porsiyon - 350 g" />
       </div>
+    </div>
+    <div class="admin-form-row admin-lang-panel" data-lang="en" style="display:none;">
       <div>
         <label class="admin-form-label" data-i18n="admin_lbl_portion_en">Porsiyon Ölçüsü (İngilizce - English)</label>
         <input type="text" id="formProductPortionEn" class="admin-input" data-i18n-placeholder="ph_portion_en" placeholder="Örn: 1 Portion - 350 g" />
       </div>
+    </div>
+    <div class="admin-form-row admin-lang-panel" data-lang="de" style="display:none;">
+      <div><label class="admin-form-label">Porsiyon Ölçüsü (Almanca)</label><input type="text" id="formProductPortion_de" class="admin-input" /></div>
+    </div>
+    <div class="admin-form-row admin-lang-panel" data-lang="fr" style="display:none;">
+      <div><label class="admin-form-label">Porsiyon Ölçüsü (Fransızca)</label><input type="text" id="formProductPortion_fr" class="admin-input" /></div>
+    </div>
+    <div class="admin-form-row admin-lang-panel" data-lang="es" style="display:none;">
+      <div><label class="admin-form-label">Porsiyon Ölçüsü (İspanyolca)</label><input type="text" id="formProductPortion_es" class="admin-input" /></div>
+    </div>
+    <div class="admin-form-row admin-lang-panel" data-lang="zh" style="display:none;">
+      <div><label class="admin-form-label">Porsiyon Ölçüsü (Çince)</label><input type="text" id="formProductPortion_zh" class="admin-input" /></div>
+    </div>
+    <div class="admin-form-row admin-lang-panel" data-lang="ja" style="display:none;">
+      <div><label class="admin-form-label">Porsiyon Ölçüsü (Japonca)</label><input type="text" id="formProductPortion_ja" class="admin-input" /></div>
+    </div>
+    <div class="admin-form-row admin-lang-panel" data-lang="ko" style="display:none;">
+      <div><label class="admin-form-label">Porsiyon Ölçüsü (Korece)</label><input type="text" id="formProductPortion_ko" class="admin-input" /></div>
     </div>
     <div class="admin-form-row" style="grid-template-columns: 1fr 1fr; gap:16px;">
       <div>
@@ -3961,15 +4105,35 @@ body.theme-bw .rez-select-trigger:hover {
   <div style="border-top: 1px solid rgba(244,244,246,0.06); padding-top: 16px; margin-bottom: 20px;">
     <h3 style="font-family:'Syne',sans-serif; font-size:1rem; color:var(--ember); margin-bottom:12px;" data-i18n="admin_lbl_other_info">Diğer Bilgiler</h3>
     
-    <div class="admin-form-row" style="grid-template-columns: 1fr 1fr; gap:16px; margin-bottom:10px;">
+    <div class="admin-form-row admin-lang-panel" data-lang="tr" style="margin-bottom:10px;">
       <div>
         <label class="admin-form-label" data-i18n="admin_lbl_ingredients_tr">İçindekiler (Türkçe)</label>
         <textarea id="formProductIngredients" class="admin-input" rows="2" data-i18n-placeholder="ph_ingredients_tr" placeholder="Tavuk eti, lavaş, sos, marul..." style="resize:vertical;"></textarea>
       </div>
+    </div>
+    <div class="admin-form-row admin-lang-panel" data-lang="en" style="display:none;margin-bottom:10px;">
       <div>
         <label class="admin-form-label" data-i18n="admin_lbl_ingredients_en">İçindekiler (İngilizce - English)</label>
         <textarea id="formProductIngredientsEn" class="admin-input" rows="2" data-i18n-placeholder="ph_ingredients_en" placeholder="Chicken meat, wrap, sauce, lettuce..." style="resize:vertical;"></textarea>
       </div>
+    </div>
+    <div class="admin-form-row admin-lang-panel" data-lang="de" style="display:none;margin-bottom:10px;">
+      <div><label class="admin-form-label">İçindekiler (Almanca)</label><textarea id="formProductIngredients_de" class="admin-input" rows="2" style="resize:vertical;"></textarea></div>
+    </div>
+    <div class="admin-form-row admin-lang-panel" data-lang="fr" style="display:none;margin-bottom:10px;">
+      <div><label class="admin-form-label">İçindekiler (Fransızca)</label><textarea id="formProductIngredients_fr" class="admin-input" rows="2" style="resize:vertical;"></textarea></div>
+    </div>
+    <div class="admin-form-row admin-lang-panel" data-lang="es" style="display:none;margin-bottom:10px;">
+      <div><label class="admin-form-label">İçindekiler (İspanyolca)</label><textarea id="formProductIngredients_es" class="admin-input" rows="2" style="resize:vertical;"></textarea></div>
+    </div>
+    <div class="admin-form-row admin-lang-panel" data-lang="zh" style="display:none;margin-bottom:10px;">
+      <div><label class="admin-form-label">İçindekiler (Çince)</label><textarea id="formProductIngredients_zh" class="admin-input" rows="2" style="resize:vertical;"></textarea></div>
+    </div>
+    <div class="admin-form-row admin-lang-panel" data-lang="ja" style="display:none;margin-bottom:10px;">
+      <div><label class="admin-form-label">İçindekiler (Japonca)</label><textarea id="formProductIngredients_ja" class="admin-input" rows="2" style="resize:vertical;"></textarea></div>
+    </div>
+    <div class="admin-form-row admin-lang-panel" data-lang="ko" style="display:none;margin-bottom:10px;">
+      <div><label class="admin-form-label">İçindekiler (Korece)</label><textarea id="formProductIngredients_ko" class="admin-input" rows="2" style="resize:vertical;"></textarea></div>
     </div>
     
     <div style="display:flex; align-items:center; gap:8px; margin-bottom: 16px;">
@@ -4569,6 +4733,8 @@ const i18nData = {
     admin_ai_onboarding_welcome: "Hoş geldiniz! Restoranınızı birlikte oluşturalım. Önce restoranınızın adını ve mutfak türünü, ardından menünüzdeki kategorileri ve ürünleri (isim, açıklama, fiyat) yazabilirsiniz — istediğiniz zaman düzenleyip değiştirebiliriz.",
     admin_ai_table_products: "Ürün",
     admin_ai_table_categories: "Kategori",
+    admin_ai_expand_all: "Tümünü Aç",
+    admin_ai_collapse_all: "Tümünü Kapat",
     admin_ai_conn_error: "Bağlantı hatası.",
     admin_ai_no_actions: "İsteğinizden uygulanabilir bir değişiklik çıkaramadım.",
     admin_ai_fb_up: "Faydalı",
@@ -5004,6 +5170,8 @@ const i18nData = {
     admin_ai_onboarding_welcome: "Welcome! Let's build your restaurant together. Start with your restaurant's name and cuisine type, then list your menu categories and items (name, description, price) — you can edit anything anytime.",
     admin_ai_table_products: "Product",
     admin_ai_table_categories: "Category",
+    admin_ai_expand_all: "Expand All",
+    admin_ai_collapse_all: "Collapse All",
     admin_ai_conn_error: "Connection error.",
     admin_ai_no_actions: "I couldn't derive an actionable change from your request.",
     admin_ai_fb_up: "Helpful",
@@ -5067,6 +5235,20 @@ const i18nData = {
 // (legacy static item translations removed — built from tenant DB data)
 
 let itemTranslations = {};
+
+// Menu-content languages beyond tr/en — mirrors backend/server.js's CONTENT_LANGS. Used by the
+// product/category form language tabs and by the AI-plan grouping UI's language labels.
+const CONTENT_LANGS = ['zh', 'ja', 'de', 'fr', 'es', 'ko'];
+const ADMIN_CONTENT_LANGS = [
+  { code: 'tr', label: 'Türkçe' },
+  { code: 'en', label: 'English' },
+  { code: 'de', label: 'Deutsch' },
+  { code: 'fr', label: 'Français' },
+  { code: 'es', label: 'Español' },
+  { code: 'zh', label: '中文' },
+  { code: 'ja', label: '日本語' },
+  { code: 'ko', label: '한국어' }
+];
 
 function toggleLanguage() {
   const nextLang = window.currentLanguage === 'tr' ? 'en' : 'tr';
@@ -5620,12 +5802,9 @@ async function loadMenuDatabase() {
         const categories = await catResponse.json();
         categoriesMap = {};
         categories.forEach(c => {
-          categoriesMap[c.id] = {
-            name: c.name_tr,
-            name_en: c.name_en,
-            icon: c.icon,
-            sort_order: c.sort_order
-          };
+          // Spread every raw API field (including name_zh/name_ja/etc.) so new languages need
+          // no change here — then override `name` to the Turkish value for existing callers.
+          categoriesMap[c.id] = { ...c, name: c.name_tr };
         });
       }
     } catch (e) {
@@ -8171,6 +8350,83 @@ function adminAiStartThinkingOrb(state){
 function adminAiStopThinkingOrb(){
   if (adminAiOrbInstance) { adminAiOrbInstance.stop(); adminAiOrbInstance = null; }
 }
+// Groups 'update' actions that share the same table+targetId into one card (a full-menu
+// translation produces up to 4 update actions per product) — 'create'/'delete' pass through
+// unchanged, in their original relative position. Order is first-seen: a product's group sits
+// wherever its FIRST update action appeared in the list.
+function adminAiGroupActions(actions) {
+  const out = [];
+  const groupsByKey = new Map();
+  for (const a of actions) {
+    if (a.type !== 'update') { out.push(a); continue; }
+    const key = a.table + ':' + a.targetId;
+    let group = groupsByKey.get(key);
+    if (!group) {
+      group = { __group: true, table: a.table, targetId: a.targetId, rows: [] };
+      groupsByKey.set(key, group);
+      out.push(group);
+    }
+    group.rows.push(a);
+  }
+  return out;
+}
+function aiAsstResolveGroupLabel(group) {
+  try {
+    if (group.table === 'products' && Array.isArray(window.menuData)) {
+      const p = window.menuData.find(x => x.id === group.targetId);
+      if (p) return p.name || group.targetId;
+    } else if (group.table === 'categories' && typeof categoriesMap !== 'undefined' && categoriesMap[group.targetId]) {
+      return categoriesMap[group.targetId].name || group.targetId;
+    }
+  } catch (e) {}
+  return group.targetId;
+}
+// One collapsible card per product/category — reuses adminAiPlanRowHTML unchanged for each field
+// row inside, so the old→new diff rendering is never duplicated. Small plans (today's typical
+// single-field edits) default expanded; large bulk-translation plans default collapsed so the
+// bubble stays scannable.
+function adminAiPlanGroupHTML(group, defaultExpanded){
+  const tableLabel = group.table === 'products' ? aiT('admin_ai_table_products', 'Ürün') : aiT('admin_ai_table_categories', 'Kategori');
+  const label = aiAsstEsc(aiAsstResolveGroupLabel(group)) + ' <span class="ai-plan-group-table">(' + aiAsstEsc(tableLabel) + ')</span>';
+  const rowsHtml = group.rows.map(adminAiPlanRowHTML).join('');
+  return '<div class="ai-plan-group' + (defaultExpanded ? ' expanded' : '') + '">' +
+    '<div class="ai-plan-group-header" onclick="this.parentElement.classList.toggle(\'expanded\')">' +
+      '<span class="ai-plan-group-title">' + label + '</span>' +
+      '<span class="ai-plan-group-badge">' + group.rows.length + '</span>' +
+      '<svg class="ai-plan-group-chevron" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>' +
+    '</div>' +
+    '<div class="ai-plan-group-body">' + rowsHtml + '</div>' +
+  '</div>';
+}
+function adminAiToggleAllGroups(btn, expand){
+  const bubble = btn.closest('.ai-plan');
+  if (bubble) bubble.querySelectorAll('.ai-plan-group').forEach(g => g.classList.toggle('expanded', expand));
+}
+// Detects a bulk single-language translation (most 'update' actions share the same _XX field
+// suffix) and summarizes it in one line above the grouped list, e.g. "8 ürün ve 3 kategori
+// Almanca'ya çevrilecek".
+const AI_PLAN_LANG_NAMES = { en: 'İngilizce', de: 'Almanca', fr: 'Fransızca', es: 'İspanyolca', zh: 'Çince', ja: 'Japonca', ko: 'Korece' };
+function adminAiPlanLangSummary(actions){
+  const updates = actions.filter(a => a.type === 'update');
+  if (updates.length < 4) return '';
+  const counts = {};
+  for (const a of updates) {
+    const m = /_([a-z]{2})$/.exec(a.field || '');
+    if (m && AI_PLAN_LANG_NAMES[m[1]]) counts[m[1]] = (counts[m[1]] || 0) + 1;
+  }
+  const entries = Object.entries(counts).sort((x, y) => y[1] - x[1]);
+  if (!entries.length || entries[0][1] / updates.length < 0.6) return '';
+  const lang = entries[0][0];
+  const suffix = new RegExp('_' + lang + '$');
+  const productCount = new Set(updates.filter(a => a.table === 'products' && suffix.test(a.field)).map(a => a.targetId)).size;
+  const categoryCount = new Set(updates.filter(a => a.table === 'categories' && suffix.test(a.field)).map(a => a.targetId)).size;
+  const parts = [];
+  if (productCount) parts.push(productCount + ' ' + aiT('admin_ai_table_products', 'ürün').toLowerCase());
+  if (categoryCount) parts.push(categoryCount + ' ' + aiT('admin_ai_table_categories', 'kategori').toLowerCase());
+  if (!parts.length) return '';
+  return '<div class="ai-plan-lang-summary">' + aiAsstEsc(parts.join(' ' + (window.currentLanguage === 'tr' ? 've' : 'and') + ' ') + ' ' +
+    (window.currentLanguage === 'tr' ? AI_PLAN_LANG_NAMES[lang] + "'ya çevrilecek" : 'will be translated to ' + AI_PLAN_LANG_NAMES[lang])) + '</div>';
+}
 // One row per action — 'update' keeps the old→new diff layout; 'create'/'delete' have no
 // old/new pair (a row that doesn't exist yet, or one about to stop existing), so they render as
 // a single labeled value instead of forcing a diff shape that doesn't apply.
@@ -8190,7 +8446,17 @@ function adminAiPlanRowHTML(a){
     '<span class="ai-plan-arrow">→</span><span class="ai-plan-new">' + aiAsstEsc(a.newValue) + '</span></div></div>';
 }
 function adminAiPlanHTML(data){
-  const rows = (data.actions || []).map(adminAiPlanRowHTML).join('');
+  const actionsList = data.actions || [];
+  const grouped = adminAiGroupActions(actionsList);
+  const groupCount = grouped.filter(item => item.__group).length;
+  const defaultExpanded = actionsList.length <= 8;
+  const langSummary = adminAiPlanLangSummary(actionsList);
+  const groupControls = groupCount > 1
+    ? '<div class="ai-plan-group-controls">' +
+      '<button type="button" onclick="adminAiToggleAllGroups(this,true)">' + aiT('admin_ai_expand_all', 'Tümünü Aç') + '</button>' +
+      '<button type="button" onclick="adminAiToggleAllGroups(this,false)">' + aiT('admin_ai_collapse_all', 'Tümünü Kapat') + '</button></div>'
+    : '';
+  const rows = grouped.map(item => item.__group ? adminAiPlanGroupHTML(item, defaultExpanded) : adminAiPlanRowHTML(item)).join('');
   const unsupported = (data.unsupported && data.unsupported.length)
     ? '<div class="ai-plan-unsupported"><b>' + aiT('admin_ai_unsupported', 'Desteklenmeyen istekler:') + '</b><br>' + data.unsupported.map(aiAsstEsc).join('<br>') + '</div>'
     : '';
@@ -8199,7 +8465,7 @@ function adminAiPlanHTML(data){
       '<button class="admin-btn secondary" onclick="adminAiCancelBubble(this)">' + aiT('admin_ai_cancel', 'İptal') + '</button></div>'
     : '';
   return '<div class="ai-bubble"><div class="ai-plan"><div class="ai-plan-summary">' + aiAsstEsc(data.summary || '') + '</div>' +
-    rows + unsupported + actions + '</div></div>';
+    langSummary + groupControls + rows + unsupported + actions + '</div></div>';
 }
 
 // Fresh self-service signup (?onboarding=1, see openAdminPanel) — a static kickoff message, NOT
@@ -9220,10 +9486,23 @@ async function handleAdminImageUpload(input) {
   }
 }
 
+// Switches which language's name/description/portion/ingredients panels are visible in the
+// product form — every panel sharing that data-lang shows, the rest hide. Panels are plain
+// hidden inputs (no separate JS state object): a hidden input keeps its .value fine, so
+// switching tabs is a pure visibility concern and save/populate logic just loops over languages.
+function setProductFormLang(lang) {
+  document.querySelectorAll('#productLangTabs .admin-lang-tab').forEach(btn => {
+    btn.classList.toggle('active', btn.getAttribute('data-lang') === lang);
+  });
+  document.querySelectorAll('#adminFormPanel .admin-lang-panel').forEach(panel => {
+    panel.style.display = (panel.getAttribute('data-lang') === lang) ? '' : 'none';
+  });
+}
+
 function openAdminForm(id = null) {
   const panel = document.getElementById('adminFormPanel');
   const title = document.getElementById('adminFormTitle');
-  
+
   // Clear fields
   document.getElementById('formProductId').value = '';
   document.getElementById('formProductName').value = '';
@@ -9231,6 +9510,13 @@ function openAdminForm(id = null) {
   document.getElementById('formProductDescEn').value = '';
   document.getElementById('formProductPortionEn').value = '';
   document.getElementById('formProductIngredientsEn').value = '';
+  for (const lang of CONTENT_LANGS) {
+    document.getElementById(`formProductName_${lang}`).value = '';
+    document.getElementById(`formProductDesc_${lang}`).value = '';
+    document.getElementById(`formProductPortion_${lang}`).value = '';
+    document.getElementById(`formProductIngredients_${lang}`).value = '';
+  }
+  setProductFormLang('tr');
   document.getElementById('formProductPrice').value = '';
   document.getElementById('formProductImage').value = '';
   document.getElementById('formProductFile').value = '';
@@ -9265,6 +9551,12 @@ function openAdminForm(id = null) {
       document.getElementById('formProductDescEn').value = trData.description || '';
       document.getElementById('formProductPortionEn').value = trData.portion || '';
       document.getElementById('formProductIngredientsEn').value = trData.ingredients || '';
+      for (const lang of CONTENT_LANGS) {
+        document.getElementById(`formProductName_${lang}`).value = item[`name_${lang}`] || '';
+        document.getElementById(`formProductDesc_${lang}`).value = item[`description_${lang}`] || '';
+        document.getElementById(`formProductPortion_${lang}`).value = item[`portion_${lang}`] || '';
+        document.getElementById(`formProductIngredients_${lang}`).value = item[`ingredients_${lang}`] || '';
+      }
       document.getElementById('formProductPrice').value = item.price;
       document.getElementById('formProductImage').value = item.image || '';
       setAdminProductImagePreview(item.image || '');
@@ -9307,10 +9599,41 @@ function closeAdminForm() {
 
 // ── CATEGORY MANAGEMENT FUNCTIONS ──
 
-function openCategoryForm() {
+// Switches which language's category-name panel is visible — same mechanism as
+// setProductFormLang (see there for why there's no separate JS state object).
+function setCategoryFormLang(lang) {
+  document.querySelectorAll('#categoryLangTabs .admin-lang-tab').forEach(btn => {
+    btn.classList.toggle('active', btn.getAttribute('data-lang') === lang);
+  });
+  document.querySelectorAll('#adminCategoryFormPanel .admin-lang-panel').forEach(panel => {
+    panel.style.display = (panel.getAttribute('data-lang') === lang) ? '' : 'none';
+  });
+}
+
+// id is optional — there is no "edit category" entry point in the UI yet (categories are only
+// ever created here; "editing" today means retyping an existing slug into this same blank form,
+// and saveAdminCategory() PUTs instead of POSTs once it recognizes the slug). Accepting an id
+// lets a future edit entry point pre-fill instead of silently blanking the 6 new language
+// fields, without having to touch saveAdminCategory()'s existing POST/PUT-by-slug logic.
+function openCategoryForm(id = null) {
   document.getElementById('formCategoryName').value = '';
+  document.getElementById('formCategoryNameEn').value = '';
   document.getElementById('formCategorySlug').value = '';
   document.getElementById('formCategoryIcon').value = '';
+  for (const lang of CONTENT_LANGS) {
+    document.getElementById(`formCategoryName_${lang}`).value = '';
+  }
+  setCategoryFormLang('tr');
+  if (id && categoriesMap[id]) {
+    const cat = categoriesMap[id];
+    document.getElementById('formCategoryName').value = cat.name || '';
+    document.getElementById('formCategoryNameEn').value = cat.name_en || '';
+    document.getElementById('formCategorySlug').value = id;
+    document.getElementById('formCategoryIcon').value = cat.icon || '';
+    for (const lang of CONTENT_LANGS) {
+      document.getElementById(`formCategoryName_${lang}`).value = cat[`name_${lang}`] || '';
+    }
+  }
   showAdminView('category-form'); // Phase 27: in-shell view, not a full-screen overlay
 }
 
@@ -9320,32 +9643,41 @@ function closeCategoryForm() {
 
 async function saveAdminCategory() {
   const name = document.getElementById('formCategoryName').value.trim();
+  const nameEn = document.getElementById('formCategoryNameEn').value.trim();
   const slug = document.getElementById('formCategorySlug').value.trim().toLowerCase().replace(/[^a-z0-9_-]/g, '');
   let icon = document.getElementById('formCategoryIcon').value.trim();
-  
+
   if (!name || !slug) {
     showCustomAlert(window.currentLanguage === 'tr' ? 'Lütfen Kategori Adı ve Kodu alanlarını doldurun.' : 'Please fill in the Category Name and Code fields.', window.currentLanguage === 'tr' ? 'Eksik Bilgi' : 'Missing Info', 'warning');
     return;
   }
-  
+
   if (!icon) {
     icon = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>`;
   }
-  
+
+  // zh/ja/de/fr/es/ko: sent as-is (empty string if left blank), no fallback to Turkish — same
+  // rule as the product form (see saveAdminProduct).
+  const langPayload = {};
+  for (const lang of CONTENT_LANGS) {
+    langPayload[`name_${lang}`] = document.getElementById(`formCategoryName_${lang}`).value.trim();
+  }
+
   try {
     const exists = !!categoriesMap[slug];
     const url = exists ? `/api/categories/${slug}` : '/api/categories';
     const method = exists ? 'PUT' : 'POST';
-    
+
     const response = await fetch(url, {
       method: method,
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         id: slug,
         name_tr: name,
-        name_en: name,
+        name_en: nameEn || name,
         sort_order: Object.keys(categoriesMap).length + 1,
-        icon: icon
+        icon: icon,
+        ...langPayload
       })
     });
     
@@ -9437,7 +9769,18 @@ async function saveAdminProduct() {
   const portionEn = document.getElementById('formProductPortionEn').value.trim();
   const ingredientsEn = document.getElementById('formProductIngredientsEn').value.trim();
 
+  // zh/ja/de/fr/es/ko: sent as-is (empty string if left blank) — no fallback to Turkish, so the
+  // backend can tell "not yet translated" apart from "translated, matches the Turkish text".
+  const langPayload = {};
+  for (const lang of CONTENT_LANGS) {
+    langPayload[`name_${lang}`] = document.getElementById(`formProductName_${lang}`).value.trim();
+    langPayload[`description_${lang}`] = document.getElementById(`formProductDesc_${lang}`).value.trim();
+    langPayload[`portion_${lang}`] = document.getElementById(`formProductPortion_${lang}`).value.trim();
+    langPayload[`ingredients_${lang}`] = document.getElementById(`formProductIngredients_${lang}`).value.trim();
+  }
+
   const payload = {
+    ...langPayload,
     id: id || undefined,
     name_tr: name,
     name_en: nameEn || name,
@@ -10643,6 +10986,23 @@ async function deletePush(id) {
   #adminPanelOverlay .ai-plan-old{ color:var(--ap-muted); text-decoration:line-through; opacity:.75; }
   #adminPanelOverlay .ai-plan-arrow{ color:var(--ap-faint); }
   #adminPanelOverlay .ai-plan-new{ color:var(--ai-accent); font-weight:700; }
+  /* Bulk-translation plans (one card per product/category instead of a flat per-field list) —
+     see adminAiGroupActions/adminAiPlanGroupHTML in the script block. */
+  #adminPanelOverlay .ai-plan-lang-summary{ font-size:.78rem; color:var(--ap-muted); margin-bottom:8px; }
+  #adminPanelOverlay .ai-plan-group-controls{ display:flex; gap:10px; margin-bottom:8px; }
+  #adminPanelOverlay .ai-plan-group-controls button{ background:none; border:none; padding:0; font-size:.72rem; font-weight:700; color:var(--ai-accent); cursor:pointer; text-decoration:underline; }
+  #adminPanelOverlay .ai-plan-group{ border-top:1px solid var(--ap-line); }
+  #adminPanelOverlay .ai-plan-group:first-of-type{ border-top:none; }
+  #adminPanelOverlay .ai-plan-group-header{ display:flex; align-items:center; gap:8px; padding:8px 0; cursor:pointer; }
+  #adminPanelOverlay .ai-plan-group:first-of-type .ai-plan-group-header{ padding-top:0; }
+  #adminPanelOverlay .ai-plan-group-title{ font-size:.85rem; font-weight:700; flex:1; }
+  #adminPanelOverlay .ai-plan-group-table{ font-weight:400; color:var(--ap-muted); font-size:.78rem; }
+  #adminPanelOverlay .ai-plan-group-badge{ font-size:.68rem; font-weight:700; color:var(--ap-muted); background:var(--ap-bg-2); border:1px solid var(--ap-line); border-radius:999px; padding:2px 8px; flex:none; }
+  #adminPanelOverlay .ai-plan-group-chevron{ flex:none; transition:transform .15s; color:var(--ap-faint); }
+  #adminPanelOverlay .ai-plan-group.expanded .ai-plan-group-chevron{ transform:rotate(180deg); }
+  #adminPanelOverlay .ai-plan-group-body{ display:none; padding-bottom:6px; }
+  #adminPanelOverlay .ai-plan-group.expanded .ai-plan-group-body{ display:block; }
+  #adminPanelOverlay .ai-plan-group-body .ai-plan-row:first-of-type{ border-top:none; padding-top:0; }
   #adminPanelOverlay .ai-plan-unsupported{ margin-top:10px; padding-top:10px; border-top:1px dashed var(--ap-line); font-size:.78rem; color:var(--ap-muted); line-height:1.6; }
   #adminPanelOverlay .ai-plan-actions{ display:flex; gap:8px; margin-top:14px; }
   #adminPanelOverlay .ai-plan-actions .admin-btn{ width:auto; flex:none; margin:0; padding:8px 16px; font-size:.8rem; }
