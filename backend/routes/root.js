@@ -881,6 +881,108 @@ Kategoriler: ${JSON.stringify(categories)}`;
     }
   });
 
+  // ---------- NFC + QR masa kartı: siparişler + özel tasarım talepleri ----------
+  // ORDER_STATUSES tek kaynak cards.js'ten geliyor — durum whitelist'i burada kopyalanmıyor.
+  const { ORDER_STATUSES: CARD_ORDER_STATUSES } = require('./cards');
+
+  function mapCardOrder(row, tenantName) {
+    let design = {}, tables = [], delivery = {};
+    try { design = JSON.parse(row.design || '{}'); } catch (e) {}
+    try { tables = JSON.parse(row.tables_snapshot || '[]'); } catch (e) {}
+    try { delivery = JSON.parse(row.delivery || '{}'); } catch (e) {}
+    return {
+      id: row.id, tenant_id: row.tenant_id, tenant_name: tenantName || row.tenant_id,
+      designId: design.designId || null, tables, delivery,
+      table_count: row.table_count, status: row.status, root_note: row.root_note || '',
+      created_at: row.created_at, updated_at: row.updated_at
+    };
+  }
+
+  // GET /api/root/card-orders — tüm tenant'ların kart siparişleri, tenant adıyla
+  router.get('/card-orders', async (req, res) => {
+    try {
+      const rows = await db.all('SELECT * FROM card_orders ORDER BY created_at DESC');
+      const tenantIds = [...new Set(rows.map(r => r.tenant_id))];
+      const names = {};
+      if (tenantIds.length) {
+        const placeholders = tenantIds.map((_, i) => P(i + 1)).join(',');
+        const tRows = await db.all(`SELECT id, display_name, name FROM tenants WHERE id IN (${placeholders})`, tenantIds);
+        tRows.forEach(t => { names[t.id] = t.display_name || t.name || t.id; });
+      }
+      res.json({ items: rows.map(r => mapCardOrder(r, names[r.tenant_id])) });
+    } catch (err) {
+      console.error('[ROOT API] GET /card-orders:', err);
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  // GET /api/root/card-orders/:id — detay (masa/URL listesi zaten tables_snapshot'ta saklı)
+  router.get('/card-orders/:id', async (req, res) => {
+    try {
+      const row = await db.get(`SELECT * FROM card_orders WHERE id = ${P(1)}`, [req.params.id]);
+      if (!row) return res.status(404).json({ error: 'not_found' });
+      const t = await db.get(`SELECT display_name, name FROM tenants WHERE id = ${P(1)}`, [row.tenant_id]);
+      res.json({ item: mapCardOrder(row, t && (t.display_name || t.name)) });
+    } catch (err) {
+      console.error('[ROOT API] GET /card-orders/:id:', err);
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  // PUT /api/root/card-orders/:id/status  { status }
+  router.put('/card-orders/:id/status', async (req, res) => {
+    try {
+      const status = req.body && req.body.status;
+      if (!CARD_ORDER_STATUSES.includes(status)) return res.status(400).json({ error: 'invalid_status' });
+      const result = await db.run(
+        `UPDATE card_orders SET status = ${P(1)}, updated_at = ${P(2)} WHERE id = ${P(3)}`,
+        [status, Date.now(), req.params.id]
+      );
+      if (!result || !result.changes) return res.status(404).json({ error: 'not_found' });
+      logActivity({ tenantId: '', actor: 'root', role: 'root', action: 'card_order_status', target: req.params.id, details: { status }, ip: clientIp(req) });
+      res.json({ success: true, status });
+    } catch (err) {
+      console.error('[ROOT API] PUT /card-orders/:id/status:', err);
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  // GET /api/root/card-custom-requests — özel tasarım talepleri, tenant adıyla
+  router.get('/card-custom-requests', async (req, res) => {
+    try {
+      const rows = await db.all('SELECT * FROM card_custom_requests ORDER BY created_at DESC');
+      const tenantIds = [...new Set(rows.map(r => r.tenant_id))];
+      const names = {};
+      if (tenantIds.length) {
+        const placeholders = tenantIds.map((_, i) => P(i + 1)).join(',');
+        const tRows = await db.all(`SELECT id, display_name, name FROM tenants WHERE id IN (${placeholders})`, tenantIds);
+        tRows.forEach(t => { names[t.id] = t.display_name || t.name || t.id; });
+      }
+      res.json({ items: rows.map(r => ({ ...r, tenant_name: names[r.tenant_id] || r.tenant_id })) });
+    } catch (err) {
+      console.error('[ROOT API] GET /card-custom-requests:', err);
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  // PUT /api/root/card-custom-requests/:id/status  { status: 'new'|'read'|'replied' }
+  router.put('/card-custom-requests/:id/status', async (req, res) => {
+    try {
+      const status = req.body && req.body.status;
+      if (!['new', 'read', 'replied'].includes(status)) return res.status(400).json({ error: 'invalid_status' });
+      const result = await db.run(
+        `UPDATE card_custom_requests SET status = ${P(1)} WHERE id = ${P(2)}`,
+        [status, req.params.id]
+      );
+      if (!result || !result.changes) return res.status(404).json({ error: 'not_found' });
+      logActivity({ tenantId: '', actor: 'root', role: 'root', action: 'card_custom_request_status', target: req.params.id, details: { status }, ip: clientIp(req) });
+      res.json({ success: true, status });
+    } catch (err) {
+      console.error('[ROOT API] PUT /card-custom-requests/:id/status:', err);
+      res.status(500).json({ error: err.message });
+    }
+  });
+
   return router;
 };
 

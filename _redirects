@@ -18,6 +18,10 @@
 /login       /login.html       200
 /giris       /login.html       200
 /root-girisi /login.html       200
+# These two exist as Express routes (backend/server.js) but had no Netlify rule, so they 404'd
+# in production while working locally.
+/yonetici-girisi  /login.html    200
+/restoran-girisi  /login.html    200
 /landing     /landing.html     200
 /hasaca      /landing.html     200
 /restoran-olustur /restoran-olustur.html 200

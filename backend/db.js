@@ -501,6 +501,53 @@ async function runPlatformMigrations() {
   await dbDriver.exec(`CREATE INDEX IF NOT EXISTS idx_landing_status ON landing_messages(status);`);
   await dbDriver.exec(`CREATE INDEX IF NOT EXISTS idx_landing_created ON landing_messages(created_at);`);
 
+  // NFC + QR table cards. One design per tenant (enforced by the unique index below), plus one
+  // row per physical print order. `tables_snapshot` is a deliberate copy of the tenant's table
+  // list at approval time — renaming or adding a table afterwards must not change what is being
+  // printed. Keeping it as JSON (rather than a card_order_items table) matches how the rest of
+  // this schema stores structured detail (tenants.settings, platform_settings.settings).
+  await dbDriver.exec(`
+    CREATE TABLE IF NOT EXISTS card_designs (
+      id TEXT PRIMARY KEY,
+      tenant_id TEXT NOT NULL,
+      design TEXT NOT NULL DEFAULT '{}',
+      updated_at BIGINT
+    );
+  `);
+  await dbDriver.exec(`CREATE UNIQUE INDEX IF NOT EXISTS idx_card_designs_tenant ON card_designs(tenant_id);`);
+
+  await dbDriver.exec(`
+    CREATE TABLE IF NOT EXISTS card_orders (
+      id TEXT PRIMARY KEY,
+      tenant_id TEXT NOT NULL,
+      design TEXT NOT NULL,
+      table_count INTEGER NOT NULL DEFAULT 0,
+      tables_snapshot TEXT NOT NULL DEFAULT '[]',
+      delivery TEXT NOT NULL DEFAULT '{}',
+      status TEXT NOT NULL DEFAULT 'design_approved',
+      root_note TEXT,
+      created_at BIGINT,
+      updated_at BIGINT
+    );
+  `);
+  await dbDriver.exec(`CREATE INDEX IF NOT EXISTS idx_card_orders_tenant ON card_orders(tenant_id);`);
+  await dbDriver.exec(`CREATE INDEX IF NOT EXISTS idx_card_orders_status ON card_orders(status);`);
+
+  // "Özel tasarım isteyin" talepleri — hazır şablonlar yetmediğinde tenant serbest
+  // metinle anlatır, Root Panel'den okunup e-posta ile geri dönülür.
+  await dbDriver.exec(`
+    CREATE TABLE IF NOT EXISTS card_custom_requests (
+      id TEXT PRIMARY KEY,
+      tenant_id TEXT NOT NULL,
+      message TEXT NOT NULL,
+      email TEXT NOT NULL,
+      status TEXT NOT NULL DEFAULT 'new',
+      created_at BIGINT
+    );
+  `);
+  await dbDriver.exec(`CREATE INDEX IF NOT EXISTS idx_card_custom_tenant ON card_custom_requests(tenant_id);`);
+  await dbDriver.exec(`CREATE INDEX IF NOT EXISTS idx_card_custom_status ON card_custom_requests(status);`);
+
   await dbDriver.exec(`CREATE UNIQUE INDEX IF NOT EXISTS idx_admin_users_tenant_username ON admin_users(tenant_id, username);`);
   await dbDriver.exec(`CREATE UNIQUE INDEX IF NOT EXISTS idx_tables_token ON tables(token);`);
   await dbDriver.exec(`CREATE INDEX IF NOT EXISTS idx_tables_tenant ON tables(tenant_id);`);

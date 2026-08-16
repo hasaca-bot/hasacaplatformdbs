@@ -23,12 +23,12 @@
 <meta property="og:title" content="HASACA — Komisyonsuz Dijital Restoran Platformu">
 <meta property="og:description" content="Restoranınıza özel web sitesi, QR menü, online sipariş, rezervasyon ve yapay zekâ. Tek platform, sıfır komisyon.">
 <meta property="og:url" content="https://hasacaplatform.netlify.app/">
-<meta property="og:image" content="/icons/placeholder-logo.svg">
+<meta property="og:image" content="https://hasacaplatform.netlify.app/logo.png">
 <!-- Twitter -->
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="HASACA — Komisyonsuz Dijital Restoran Platformu">
 <meta name="twitter:description" content="Restoranlar için modern işletim sistemi. QR menü, online sipariş, rezervasyon, AI ve daha fazlası.">
-<meta name="twitter:image" content="/icons/placeholder-logo.svg">
+<meta name="twitter:image" content="https://hasacaplatform.netlify.app/logo.png">
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
@@ -204,7 +204,10 @@ section{ position:relative; z-index:1; }
 
 /* ── Text helpers ── */
 .shine{ background:var(--shine); -webkit-background-clip:text; background-clip:text; color:transparent; }
-h1,h2,h3{ line-height:1.08; letter-spacing:-.02em; }
+/* overflow-wrap is a safety net for long Turkish compounds ("Restoranınızı") which cannot fit a
+   320px screen at heading sizes and would otherwise push the page into horizontal scroll (the
+   contact heading did exactly that). No visible effect at any width where the word already fits. */
+h1,h2,h3{ line-height:1.08; letter-spacing:-.02em; overflow-wrap:break-word; }
 .sec-head{ max-width:660px; margin:0 auto 56px; text-align:center; }
 .sec-head h2{ font-size:clamp(28px,4.4vw,50px); margin:18px 0 16px; }
 .sec-head p{ color:var(--text-dim); font-size:clamp(15px,1.6vw,18px); }
@@ -315,12 +318,128 @@ h1,h2,h3{ line-height:1.08; letter-spacing:-.02em; }
 .hero-shot{ position:relative; z-index:1; width:100%; margin-top:36px; margin-bottom:-8%; padding:0 24px; }
 .hero-shot .browser-mockup{ max-width:860px; margin:0 auto; box-shadow:0 -20px 70px -20px rgba(0,0,0,.6); }
 
-/* ── Trust ── */
-.trust{ padding:26px 0 8px; }
-.counters{ display:grid; grid-template-columns:repeat(4,1fr); gap:18px; margin-bottom:44px; }
-.counter{ text-align:center; padding:26px 14px; border:1px solid var(--border); border-radius:var(--radius); background:var(--surface); }
-.counter .n{ font-size:clamp(26px,3.4vw,40px); background:var(--shine); -webkit-background-clip:text; background-clip:text; color:transparent; }
-.counter .lb{ font-size:13px; color:var(--text-dim); margin-top:6px; }
+/* ── Feature ticker — one component, theme-aware via var(--text)/var(--gold) instead of two
+   separate dark/light versions; no font-family set so it inherits the page's global font rule. ── */
+.feat-ticker{ padding:34px 0 30px; }
+.ft-line{ display:flex; align-items:center; justify-content:center; gap:14px; flex-wrap:nowrap; }
+.ft-prefix{ font-size:clamp(22px,3vw,34px); font-weight:600; letter-spacing:-.01em; color:var(--text); white-space:nowrap; }
+/* font-size is set HERE (not only on the word) so the container's `em` units — height and the
+   word's centering margin — resolve against the word's actual size, not the inherited ~16px body
+   size. Otherwise 2em collapsed to ~32px and clipped the 34px glyphs top and bottom. */
+.ft-dynamic{ position:relative; font-size:clamp(22px,3vw,34px); height:2em; overflow:hidden;
+  flex:1; min-width:0; max-width:560px;
+  mask-image:linear-gradient(to bottom,transparent 0%,black 14%,black 86%,transparent 100%);
+  -webkit-mask-image:linear-gradient(to bottom,transparent 0%,black 14%,black 86%,transparent 100%); }
+.ft-track{ position:relative; width:100%; height:100%; }
+.ft-word{ position:absolute; top:50%; left:0; margin-top:-.6em; opacity:0; white-space:nowrap; line-height:1.2;
+  font-size:1em; font-weight:600; letter-spacing:-.01em; color:var(--gold);
+  animation:ftSlide 14s cubic-bezier(.25,1,.5,1) infinite; }
+.ft-word:nth-child(1){ animation-delay:0s; } .ft-word:nth-child(2){ animation-delay:1.4s; }
+.ft-word:nth-child(3){ animation-delay:2.8s; } .ft-word:nth-child(4){ animation-delay:4.2s; }
+.ft-word:nth-child(5){ animation-delay:5.6s; } .ft-word:nth-child(6){ animation-delay:7s; }
+.ft-word:nth-child(7){ animation-delay:8.4s; } .ft-word:nth-child(8){ animation-delay:9.8s; }
+.ft-word:nth-child(9){ animation-delay:11.2s; } .ft-word:nth-child(10){ animation-delay:12.6s; }
+@keyframes ftSlide{
+  0%{ transform:translate3d(0,-100%,0); opacity:0; }
+  7%{ transform:translate3d(0,0,0); opacity:1; }
+  14%{ transform:translate3d(0,100%,0); opacity:0; }
+  100%{ transform:translate3d(0,100%,0); opacity:0; }
+}
+@media (prefers-reduced-motion:reduce){
+  .ft-word{ animation:none; opacity:0; position:static; margin-top:0; }
+  .ft-word:first-child{ opacity:1; }
+  .ft-dynamic{ height:auto; mask-image:none; -webkit-mask-image:none; }
+}
+
+/* ══ Brand slider paneli (Görev 1) — mavi panel içinde solda dönen kelime animasyonu + metin,
+   sağda otomatik ilerleyen mockup slaytı. .bt-* = .ft-* tekniğinin sola hizalı ikizi. ══ */
+/* Bileşik `.panel-inner.bs-inner` (0,3,0) ZORUNLU: jenerik `.panel-section .panel-inner`
+   (0,2,0) kuralı stylesheet'te BURADAN SONRA tanımlı; eşit özgüllükte olsa sonraki kazanıp
+   flex-direction'ı column'a çeviriyor ve slaytı sağda birkaç piksele çökertiyordu (ölçüldü). */
+.brand-slider .panel-inner.bs-inner{ flex-direction:row; align-items:center; justify-content:flex-start;
+  gap:48px; padding-top:64px; padding-bottom:64px; }
+.bs-copy{ flex:0 0 38%; max-width:440px; }
+.bt-line{ display:flex; flex-direction:column; align-items:flex-start; gap:2px; margin-bottom:18px; }
+.bt-prefix{ font-size:clamp(15px,1.7vw,19px); font-weight:600; color:rgba(255,255,255,.7); }
+.bt-dynamic{ position:relative; font-size:clamp(24px,3vw,38px); height:1.5em; overflow:hidden; width:100%;
+  mask-image:linear-gradient(to bottom,transparent 0%,black 16%,black 84%,transparent 100%);
+  -webkit-mask-image:linear-gradient(to bottom,transparent 0%,black 16%,black 84%,transparent 100%); }
+.bt-track{ position:relative; width:100%; height:100%; }
+/* KENDİ keyframe'i (btSlide) — hero ticker'ının mobil `@keyframes ftSlide` override'ı (translate3d
+   -50%, ortalı hero kelimesi için) global olduğundan, animasyon adı paylaşılsaydı sola hizalı marka
+   kelimesini kutusunun dışına itiyordu (mobilde x=-32 ölçüldü). Ayrı ad bu sızıntıyı keser. */
+.bt-word{ position:absolute; top:50%; left:0; margin-top:-.6em; opacity:0; white-space:nowrap; line-height:1.2;
+  font-size:1em; font-weight:700; letter-spacing:-.01em; color:var(--gold);
+  animation:btSlide 18s cubic-bezier(.25,1,.5,1) infinite; }
+@keyframes btSlide{
+  0%{ transform:translate3d(0,-100%,0); opacity:0; }
+  5.5%{ transform:translate3d(0,0,0); opacity:1; }
+  11%{ transform:translate3d(0,100%,0); opacity:0; }
+  100%{ transform:translate3d(0,100%,0); opacity:0; }
+}
+.bt-word:nth-child(1){ animation-delay:0s; } .bt-word:nth-child(2){ animation-delay:2s; }
+.bt-word:nth-child(3){ animation-delay:4s; } .bt-word:nth-child(4){ animation-delay:6s; }
+.bt-word:nth-child(5){ animation-delay:8s; } .bt-word:nth-child(6){ animation-delay:10s; }
+.bt-word:nth-child(7){ animation-delay:12s; } .bt-word:nth-child(8){ animation-delay:14s; }
+.bt-word:nth-child(9){ animation-delay:16s; }
+.bs-title{ color:#fff; font-size:clamp(24px,3vw,36px); line-height:1.1; margin:0 0 12px; }
+.bs-sub{ color:rgba(255,255,255,.8); font-size:15.5px; line-height:1.55; margin:0 0 22px; }
+.bs-cta{ height:40px; padding:0 20px; }
+.bs-media{ flex:1; min-width:0; }
+.bs-slides{ position:relative; width:100%; aspect-ratio:16/9; border-radius:18px; overflow:hidden;
+  border:1px solid rgba(255,255,255,.18); box-shadow:0 30px 60px -24px rgba(0,0,0,.6); }
+.bs-slide{ position:absolute; inset:0; opacity:0; transition:opacity .9s var(--ease); }
+.bs-slide.on{ opacity:1; }
+.bs-slide img{ width:100%; height:100%; object-fit:cover; display:block; }
+.bs-slide.ph{ display:grid; place-items:center; color:rgba(255,255,255,.55); font-size:13px; letter-spacing:.02em;
+  background:linear-gradient(135deg,rgba(255,255,255,.08),rgba(255,255,255,.02)); }
+.bs-dots{ display:flex; gap:8px; justify-content:center; margin-top:16px; }
+.bs-dots button{ width:8px; height:8px; border-radius:999px; border:none; padding:0; cursor:pointer;
+  background:rgba(255,255,255,.3); transition:all .2s; }
+.bs-dots button.on{ background:#fff; width:22px; }
+
+/* ══ İnteraktif yelpaze kartlar (Görev 2) — pivot sağda, kartlar sola açılıyor. Masaüstü
+   offset-path demosunun ruhu, transform-tabanlı güvenilir bir uyarlamayla (site token'larıyla). ══ */
+.fan-cards .showcase{ align-items:center; }
+.fan-media{ display:flex; justify-content:center; align-items:center; }
+.fan-stage{
+  --spring:linear(0,.01 .8%,.038 1.6%,.154 3.4%,.781 9.7%,1.01 12.5%,1.089 13.8%,1.153 15.2%,1.195 16.6%,1.219 18%,1.224 19.7%,1.208 21.6%,1.172 23.6%,1.057 28.6%,1.007 31.2%,.969 34.1%,.951 37.1%,.953 40.9%,.998 50.4%,1.011 56%,.998 74.7%,1);
+  --fan-w:clamp(190px,27vw,300px);
+  position:relative; width:100%; height:clamp(360px,46vw,520px);
+}
+.fan-card{
+  position:absolute; top:50%; right:8%;
+  width:var(--fan-w); aspect-ratio:1.586/1; border-radius:12px; overflow:hidden;
+  transform-origin:right center;
+  transform:translateY(-50%) rotate(var(--a)) translateX(-4%);
+  transition:transform .9s var(--spring), filter .9s var(--ease), box-shadow .9s var(--ease);
+  box-shadow:0 12px 30px -12px rgba(0,0,0,.6);
+  filter:brightness(.86);
+  cursor:pointer;
+}
+/* 7 kartlık simetrik yelpaze: pivot (sağ-orta) etrafında -48°..+48° */
+.fan-card:nth-child(1){ --a:-48deg; z-index:1; }
+.fan-card:nth-child(2){ --a:-32deg; z-index:2; }
+.fan-card:nth-child(3){ --a:-16deg; z-index:3; }
+.fan-card:nth-child(4){ --a:0deg;   z-index:4; }
+.fan-card:nth-child(5){ --a:16deg;  z-index:3; }
+.fan-card:nth-child(6){ --a:32deg;  z-index:2; }
+.fan-card:nth-child(7){ --a:48deg;  z-index:1; }
+.fan-card img{ width:100%; height:100%; object-fit:cover; display:block; }
+.fan-card.ph{ background:linear-gradient(135deg,var(--surface-2),var(--surface)); border:1px solid var(--border);
+  display:grid; place-items:center; }
+.fan-card.ph::after{ content:'L&S'; font-size:20px; font-weight:700; color:var(--text-mute); letter-spacing:.05em; }
+/* Hover: üzerine gelinen kart öne çıkar (parlar, büyür, sola çıkar); komşular yay boyunca aralanır. */
+.fan-card:hover{ filter:brightness(1.05); z-index:20;
+  transform:translateY(-50%) rotate(var(--a)) translateX(-16%) scale(1.06);
+  box-shadow:0 24px 50px -14px rgba(0,0,0,.7); }
+.fan-card:hover ~ .fan-card{ transform:translateY(-50%) rotate(calc(var(--a) + 9deg)) translateX(-4%); }
+.fan-card:has(~ .fan-card:hover){ transform:translateY(-50%) rotate(calc(var(--a) - 9deg)) translateX(-4%); }
+@media (prefers-reduced-motion:reduce){
+  .fan-card{ transition:none; }
+  .fan-card:hover{ transform:translateY(-50%) rotate(var(--a)) translateX(-4%); filter:brightness(1); }
+  .fan-card:hover ~ .fan-card, .fan-card:has(~ .fan-card:hover){ transform:translateY(-50%) rotate(var(--a)) translateX(-4%); }
+}
 
 /* ── Section spacing ── */
 .block{ padding:84px 0; }
@@ -454,6 +573,50 @@ h1,h2,h3{ line-height:1.08; letter-spacing:-.02em; }
 .bubble{ background:var(--surface); border:1px solid var(--border); border-radius:16px; padding:10px 12px; font-size:11.5px; color:var(--text-dim); }
 .bubble.me{ background:var(--gold); color:#fff; margin-left:auto; }
 
+/* ── NFC Carousel ── */
+.nfc-carousel-wrap{ display:flex; flex-direction:column; align-items:center; gap:18px; }
+.nfc-stage{
+  position:relative; width:280px; height:280px;
+  perspective:1200px; margin:0 auto;
+}
+.nfc-track{
+  position:absolute; inset:0;
+  transform-style:preserve-3d;
+}
+.nfc-card{
+  --nfc-size:280px;
+  position:absolute; width:var(--nfc-size); height:var(--nfc-size);
+  /* Kapsayıcıda ÇERÇEVE/BORDER yok — bir önceki sürümde border:1px + box-shadow
+     varken, dikdörtgen kutunun gölgesi görselin şeffaf kenarlarının dışına taşıp
+     düz kenarlı görünmeyen bir "hayalet çerçeve" oluşturuyordu (kullanıcı ekran
+     görüntüsüyle işaretledi). box-shadow yerine filter:drop-shadow kullanılıyor —
+     bu, dikdörtgen kutunun değil GÖRSELİN GERÇEKTEN RENDER EDİLEN (border-radius'la
+     kırpılmış) alfa konturunu takip eder, o yüzden köşe yuvarlatma ekstra bir
+     hayalet çerçeve riski taşımıyor. Sitenin genel kart yuvarlatmasıyla aynı
+     var(--radius) kullanılıyor; kendi şeklini (yuvarlak/altıgen) şeffaf PNG
+     içinde taşıyan görsellerde köşeler zaten şeffaf olduğundan bu ek kırpma
+     onlarda görünmez kalır, dikdörtgen fotoğraflarda ise köşeleri yuvarlatır. */
+  border-radius:var(--radius); background:transparent; border:none;
+  background-size:contain; background-repeat:no-repeat; background-position:center;
+  /* Pivot distance controls fan spread — kept short relative to card size so the swing stays
+     inside the .nfc-stage box and never collides with .nfc-nav below it (measured in-browser). */
+  transform-origin:50% 405px;
+  transition:transform .7s var(--ease), filter .7s var(--ease), scale .7s var(--ease);
+  filter:brightness(.45) drop-shadow(0 10px 22px rgba(0,0,0,.55)); scale:.78;
+}
+.nfc-card.active{ filter:brightness(1) drop-shadow(0 16px 34px rgba(0,0,0,.6)); scale:1.05; z-index:10; }
+html.theme-mono .nfc-card{ filter:brightness(.7) drop-shadow(0 10px 22px rgba(0,0,0,.22)); }
+html.theme-mono .nfc-card.active{ filter:brightness(1) drop-shadow(0 16px 34px rgba(0,0,0,.28)); }
+.nfc-nav{ display:flex; gap:14px; justify-content:center; margin-top:200px; }
+.nfc-btn{
+  width:44px; height:44px; border-radius:50%;
+  border:1px solid var(--border-2); background:var(--surface);
+  color:var(--text); cursor:pointer; display:grid; place-items:center;
+  transition:border-color .2s, background .2s, transform .15s;
+}
+.nfc-btn:hover{ border-color:var(--gold); background:var(--gold-soft); transform:scale(1.08); }
+.nfc-btn svg{ width:18px; height:18px; }
+
 /* ── Features grid ── */
 .feat-grid{ display:grid; grid-template-columns:repeat(4,1fr); gap:16px; }
 .feat{
@@ -518,13 +681,23 @@ html.theme-mono .feat .fi{ background:linear-gradient(150deg,#f0f0f2,#e2e2e6); c
 .panel-card{
   position:relative; overflow:hidden; border-radius:28px;
   min-height:62vh; display:flex; flex-direction:column; justify-content:space-between;
+  /* Fotoğraf yüklenemezse görünecek yedek — mavi marka rengiyle uyumlu. */
   background:
     radial-gradient(85% 70% at 20% 10%, rgba(96,150,255,.34) 0%, rgba(96,150,255,0) 62%),
     linear-gradient(150deg,#0a1226 0%,#132a52 58%,#1d3f78 100%);
 }
+/* Kartın fiziksel fotoğrafı — TÜM paneli kaplar (kullanıcı isteği: "mavi alanı tamamen
+   kaplasın"). object-fit:cover panel oranına göre kırpar; .panel-scrim üstündeki metnin
+   okunabilirliğini korumak için koyulaştırılmış bir katman. */
+.panel-bg-photo{
+  position:absolute; inset:0; z-index:0; width:100%; height:100%;
+  object-fit:cover; object-position:center;
+}
 .panel-scrim{
   position:absolute; inset:0; z-index:0; pointer-events:none;
-  background:linear-gradient(90deg,rgba(0,0,0,.5) 0%,rgba(0,0,0,.2) 50%,rgba(0,0,0,.4) 100%);
+  background:
+    linear-gradient(180deg, rgba(8,14,30,.72) 0%, rgba(8,14,30,.45) 38%, rgba(8,14,30,.55) 68%, rgba(8,14,30,.85) 100%),
+    linear-gradient(90deg, rgba(8,14,30,.55) 0%, rgba(8,14,30,.15) 45%, rgba(8,14,30,.4) 100%);
 }
 /* flex:1 + space-between pins the heading to the top of the panel and the glass card to the
    bottom, instead of both stacking at the top and leaving dead space underneath. */
@@ -681,8 +854,9 @@ html.theme-mono .feat .fi{ background:linear-gradient(150deg,#f0f0f2,#e2e2e6); c
   .hero-card{ min-height:0; }
   .showcase{ grid-template-columns:1fr; gap:28px; margin-bottom:64px; }
   .showcase.rev .sc-media{ order:0; }
+  .nfc-stage{ width:220px; height:220px; }
+  .nfc-card{ --nfc-size:220px; }
   .feat-grid{ grid-template-columns:repeat(3,1fr); }
-  .counters{ grid-template-columns:repeat(2,1fr); }
   .stat-card{ grid-template-columns:repeat(2,1fr); }
   .statc:nth-child(odd){ border-left:none; }
   .statc:nth-child(n+3){ border-top:1px solid rgba(255,255,255,.15); }
@@ -706,6 +880,39 @@ html.theme-mono .feat .fi{ background:linear-gradient(150deg,#f0f0f2,#e2e2e6); c
   .block{ padding:60px 0; }
   .cmp-row{ grid-template-columns:1.2fr .9fr .9fr; }
   .cmp-row > div{ padding:13px 12px; font-size:13px; }
+  .ft-line{ flex-direction:column; gap:4px; }
+  .ft-dynamic{ max-width:100%; width:100%; text-align:center; }
+  .ft-word{ left:50%; transform:translate3d(-50%,-100%,0); }
+  @keyframes ftSlide{
+    0%{ transform:translate3d(-50%,-100%,0); opacity:0; }
+    7%{ transform:translate3d(-50%,0,0); opacity:1; }
+    14%{ transform:translate3d(-50%,100%,0); opacity:0; }
+    100%{ transform:translate3d(-50%,100%,0); opacity:0; }
+  }
+  /* Brand slider: iki kolon yerine tek kolon (ticker+metin üstte, slayt altta). Özgüllük
+     `.panel-inner.bs-inner` (0,3,0) — masaüstü kuralı da aynı özgüllükte olduğundan düşük
+     özgüllüklü bir override mobilde ezilirdi (ölçülerek doğrulandı). */
+  .brand-slider .panel-inner.bs-inner{ flex-direction:column; align-items:stretch; gap:20px;
+    padding-top:52px; padding-bottom:52px; }
+  .bs-copy{ flex:none; max-width:none; }
+  /* Marka ticker'ı mobilde SOLA hizalı kalır (önek + dönen kelime aynı kenardan başlasın —
+     .bt-word absolute/left:0 olduğu için ortalamak kelimeyi öneğe göre kaydırıyordu). Font
+     küçültülüp en uzun kelime ("tepsi altı kağıdı") dar ekrana rahat sığar. */
+  .bt-dynamic{ font-size:clamp(20px,6.2vw,30px); }
+  /* Hero ticker'ı mobilde küçült — "paket servis ve kurye yönetimi" gibi uzun kelimeler 34px'te
+     dar ekranda yatay kırpılıyordu (nowrap + overflow:hidden). */
+  .ft-line .ft-dynamic{ font-size:clamp(18px,5.2vw,26px); }
+  .ft-prefix{ font-size:clamp(18px,5.2vw,26px); }
+  /* Yelpaze: kullanıcı "çok küçük ve alakasız" dedi — kartlar belirgin biçimde büyütüldü, sahne
+     yükseltildi; pivot sağda kalıyor ama açı yayı dar ekranda hafif kısılıp kartlar tek bir
+     "elde tutulan yelpaze" gibi okunuyor (taşma ölçümle kontrol edildi). */
+  .fan-cards .showcase{ gap:20px; }
+  .fan-stage{ --fan-w:clamp(162px,48vw,208px); height:clamp(320px,86vw,380px); }
+  .fan-card{ right:15%; border-radius:14px; }
+  .fan-card:nth-child(1){ --a:-40deg; } .fan-card:nth-child(2){ --a:-26deg; }
+  .fan-card:nth-child(3){ --a:-13deg; } .fan-card:nth-child(4){ --a:0deg; }
+  .fan-card:nth-child(5){ --a:13deg; } .fan-card:nth-child(6){ --a:26deg; }
+  .fan-card:nth-child(7){ --a:40deg; }
 }
 @media (max-width:620px){
   /* Both nav buttons move into the collapsed menu so the bar never overflows on phones. */
@@ -719,12 +926,18 @@ html.theme-mono .feat .fi{ background:linear-gradient(150deg,#f0f0f2,#e2e2e6); c
 @media (max-width:560px){
   .wrap{ padding:0 18px; }
   .feat-grid{ grid-template-columns:repeat(2,1fr); }
-  .counters{ grid-template-columns:repeat(2,1fr); }
   .form .row{ grid-template-columns:1fr; }
   .hero-cta .btn{ flex:1; }
   .foot-cols-host{ grid-template-columns:repeat(2,1fr); }
   .foot-bottom{ justify-content:center; text-align:center; }
   .cta-banner-in{ padding:32px 22px; }
+  /* 960px breakpoint'teki 220px kart, dar telefon genişliklerinde yelpaze açıldığında
+     yatay taşmaya yol açıyordu (ölçümle tespit edildi: 375px viewport'ta 456px scrollWidth).
+     Yayılma miktarını asıl belirleyen kart boyutu değil transform-origin pivot mesafesi
+     olduğu için (kart küçültülse bile pivot aynı kalırsa yayılma pikselde neredeyse
+     değişmiyor) — ikisi birlikte küçültülüyor. */
+  .nfc-stage{ width:160px; height:160px; }
+  .nfc-card{ --nfc-size:160px; transform-origin:50% 270px; }
 }
 @media (prefers-reduced-motion:reduce){
   .js-anim .rv{ transition:none; opacity:1; transform:none; }
@@ -824,14 +1037,12 @@ html.theme-mono .feat .fi{ background:linear-gradient(150deg,#f0f0f2,#e2e2e6); c
   </div>
 </section>
 
-<!-- ══════════ TRUST ══════════ -->
-<section class="trust">
+<!-- ══════════ FEATURE TICKER ══════════ -->
+<section class="feat-ticker">
   <div class="wrap">
-    <div class="counters rv">
-      <div class="counter"><div class="n"><span class="count" data-count="500">0</span>+</div><div class="lb" data-i18n="tr_restaurants">Restoran</div></div>
-      <div class="counter"><div class="n"><span class="count" data-count="150">0</span>K+</div><div class="lb" data-i18n="tr_orders">Sipariş</div></div>
-      <div class="counter"><div class="n">%<span class="count" data-count="99" data-suffix=".9">0</span></div><div class="lb" data-i18n="tr_uptime">Çalışma Süresi</div></div>
-      <div class="counter"><div class="n">%<span class="count" data-count="0">0</span></div><div class="lb" data-i18n="tr_commission">Komisyon</div></div>
+    <div class="ft-line rv">
+      <span class="ft-prefix" data-i18n="ft_prefix">Restoranınıza özel</span>
+      <div class="ft-dynamic"><div class="ft-track" id="ftTrack"></div></div>
     </div>
   </div>
 </section>
@@ -998,6 +1209,7 @@ html.theme-mono .feat .fi{ background:linear-gradient(150deg,#f0f0f2,#e2e2e6); c
      figures grouped into ONE glass card rather than four separate ones ══════════ -->
 <section class="panel-section stats-block">
   <div class="panel-card">
+    <img class="panel-bg-photo" src="/assets/nfc-cards/masa-mockup.png" alt="">
     <div class="panel-scrim"></div>
     <div class="wrap panel-inner">
       <div class="sec-head panel-head rv">
@@ -1065,6 +1277,87 @@ html.theme-mono .feat .fi{ background:linear-gradient(150deg,#f0f0f2,#e2e2e6); c
             <div class="scr-item"><span class="th"></span><span class="tx"><i></i><i></i></span><b data-try="60">₺60</b></div>
           </div>
         </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════ NFC CARDS ══════════ -->
+<section class="block" id="nfc">
+  <div class="wrap">
+    <div class="showcase rv">
+      <div class="sc-copy">
+        <h3 data-i18n="nfc_h">Tek dokunuş yeter.</h3>
+        <p data-i18n="nfc_p">Restoranınıza özel NFC kartlarınızı tasarlayın. Müşterileriniz telefonunu kartınıza dokundursun — menünüz anında açılsın. QR okutmaya bile gerek kalmaz.</p>
+        <ul class="sc-list">
+          <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6 9 17l-5-5"/></svg></span><span data-i18n="nfc_l1">Restoranınızın logosunu ve renklerini taşıyan özel kart</span></li>
+          <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6 9 17l-5-5"/></svg></span><span data-i18n="nfc_l2">QR kod gerekmez — yaklaştır, menü açılsın</span></li>
+          <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6 9 17l-5-5"/></svg></span><span data-i18n="nfc_l3">Dayanıklı, su geçirmez ve şık tasarım</span></li>
+        </ul>
+        <a href="/giris#table-card" id="nfcCtaBtn" class="btn btn-primary" data-i18n="nfc_cta">Kartınızı Seçin</a>
+      </div>
+      <div class="sc-media">
+        <div class="nfc-carousel-wrap">
+          <div class="nfc-stage">
+            <div class="nfc-track" id="nfcTrack"></div>
+          </div>
+          <div class="nfc-nav">
+            <button class="nfc-btn" onclick="nfcMove(-1)" aria-label="Önceki">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
+            </button>
+            <button class="nfc-btn" onclick="nfcMove(1)" aria-label="Sonraki">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 6l6 6-6 6"/></svg>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════ BRAND SLIDER — "Markanız her yerde" ══════════
+     Mavi yuvarlak panel (hero/stats ile aynı .panel-card kabuğu). Sol üstte referans #3'ün dönen
+     kelime animasyonu (.feat-ticker tekniğinin ikizi, .bt-* adıyla), altında başlık+metin; sağda
+     otomatik ilerleyen mockup slaytı. Görseller assets/slider/slide-N.png; dosya yoksa placeholder. -->
+<section class="panel-section brand-slider">
+  <div class="panel-card bs-card">
+    <div class="panel-scrim"></div>
+    <div class="wrap panel-inner bs-inner rv">
+      <div class="bs-copy">
+        <div class="bt-line">
+          <span class="bt-prefix" data-i18n="bt_prefix">Restoranınıza özel</span>
+          <div class="bt-dynamic"><div class="bt-track" id="btTrack"></div></div>
+        </div>
+        <h2 class="bs-title" data-i18n="bs_title">Markanız masada kalmasın.</h2>
+        <p class="bs-sub" data-i18n="bs_sub">Menü kartından peçeteye, kese kağıdından kartvizite — restoranınızın kimliğini taşıyan her ürünü sizin için tasarlıyoruz.</p>
+        <a href="/giris#table-card" class="btn btn-primary bs-cta" data-i18n="bs_cta">Özel Tasarım İsteyin</a>
+      </div>
+      <div class="bs-media">
+        <div class="bs-slides" id="bsSlides"></div>
+        <div class="bs-dots" id="bsDots"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════ FAN CARDS — interaktif yelpaze (90° sola: pivot sağda, açılım solda) ══════════
+     Masaüstü demosundan (offset-path yayı + hover) uyarlandı; sabit 7 kart + nth-child, sitenin
+     token/tema sistemine giydirildi. Görseller assets/nfc-cards/*.png; boş slotta placeholder. -->
+<section class="block fan-cards" id="fan-cards">
+  <div class="wrap">
+    <div class="showcase rv">
+      <div class="sc-copy">
+        <h3 data-i18n="fan_title">Her tasarım, elde açılan bir yelpaze gibi.</h3>
+        <p data-i18n="fan_sub">Onlarca hazır kart tasarımı arasından seçin ya da size özel olanı isteyin. Üzerine gelin, koleksiyonu yelpaze gibi açın.</p>
+        <ul class="sc-list">
+          <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6 9 17l-5-5"/></svg></span><span data-i18n="fan_l1">Suluboya, mermer, doğal dokularda özenli tasarımlar</span></li>
+          <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6 9 17l-5-5"/></svg></span><span data-i18n="fan_l2">Logonuz ve renklerinizle kişiselleştirilir</span></li>
+          <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6 9 17l-5-5"/></svg></span><span data-i18n="fan_l3">NFC + QR, tek dokunuşla menü</span></li>
+        </ul>
+        <a href="/giris#table-card" class="btn btn-primary" data-i18n="fan_cta">Tasarımları Keşfedin</a>
+      </div>
+      <div class="sc-media fan-media">
+        <div class="fan-stage" id="fanStage"></div>
       </div>
     </div>
   </div>
@@ -1164,6 +1457,9 @@ html.theme-mono .feat .fi{ background:linear-gradient(150deg,#f0f0f2,#e2e2e6); c
 </footer>
 
 <script src="/marketing-data.js"></script>
+<!-- Galeri kaydı: admin.html, root.html ve landing.html AYNI dosyayı kullanır — NFC carousel'i
+     bu galeriden besler, ayrı bir liste kopyalanmaz. -->
+<script src="/card-gallery.js"></script>
 <script>
 /* ─────────────── DATA ─────────────── */
 const ICONS = {
@@ -1208,7 +1504,12 @@ const CMP = [
   ['cmp_speed','yes','partial'],
   ['cmp_freedom','yes','no']
 ];
+/* Three tiers, same order and content as the /fiyatlandirma page's own plan block
+   (marketing.html's `plans` renderer) so the landing preview and the full pricing page agree.
+   renderPlans() already suppresses the "/ay" suffix for a ₺0 price, so Başlangıç needs no
+   special-casing. */
 const PLANS = [
+  {k:'p_start', price:'₺0', pop:false, feats:['pf_qr','pf_unlimited','pf_single_table','pf_email_support']},
   {k:'p_pro', price:'₺749', pop:true, trial:true, feats:['pf_qr','pf_table','pf_online','pf_res','pf_kitchen','pf_waiter','pf_bill','pf_analytics','pf_notify','pf_seo','pf_theme','pf_lang','pf_domain']},
   {k:'p_ent', price:'₺1499', pop:false, feats:['pf_all_pro','pf_ai','pf_wl','pf_roles','pf_multibranch','pf_delivery','pf_analytics_adv','pf_priority','pf_api','pf_manager','pf_sla']}
 ];
@@ -1304,7 +1605,8 @@ tr:{
   scr_title:'Tek platform, her ekran',
   scr_sub:'Yönetim panelinden müşterinin telefonuna kadar aynı sistem — masaüstünde de, cepte de.',
   scr_ui_dash:'Panel', scr_ui_today:'Bugün', scr_ui_orders:'Sipariş', scr_ui_sales:'Satış', scr_ui_menu:'Menü',
-  tr_restaurants:'Restoran', tr_orders:'Sipariş', tr_uptime:'Çalışma Süresi', tr_commission:'Komisyon',
+  ft_prefix:'Restoranınıza özel',
+  ft_words:['qr sipariş sistemi','dijital mutfak ekranı','garson çağırma sistemi','online rezervasyon','paket servis ve kurye yönetimi','işletme analitiği','yapay zeka asistanı','özel alan adınız','anlık bildirim sistemi','çoklu dil desteği'],
   sc_title:'Restoranınızın ihtiyacı olan her şey, tek yerde',
   sc_sub:'Müşteriden mutfağa, rezervasyondan analitiğe kadar tüm operasyonunuzu tek bir premium platformdan yönetin.', sc_more:'Daha Fazla Bilgi',
   sc1_h:'Markanıza özel web sitesi ve akıllı QR menü',
@@ -1320,6 +1622,18 @@ tr:{
   sc3_l1:'AI ile menü ve açıklama üretimi', sc3_l2:'Gelir, sipariş ve en çok satan ürün raporları', sc3_l3:'Tüm müşteri verisi sizin mülkiyetinizde',
   sc3_c1:'"Izgara kategorisi için 3 yeni ürün açıklaması yaz."', sc3_c2:'Hazır! Közde pişmiş, el yapımı 3 açıklama menünüze eklendi ✓',
   sc3_t1:'Bu ay', sc3_t1s:'gelir artışı', sc3_t2:'Tahmin', sc3_t2s:'gelecek hafta',
+  nfc_h:'Tek dokunuş yeter.', nfc_p:'Restoranınıza özel NFC kartlarınızı tasarlayın. Müşterileriniz telefonunu kartınıza dokundursun — menünüz anında açılsın. QR okutmaya bile gerek kalmaz.',
+  nfc_l1:'Restoranınızın logosunu ve renklerini taşıyan özel kart', nfc_l2:'QR kod gerekmez — yaklaştır, menü açılsın', nfc_l3:'Dayanıklı, su geçirmez ve şık tasarım',
+  nfc_cta:'Kartınızı Seçin',
+  bt_prefix:'Restoranınıza özel',
+  bt_words:['ıslak mendil','kese kağıdı','karton bardak','kahve bardağı','kartvizit','magnet','tuzluk','peçete','tepsi altı kağıdı'],
+  bs_title:'Markanız masada kalmasın.',
+  bs_sub:'Menü kartından peçeteye, kese kağıdından kartvizite — restoranınızın kimliğini taşıyan her ürünü sizin için tasarlıyoruz.',
+  bs_cta:'Özel Tasarım İsteyin',
+  fan_title:'Her tasarım, elde açılan bir yelpaze gibi.',
+  fan_sub:'Onlarca hazır kart tasarımı arasından seçin ya da size özel olanı isteyin. Üzerine gelin, koleksiyonu yelpaze gibi açın.',
+  fan_l1:'Suluboya, mermer, doğal dokularda özenli tasarımlar', fan_l2:'Logonuz ve renklerinizle kişiselleştirilir', fan_l3:'NFC + QR, tek dokunuşla menü',
+  fan_cta:'Tasarımları Keşfedin',
   ft_title:'Kurumsal seviyede, restoranlar için tasarlandı',
   ft_sub:'Büyümeniz için gereken tüm araçlar tek platformda — sade, hızlı ve tamamen sizin markanızla.',
   f_qr_t:'QR Sipariş', f_qr_d:'Masaya özel QR ile temassız, hızlı sipariş deneyimi.',
@@ -1355,9 +1669,11 @@ tr:{
   pr_title:'Her işletmeye uygun, esnek planlar', pr_sub:'Küçük bir kafe de olsanız zincir bir marka da — komisyon her zaman %0.',
   pr_note:'Tüm planlar 14 gün ücretsiz denemeyle başlar. Kredi kartı gerekmez.',
   p_start:'Başlangıç', p_start_d:'Dijitale ilk adım için ideal.',
+  p_start:'Başlangıç', p_start_d:'Dijitale ilk adım için ideal.',
   p_pro:'Profesyonel', p_pro_d:'Büyüyen restoranlar için en popüler seçim.',
   p_ent:'Kurumsal', p_ent_d:'Zincirler ve çok şubeli işletmeler için.',
   p_per:'/ay', p_badge:'En Popüler', p_cta:'Ücretsiz Dene',
+  pf_unlimited:'Sınırsız Ürün', pf_single_table:'Tek Masa QR', pf_email_support:'E-posta Desteği',
   pf_qr:'QR Menü', pf_table:'Masa Siparişi', pf_online:'Online Sipariş', pf_res:'Rezervasyon Sistemi',
   pf_kitchen:'Mutfak Ekranı', pf_waiter:'Garson Çağırma', pf_bill:'Hesap İsteme', pf_analytics:'Analitik Panel',
   pf_notify:'Bildirim Gönderme', pf_seo:'SEO Altyapısı', pf_theme:'Tema Motoru', pf_lang:'Çoklu Dil', pf_domain:'Özel Alan Adı',
@@ -1407,7 +1723,8 @@ en:{
   scr_title:'One platform, every screen',
   scr_sub:'From the management panel to your guest\'s phone — the same system, on desktop and in hand.',
   scr_ui_dash:'Dashboard', scr_ui_today:'Today', scr_ui_orders:'Orders', scr_ui_sales:'Sales', scr_ui_menu:'Menu',
-  tr_restaurants:'Restaurants', tr_orders:'Orders', tr_uptime:'Uptime', tr_commission:'Commission',
+  ft_prefix:'Built for your restaurant',
+  ft_words:['QR ordering system','digital kitchen display','waiter-call system','online reservations','delivery & courier management','business analytics','AI assistant','your own custom domain','instant notifications','multi-language menus'],
   sc_title:'Everything your restaurant needs, in one place',
   sc_sub:'Run your whole operation — from guest to kitchen, reservations to analytics — from one premium platform.', sc_more:'Learn More',
   sc1_h:'A branded website and a smart QR menu',
@@ -1423,6 +1740,18 @@ en:{
   sc3_l1:'AI menu and description generation', sc3_l2:'Revenue, orders and best-seller reports', sc3_l3:'You own all of your customer data',
   sc3_c1:'"Write 3 new product descriptions for the grill category."', sc3_c2:'Done! 3 handcrafted, chargrilled descriptions added to your menu ✓',
   sc3_t1:'This month', sc3_t1s:'revenue growth', sc3_t2:'Forecast', sc3_t2s:'next week',
+  nfc_h:'One touch is all it takes.', nfc_p:'Design custom NFC cards for your restaurant. Your guests tap their phone on the card — your menu opens instantly. No QR scanning needed.',
+  nfc_l1:'A custom card bearing your logo and colors', nfc_l2:'No QR required — just tap and the menu opens', nfc_l3:'Durable, waterproof and elegant design',
+  nfc_cta:'Choose Your Card',
+  bt_prefix:'Built for your restaurant',
+  bt_words:['wet wipes','paper bags','paper cups','coffee cups','business cards','magnets','salt shakers','napkins','tray liners'],
+  bs_title:'Your brand, on everything.',
+  bs_sub:'From menu cards to napkins, paper bags to business cards — we design every touchpoint that carries your restaurant\'s identity.',
+  bs_cta:'Request a Custom Design',
+  fan_title:'Every design, a fan you open by hand.',
+  fan_sub:'Choose from dozens of ready-made card designs, or request one made just for you. Hover to fan through the collection.',
+  fan_l1:'Watercolor, marble and natural-texture designs', fan_l2:'Personalized with your logo and colors', fan_l3:'NFC + QR, menu in one tap',
+  fan_cta:'Explore Designs',
   ft_title:'Enterprise-grade, designed for restaurants',
   ft_sub:'Every tool you need to grow, on one platform — simple, fast and fully your brand.',
   f_qr_t:'QR Ordering', f_qr_d:'Contactless, fast ordering with per-table QR codes.',
@@ -1458,9 +1787,11 @@ en:{
   pr_title:'Flexible plans for every business', pr_sub:'A small café or a chain brand — commission is always 0%.',
   pr_note:'All plans start with a 14-day free trial. No credit card required.',
   p_start:'Starter', p_start_d:'Ideal for a first step into digital.',
+  p_start:'Starter', p_start_d:'Ideal for a first step into digital.',
   p_pro:'Professional', p_pro_d:'The most popular choice for growing restaurants.',
   p_ent:'Enterprise', p_ent_d:'For chains and multi-branch businesses.',
   p_per:'/mo', p_badge:'Most Popular', p_cta:'Start Free',
+  pf_unlimited:'Unlimited Products', pf_single_table:'Single-table QR', pf_email_support:'Email Support',
   pf_qr:'QR Menu', pf_table:'Table Ordering', pf_online:'Online Ordering', pf_res:'Reservation System',
   pf_kitchen:'Kitchen Screen', pf_waiter:'Call Waiter', pf_bill:'Request Bill', pf_analytics:'Analytics Dashboard',
   pf_notify:'Push Notifications', pf_seo:'SEO Infrastructure', pf_theme:'Theme Engine', pf_lang:'Multi-language', pf_domain:'Custom Domain',
@@ -1586,6 +1917,66 @@ function applyI18n(){
   document.querySelectorAll('[data-i18n]').forEach(el=>{ const k=el.getAttribute('data-i18n'); if(I18N[LANG][k]!==undefined) el.textContent=I18N[LANG][k]; });
   document.querySelectorAll('[data-i18n-ph]').forEach(el=>{ const k=el.getAttribute('data-i18n-ph'); if(I18N[LANG][k]!==undefined) el.placeholder=I18N[LANG][k]; });
   document.documentElement.lang = LANG;
+  renderFeatTicker();
+  renderBrandTicker();
+}
+function renderFeatTicker(){
+  const track = document.getElementById('ftTrack');
+  const words = I18N[LANG].ft_words;
+  if (!track || !words) return;
+  track.innerHTML = words.map(w => `<span class="ft-word">${w}</span>`).join('');
+}
+function renderBrandTicker(){
+  const track = document.getElementById('btTrack');
+  const words = I18N[LANG].bt_words;
+  if (!track || !words) return;
+  track.innerHTML = words.map(w => `<span class="bt-word">${w}</span>`).join('');
+}
+
+/* ─────────────── BRAND SLIDER ─────────────── */
+// Görsel kaydedilene kadar (veya yol değişirse) <img onerror> ile şık bir placeholder'a düşer —
+// dizi genişletilip yeni assets/slider/slide-N.png eklendiğinde otomatik listeye dahil olur.
+const BS_SLIDES = Array.from({ length: 14 }, (_, i) => `/assets/slider/slide-${i + 1}.jpg`);
+let bsIndex = 0, bsTimer = null;
+function initBrandSlider(){
+  const wrap = document.getElementById('bsSlides');
+  const dots = document.getElementById('bsDots');
+  if (!wrap || !dots) return;
+  // loading="lazy" bilerek kullanılmıyor: innerHTML ile sonradan enjekte edilen <img>'lerde
+  // tarayıcının lazy-load gözlemcisi güvenilmez davranıyor (ölçüldü — dosya sunucudan sorunsuz
+  // 200 dönüyor ama element hiç fetch tetiklemiyor); sitenin geri kalanı zaten arka plan
+  // görselini eager yüklüyor, burada da aynı yol izleniyor.
+  wrap.innerHTML = BS_SLIDES.map((src, i) =>
+    `<div class="bs-slide${i === 0 ? ' on' : ''}"><img src="${src}" alt="" onerror="this.parentElement.classList.add('ph');this.remove();this.parentElement.textContent='Görsel yakında';"></div>`
+  ).join('');
+  dots.innerHTML = BS_SLIDES.map((_, i) => `<button type="button" class="${i === 0 ? 'on' : ''}" onclick="bsGoTo(${i})" aria-label="Slayt ${i + 1}"></button>`).join('');
+  if (BS_SLIDES.length > 1) { clearInterval(bsTimer); bsTimer = setInterval(() => bsGoTo((bsIndex + 1) % BS_SLIDES.length), 4200); }
+}
+function bsGoTo(i){
+  bsIndex = i;
+  document.querySelectorAll('.bs-slide').forEach((el, idx) => el.classList.toggle('on', idx === i));
+  document.querySelectorAll('.bs-dots button').forEach((el, idx) => el.classList.toggle('on', idx === i));
+}
+
+/* ─────────────── FAN CARDS ─────────────── */
+// YALNIZCA kullanıcının sağladığı 3 kart tasarımı (galeri/"masa" kartları KULLANILMAZ — kullanıcı
+// isteği). null = boş yuva → placeholder. Gerçek kartlar merkeze/öne (en görünür z-index'li
+// konumlara: 3-4-5) yerleştirildi; kenar yuvalar (1-2-6-7) placeholder olarak arkada peek eder.
+const FAN_CARDS = [
+  null, null,
+  '/assets/nfc-cards/kart-yaprak.jpg',
+  '/assets/nfc-cards/kart-lezzet-sanat.jpg',
+  '/assets/nfc-cards/kart-kraft.jpg',
+  null, null
+];
+function initFanCards(){
+  const stage = document.getElementById('fanStage');
+  if (!stage) return;
+  stage.innerHTML = FAN_CARDS.map(src =>
+    src
+      ? `<div class="fan-card"><img src="${src}" alt="" onerror="this.parentElement.classList.add('ph');this.remove();"></div>`
+      : `<div class="fan-card ph"></div>`
+  ).join('');
 }
 function setLang(l){
   LANG=l;
@@ -1608,6 +1999,10 @@ function updateNavCta(){
     if (__navCtaLoggedIn) { el.textContent = T('nav_cta_login'); el.href = '/admin'; }
     else { el.textContent = T('nav_cta_register'); el.href = '/giris'; }
   });
+  // NFC bölümündeki "Kartınızı Seçin" — girişliyse doğrudan panele, değilse girişe götürür;
+  // #table-card hash'i admin.html'in açılışta doğru sekmeyi (Masa Kartı Tasarla) açması için taşınır.
+  const nfcBtn = document.getElementById('nfcCtaBtn');
+  if (nfcBtn) nfcBtn.href = (__navCtaLoggedIn ? '/admin' : '/giris') + '#table-card';
 }
 (async () => {
   try {
@@ -1697,6 +2092,55 @@ function toggleLandingTheme(){
   applyLandingTheme(next);
 }
 
+/* ─────────────── NFC CAROUSEL ───────────────
+   Görseller card-gallery.js'in TEK kaynağından gelir — admin panelindeki tasarım
+   seçim galerisiyle birebir aynı liste. Yeni bir tasarım eklendiğinde (o dosyaya
+   bir satır eklenince) burada da otomatik görünür, ayrı bir liste tutulmaz. */
+const NFC_PLACEHOLDER_BG = 'linear-gradient(135deg, var(--gold-soft), var(--surface-2))';
+let nfcIndex = 0;
+const nfcAngle = 20;
+function initNfcCarousel(){
+  const track = document.getElementById('nfcTrack');
+  if(!track) return;
+  const gallery = (typeof HasacaGallery !== 'undefined') ? HasacaGallery.GALLERY : [];
+  nfcIndex = Math.floor(gallery.length / 2);
+  gallery.forEach(g => {
+    const img = HasacaGallery.imageUrl(g);
+    const card = document.createElement('div');
+    card.className = 'nfc-card';
+    card.style.background = img ? `url("${img}")` : NFC_PLACEHOLDER_BG;
+    if (img) { card.style.backgroundSize = 'contain'; card.style.backgroundRepeat = 'no-repeat'; }
+    else { card.style.backgroundSize = 'cover'; card.style.border = '1px solid var(--border)'; }
+    card.style.backgroundPosition = 'center';
+    track.appendChild(card);
+  });
+  updateNfcCards();
+}
+// Yelpaze yayılımı ±2 adımla SINIRLANIYOR — pivot mesafesi ve mobil nav boşluğu 5 kartlık
+// (merkeze göre en fazla ±2 adım) bir yayılım için ölçülüp doğrulanmıştı. Galeri büyüdükçe
+// (şu an 11 tasarım) sınırsız adım farkı yelpazeyi çok genişletip yatay taşmaya yol açıyordu
+// (ölçümle tespit edildi: 375px mobilde 406px scrollWidth). Merkeze en yakın ±2 kart tam
+// açıyla döner, daha uzaktakiler aynı uç açıda üst üste yığılır — kart sayısından bağımsız,
+// her zaman güvenli bir yayılım.
+const NFC_MAX_STEP = 2;
+function updateNfcCards(){
+  const cards = document.querySelectorAll('.nfc-card');
+  cards.forEach((card, i) => {
+    const step = Math.max(-NFC_MAX_STEP, Math.min(NFC_MAX_STEP, i - nfcIndex));
+    const rot = step * nfcAngle;
+    card.style.transform = 'rotate(' + rot + 'deg)';
+    card.classList.toggle('active', i === nfcIndex);
+  });
+}
+function nfcMove(dir){
+  const total = (typeof HasacaGallery !== 'undefined') ? HasacaGallery.GALLERY.length : 0;
+  const next = nfcIndex + dir;
+  if(next >= 0 && next < total){
+    nfcIndex = next;
+    updateNfcCards();
+  }
+}
+
 /* ─────────────── INIT ─────────────── */
 document.addEventListener('DOMContentLoaded', ()=>{
   document.getElementById('year').textContent = new Date().getFullYear();
@@ -1708,7 +2152,8 @@ document.addEventListener('DOMContentLoaded', ()=>{
   try { savedTheme = localStorage.getItem('landing_theme'); } catch(e){}
   if (!savedTheme) savedTheme = (window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches) ? 'mono' : 'dark';
   applyLandingTheme(savedTheme);
-  renderFeatures(); renderSteps(); renderCmp(); renderPlans(); renderFaq(); renderFooter();
+  renderFeatures(); renderSteps(); renderCmp(); renderPlans(); renderFaq(); renderFooter(); initNfcCarousel();
+  initBrandSlider(); initFanCards();
   setLang(LANG);
   applyI18n();
   localizeCurrency(); // must run before initObservers() — rewrites data-count for the stat counter below

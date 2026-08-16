@@ -3091,6 +3091,10 @@ body.theme-bw .rez-select-trigger:hover {
           <span class="lbl" data-i18n="admin_tab_tableorders">Masa Sipariş Kontrolü</span>
           <span class="nbadge" id="adminTableOrdersBadge" style="display:none;">0</span>
         </button>
+        <button class="nav-item" data-view="table-card" onclick="showAdminView('table-card')">
+          <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="3"/><path d="M7.5 9.5a3.2 3.2 0 0 1 0 5"/><path d="M10.5 7.5a6.4 6.4 0 0 1 0 9"/></svg></span>
+          <span class="lbl" data-i18n="admin_tab_cards">Masa Kartı Tasarla</span>
+        </button>
       </div>
 
       <div class="nav-group">
@@ -3309,9 +3313,8 @@ body.theme-bw .rez-select-trigger:hover {
               <button class="ai-chat-attach-btn" type="button" onclick="document.getElementById('aAiFileInput').click()" data-i18n-title="admin_ai_add_own_image" title="Kendi Görselimi Ekle" aria-label="Kendi Görselimi Ekle">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.44 11.05 12.25 20.24a5 5 0 0 1-7.07-7.07L14.36 3.9a3.5 3.5 0 0 1 4.95 4.95L10.13 18a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
               </button>
-              <button class="ai-chat-attach-btn" type="button" onclick="adminAiCompleteMenu()" data-i18n-title="admin_ai_complete_menu" title="Menüyü Tamamla" aria-label="Menüyü Tamamla">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>
-              </button>
+              <!-- "Menüyü Tamamla" bulk-image button removed — same capability now triggers from a
+                   typed command (e.g. "eksik görselleri tamamla"), see adminAiIsCompleteMenuCommand(). -->
               <textarea id="aAiInput" rows="1" data-i18n-placeholder="ph_ai_asst" placeholder="Ne yapmak istersiniz?" oninput="adminAiAutoGrow(this)" onkeydown="adminAiComposerKey(event)"></textarea>
               <button class="ai-chat-send-btn" id="aAiSendBtn" onclick="adminAiSend()" aria-label="Gönder">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
@@ -3745,6 +3748,40 @@ body.theme-bw .rez-select-trigger:hover {
         </div>
 
         <div id="adminTablesList" class="tbl-list"></div>
+      </div>
+
+      <!-- ===== NFC + QR MASA KARTI TASARIM EDİTÖRÜ ===== -->
+      <div id="adminTabCardsCont" class="view admin-tab-content" hidden>
+        <div class="tbl-mgmt-header">
+          <h3 data-i18n="admin_cards_title">Masa Kartı Tasarla</h3>
+          <p class="cd-sub" data-i18n="admin_cards_sub">Masalarınıza koyacağınız NFC + QR kartın tasarımını seçin. Müşteriniz telefonunu kartınıza dokundurunca menünüz açılır.</p>
+        </div>
+
+        <div id="cdLoading" class="cd-loading" data-i18n="admin_cards_loading">Yükleniyor...</div>
+
+        <!-- Sipariş verilmişse: salt-okunur durum ekranı -->
+        <div id="cdOrderState" class="cd-order-state" hidden></div>
+
+        <!-- Editör: hazır tasarım galerisi (canlı özelleştirme yok — kullanıcı kararı) -->
+        <div id="cdEditor" class="cd-editor" hidden>
+          <div class="cd-info-box" data-i18n="admin_cards_logo_note">Logonuz otomatik olarak işlenip size bildirilecektir.</div>
+
+          <div class="cd-gallery-head">
+            <span data-i18n="admin_cards_pick">Bir tasarım seçin</span>
+          </div>
+          <div id="cdGallery" class="cd-gallery"></div>
+
+          <div class="cd-bottombar">
+            <div class="cd-stage-meta">
+              <span id="cdStageTables" class="cd-chip"></span>
+            </div>
+            <div class="cd-stage-actions">
+              <button class="admin-btn cd-btn-approve" id="cdApproveTriggerBtn" onclick="cdOpenApprove()" data-i18n="admin_cards_approve" disabled>Tasarımı Onayla</button>
+            </div>
+            <div class="cd-save-state" id="cdSaveState"></div>
+            <button class="cd-custom-link" onclick="cdOpenCustom()" data-i18n="admin_cards_custom_btn">Aradığınızı bulamadınız mı? Özel tasarım isteyin →</button>
+          </div>
+        </div>
       </div>
 
       <!-- TABLE ORDER CONTROL TAB CONTENT -->
@@ -4459,6 +4496,51 @@ const i18nData = {
     admin_order_pay_online: "Online Ödeme",
     admin_tab_tables: "Masa Yönetimi",
     admin_tab_tableorders: "Masa Sipariş Kontrolü",
+    admin_tab_cards: "Masa Kartı Tasarla",
+    admin_cards_title: "Masa Kartı Tasarla",
+    admin_cards_sub: "Masalarınıza koyacağınız NFC + QR kartın tasarımını seçin. Müşteriniz telefonunu kartınıza dokundurunca menünüz açılır.",
+    admin_cards_loading: "Yükleniyor...",
+    admin_cards_g_shape: "Kart Şekli",
+    admin_cards_custom_btn: "Aradığınızı bulamadınız mı? Özel tasarım isteyin →",
+    admin_cards_custom_title: "Özel Tasarım İsteyin",
+    admin_cards_custom_sub: "Hayalinizdeki kartı anlatın; tasarım ekibimiz sizin için hazırlasın.",
+    admin_cards_custom_lbl: "İsteğinizi tarif edin",
+    admin_cards_custom_ph: "Örn. Restoranımın logosundaki bordo ve altın renkleri kullanan, üzerinde zeytin dalı deseni olan yuvarlak bir kart istiyorum.",
+    admin_cards_custom_mail: "Size dönüş yapacağımız e-posta",
+    admin_cards_custom_note: "Tasarım ekibimiz isteğinizi inceleyip bu e-posta adresi üzerinden size geri dönüş yapacaktır.",
+    admin_cards_custom_go: "Talebi Gönder",
+    admin_cards_custom_ok: "Talebiniz alındı. Tasarım ekibimiz {mail} adresi üzerinden en kısa sürede size dönüş yapacak.",
+    admin_cards_custom_err_msg: "Lütfen isteğinizi biraz daha detaylı anlatın (en az 10 karakter).",
+    admin_cards_custom_err_mail: "Lütfen geçerli bir e-posta adresi girin.",
+    admin_cards_pick: "Bir tasarım seçin",
+    admin_cards_logo_note: "Logonuz otomatik olarak işlenip size bildirilecektir.",
+    admin_cards_selected: "Seçildi",
+    admin_cards_pick_first: "Önce bir tasarım seçin.",
+    admin_cards_approve: "Tasarımı Onayla",
+    admin_cards_tables_n: "{n} masanız için basılacak",
+    admin_cards_no_tables: "Henüz masanız yok — önce Masa Yönetimi'nden ekleyin",
+    admin_cards_saved: "Kaydedildi",
+    admin_cards_saving: "Kaydediliyor...",
+    admin_cards_save_err: "Kaydedilemedi, bağlantınızı kontrol edin",
+    admin_cards_appr_title: "Teslimat Bilgileri",
+    admin_cards_appr_sub: "Kartlarınızı size göndereceğimiz adresi girin. Onayladıktan sonra tasarımınız baskıya alınır.",
+    admin_cards_f_contact: "Yetkili Ad Soyad *", admin_cards_f_phone: "Telefon *",
+    admin_cards_f_city: "İl *", admin_cards_f_district: "İlçe *",
+    admin_cards_f_address: "Açık Adres *", admin_cards_f_postal: "Posta Kodu",
+    admin_cards_f_note: "Teslimat Notu",
+    admin_cards_appr_go: "Onayla ve Sipariş Ver",
+    admin_cards_appr_wait: "Gönderiliyor...",
+    admin_cards_cancel: "Vazgeç",
+    admin_cards_os_title: "Kart siparişiniz alındı",
+    admin_cards_os_count: "Masa sayısı",
+    admin_cards_os_date: "Sipariş tarihi",
+    admin_cards_os_to: "Teslimat",
+    admin_cards_st_design_approved: "Tasarım Onaylandı",
+    admin_cards_st_print_pending: "Baskı Bekliyor",
+    admin_cards_st_printing: "Baskıda",
+    admin_cards_st_shipped: "Kargoda",
+    admin_cards_st_delivered: "Teslim Edildi",
+    admin_cards_st_cancelled: "İptal Edildi",
     admin_tables_title: "Masa Yönetimi",
     admin_tableorders_title: "Masa Sipariş Kontrolü",
     admin_tbl_add: "+ Masa Ekle",
@@ -4950,6 +5032,51 @@ const i18nData = {
     admin_order_pay_online: "Online Payment",
     admin_tab_tables: "Table Management",
     admin_tab_tableorders: "Table Order Control",
+    admin_tab_cards: "Design Table Card",
+    admin_cards_title: "Design Table Card",
+    admin_cards_sub: "Choose the design of the NFC + QR card for your tables. Guests tap their phone on the card and your menu opens.",
+    admin_cards_loading: "Loading...",
+    admin_cards_g_shape: "Card Shape",
+    admin_cards_custom_btn: "Can't find what you need? Request a custom design →",
+    admin_cards_custom_title: "Request a Custom Design",
+    admin_cards_custom_sub: "Describe the card you have in mind and our design team will create it for you.",
+    admin_cards_custom_lbl: "Describe your request",
+    admin_cards_custom_ph: "e.g. A round card using the burgundy and gold from my logo, with an olive branch pattern.",
+    admin_cards_custom_mail: "Email we should reply to",
+    admin_cards_custom_note: "Our design team will review your request and get back to you at this email address.",
+    admin_cards_custom_go: "Send Request",
+    admin_cards_custom_ok: "Your request has been received. Our design team will contact you at {mail} shortly.",
+    admin_cards_custom_err_msg: "Please describe your request in a bit more detail (at least 10 characters).",
+    admin_cards_custom_err_mail: "Please enter a valid email address.",
+    admin_cards_pick: "Pick a design",
+    admin_cards_logo_note: "Your logo will be processed automatically and you will be notified.",
+    admin_cards_selected: "Selected",
+    admin_cards_pick_first: "Please select a design first.",
+    admin_cards_approve: "Approve Design",
+    admin_cards_tables_n: "will be printed for your {n} tables",
+    admin_cards_no_tables: "No tables yet — add them from Table Management first",
+    admin_cards_saved: "Saved",
+    admin_cards_saving: "Saving...",
+    admin_cards_save_err: "Could not save, check your connection",
+    admin_cards_appr_title: "Delivery Details",
+    admin_cards_appr_sub: "Enter the address we should ship your cards to. Once approved, your design goes to print.",
+    admin_cards_f_contact: "Contact Name *", admin_cards_f_phone: "Phone *",
+    admin_cards_f_city: "City *", admin_cards_f_district: "District *",
+    admin_cards_f_address: "Full Address *", admin_cards_f_postal: "Postal Code",
+    admin_cards_f_note: "Delivery Note",
+    admin_cards_appr_go: "Approve and Order",
+    admin_cards_appr_wait: "Sending...",
+    admin_cards_cancel: "Cancel",
+    admin_cards_os_title: "Your card order has been received",
+    admin_cards_os_count: "Tables",
+    admin_cards_os_date: "Order date",
+    admin_cards_os_to: "Delivery",
+    admin_cards_st_design_approved: "Design Approved",
+    admin_cards_st_print_pending: "Awaiting Print",
+    admin_cards_st_printing: "Printing",
+    admin_cards_st_shipped: "Shipped",
+    admin_cards_st_delivered: "Delivered",
+    admin_cards_st_cancelled: "Cancelled",
     admin_tables_title: "Table Management",
     admin_tableorders_title: "Table Order Control",
     admin_tbl_add: "+ Add Table",
@@ -5429,6 +5556,9 @@ function applyLanguage(lang) {
   if (typeof renderTables === 'function' && typeof tablesData !== 'undefined' && tablesData.length) renderTables();
   if (typeof renderTableOrders === 'function' && typeof dineinOrders !== 'undefined' && dineinOrders.length) renderTableOrders();
   if (typeof renderFloorOverview === 'function' && typeof tablesData !== 'undefined') renderFloorOverview();
+  // Masa kartı galerisi: tasarım isimleri card-gallery.js'ten TR/EN geldiği için
+  // dil değişiminde yeniden çizilmeli (data-i18n taramasıyla güncellenmezler).
+  if (typeof cdLoaded !== 'undefined' && cdLoaded) { if (cdOrder) cdRenderOrderState(); else cdRenderAll(); }
   if (typeof renderServiceRequests === 'function') renderServiceRequests();
 }
 
@@ -6735,11 +6865,20 @@ function openAdminPanel() {
   // in which case we drop them straight into the AI Assistant with a kickoff message instead of
   // an empty Dashboard — the whole point of that signup path was "let AI build my menu".
   const isOnboarding = new URLSearchParams(window.location.search).get('onboarding') === '1';
+  // Landing/login sayfalarındaki CTA'lar (örn. NFC bölümündeki "Kartınızı Seçin") belirli bir
+  // sekmeyi açmak için #table-card gibi bir hash taşıyabilir — önceden bunu okuyan hiçbir mekanizma
+  // yoktu, panel her zaman Dashboard'da açılıyordu. AP_VIEW_MAP'te karşılığı varsa o sekme açılır.
+  const hashView = (window.location.hash || '').replace(/^#/, '');
   if (isOnboarding) {
     showAdminView('ai-assistant');
     adminAiShowOnboardingWelcome();
     // Strip the query param so a refresh/reshare of this URL doesn't replay the welcome message.
     try { window.history.replaceState({}, '', window.location.pathname + window.location.search.replace(/[?&]onboarding=1\b/, '').replace(/^&/, '?')); } catch (e) {}
+  } else if (hashView && AP_VIEW_MAP[hashView]) {
+    showAdminView(hashView);
+    // Hash'i temizle ki sayfa yenilenince (ör. kullanıcı başka bir sekmeye geçtikten sonra F5)
+    // her seferinde bu view'a geri dönmesin.
+    try { window.history.replaceState({}, '', window.location.pathname + window.location.search); } catch (e) {}
   } else {
     showAdminView('dashboard');
   }
@@ -6918,6 +7057,7 @@ const AP_VIEW_MAP = {
   'reservations': { id: 'adminTabRezCont',          title: 'admin_tab_rez' },
   'tables':       { id: 'adminTabTablesCont',       title: 'admin_tab_tables' },
   'table-orders': { id: 'adminTabTableOrdersCont',  title: 'admin_tab_tableorders' },
+  'table-card':   { id: 'adminTabCardsCont',        title: 'admin_tab_cards' },
   'push':         { id: 'adminTabPushCont',         title: 'admin_nav_push' },
   'analytics':    { id: 'view-analytics',           title: 'admin_nav_analytics' },
   'ai-assistant': { id: 'view-ai-assistant',         title: 'admin_nav_ai' },
@@ -6990,6 +7130,7 @@ function showAdminView(view) {
     if (typeof loadTableOrders === 'function') loadTableOrders();
     if (typeof loadServiceRequests === 'function') loadServiceRequests();
   }
+  else if (view === 'table-card') { if (typeof cdInit === 'function') cdInit(); }
   else if (view === 'widgets') loadTenantWidgets();
   else if (view === 'website-editor') loadWebsiteEditor();
   else if (view === 'danger-zone') loadDangerZone();
@@ -8192,8 +8333,8 @@ async function adminAiUploadOwnImage(input){
 // "Menüyü Tamamla" — görseli olmayan ürünleri tespit edip toplu görsel oluşturma teklif ediyor.
 // Hangi ürünlerin eksik olduğu deterministik bir DB sorgusuyla bulunuyor (modele "hangileri eksik"
 // diye sormuyoruz — aynı "modele sadece kendisine verilen gerçek veriye güven" ilkesi).
-async function adminAiCompleteMenu(){
-  adminAiAppendMsg('user', '<div class="ai-bubble">' + aiAsstEsc(aiT('admin_ai_complete_menu', 'Menüyü Tamamla')) + '</div>');
+async function adminAiCompleteMenu(userMsg){
+  adminAiAppendMsg('user', adminAiUserBubbleHTML(userMsg || aiT('admin_ai_complete_menu', 'Menüyü Tamamla')));
   const typingBubble = adminAiAppendMsg('assistant', adminAiTypingHTML());
   adminAiStartThinkingOrb('searching');
   try {
@@ -8481,16 +8622,32 @@ function adminAiShowOnboardingWelcome(){
   adminAiAppendMsg('assistant', html);
 }
 
+// Detects a "complete the missing menu images" request typed as a normal chat message — this
+// used to be its own toolbar button; removed in favor of triggering the exact same deterministic
+// (DB-driven, not LLM-guessed) missing-image lookup from a command instead.
+function adminAiIsCompleteMenuCommand(msg){
+  const m = msg.toLowerCase();
+  const mentionsImage = /görsel|resim|foto|image/.test(m);
+  const mentionsComplete = /eksik|tamamla|complete|missing/.test(m);
+  const mentionsMenu = /menü|menu/.test(m);
+  // Either "complete the missing images" (explicit) or "complete the menu" (the old button's own
+  // label — a user retyping it verbatim should still work) triggers the same flow.
+  return (mentionsImage && mentionsComplete) || (mentionsMenu && mentionsComplete);
+}
 async function adminAiSend(){
   const input = document.getElementById('aAiInput');
   const msg = (input.value || '').trim();
   if (!msg) return;
   adminAiLastUserMsg = msg;
   adminAiCancel(); // superseding a still-pending plan by sending a new message
-  const sendBtn = document.getElementById('aAiSendBtn');
-  adminAiAppendMsg('user', adminAiUserBubbleHTML(msg));
   input.value = '';
   adminAiAutoGrow(input);
+  if (adminAiIsCompleteMenuCommand(msg)) {
+    await adminAiCompleteMenu(msg);
+    return;
+  }
+  const sendBtn = document.getElementById('aAiSendBtn');
+  adminAiAppendMsg('user', adminAiUserBubbleHTML(msg));
   const typingBubble = adminAiAppendMsg('assistant', adminAiTypingHTML());
   adminAiStartThinkingOrb(adminAiPickOrbState(msg));
   sendBtn.disabled = true; input.disabled = true;
@@ -10427,6 +10584,78 @@ async function deletePush(id) {
   .tbl-mini-btn.del{ color:#FF5252; }
   .tbl-empty{ text-align:center; padding:44px; color:var(--tbl-muted); grid-column:1/-1; }
 
+  /* ===== Masa kartı tasarım galerisi =====
+     Canlı özelleştirme YOK (kullanıcı kararı) — sabit, hazır tasarım galerisi.
+     Yüzey/metin için mevcut --tbl-* ailesini kullanır (admin paneli bunları
+     --ap-* üzerinden html[data-theme] ile zaten yönetiyor).
+     AMA "chip" için --tbl-chip KULLANILMAZ: açık temada --ap-card da --ap-panel de
+     #ffffff olduğu için üstteki elemanlar beyaz zemin üstünde beyaz kalıyor ve
+     ayrışmıyordu (ölçümle tespit edildi, önceki sürümde). Bunun yerine her iki
+     temada da yüzeyden ayrışan yarı saydam bir katman kullanılıyor. */
+  #adminPanelOverlay .cd-editor, #adminPanelOverlay .cd-order-state{ --cd-chip:rgba(255,255,255,.06); }
+  html[data-theme="light"] #adminPanelOverlay .cd-editor,
+  html[data-theme="light"] #adminPanelOverlay .cd-order-state{ --cd-chip:rgba(0,0,0,.05); }
+  .cd-sub{ font-size:.82rem; color:var(--tbl-muted); margin-top:6px; max-width:62ch; line-height:1.5; }
+  .cd-loading{ padding:40px; text-align:center; color:var(--tbl-muted); font-size:.85rem; }
+  .cd-editor{ display:flex; flex-direction:column; gap:16px; }
+  .cd-info-box{ background:var(--cd-chip); border:1px solid var(--tbl-line); border-radius:12px;
+    padding:12px 14px; font-size:.8rem; color:var(--tbl-text); line-height:1.55; }
+  .cd-gallery-head{ font-size:.72rem; text-transform:uppercase; letter-spacing:.6px; font-weight:800;
+    color:var(--tbl-muted); }
+  /* galeri — her hücre gerçek tasarım görselinin önizlemesi */
+  .cd-gallery{ display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:12px; }
+  .cd-gallery-item{ background:var(--tbl-surface); border:1.5px solid var(--tbl-line); border-radius:14px;
+    padding:10px; cursor:pointer; display:flex; flex-direction:column; align-items:center; gap:8px;
+    transition:border-color .15s, transform .15s; text-align:center; }
+  .cd-gallery-item:hover{ border-color:var(--fire); transform:translateY(-2px); }
+  .cd-gallery-item.on{ border-color:var(--fire); box-shadow:0 0 0 1px var(--fire); }
+  .cd-gallery-item:focus-visible{ outline:2px solid var(--fire); outline-offset:2px; }
+  .cd-gallery-img{ width:100%; aspect-ratio:1/1; object-fit:contain; border-radius:8px; background:var(--cd-chip); }
+  .cd-gallery-name{ font-size:.76rem; font-weight:700; color:var(--tbl-text); }
+  .cd-gallery-badge{ font-size:.66rem; font-weight:800; color:var(--fire); display:none; }
+  .cd-gallery-item.on .cd-gallery-badge{ display:block; }
+  /* alt bilgi çubuğu */
+  .cd-bottombar{ background:var(--tbl-surface); border:1px solid var(--tbl-line); border-radius:16px;
+    padding:18px; display:flex; flex-direction:column; align-items:center; gap:12px; }
+  .cd-stage-meta{ display:flex; gap:7px; flex-wrap:wrap; justify-content:center; }
+  .cd-chip{ font-size:.68rem; font-weight:700; color:var(--tbl-muted); background:var(--cd-chip);
+    border:1px solid var(--tbl-line); border-radius:999px; padding:4px 10px; }
+  .cd-stage-actions{ display:flex; gap:8px; flex-wrap:wrap; justify-content:center; }
+  .cd-btn-approve{ margin:0; width:auto; padding:11px 22px; font-size:.85rem; }
+  .cd-btn-approve:disabled{ opacity:.45; cursor:not-allowed; }
+  .cd-save-state{ font-size:.68rem; color:var(--tbl-muted); min-height:1em; }
+  .cd-save-state.err{ color:#FF5252; }
+  .cd-custom-link{ background:none; border:none; color:var(--fire); font-size:.74rem; font-weight:700;
+    cursor:pointer; padding:6px 4px; text-align:center; font-family:inherit; }
+  .cd-custom-link:hover{ text-decoration:underline; }
+  .cd-custom-link:focus-visible{ outline:2px solid var(--fire); outline-offset:2px; border-radius:6px; }
+  .cd-ok{ background:rgba(102,187,106,.12); border:1px solid rgba(102,187,106,.4); border-radius:10px;
+    padding:10px 12px; font-size:.78rem; color:#66BB6A; line-height:1.55; }
+  /* onaylanmış sipariş durumu */
+  .cd-order-state{ background:var(--tbl-surface); border:1px solid var(--tbl-line); border-radius:16px; padding:22px; }
+  .cd-os-head{ display:flex; gap:20px; flex-wrap:wrap; align-items:flex-start; }
+  .cd-os-preview{ width:210px; max-width:100%; border-radius:14px; background:var(--cd-chip); }
+  .cd-os-info{ flex:1; min-width:220px; }
+  .cd-os-title{ font-size:1rem; font-weight:800; color:var(--tbl-text); margin-bottom:6px; }
+  .cd-os-line{ font-size:.8rem; color:var(--tbl-muted); margin-bottom:4px; }
+  .cd-steps{ display:flex; flex-wrap:wrap; gap:6px; margin:16px 0 0; }
+  .cd-stp{ font-size:.7rem; font-weight:800; padding:6px 11px; border-radius:999px;
+    border:1px solid var(--tbl-line); background:var(--cd-chip); color:var(--tbl-muted); }
+  .cd-stp.done{ border-color:#66BB6A; color:#66BB6A; background:rgba(102,187,106,.12); }
+  .cd-stp.now{ border-color:var(--fire); color:var(--fire); background:rgba(var(--ember-rgb),.14); }
+  /* modal (onay / özel talep) */
+  .cd-modal-body{ display:flex; flex-direction:column; gap:11px; }
+  .cd-frow{ display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+  .cd-field{ display:flex; flex-direction:column; gap:5px; }
+  .cd-field label{ font-size:.7rem; font-weight:800; color:var(--tbl-muted); }
+  .cd-field textarea.admin-input{ resize:vertical; min-height:64px; font-family:inherit; }
+  .cd-errors{ background:rgba(255,82,82,.1); border:1px solid rgba(255,82,82,.35); border-radius:10px;
+    padding:10px 12px; font-size:.76rem; color:#FF7B7B; line-height:1.55; }
+  .cd-errors ul{ margin:0; padding-left:16px; }
+  @media (max-width:900px){
+    .cd-frow{ grid-template-columns:1fr; }
+  }
+
   /* Floor overview */
   .floor-section{ background:var(--tbl-surface); border:1px solid var(--tbl-line); border-radius:14px; padding:14px; }
   .floor-title{ font-size:.72rem; text-transform:uppercase; letter-spacing:1px; color:var(--tbl-muted); font-weight:800; margin-bottom:10px; }
@@ -11436,6 +11665,280 @@ function connectAdminEvents(){
     };
   } catch(e){ console.error('SSE connect failed', e); }
 }
+</script>
+
+<!-- ===== MASA KARTI: onay ve AI modalleri ===== -->
+<div id="cdApproveBackdrop" class="admin-modal-backdrop" onclick="if(event.target===this)closeTblModal('cdApproveBackdrop')">
+  <div class="admin-modal-card" onclick="event.stopPropagation()">
+    <h3 class="admin-modal-title" data-i18n="admin_cards_appr_title">Teslimat Bilgileri</h3>
+    <p class="cd-sub" data-i18n="admin_cards_appr_sub">Kartlarınızı size göndereceğimiz adresi girin. Onayladıktan sonra tasarımınız baskıya alınır.</p>
+    <div id="cdApproveErrors" class="cd-errors" hidden></div>
+    <div class="cd-modal-body">
+      <div class="cd-field"><label data-i18n="admin_cards_f_contact">Yetkili Ad Soyad *</label>
+        <input type="text" class="admin-input" id="cdDContact" maxlength="120"></div>
+      <div class="cd-frow">
+        <div class="cd-field"><label data-i18n="admin_cards_f_phone">Telefon *</label>
+          <input type="tel" class="admin-input" id="cdDPhone" maxlength="30"></div>
+        <div class="cd-field"><label data-i18n="admin_cards_f_postal">Posta Kodu</label>
+          <input type="text" class="admin-input" id="cdDPostal" maxlength="20"></div>
+      </div>
+      <div class="cd-frow">
+        <div class="cd-field"><label data-i18n="admin_cards_f_city">İl *</label>
+          <input type="text" class="admin-input" id="cdDCity" maxlength="60"></div>
+        <div class="cd-field"><label data-i18n="admin_cards_f_district">İlçe *</label>
+          <input type="text" class="admin-input" id="cdDDistrict" maxlength="60"></div>
+      </div>
+      <div class="cd-field"><label data-i18n="admin_cards_f_address">Açık Adres *</label>
+        <textarea class="admin-input" id="cdDAddress" maxlength="400" rows="2"></textarea></div>
+      <div class="cd-field"><label data-i18n="admin_cards_f_note">Teslimat Notu</label>
+        <textarea class="admin-input" id="cdDNote" maxlength="400" rows="2"></textarea></div>
+    </div>
+    <button class="admin-btn" id="cdApproveBtn" onclick="cdSubmitApprove()" data-i18n="admin_cards_appr_go">Onayla ve Sipariş Ver</button>
+    <button class="admin-btn secondary" onclick="closeTblModal('cdApproveBackdrop')" data-i18n="admin_cards_cancel">Vazgeç</button>
+  </div>
+</div>
+
+<div id="cdCustomBackdrop" class="admin-modal-backdrop" onclick="if(event.target===this)closeTblModal('cdCustomBackdrop')">
+  <div class="admin-modal-card" onclick="event.stopPropagation()">
+    <h3 class="admin-modal-title" data-i18n="admin_cards_custom_title">Özel Tasarım İsteyin</h3>
+    <p class="cd-sub" data-i18n="admin_cards_custom_sub">Hayalinizdeki kartı anlatın; tasarım ekibimiz sizin için hazırlasın.</p>
+    <div id="cdCustomErrors" class="cd-errors" hidden></div>
+    <div id="cdCustomOk" class="cd-ok" hidden></div>
+    <div id="cdCustomForm">
+      <label class="admin-form-label" data-i18n="admin_cards_custom_lbl">İsteğinizi tarif edin</label>
+      <textarea class="admin-input" id="cdCustomMsg" rows="5" maxlength="1000"
+                data-i18n-ph="admin_cards_custom_ph"
+                placeholder="Örn. Restoranımın logosundaki bordo ve altın renkleri kullanan, üzerinde zeytin dalı deseni olan yuvarlak bir kart istiyorum."></textarea>
+      <label class="admin-form-label" data-i18n="admin_cards_custom_mail">Size dönüş yapacağımız e-posta</label>
+      <input type="email" class="admin-input" id="cdCustomEmail" maxlength="160" placeholder="ornek@gmail.com">
+      <p class="cd-hint" data-i18n="admin_cards_custom_note">Tasarım ekibimiz isteğinizi inceleyip bu e-posta adresi üzerinden size geri dönüş yapacaktır.</p>
+      <button class="admin-btn" id="cdCustomBtn" onclick="cdSubmitCustom()" data-i18n="admin_cards_custom_go">Talebi Gönder</button>
+    </div>
+    <button class="admin-btn secondary" onclick="closeTblModal('cdCustomBackdrop')" data-i18n="admin_cards_cancel">Vazgeç</button>
+  </div>
+</div>
+
+<!-- Galeri kaydı: admin.html, root.html ve landing.html AYNI dosyayı kullanır, böylece
+     hepsi birebir aynı tasarım listesini gösterir. -->
+<script src="/card-gallery.js"></script>
+<script>
+/* ===================== MASA KARTI TASARIM GALERİSİ =====================
+   Canlı özelleştirme YOK (kullanıcı kararı) — hazır tasarımlardan biri seçilir.
+   Görseller ÖN GÖSTERİMdir (içlerindeki QR/logo sahte olabilir); gerçek QR +
+   logo işleme adımı fiziksel üretimde elle yapılır. Seçim anında kaydedilir.  */
+let cdDesignId = null;    // seçili tasarımın id'si (HasacaGallery.GALLERY'den)
+let cdTableCount = 0;     // mevcut masa sistemi sayımı (yeniden yazılmaz, sadece okunur)
+let cdOrder = null;       // işlemdeki sipariş (varsa galeri yerine durum ekranı gösterilir)
+let cdSaveTimer = null;
+let cdLoaded = false;
+
+const cdT = (k) => (typeof adminT === 'function' ? adminT(k) : k);
+const cdEsc = (s) => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const cdLang = () => ((window.currentLanguage || 'tr') === 'en' ? 'en' : 'tr');
+
+async function cdInit(){
+  if (cdLoaded) return;                    // görünüm her açılışta yeniden yüklenmesin
+  try {
+    const [dRes, tRes] = await Promise.all([
+      fetch('/api/card-design'),
+      fetch('/api/tables')
+    ]);
+    const d = await dRes.json();
+    const tables = tRes.ok ? await tRes.json() : [];
+    cdTableCount = tables.filter(t => t.active !== false).length;
+    cdOrder = d.order || null;
+    cdDesignId = d.designId || null;
+    cdLoaded = true;
+  } catch (e) {
+    console.error('card design load failed', e);
+  }
+  document.getElementById('cdLoading').hidden = true;
+  cdApplyMode();
+}
+
+/** Sipariş varsa galeri yerine salt-okunur durum ekranı gösterilir. */
+function cdApplyMode(){
+  const editing = !cdOrder;
+  document.getElementById('cdEditor').hidden = !editing;
+  const os = document.getElementById('cdOrderState');
+  os.hidden = editing;
+  if (editing) cdRenderAll(); else cdRenderOrderState();
+}
+
+function cdRenderOrderState(){
+  const o = cdOrder;
+  const FLOW = ['design_approved','print_pending','printing','shipped','delivered'];
+  const idx = FLOW.indexOf(o.status);
+  const steps = (o.status === 'cancelled')
+    ? '<span class="cd-stp now">' + cdEsc(cdT('admin_cards_st_cancelled')) + '</span>'
+    : FLOW.map((s,i) => '<span class="cd-stp ' + (i < idx ? 'done' : (i === idx ? 'now' : '')) + '">' +
+        cdEsc(cdT('admin_cards_st_' + s)) + '</span>').join('');
+  const dt = o.created_at ? new Date(o.created_at).toLocaleDateString(cdLang() === 'en' ? 'en-GB' : 'tr-TR') : '';
+  const dl = o.delivery || {};
+  document.getElementById('cdOrderState').innerHTML =
+    '<div class="cd-os-head">' +
+      '<img class="cd-os-preview" src="' + cdEsc(HasacaGallery.imageUrl(o.designId)) + '" alt="">' +
+      '<div class="cd-os-info">' +
+        '<div class="cd-os-title">' + cdEsc(cdT('admin_cards_os_title')) + '</div>' +
+        '<div class="cd-os-line">' + cdEsc(cdT('admin_cards_os_count')) + ': <b>' + (o.table_count || 0) + '</b></div>' +
+        '<div class="cd-os-line">' + cdEsc(cdT('admin_cards_os_date')) + ': <b>' + cdEsc(dt) + '</b></div>' +
+        '<div class="cd-os-line">' + cdEsc(cdT('admin_cards_os_to')) + ': ' +
+          cdEsc([dl.contact, dl.district, dl.city].filter(Boolean).join(' · ')) + '</div>' +
+        '<div class="cd-steps">' + steps + '</div>' +
+      '</div>' +
+    '</div>';
+}
+
+/* ---------------- galeri render ---------------- */
+function cdRenderAll(){
+  document.getElementById('cdGallery').innerHTML = HasacaGallery.GALLERY.map(g => {
+    const on = cdDesignId === g.id;
+    return '<button type="button" class="cd-gallery-item' + (on ? ' on' : '') + '" onclick="cdSelect(\'' + g.id + '\')">' +
+      '<img class="cd-gallery-img" src="' + cdEsc(HasacaGallery.imageUrl(g)) + '" alt="' + cdEsc(HasacaGallery.label(g, cdLang())) + '">' +
+      '<span class="cd-gallery-name">' + cdEsc(HasacaGallery.label(g, cdLang())) + '</span>' +
+      '<span class="cd-gallery-badge">✓ ' + cdEsc(cdT('admin_cards_selected')) + '</span>' +
+      '</button>';
+  }).join('');
+
+  document.getElementById('cdStageTables').textContent = cdTableCount
+    ? cdT('admin_cards_tables_n').replace('{n}', cdTableCount)
+    : cdT('admin_cards_no_tables');
+
+  const approveBtn = document.getElementById('cdApproveTriggerBtn');
+  if (approveBtn) approveBtn.disabled = !cdDesignId;
+}
+
+function cdSelect(id){
+  cdDesignId = id;
+  cdRenderAll();
+  cdQueueSave();
+}
+
+/* ---------------- otomatik kaydetme ---------------- */
+function cdSaveMsg(msg, isErr){
+  const el = document.getElementById('cdSaveState');
+  if (!el) return;
+  el.textContent = msg || '';
+  el.classList.toggle('err', !!isErr);
+}
+function cdQueueSave(){
+  clearTimeout(cdSaveTimer);
+  cdSaveMsg(cdT('admin_cards_saving'));
+  cdSaveTimer = setTimeout(cdSaveNow, 600);   // her tuşta istek atma
+}
+async function cdSaveNow(){
+  if (!cdDesignId) return;   // henüz bir seçim yapılmadıysa kaydedecek bir şey yok
+  try {
+    const r = await fetch('/api/card-design', {
+      method: 'PUT', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ designId: cdDesignId })
+    });
+    if (!r.ok) throw new Error('save_failed');
+    cdSaveMsg(cdT('admin_cards_saved'));
+    setTimeout(() => { if (document.getElementById('cdSaveState').textContent === cdT('admin_cards_saved')) cdSaveMsg(''); }, 1800);
+  } catch (e) {
+    cdSaveMsg(cdT('admin_cards_save_err'), true);
+  }
+}
+
+/* ---------------- onay + teslimat ---------------- */
+function cdOpenApprove(){
+  // Buton zaten cdRenderAll() içinde tasarım seçilmeden disable ediliyor; bu, doğrudan
+  // JS'ten (ör. konsoldan) çağrılırsa diye ikinci bir savunma katmanı.
+  if (!cdDesignId) { cdSaveMsg(cdT('admin_cards_pick_first'), true); return; }
+  document.getElementById('cdApproveErrors').hidden = true;
+  document.getElementById('cdApproveBackdrop').classList.add('open');
+}
+async function cdSubmitApprove(){
+  const btn = document.getElementById('cdApproveBtn');
+  const errBox = document.getElementById('cdApproveErrors');
+  const delivery = {
+    contact:  document.getElementById('cdDContact').value,
+    phone:    document.getElementById('cdDPhone').value,
+    city:     document.getElementById('cdDCity').value,
+    district: document.getElementById('cdDDistrict').value,
+    address:  document.getElementById('cdDAddress').value,
+    postal:   document.getElementById('cdDPostal').value,
+    note:     document.getElementById('cdDNote').value
+  };
+  btn.disabled = true;
+  const orig = btn.textContent;
+  btn.textContent = cdT('admin_cards_appr_wait');
+  errBox.hidden = true;
+  try {
+    await cdSaveNow();                                   // son değişiklikler kaybolmasın
+    const r = await fetch('/api/card-design/approve', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ delivery })
+    });
+    const data = await r.json();
+    if (!r.ok) {
+      // Sunucudan gelen Türkçe doğrulama mesajları doğrudan gösterilir.
+      const msgs = data.messages || (data.message ? [data.message] : ['Bir hata oluştu.']);
+      errBox.innerHTML = '<ul>' + msgs.map(m => '<li>' + cdEsc(m) + '</li>').join('') + '</ul>';
+      errBox.hidden = false;
+      return;
+    }
+    cdOrder = data.order;
+    closeTblModal('cdApproveBackdrop');
+    cdApplyMode();
+  } catch (e) {
+    errBox.textContent = cdT('admin_cards_save_err');
+    errBox.hidden = false;
+  } finally {
+    btn.disabled = false; btn.textContent = orig;
+  }
+}
+
+/* ---------------- özel tasarım talebi ---------------- */
+function cdOpenCustom(){
+  document.getElementById('cdCustomErrors').hidden = true;
+  document.getElementById('cdCustomOk').hidden = true;
+  document.getElementById('cdCustomForm').hidden = false;
+  document.getElementById('cdCustomBackdrop').classList.add('open');
+}
+async function cdSubmitCustom(){
+  const btn = document.getElementById('cdCustomBtn');
+  const errBox = document.getElementById('cdCustomErrors');
+  const okBox = document.getElementById('cdCustomOk');
+  const message = document.getElementById('cdCustomMsg').value.trim();
+  const email = document.getElementById('cdCustomEmail').value.trim();
+  errBox.hidden = true;
+  const errs = [];
+  if (message.length < 10) errs.push(cdT('admin_cards_custom_err_msg'));
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) errs.push(cdT('admin_cards_custom_err_mail'));
+  if (errs.length) {
+    errBox.innerHTML = '<ul>' + errs.map(m => '<li>' + cdEsc(m) + '</li>').join('') + '</ul>';
+    errBox.hidden = false;
+    return;
+  }
+  btn.disabled = true;
+  const orig = btn.textContent;
+  btn.textContent = cdT('admin_cards_appr_wait');
+  try {
+    const r = await fetch('/api/card-design/custom-request', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message, email })
+    });
+    const data = await r.json();
+    if (!r.ok) {
+      const msgs = data.messages || [data.message || cdT('admin_cards_save_err')];
+      errBox.innerHTML = '<ul>' + msgs.map(m => '<li>' + cdEsc(m) + '</li>').join('') + '</ul>';
+      errBox.hidden = false;
+      return;
+    }
+    // Başarı: formu gizle, e-posta ile dönüş yapılacağını açıkça söyle.
+    document.getElementById('cdCustomForm').hidden = true;
+    okBox.textContent = cdT('admin_cards_custom_ok').replace('{mail}', email);
+    okBox.hidden = false;
+  } catch (e) {
+    errBox.textContent = cdT('admin_cards_save_err');
+    errBox.hidden = false;
+  } finally {
+    btn.disabled = false; btn.textContent = orig;
+  }
+}
+
 </script>
 </body>
 </html>

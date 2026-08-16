@@ -276,6 +276,11 @@
         <span class="lbl" data-i18n="root_landing">Landing Mesajları</span>
         <span class="nbadge" id="landingBadge" style="display:none;">0</span>
       </button>
+      <button class="nav-item" id="navCardOrders" onclick="showView('card-orders')">
+        <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="3"/><path d="M7.5 9.5a3.2 3.2 0 0 1 0 5"/><path d="M10.5 7.5a6.4 6.4 0 0 1 0 9"/></svg></span>
+        <span class="lbl" data-i18n="root_card_orders">Kart Siparişleri</span>
+        <span class="nbadge" id="cardOrdersBadge" style="display:none;">0</span>
+      </button>
     </div>
 
     <div class="nav-group">
@@ -399,6 +404,28 @@
           <button class="chip" data-f="disabled" onclick="setFilter('disabled',this)" data-i18n="root_filter_disabled">Devre Dışı</button>
         </div>
         <div class="tenant-grid" id="tenantGrid"></div>
+      </section>
+
+      <!-- CARD ORDERS VIEW — NFC + QR masa kartı siparişleri + özel tasarım talepleri -->
+      <section class="view" id="view-card-orders" hidden>
+        <div class="panel-card" style="margin-bottom:20px;">
+          <h3 data-i18n="root_co_orders_title">Kart Siparişleri</h3>
+          <div style="max-height:52vh;overflow:auto;margin-top:10px;"><table class="tbl"><thead><tr>
+            <th data-i18n="root_co_when">Tarih</th><th data-i18n="root_co_rest">Restoran</th>
+            <th data-i18n="root_co_design">Tasarım</th><th data-i18n="root_co_tables">Masa</th>
+            <th data-i18n="root_co_delivery">Teslimat</th><th data-i18n="root_co_status">Durum</th><th></th>
+          </tr></thead><tbody id="cardOrdersBody"></tbody></table></div>
+          <div id="coDetail" style="display:none;margin-top:12px;padding:14px;border:1px solid var(--line);border-radius:14px;background:rgba(255,255,255,.03);"></div>
+        </div>
+
+        <div class="panel-card">
+          <h3 data-i18n="root_co_custom_title">Özel Tasarım Talepleri</h3>
+          <div style="max-height:40vh;overflow:auto;margin-top:10px;"><table class="tbl"><thead><tr>
+            <th data-i18n="root_co_when">Tarih</th><th data-i18n="root_co_rest">Restoran</th>
+            <th data-i18n="root_co_message">Mesaj</th><th data-i18n="root_co_email">E-posta</th>
+            <th data-i18n="root_co_status">Durum</th><th></th>
+          </tr></thead><tbody id="cardCustomBody"></tbody></table></div>
+        </div>
       </section>
 
       <!-- AI ASSISTANT VIEW (Phase 27, redesigned as a chat UI in Phase 39) -->
@@ -794,6 +821,9 @@
 
 <div class="toast" id="toast"></div>
 
+<!-- Galeri kaydı: admin.html, root.html ve landing.html AYNI dosyayı kullanır, böylece
+     Root'un gördüğü tasarım önizlemesi tenant'ın gördüğüyle birebir aynıdır. -->
+<script src="/card-gallery.js"></script>
 <script>
 // ── i18n (same data-i18n / applyLanguage pattern as the rest of the platform) ──
 const i18nData = {
@@ -874,6 +904,17 @@ const i18nData = {
     root_landing_arch: "Arşivle", root_landing_empty: "Henüz mesaj yok.",
     root_landing_updated: "Durum güncellendi", root_landing_deleted: "Mesaj silindi",
     root_landing_confirm_del: "Bu mesajı silmek istediğinize emin misiniz?",
+    root_card_orders: "Kart Siparişleri",
+    root_co_orders_title: "Kart Siparişleri", root_co_custom_title: "Özel Tasarım Talepleri",
+    root_co_when: "Tarih", root_co_rest: "Restoran", root_co_design: "Tasarım", root_co_tables: "Masa",
+    root_co_delivery: "Teslimat", root_co_status: "Durum", root_co_message: "Mesaj", root_co_email: "E-posta",
+    root_co_view: "Görüntüle", root_co_save: "Kaydet", root_co_empty: "Henüz sipariş yok.", root_co_custom_empty: "Henüz talep yok.",
+    root_co_st_design_approved: "Tasarım Onaylandı", root_co_st_print_pending: "Baskı Bekliyor",
+    root_co_st_printing: "Baskıda", root_co_st_shipped: "Kargoda", root_co_st_delivered: "Teslim Edildi",
+    root_co_st_cancelled: "İptal Edildi",
+    root_co_req_new: "Yeni", root_co_req_read: "Okundu", root_co_req_replied: "Yanıtlandı",
+    root_co_updated: "Durum güncellendi", root_co_tables_title: "Masa Listesi", root_co_copy: "Kopyala",
+    root_co_copy_all: "Tüm URL'leri Kopyala", root_co_copied: "Kopyalandı",
     nav_grp_general: "Genel", nav_grp_monitor: "İzleme", nav_grp_comms: "İletişim", nav_grp_settings: "Ayarlar", nav_grp_ai: "Yapay Zeka",
     nav_dashboard: "Panel", nav_restaurants: "Restoranlar", nav_collapse: "Daralt", nav_ai_assistant: "AI Asistanı",
     root_ai_asst_title: "AI Asistanı", root_ai_asst_desc: 'Platform markanızı veya seçtiğiniz restoranın menüsünü doğal dille yönetin.',
@@ -986,6 +1027,17 @@ const i18nData = {
     root_landing_arch: "Archive", root_landing_empty: "No messages yet.",
     root_landing_updated: "Status updated", root_landing_deleted: "Message deleted",
     root_landing_confirm_del: "Are you sure you want to delete this message?",
+    root_card_orders: "Card Orders",
+    root_co_orders_title: "Card Orders", root_co_custom_title: "Custom Design Requests",
+    root_co_when: "Date", root_co_rest: "Restaurant", root_co_design: "Design", root_co_tables: "Tables",
+    root_co_delivery: "Delivery", root_co_status: "Status", root_co_message: "Message", root_co_email: "Email",
+    root_co_view: "View", root_co_save: "Save", root_co_empty: "No orders yet.", root_co_custom_empty: "No requests yet.",
+    root_co_st_design_approved: "Design Approved", root_co_st_print_pending: "Awaiting Print",
+    root_co_st_printing: "Printing", root_co_st_shipped: "Shipped", root_co_st_delivered: "Delivered",
+    root_co_st_cancelled: "Cancelled",
+    root_co_req_new: "New", root_co_req_read: "Read", root_co_req_replied: "Replied",
+    root_co_updated: "Status updated", root_co_tables_title: "Table List", root_co_copy: "Copy",
+    root_co_copy_all: "Copy All URLs", root_co_copied: "Copied",
     nav_grp_general: "General", nav_grp_monitor: "Monitoring", nav_grp_comms: "Communication", nav_grp_settings: "Settings", nav_grp_ai: "AI",
     nav_dashboard: "Dashboard", nav_restaurants: "Restaurants", nav_collapse: "Collapse", nav_ai_assistant: "AI Assistant",
     root_ai_asst_title: "AI Assistant", root_ai_asst_desc: "Manage your platform branding — or a selected restaurant's menu — in plain language.",
@@ -1061,11 +1113,13 @@ function showView(name){
   document.getElementById('navDashboard').classList.toggle('active', name === 'dashboard');
   document.getElementById('navRestaurants').classList.toggle('active', name === 'restaurants');
   document.getElementById('navAiAssistant').classList.toggle('active', name === 'ai-assistant');
-  const titleKey = name === 'restaurants' ? 'nav_restaurants' : (name === 'ai-assistant' ? 'nav_ai_assistant' : 'nav_dashboard');
+  document.getElementById('navCardOrders').classList.toggle('active', name === 'card-orders');
+  const titleKey = name === 'restaurants' ? 'nav_restaurants' : (name === 'ai-assistant' ? 'nav_ai_assistant' : (name === 'card-orders' ? 'root_card_orders' : 'nav_dashboard'));
   const pt = document.getElementById('pageTitle');
   pt.setAttribute('data-i18n', titleKey); pt.textContent = T(titleKey);
   if (name === 'dashboard') loadDashboard();
   if (name === 'ai-assistant') rootAiPopulateTargets();
+  if (name === 'card-orders') loadCardOrders();
   toggleSidebar(false); // close the mobile drawer after navigating
 }
 function toggleSidebar(force){
@@ -1249,6 +1303,162 @@ async function refreshLandingBadge(){
     const b = document.getElementById('landingBadge');
     if (b) { b.textContent = d.unread || 0; b.style.display = d.unread ? 'inline-block' : 'none'; }
   } catch(e){ /* badge is non-critical */ }
+  refreshCardOrdersBadge();
+}
+
+/* ===================== KART SİPARİŞLERİ (NFC + QR masa kartı) =====================
+   "Landing Mesajları" ile birebir aynı liste+detay+durum deseni. Tasarım önizlemesi
+   için card-gallery.js kullanılır — tenant'ın admin panelinde gördüğü galeriyle
+   BİREBİR aynı görsel/isim (tek kaynak, script en altta yüklü). */
+const CO_ESC = s => String(s == null ? '' : s).replace(/[<>&"]/g, c => ({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;'}[c]));
+const CO_FLOW = ['design_approved','print_pending','printing','shipped','delivered'];
+window.__cardOrders = [];
+window.__cardCustomRequests = [];
+
+async function refreshCardOrdersBadge(){
+  try {
+    const [oRes, rRes] = await Promise.all([
+      rootFetch('/api/root/card-orders'), rootFetch('/api/root/card-custom-requests')
+    ]);
+    const [o, r] = [await oRes.json(), await rRes.json()];
+    const openCount = (o.items || []).filter(x => CO_FLOW.includes(x.status)).length;
+    const newCount = (r.items || []).filter(x => x.status === 'new').length;
+    const total = openCount + newCount;
+    const b = document.getElementById('cardOrdersBadge');
+    if (b) { b.textContent = total; b.style.display = total ? 'inline-block' : 'none'; }
+  } catch(e){ /* badge is non-critical */ }
+}
+
+async function loadCardOrders(){
+  const tbody = document.getElementById('cardOrdersBody');
+  tbody.innerHTML = '<tr><td colspan="7" class="hint">…</td></tr>';
+  try {
+    const data = await (await rootFetch('/api/root/card-orders')).json();
+    window.__cardOrders = data.items || [];
+    if (!window.__cardOrders.length) { tbody.innerHTML = '<tr><td colspan="7" class="hint">'+T('root_co_empty')+'</td></tr>'; }
+    else {
+      tbody.innerHTML = window.__cardOrders.map(o => {
+        const when = new Date(Number(o.created_at)).toLocaleString(lang === 'tr' ? 'tr-TR' : 'en-US');
+        const g = (typeof HasacaGallery !== 'undefined') ? HasacaGallery.byId(o.designId) : null;
+        const dLabel = (typeof HasacaGallery !== 'undefined') ? HasacaGallery.label(o.designId, lang) : (o.designId || '—');
+        const thumb = g ? `<img src="${CO_ESC(HasacaGallery.imageUrl(g))}" alt="" style="width:34px;height:34px;object-fit:cover;border-radius:8px;vertical-align:middle;margin-right:6px;">` : '';
+        const dl = o.delivery || {};
+        return `<tr>
+          <td style="white-space:nowrap;font-size:.75rem;">${CO_ESC(when)}</td>
+          <td>${CO_ESC(o.tenant_name)}</td>
+          <td style="white-space:nowrap;">${thumb}${CO_ESC(dLabel)}</td>
+          <td>${o.table_count || 0}</td>
+          <td style="font-size:.78rem;">${CO_ESC([dl.district, dl.city].filter(Boolean).join(', ')) || '—'}</td>
+          <td style="font-size:.75rem;">${CO_ESC(T('root_co_st_' + o.status))}</td>
+          <td style="white-space:nowrap;"><button class="btn small secondary" onclick="viewCardOrder('${CO_ESC(o.id)}')">${CO_ESC(T('root_co_view'))}</button></td>
+        </tr>`;
+      }).join('');
+    }
+  } catch(e){ tbody.innerHTML = '<tr><td colspan="7" class="hint" style="color:var(--bad);">'+T('root_err')+'</td></tr>'; }
+  loadCardCustomRequests();
+  refreshCardOrdersBadge();
+}
+
+function viewCardOrder(id){
+  const o = window.__cardOrders.find(x => x.id === id);
+  if (!o) return;
+  const g = (typeof HasacaGallery !== 'undefined') ? HasacaGallery.byId(o.designId) : null;
+  const dLabel = (typeof HasacaGallery !== 'undefined') ? HasacaGallery.label(o.designId, lang) : (o.designId || '—');
+  const dl = o.delivery || {};
+  const idx = CO_FLOW.indexOf(o.status);
+  const stepsHtml = (o.status === 'cancelled')
+    ? `<span class="badge disabled">${CO_ESC(T('root_co_st_cancelled'))}</span>`
+    : CO_FLOW.map((s, i) => `<span class="badge ${i <= idx ? 'active' : 'disabled'}" style="margin:2px;">${CO_ESC(T('root_co_st_' + s))}</span>`).join('');
+  const statusOptions = CO_FLOW.concat(['cancelled']).map(s =>
+    `<option value="${s}" ${s === o.status ? 'selected' : ''}>${CO_ESC(T('root_co_st_' + s))}</option>`).join('');
+  const tablesHtml = (o.tables || []).map(t =>
+    `<tr><td>${CO_ESC(t.name)}</td><td style="font-size:.75rem;word-break:break-all;">${CO_ESC(t.url)}</td>
+      <td><button class="btn small secondary" onclick="coCopyText('${CO_ESC(t.url)}')">${CO_ESC(T('root_co_copy'))}</button></td></tr>`).join('');
+  const box = document.getElementById('coDetail');
+  box.style.display = 'block';
+  box.innerHTML = `
+    <div style="display:flex;gap:16px;flex-wrap:wrap;align-items:flex-start;">
+      ${g ? `<img src="${CO_ESC(HasacaGallery.imageUrl(g))}" alt="" style="width:150px;border-radius:12px;flex:none;">` : ''}
+      <div style="flex:1;min-width:220px;">
+        <div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;">
+          <b>${CO_ESC(o.tenant_name)}</b><span class="hint">${CO_ESC(dLabel)}</span>
+        </div>
+        <p class="hint" style="font-size:.82rem;margin-top:6px;">
+          ${CO_ESC(dl.contact)} · ${CO_ESC(dl.phone)}<br>
+          ${CO_ESC(dl.address)}, ${CO_ESC(dl.district)}/${CO_ESC(dl.city)} ${CO_ESC(dl.postal)}
+          ${dl.note ? '<br>' + CO_ESC(dl.note) : ''}
+        </p>
+        <div style="margin:10px 0;">${stepsHtml}</div>
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+          <select id="coStatusSel" style="max-width:180px;">${statusOptions}</select>
+          <button class="btn small" onclick="coSetStatus('${CO_ESC(o.id)}')">${CO_ESC(T('root_co_save'))}</button>
+        </div>
+      </div>
+    </div>
+    <div style="margin-top:14px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;">
+        <b style="font-size:.85rem;">${CO_ESC(T('root_co_tables_title'))} (${(o.tables || []).length})</b>
+        <button class="btn small secondary" onclick="coCopyAllUrls('${CO_ESC(o.id)}')">${CO_ESC(T('root_co_copy_all'))}</button>
+      </div>
+      <table class="tbl"><tbody>${tablesHtml}</tbody></table>
+    </div>`;
+}
+
+async function coSetStatus(id){
+  const status = document.getElementById('coStatusSel').value;
+  try {
+    await rootFetch('/api/root/card-orders/' + encodeURIComponent(id) + '/status', {
+      method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ status })
+    });
+    toast(T('root_co_updated'));
+    await loadCardOrders();
+    viewCardOrder(id);
+  } catch(e){ toast(T('root_err')); }
+}
+
+function coCopyText(text){
+  navigator.clipboard.writeText(text).then(() => toast(T('root_co_copied'))).catch(() => {});
+}
+function coCopyAllUrls(id){
+  const o = window.__cardOrders.find(x => x.id === id);
+  if (!o) return;
+  const text = (o.tables || []).map(t => t.name + '\t' + t.url).join('\n');
+  coCopyText(text);
+}
+
+async function loadCardCustomRequests(){
+  const tbody = document.getElementById('cardCustomBody');
+  tbody.innerHTML = '<tr><td colspan="6" class="hint">…</td></tr>';
+  try {
+    const data = await (await rootFetch('/api/root/card-custom-requests')).json();
+    window.__cardCustomRequests = data.items || [];
+    if (!window.__cardCustomRequests.length) { tbody.innerHTML = '<tr><td colspan="6" class="hint">'+T('root_co_custom_empty')+'</td></tr>'; return; }
+    tbody.innerHTML = window.__cardCustomRequests.map(r => {
+      const when = new Date(Number(r.created_at)).toLocaleString(lang === 'tr' ? 'tr-TR' : 'en-US');
+      const isNew = r.status === 'new';
+      return `<tr style="${isNew ? 'background:rgba(255,255,255,.04);' : ''}">
+        <td style="white-space:nowrap;font-size:.75rem;">${CO_ESC(when)}</td>
+        <td>${CO_ESC(r.tenant_name)}</td>
+        <td style="font-size:.8rem;max-width:320px;">${CO_ESC(r.message)}</td>
+        <td style="font-size:.78rem;"><a href="mailto:${CO_ESC(r.email)}" style="color:var(--gold,#ffffff);">${CO_ESC(r.email)}</a></td>
+        <td style="font-size:.75rem;">${CO_ESC(T('root_co_req_' + r.status))}</td>
+        <td style="white-space:nowrap;">
+          ${isNew ? `<button class="btn small secondary" onclick="coSetCustomStatus('${CO_ESC(r.id)}','read')">✓</button>` : ''}
+          ${r.status !== 'replied' ? `<button class="btn small secondary" onclick="coSetCustomStatus('${CO_ESC(r.id)}','replied')">${CO_ESC(T('root_co_req_replied'))}</button>` : ''}
+        </td></tr>`;
+    }).join('');
+  } catch(e){ tbody.innerHTML = '<tr><td colspan="6" class="hint" style="color:var(--bad);">'+T('root_err')+'</td></tr>'; }
+}
+
+async function coSetCustomStatus(id, status){
+  try {
+    await rootFetch('/api/root/card-custom-requests/' + encodeURIComponent(id) + '/status', {
+      method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ status })
+    });
+    toast(T('root_co_updated'));
+    loadCardCustomRequests();
+    refreshCardOrdersBadge();
+  } catch(e){ toast(T('root_err')); }
 }
 
 // ── tenants ──

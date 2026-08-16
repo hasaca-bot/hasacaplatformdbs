@@ -2,7 +2,44 @@
 HASACA PLATFORM — AI CONTINUATION CONTEXT
 (Overwrite this file at the END of every phase. Written for an AI that has
 never seen this project. Companion to development-status.md + phase-XX.md.)
-Last updated: 2026-08-01 (after Phase 46)
+Last updated: 2026-08-16 (after Phase 81)
+
+!! READ THIS FIRST — two corrections to the older text below !!
+(1) PORT: this working copy (C:\Users\hasan_y4hfwna\Desktop\saas proje) runs on
+    **http://localhost:12999**, launch config name `hasaca-backend`. The "runs on 17888"
+    statements further down are STALE — 17888 belongs to a DIFFERENT folder
+    (C:\Users\hasan_y4hfwna\Desktop\hasaca-platform), per .claude/launch.json. The older text
+    contradicts itself on this point; 12999 + this folder is correct.
+(2) PHASES: the narrative below stops at Phase 46. Phases 47-81 happened and are NOT summarised
+    here — read the individual development-logs/phase-XX.md files. Most recent work:
+      - Phase 77-79: Google-signin/AI-onboarding polish, local currency on landing,
+        AI assistant gained create/delete, then 6 extra menu-content languages
+        (zh/ja/de/fr/es/ko) across db.js + server.js + admin.html + index.html.
+      - Phase 80: full public-site UI/UX audit. **A shared /public.css now exists** and is the
+        single source of truth for marketing.html + all 45 pages/*.html — those files no longer
+        carry an embedded <style> block. landing.html deliberately KEEPS its own embedded CSS
+        (it is the design reference). Accent is #387AFF (blue) everywhere, in both themes.
+        See phase-80.md.
+      - Phase 81: the NFC/QR table-card system's planned live editor was abandoned mid-build by
+        the user in favor of a much simpler static gallery model — single source of truth is
+        `card-gallery.js` (repo root, UMD), read by admin.html, root.html AND landing.html so a
+        new design only needs one file edit + one image drop. Landing hero's static trust counters
+        were replaced with a single theme-aware dynamic text animation (`.feat-ticker`, reads
+        `var(--text)`/`var(--gold)` so it needs no separate dark/light version). Also fixed 3
+        pre-push bugs: login.html's password-eye icon collided with Edge's native
+        ::-ms-reveal icon (now suppressed); admin.html had NO mechanism to open a specific tab
+        from an external link's hash (added — `location.hash` is now read on panel open against
+        `AP_VIEW_MAP`); the card-design "Approve" button was never disabled when no design was
+        selected (now is). Landing also gained two new sections near the NFC block: a
+        `.brand-slider` panel (same blue rounded `.panel-card` shell as hero/stats, a `.bt-*`
+        dynamic-word ticker sharing the `.feat-ticker` technique, and an auto-advancing
+        `assets/slider/*` slideshow) and a `.fan-cards` interactive card fan adapted from a
+        desktop `offset-path` hover demo, rotated 90° so the pivot sits on the right and cards
+        fan open to the left — 7 fixed cards via `nth-child`, `:has()`-driven neighbor spread on
+        hover, `assets/nfc-cards/*` imagery. Found+fixed: `loading="lazy"` on `<img>` elements
+        injected via `innerHTML` after page load is NOT reliably observed by the browser's
+        lazy-load intersection logic (files themselves loaded fine via curl/`new Image()`) —
+        removed, matching the site's existing eager-load pattern elsewhere. See phase-81.md.
 ======================================================================
 
 # PROJECT SUMMARY

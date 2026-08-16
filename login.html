@@ -28,14 +28,14 @@
 }
 :root{
   --font-primary:'Samsung Sharp Sans', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
-  --bg:#000000; --bg-2:#0a0a0a;
+  --bg:#0a0a0b; --bg-2:#0e0e11;
   --surface:rgba(255,255,255,.03); --surface-2:rgba(255,255,255,.055);
   --border:rgba(255,255,255,.08); --border-2:rgba(255,255,255,.14);
-  --text:#ffffff; --text-dim:#909095; --text-mute:#6b6b70;
+  --text:#f4f4f6; --text-dim:#a6a6b0; --text-mute:#6c6c78;
   /* One UI 8.5 (Faz 2A) — blue accent, constant with every other repainted page. */
   --gold:#387AFF; --gold-soft:rgba(56,122,255,.16);
   --shine:linear-gradient(135deg,#ffffff 0%,#c9c9d2 45%,#8f8f9c 100%);
-  --radius:26px; --ease:cubic-bezier(.22,.61,.36,1);
+  --radius:22px; --ease:cubic-bezier(.22,.61,.36,1);
 }
 /* Black & White theme — most of the page already routes through --bg/--surface/--border/--text
    tokens above, so redefining them here is enough; only the handful of components below use a
@@ -78,7 +78,10 @@ body{
 
 a{ color:inherit; text-decoration:none; }
 svg{ stroke-width:2.25; stroke-linecap:round; stroke-linejoin:round; }
-.shell{ position:relative; z-index:1; width:min(430px,100%); }
+/* min-width:0 is required, not cosmetic: body is a grid and a grid item defaults to
+   min-width:auto, so .shell could not shrink below its widest child (the fixed-width Google
+   button) and pushed the page into horizontal scroll at 320-375px. */
+.shell{ position:relative; z-index:1; width:min(430px,100%); min-width:0; }
 
 .top{ text-align:center; margin-bottom:26px; }
 .brand{ display:inline-flex; align-items:center; gap:11px; font-size:22px; margin-bottom:18px; }
@@ -115,6 +118,14 @@ svg{ stroke-width:2.25; stroke-linecap:round; stroke-linejoin:round; }
   padding:13px 14px 13px 42px; color:var(--text); font-size:14.5px;
   transition:border-color .15s, box-shadow .15s;
 }
+/* Şifre alanı için sağ padding'i .eye butonunun gerçek genişliğine göre büyütüldü (buton
+   right:8px + 8px iç boşluk + 17px ikon ≈ 33px'e kadar yayılıyordu, 14px yetmiyordu ve uzun
+   şifrelerde son karakterler butonun altında kalıyordu). */
+.field input[type="password"]{ padding-right:40px; }
+/* Edge, type=password alanlarına kendi native "göster" ikonunu (::-ms-reveal) otomatik ekler —
+   bu, sitenin özel .eye butonuyla aynı sağ köşeye çakışıp kayık/çift ikon görünümüne yol açıyordu. */
+.field input[type="password"]::-ms-reveal,
+.field input[type="password"]::-ms-clear{ display:none; }
 .field input:focus{ outline:none; border-color:rgba(255,255,255,.55); box-shadow:0 0 0 3px var(--gold-soft); }
 .field.err input{ border-color:#c0463a; box-shadow:0 0 0 3px rgba(192,70,58,.18); }
 .eye{ position:absolute; right:8px; background:none; border:none; color:var(--text-mute); cursor:pointer; padding:8px; border-radius:999px; display:grid; place-items:center; }
@@ -133,7 +144,7 @@ svg{ stroke-width:2.25; stroke-linecap:round; stroke-linejoin:round; }
 .forgot:hover{ text-decoration:underline; }
 
 .btn{ width:100%; display:inline-flex; align-items:center; justify-content:center; gap:9px;
-  font-size:15px; padding:14px 24px; border-radius:999px; cursor:pointer; border:1px solid transparent;
+  font-size:15px; padding:13px 24px; border-radius:999px; cursor:pointer; border:1px solid transparent;
   background:var(--gold); color:#ffffff; box-shadow:0 10px 30px -8px rgba(56,122,255,.45);
   transition:transform .16s var(--ease), box-shadow .16s var(--ease), opacity .16s; }
 .btn:hover:not(:disabled){ transform:translateY(-2px); box-shadow:0 16px 42px -8px rgba(56,122,255,.6); }
@@ -356,7 +367,7 @@ function toggleLandingTheme(){
   // container's theme alone won't repaint it, so it's re-rendered with the matching variant.
   if (window.google && google.accounts && google.accounts.id && GOOGLE_CLIENT_ID) {
     document.getElementById('googleBtn').innerHTML = '';
-    google.accounts.id.renderButton(document.getElementById('googleBtn'), { theme: next === 'mono' ? 'outline' : 'filled_black', size: 'large', shape: 'pill', width: 320 });
+    google.accounts.id.renderButton(document.getElementById('googleBtn'), { theme: next === 'mono' ? 'outline' : 'filled_black', size: 'large', shape: 'pill', width: googleBtnWidth(320) });
   }
 }
 function setPanel(p){ PANEL=p; hide(); apply(); }
@@ -416,7 +427,9 @@ function handleLoginSuccess(d, provisioned) {
     const store = document.getElementById('remember').checked ? localStorage : sessionStorage;
     try { store.setItem('hasaca_identity_token', d.identityToken); } catch (err) {}
     show('ok', T('signing'));
-    setTimeout(() => { location.href = '/admin'; }, 400);
+    // Hash (ör. #table-card, landing'deki "Kartınızı Seçin" gibi CTA'lardan gelir) admin.html'in
+    // açılışta doğru sekmeyi açması için taşınıyor.
+    setTimeout(() => { location.href = '/admin' + window.location.hash; }, 400);
     return;
   }
   const isRoot = d.role === 'root';
@@ -433,9 +446,11 @@ function handleLoginSuccess(d, provisioned) {
   // Carry the tenant into the panel URL. The server-issued tenant_id is authoritative,
   // so the admin panel scopes its API calls to the right restaurant on single-domain hosts.
   const slug = (!isRoot && d.tenant_id && d.tenant_id !== 'default') ? d.tenant_id : '';
+  // Hash (ör. #table-card) yalnızca admin.html hedefine taşınır — /root kendi ayrı görünüm
+  // sistemine sahip, bu hash onun için bir anlam taşımıyor.
   const dest = (isRoot && PANEL === 'root')
     ? '/root'
-    : '/admin' + (slug ? '?tenant=' + encodeURIComponent(slug) : '');
+    : '/admin' + (slug ? '?tenant=' + encodeURIComponent(slug) : '') + window.location.hash;
   setTimeout(() => { location.href = dest; }, 500);
 }
 
@@ -464,6 +479,15 @@ async function onGoogleCredential(resp) {
     show('bad', T('googleErr'));
   }
 }
+/* Google's renderButton takes a FIXED pixel width; the old hardcoded value overflowed the card
+   on small phones (a 320px button inside a card with 56px of padding needs 376px, more than a
+   375px viewport has). Measure the real container instead, clamped to Google's supported range. */
+function googleBtnWidth(fallback){
+  var el = document.getElementById('googleBtn');
+  var avail = (el && el.parentElement) ? el.parentElement.clientWidth : fallback;
+  if (!avail) avail = fallback;
+  return Math.max(200, Math.min(400, Math.floor(avail)));
+}
 function initGoogleButton(attemptsLeft) {
   if (!GOOGLE_CLIENT_ID) return;
   if (!(window.google && google.accounts && google.accounts.id)) {
@@ -472,7 +496,7 @@ function initGoogleButton(attemptsLeft) {
   }
   google.accounts.id.initialize({ client_id: GOOGLE_CLIENT_ID, callback: onGoogleCredential });
   const isMono = document.documentElement.classList.contains('theme-mono');
-  google.accounts.id.renderButton(document.getElementById('googleBtn'), { theme: isMono ? 'outline' : 'filled_black', size: 'large', shape: 'pill', width: 320 });
+  google.accounts.id.renderButton(document.getElementById('googleBtn'), { theme: isMono ? 'outline' : 'filled_black', size: 'large', shape: 'pill', width: googleBtnWidth(320) });
 }
 (async () => {
   try {

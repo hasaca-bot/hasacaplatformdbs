@@ -8,6 +8,8 @@
 const express = require('express');
 const QRCode = require('qrcode');
 const { generateTableToken } = require('./root');
+// Moved to lib/ so the NFC card-order route builds the identical URL (see lib/tableUrl.js).
+const { buildTableUrl } = require('../lib/tableUrl');
 
 module.exports = function createTablesRouter({ db, isPg, events, adminAuth, rateLimiter }) {
   const router = express.Router();
@@ -20,35 +22,6 @@ module.exports = function createTablesRouter({ db, isPg, events, adminAuth, rate
       token: row.token, sort_order: row.sort_order, active: row.active === 1 || row.active === true,
       created_at: row.created_at
     };
-  }
-
-  // Build the customer-facing QR URL for a table.
-  // Always includes ?tenant= so single-domain deployments (Netlify → Render) route correctly.
-  // Phase 36: 'default' is no longer special-cased here — it gets ?tenant=default like every
-  // other tenant, since a bare URL with no ?tenant= no longer resolves to any real tenant at all.
-  function buildTableUrl(req, tenantId, token) {
-    const tenantParam = tenantId ? ('?tenant=' + tenantId) : '';
-
-    // 1) An explicit platform origin always wins (e.g. PLATFORM_ORIGIN=https://hasaca.com).
-    let origin = process.env.PLATFORM_ORIGIN;
-
-    // 2) Otherwise use the site the admin is actually browsing. Behind the Netlify -> Render
-    //    proxy the API only ever sees its OWN hostname (Netlify does not forward the original
-    //    host), so trusting host/x-forwarded-host bakes `hasaca-api.onrender.com` into every
-    //    printed QR code and sends customers to the raw API domain. Origin/Referer survive the
-    //    proxy and still carry the real customer-facing site.
-    if (!origin) {
-      const ref = req.headers.origin || req.headers.referer || '';
-      if (ref) { try { origin = new URL(ref).origin; } catch (e) {} }
-    }
-
-    // 3) Last resort: the request host (correct for same-origin / local dev).
-    if (!origin) {
-      const proto = req.headers['x-forwarded-proto'] || req.protocol;
-      origin = `${proto}://${req.headers['x-forwarded-host'] || req.headers.host}`;
-    }
-
-    return origin.replace(/\/+$/, '') + '/t/' + token + tenantParam;
   }
 
   // ---------- TABLE MANAGEMENT (admin) ----------

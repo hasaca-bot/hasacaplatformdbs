@@ -369,7 +369,7 @@
       [x('Kurye', 'Courier'), x('Teslimat akışınızı kendi kuryenizle yürütün.', 'Run delivery with your own couriers.')],
       [x('Pazarlama', 'Marketing'), x('Bildirim ve kampanya araçlarıyla entegre çalışın.', 'Work with notification and campaign tools.')],
       [x('Analitik', 'Analytics'), x('Verinizi kendi raporlama araçlarınıza taşıyın.', 'Move your data into your own reporting tools.')],
-      [x('API', 'API'), x('Kurumsal planda REST API erişimi.', 'REST API access on the Enterprise plan.'), '/api']
+      [x('API', 'API'), x('Kurumsal planda REST API erişimi.', 'REST API access on the Enterprise plan.'), '/api-docs']
     ]),
     cta(x('Aradığınız entegrasyon yok mu?', 'Missing an integration?'), x('İhtiyacınızı iletin, yol haritamıza alalım.', 'Tell us what you need and we will add it to the roadmap.'), [{ label: x('Talep Gönder', 'Send a Request'), href: '/iletisim', primary: true }, { label: x('Yol Haritası', 'Roadmap'), href: '/yol-haritasi' }])
   ]);

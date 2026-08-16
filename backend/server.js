@@ -1463,6 +1463,11 @@ app.get(['/root', '/root.html'], (req, res) => {
 const createTablesRouter = require('./routes/tables');
 app.use('/api', createTablesRouter({ db, isPg, events: platformEvents, adminAuth, rateLimiter }));
 
+// NFC + QR masa kartı tasarımı ve fiziksel kart siparişi (tenant tarafı).
+// Masaları/QR'ı yeniden üretmez — yukarıdaki masa sistemini okur.
+const createCardsRouter = require('./routes/cards');
+app.use('/api', createCardsRouter({ db, isPg, adminAuth, rateLimiter }));
+
 // Customer scans a QR -> /t/<token> serves the ordering page (tenant already resolved by host/override)
 app.get('/t/:token', (req, res) => {
   sendTenantIndex(req, res);
@@ -2160,6 +2165,17 @@ app.post('/api/admin/ai-assistant/plan', adminAuth, async (req, res) => {
       [req.tenantId]
     );
 
+    // Boş (henüz çevrilmemiş) alanları prompt'a gömmeden önce at — bir tenant 6 ek dile hiç
+    // çeviri yaptırmadıysa ürün başına 24 sütunun çoğu boş string olur ve modele bilgi
+    // taşımadan sadece token tüketir (Groq'un ücretsiz TPM limitine karşı gereksiz maliyet).
+    // Sadece prompt'a giden kopyayı etkiler — action doğrulaması hâlâ orijinal products/
+    // categories'i kullanır.
+    const stripEmpty = row => Object.fromEntries(
+      Object.entries(row).filter(([, v]) => v !== '' && v !== null)
+    );
+    const productsForPrompt = products.map(stripEmpty);
+    const categoriesForPrompt = categories.map(stripEmpty);
+
     const systemPrompt = `Sen bir restoran yönetim panelinin genel amaçlı AI asistanısın. Konuşduğun kişi
 restoranın sahibi/yöneticisi. Sadece menü düzenlemeyle sınırlı değilsin — sorulara doğal ve serbestçe
 cevap ver, tavsiye ver, sohbet et, görsel oluşturma isteklerini karşıla. Yanıtını HER ZAMAN aşağıdaki
@@ -2233,8 +2249,8 @@ açıklamayla ekle, ASLA action üretme.
   olmadığını "summary"de nazikçe belirt, asla veri uydurma.
 İzin verilen düzenlenebilir alanlar — products: ${AI_FIELD_WHITELIST.products.join(', ')}.
 categories: ${AI_FIELD_WHITELIST.categories.join(', ')}.
-Ürünler: ${JSON.stringify(products)}
-Kategoriler: ${JSON.stringify(categories)}`;
+Ürünler: ${JSON.stringify(productsForPrompt)}
+Kategoriler: ${JSON.stringify(categoriesForPrompt)}`;
 
     let plan;
     try {

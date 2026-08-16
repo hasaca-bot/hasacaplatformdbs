@@ -3,13 +3,20 @@
 > Living status doc. Any AI/dev can resume by reading this + the phase files in `/development-logs`.
 > Release changelog lives in `README.md` (§ DEĞİŞİKLİK GÜNLÜĞÜ). This folder tracks in-progress phased work.
 
-**Last updated:** 2026-08-08 (after Phase 75)
+**Last updated:** 2026-08-16 (after Phase 81)
 
 > A living **AI-CONTEXT.txt** hand-off file is maintained in this folder (overwritten every phase).
 
 > **Workspace:** active work happens in **`C:\Users\hasan_y4hfwna\Desktop\saas proje`**, which is
 > the git checkout of `github.com/hasaca-bot/hasacaplatformdbs` (branch `main`) and the single source
-> of truth. Local dev runs on **port 17888**. The old `hasaca-platform` fork is stale and unused.
+> of truth. Local dev runs on **port 12999** (launch config `hasaca-backend`). *Corrected in Phase 80
+> — this doc previously said 17888, which is the port of the stale `hasaca-platform` folder, not this
+> one; see `.claude/launch.json`.* The old `hasaca-platform` fork is stale and unused.
+
+> **Public-site CSS (Phase 80):** `marketing.html` and all 45 `pages/*.html` now load a single shared
+> **`/public.css`** and no longer contain an embedded `<style>` block — fix styling once, there, not
+> 46 times. `landing.html` intentionally keeps its own embedded CSS as the design reference. The
+> public accent is `#387AFF` (blue) in both dark and light themes.
 > Production = Netlify (static) + Render (API) + Neon (Postgres).
 
 ## Overall progress: ~76% of the new multi-wave scope (Wave 5/6 in progress)
@@ -104,6 +111,7 @@ Multi-tenant restaurant SaaS. Node.js + Express (`backend/server.js`), dual DB l
 | 53 | 15 | **One UI 8.5 redesign, Faz 1 — Admin Panel only** (visual/CSS only, no JS/logic change, font unchanged). User wants the whole site restyled to Samsung's One UI 8.5 language (buttons/icons/cards/bars/charts), starting with the admin panel; the 4-way split-screen "Bottom Container" feature and every other page are deferred to later phases. Reused admin.html's existing `--ap-*` token architecture — only values changed: accent → One UI blue `#387AFF` (constant both themes), large corner radii (cards 20-28px, buttons/switches/nav items full pill 999px). Sidebar → Navigation Rail (solid filled-pill selected state, removed the old left accent-bar). Confirm dialogs → One UI Dialog look + fixed a real pre-existing bug: `#customConfirmOverlay` is a DOM sibling of `#adminPanelOverlay` (not descendant), so it never inherited the panel's theme remap and always followed the customer site's `theme-bw` class instead — fixed via `body:has(#adminPanelOverlay.open)` binding. Checkbox toggles converted to visual pill switches (CSS-only, `appearance:none`). Icon stroke style bumped via one global rule instead of hand-redrawing hundreds of glyphs (explicit user "don't waste tokens" instruction). Masa siparişi/uzaktan sipariş card radii bumped to match. Found+fixed a real parser bug during verification: a code comment containing the literal text `.tbl-*/.floor-*` closed early (the `*/` inside it), corrupting the next CSS rule | ✅ DONE — verified live in both admin themes (fresh-navigation methodology): nav/brand/dialog/button/card radii and colors all confirmed via computed styles; dialog theme-binding fix confirmed independent of customer-site theme; font-family confirmed unchanged; full diff reviewed, no stray old hardcoded values left |
 
 
+| 81 | 15 | NFC/QR masa kartı sistemi basitleştirilmiş hazır-tasarım galerisine çevrildi (canlı editör planı kullanıcı tarafından terk edildi; `card-gallery.js` tek kaynak, admin+root+landing senkron); landing hero'daki statik trust sayaçları tek, tema-duyarlı dinamik metin animasyonuyla (`.feat-ticker`) değiştirildi; push-öncesi 3 hata düzeltildi (login şifre alanında Edge native ikon çakışması, "Kart Tasarla" CTA'sının admin.html'de doğru sekmeye gitmemesi — hash-tabanlı view açma mekanizması hiç yoktu, Onayla butonunun tasarım seçilmeden tıklanabilir olması); landing'e 2 yeni bölüm eklendi — marka-ürünleri slaytlı mavi panel (`.brand-slider`, `.bt-*` dönen kelime animasyonu) ve 90° sola döndürülmüş interaktif yelpaze kart galerisi (`.fan-cards`, masaüstü `offset-path` demosundan uyarlandı). Detay: `development-logs/phase-81.md` | ✅ DONE — canlı JWT ile temiz sekmede uçtan uca doğrulandı |
 | 32+ | 5 | Backlog: fast-follows only (menu-generation wizard; QR logos/frames; widget permission tier; `/register` decision; unused legacy files flagged) | ⏭️ NEXT |
 
 *P15: engine + per-tenant theme + B&W complete. The `.pax-btn` residual noted here was fixed by P25.2
