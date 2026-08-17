@@ -200,6 +200,37 @@ aynı (yükseltilmiş) özgüllükte tutulmalı. Doğrulama sırası da önemliy
   fare hover'ı (Browser pane bu ortamda compositing yapamadığından) görsel olarak doğrulanamadı —
   bu açıkça not düşüldü, "doğrulandı" diye iddia edilmedi.
 
+## 5) Kullanıcı testinden gelen 3 hata (aynı fazın devamı)
+
+Kullanıcı yayınlanan checklist'i doldurup 3 gerçek sorun bildirdi:
+
+1. **Login: göz ikonunun yanında "kilit ikonu" gibi ikinci bir ikon.** Kök neden Edge'in
+   `::-ms-reveal`'i değil (o zaten bastırılmıştı) — Chrome/Edge'in KAYITLI ŞİFRE olan alanlara
+   bastığı native "credentials auto-fill" (anahtar) ikonuydu. Standart bastırma eklendi:
+   `::-webkit-credentials-auto-fill-button`/`::-webkit-strong-password-auto-fill-button`.
+   Savunma katmanı: `.eye` butonunun `background:none`'ı input yüzeyiyle aynı opak renge
+   çevrildi (`var(--bg-2)`) — bastırma tam çalışmazsa bile altından hiçbir şey sızmaz.
+2. **Admin: "Onayla ve Sipariş Ver" / "Oluştur" gibi modal buton yazıları görünmüyor.**
+   Gerçek, sistemik bir pre-existing bug (bu turdan önce de vardı, sadece hiç fark edilmemiş):
+   `.admin-modal-backdrop` kullanan TÜM panel modalları (masa ekle, kart onayı, QR, toplu ekle…)
+   DOM'da `#adminPanelOverlay`'in KARDEŞİ — içindeki mavi/beyaz `--ap-gold`/`--ap-gold-text`
+   token'larını hiç miras alamıyor, bunun yerine aynı isimli ama farklı (neredeyse
+   siyah-üstüne-siyah) müşteri-sitesi köküne düşüyorlardı. `openAdminPanel()`/
+   `showRestaurantHub()`'a `document.body.classList.add('ap-open')` eklenip CSS'te
+   `body.ap-open .admin-modal-backdrop .admin-btn:not(.secondary):not(.danger){background:
+   #387AFF!important;color:#fff!important;}` ile düzeltildi (ilk denemede `:has()` kullanıldı,
+   test ortamında beklenen cascade önceliğini vermedi — düz sınıf seçicisine geçildi).
+   **Doğrulama notu:** bu buton `transition:background` taşıyor; arkaplandaki (inaktif) test
+   sekmesinde bu geçiş donup `getComputedStyle` uzun süre eski değeri raporladı (inline
+   `!important` bile "değişmiyor" gibi görünmüştü) — `el.style.transition='none'` + zorla
+   reflow ile gerçek/son değerin doğru uygulandığı teyit edildi. Gerçek bir CSS hatası değil,
+   yalnızca bu ortamın ölçüm yöntemiyle ilgili bir tuzaktı.
+3. **Landing marka ticker'ı (`.bt-word`) kelimeler arası boşluk/atlama.** 18s / 9 kelime = tam
+   2s'lik adım; eski `5.5%/11%` kesim noktaları o adımı ANCAK dolduruyordu (çıkış tamamlanma
+   ~1.98s, sonraki kelime girişi 2.0s) — pratikte bindirme payı kalmıyordu. `8%/16%`'ya
+   genişletildi (çıkış ~2.88s > 2s stagger, ~0.88s bindirme) — hero ticker'daki (`ftSlide`,
+   zaten akıcı) orana yakın gerçek bir crossfade payı oluşturuldu.
+
 ## Files changed
 `card-gallery.js` (yeni, `card-render.js`'in yerine), `assets/nfc-cards/*` (11 tasarım + 3 yeni
 kartvizit tasarımı + `masa-mockup.png`), `assets/slider/*` (yeni klasör, 2 slayt görseli),

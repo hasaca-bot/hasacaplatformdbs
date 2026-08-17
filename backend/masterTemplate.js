@@ -1,5 +1,5 @@
 // =============================================
-// HASACA Platform — Master Restaurant Template
+// tada — Master Restaurant Template
 // The canonical "My Restaurant" demo dataset. It is what the `default`
 // tenant is seeded with, and what every new tenant is cloned from, so
 // new sites are never empty. No Dayı Katık / real-brand content here.
@@ -41,8 +41,8 @@ function defaultSettings(displayName) {
     hero_sub_tr: 'Lezzetli yemekler, sıcak bir atmosfer. İçerikleri yönetim panelinden düzenleyin.',
     hero_sub_en: 'Delicious food, a warm atmosphere. Edit the content from your admin panel.',
     footer_text: name,
-    seo_title: name + ' | HASACA',
-    seo_description: 'A restaurant website powered by the HASACA platform.',
+    seo_title: name + ' | tada',
+    seo_description: 'A restaurant website powered by the tada platform.',
     // New restaurants start on the "first 14 days free" trial from the pricing page (landing.html's
     // PLANS). trial_started_at is read by admin.html's "Üyelik Durumu" card to show days remaining.
     subscription_status: 'trial',

@@ -36,9 +36,9 @@ function breadcrumbJsonLd(page, url, baseUrl) {
   };
 }
 
-// baseUrl: origin only, no trailing slash (e.g. "https://platformhasaca.netlify.app").
+// baseUrl: origin only, no trailing slash (e.g. "https://tadadigital.netlify.app").
 function buildMarketingHead(slug, page, baseUrl) {
-  const title = page.title[0] + ' — HASACA';
+  const title = page.title[0] + ' — tada';
   const desc = page.desc[0];
   const url = baseUrl + '/' + slug;
   const jsonLdBlocks = [breadcrumbJsonLd(page, url, baseUrl)];
@@ -48,15 +48,15 @@ function buildMarketingHead(slug, page, baseUrl) {
   return [
     `<title>${esc(title)}</title>`,
     `<meta name="description" content="${esc(desc)}">`,
-    `<meta name="keywords" content="${esc(page.title[0])}, HASACA, restoran yazılımı, komisyonsuz sipariş">`,
+    `<meta name="keywords" content="${esc(page.title[0])}, tada, restoran yazılımı, komisyonsuz sipariş">`,
     `<link rel="canonical" href="${esc(url)}">`,
     `<meta name="robots" content="index,follow">`,
     `<meta property="og:type" content="website">`,
-    `<meta property="og:site_name" content="HASACA">`,
+    `<meta property="og:site_name" content="tada">`,
     `<meta property="og:title" content="${esc(title)}">`,
     `<meta property="og:description" content="${esc(desc)}">`,
     `<meta property="og:url" content="${esc(url)}">`,
-    `<meta property="og:image" content="/icons/placeholder-logo.svg">`,
+    `<meta property="og:image" content="/icons/tada-logo.png">`,
     `<meta name="twitter:card" content="summary_large_image">`,
     `<meta name="twitter:title" content="${esc(title)}">`,
     `<meta name="twitter:description" content="${esc(desc)}">`,

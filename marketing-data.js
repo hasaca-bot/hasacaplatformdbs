@@ -1,5 +1,5 @@
 /* ==========================================================================
-   HASACA — Marketing site content registry (Phase 23)
+   tada — Marketing site content registry (Phase 23)
    UMD: usable from Node (server.js, for meta injection + route list) AND the
    browser (marketing.html renders pages from this same source of truth).
    Every string is [tr, en]. Add a page => it gets a route, nav slot and sitemap
@@ -188,7 +188,7 @@
 
   product('white-label',
     x('White Label', 'White Label'),
-    x('HASACA görünmez; her yer sizin markanız.', 'HASACA stays invisible — every surface is your brand.'),
+    x('tada görünmez; her yer sizin markanız.', 'tada stays invisible — every surface is your brand.'),
     x('Müşterileriniz yalnızca sizin markanızı görür. Kendi alan adınızda, kendi logonuzla, kendi renklerinizle.',
       'Your customers only ever see your brand — on your domain, with your logo and your colors.'),
     [
@@ -237,7 +237,7 @@
   /* ============================ CORE PAGES ============================== */
 
   def('ozellikler', x('Özellikler', 'Features'),
-    x('HASACA platformunun tüm modülleri tek sayfada.', 'Every module of the HASACA platform on one page.'), [
+    x('tada platformunun tüm modülleri tek sayfada.', 'Every module of the tada platform on one page.'), [
     hero(x('Özellikler', 'Features'), x('Restoranınızın ihtiyacı olan her şey', 'Everything your restaurant needs'),
       x('Sipariş almaktan mutfak yönetimine, rezervasyondan analitiğe kadar tüm operasyonunuz tek platformda.',
         'From taking orders to kitchen management, reservations to analytics — your whole operation on one platform.'),
@@ -264,7 +264,7 @@
   ]);
 
   def('cozumler', x('Çözümler', 'Solutions'),
-    x('İşletme tipinize göre HASACA çözümleri.', 'HASACA solutions by business type.'), [
+    x('İşletme tipinize göre tada çözümleri.', 'tada solutions by business type.'), [
     hero(x('Çözümler', 'Solutions'), x('Her işletme tipine uygun', 'Built for every kind of venue'),
       x('Tek şubeli bir kafeden çok şubeli zincire kadar, ihtiyacınıza göre ölçeklenen bir platform.',
         'A platform that scales from a single café to a multi-branch chain.'), [DEMO, SALES]),
@@ -307,12 +307,12 @@
     cta(x('Hangi plan size uygun?', 'Which plan fits you?'), x('Satış ekibimiz işletmenize göre doğru planı önersin.', 'Let our sales team recommend the right plan for your venue.'), [SALES, DEMO])
   ]);
 
-  def('neden-hasaca', x('Neden HASACA?', 'Why HASACA?'),
+  def('neden-hasaca', x('Neden tada?', 'Why tada?'),
     x('Pazaryeri uygulamaları yerine kendi platformunuz.', 'Your own platform instead of marketplace apps.'), [
-    hero(x('Neden HASACA?', 'Why HASACA?'), x('Markanız size ait olsun', 'Own your brand'),
-      x('Pazaryerleri her siparişten %15-20 komisyon alır ve müşteri verisini kendinde tutar. HASACA ile ikisi de sizde kalır.',
-        'Marketplaces take 15-20% of every order and keep the customer data. With HASACA, both stay yours.'), [DEMO, PRICE]),
-    table(x('HASACA vs Pazaryeri', 'HASACA vs Marketplace'), [x('', ''), 'HASACA', x('Pazaryeri', 'Marketplace')], [
+    hero(x('Neden tada?', 'Why tada?'), x('Markanız size ait olsun', 'Own your brand'),
+      x('Pazaryerleri her siparişten %15-20 komisyon alır ve müşteri verisini kendinde tutar. tada ile ikisi de sizde kalır.',
+        'Marketplaces take 15-20% of every order and keep the customer data. With tada, both stay yours.'), [DEMO, PRICE]),
+    table(x('tada vs Pazaryeri', 'tada vs Marketplace'), [x('', ''), 'tada', x('Pazaryeri', 'Marketplace')], [
       [x('Komisyon', 'Commission'), '%0', '%15 - %20'],
       [x('Marka sahipliği', 'Brand ownership'), 'yes', 'no'],
       [x('Müşteri verisi', 'Customer data'), 'yes', 'no'],
@@ -359,7 +359,7 @@
   ]);
 
   def('entegrasyonlar', x('Entegrasyonlar', 'Integrations'),
-    x('HASACA kullandığınız araçlarla birlikte çalışır.', 'HASACA works with the tools you already use.'), [
+    x('tada kullandığınız araçlarla birlikte çalışır.', 'tada works with the tools you already use.'), [
     hero(x('Entegrasyonlar', 'Integrations'), x('Mevcut düzeninizi bozmayın', 'Keep your existing setup'),
       x('Ödeme, muhasebe, kurye ve pazarlama araçlarınızla birlikte çalışacak şekilde tasarlandı.',
         'Designed to work alongside your payment, accounting, courier and marketing tools.'), [SALES]),
@@ -377,10 +377,10 @@
   /* ========================== COMPANY / PROOF =========================== */
 
   def('hakkimizda', x('Hakkımızda', 'About Us'),
-    x('HASACA\'nın kuruluş hikâyesi ve misyonu.', 'The story and mission behind HASACA.'), [
+    x('tada\'nın kuruluş hikâyesi ve misyonu.', 'The story and mission behind tada.'), [
     hero(x('Hakkımızda', 'About Us'), x('Restoranların yanındayız', 'We stand with restaurants'),
-      x('HASACA, restoran sahiplerinin komisyon baskısı altında ezilmeden dijitalleşebilmesi için kuruldu.',
-        'HASACA was founded so restaurant owners could go digital without being crushed by commissions.'), []),
+      x('tada, restoran sahiplerinin komisyon baskısı altında ezilmeden dijitalleşebilmesi için kuruldu.',
+        'tada was founded so restaurant owners could go digital without being crushed by commissions.'), []),
     prose(null, [
       [x('Misyonumuz', 'Our mission'), x('Her restoranın kendi dijital kanalına sahip olmasını sağlamak. Müşterinize ulaşmak için aracıya ihtiyacınız olmamalı.', 'To give every restaurant its own digital channel. You should not need a middleman to reach your own customers.')],
       [x('Neden kurulduk', 'Why we exist'), x('Pazaryerleri restoranlara görünürlük sunarken karşılığında komisyon, müşteri verisi ve marka kontrolü aldı. Biz bu dengeyi restoran lehine çevirmek istedik.', 'Marketplaces offered visibility but took commission, customer data and brand control in return. We wanted to tip that balance back toward the restaurant.')],
@@ -392,11 +392,11 @@
   ]);
 
   def('kariyer', x('Kariyer', 'Careers'),
-    x('HASACA ekibine katılın; açık pozisyonlarımıza göz atın.', 'Join the HASACA team — browse our open roles.'), [
+    x('tada ekibine katılın; açık pozisyonlarımıza göz atın.', 'Join the tada team — browse our open roles.'), [
     hero(x('Kariyer', 'Careers'), x('Birlikte inşa edelim', 'Let us build together'),
       x('Restoran sektörünü dönüştüren bir ürünü, küçük ve etkili bir ekiple geliştiriyoruz.',
         'We build a product that transforms the restaurant industry with a small, high-impact team.'), []),
-    cards(x('Neden HASACA\'da çalışmalı?', 'Why work at HASACA?'), null, [
+    cards(x('Neden tada\'da çalışmalı?', 'Why work at tada?'), null, [
       [x('Gerçek etki', 'Real impact'), x('Yazdığınız kod binlerce restoranın günlük operasyonunu etkiler.', 'The code you write affects the daily operations of thousands of restaurants.')],
       [x('Uzaktan çalışma', 'Remote-friendly'), x('Nerede verimliyseniz orada çalışın.', 'Work wherever you are most productive.')],
       [x('Öğrenme bütçesi', 'Learning budget'), x('Kitap, kurs ve konferanslar için yıllık bütçe.', 'An annual budget for books, courses and conferences.')],
@@ -412,10 +412,10 @@
   ]);
 
   def('referanslar', x('Referanslar', 'Testimonials'),
-    x('HASACA kullanan restoranlar ne diyor?', 'What restaurants using HASACA say.'), [
+    x('tada kullanan restoranlar ne diyor?', 'What restaurants using tada say.'), [
     hero(x('Referanslar', 'Testimonials'), x('Restoran sahipleri anlatıyor', 'In their own words'),
-      x('Farklı ölçeklerde yüzlerce işletme HASACA ile kendi dijital kanalını kurdu.',
-        'Hundreds of venues of all sizes have built their own digital channel with HASACA.'), []),
+      x('Farklı ölçeklerde yüzlerce işletme tada ile kendi dijital kanalını kurdu.',
+        'Hundreds of venues of all sizes have built their own digital channel with tada.'), []),
     posts(x('Müşteri yorumları', 'Customer reviews'), [
       [x('Mert Aydın · Bistro Co', 'Mert Aydın · Bistro Co'), x('★★★★★', '★★★★★'), x('Pazaryeri komisyonlarından kurtulduk. Artık her siparişin tam kârı bizde ve müşteri verisi elimizde.', 'We got rid of marketplace commissions. Now the full profit of every order is ours and we own the customer data.')],
       [x('Selin Kaya · UrbanEats', 'Selin Kaya · UrbanEats'), x('★★★★★', '★★★★★'), x('QR menüye geçtikten sonra masa devir hızımız arttı, personel yükü azaldı. Kurulum inanılmaz kolaydı.', 'After moving to the QR menu our table turnover rose and staff load dropped. Setup was incredibly easy.')],
@@ -430,8 +430,8 @@
   def('basari-hikayeleri', x('Başarı Hikayeleri', 'Success Stories'),
     x('Rakamlarla müşteri başarı hikâyeleri.', 'Customer success stories, in numbers.'), [
     hero(x('Başarı Hikâyeleri', 'Success Stories'), x('Ölçülebilir sonuçlar', 'Measurable results'),
-      x('HASACA\'ya geçen işletmelerin ilk altı ayda elde ettiği somut kazanımlar.',
-        'Concrete gains venues achieved in their first six months on HASACA.'), []),
+      x('tada\'ya geçen işletmelerin ilk altı ayda elde ettiği somut kazanımlar.',
+        'Concrete gains venues achieved in their first six months on tada.'), []),
     posts(x('Vaka çalışmaları', 'Case studies'), [
       [x('Bistro Co', 'Bistro Co'), x('Komisyon tasarrufu: aylık ₺42.000', 'Commission saved: ₺42,000/month'), x('Pazaryeri siparişlerinin %70\'ini kendi sitesine taşıdı; komisyon gideri neredeyse tamamen ortadan kalktı.', 'Moved 70% of marketplace orders to its own site, almost entirely eliminating commission costs.')],
       [x('Kahve Lab', 'Kahve Lab'), x('Masa devir hızı: +%35', 'Table turnover: +35%'), x('QR menü ve masadan sipariş ile servis süresi kısaldı, aynı salonla daha çok misafir ağırlandı.', 'QR ordering shortened service time, serving more guests in the same room.')],
@@ -442,30 +442,30 @@
   ]);
 
   def('partner-programi', x('Partner Programı', 'Partner Program'),
-    x('Ajanslar ve teknoloji iş ortakları için HASACA partner programı.', 'The HASACA partner program for agencies and technology partners.'), [
+    x('Ajanslar ve teknoloji iş ortakları için tada partner programı.', 'The tada partner program for agencies and technology partners.'), [
     hero(x('Partner Programı', 'Partner Program'), x('Birlikte büyüyelim', 'Let us grow together'),
-      x('Restoran müşterilerinize HASACA\'yı sunun, gelir paylaşımından yararlanın.',
-        'Offer HASACA to your restaurant clients and share in the revenue.'), [{ label: x('Partner Ol', 'Become a Partner'), href: '/iletisim', primary: true }]),
+      x('Restoran müşterilerinize tada\'yı sunun, gelir paylaşımından yararlanın.',
+        'Offer tada to your restaurant clients and share in the revenue.'), [{ label: x('Partner Ol', 'Become a Partner'), href: '/iletisim', primary: true }]),
     cards(x('Partner tipleri', 'Partner types'), null, [
       [x('Dijital ajanslar', 'Digital agencies'), x('Restoran müşterilerinize hazır bir dijital platform sunun.', 'Offer your restaurant clients a ready-made digital platform.')],
       [x('Danışmanlar', 'Consultants'), x('Operasyon danışmanlığınıza teknoloji katmanı ekleyin.', 'Add a technology layer to your operations consulting.')],
-      [x('Teknoloji ortakları', 'Technology partners'), x('Ürününüzü HASACA ile entegre edin.', 'Integrate your product with HASACA.')],
+      [x('Teknoloji ortakları', 'Technology partners'), x('Ürününüzü tada ile entegre edin.', 'Integrate your product with tada.')],
       [x('Ekipman sağlayıcılar', 'Equipment vendors'), x('POS ve donanım çözümlerinizle birlikte sunun.', 'Bundle it with your POS and hardware solutions.')]
     ]),
     steps(x('Nasıl başlanır?', 'How to start'), [
       [x('Başvurun', 'Apply'), x('Formu doldurun, ekibimiz sizinle iletişime geçsin.', 'Fill in the form and our team will reach out.')],
       [x('Eğitim alın', 'Get trained'), x('Ürün ve satış eğitimini ücretsiz tamamlayın.', 'Complete product and sales training for free.')],
-      [x('Müşteri kazanın', 'Win customers'), x('Kendi portföyünüze HASACA\'yı ekleyin.', 'Add HASACA to your portfolio.')],
+      [x('Müşteri kazanın', 'Win customers'), x('Kendi portföyünüze tada\'yı ekleyin.', 'Add tada to your portfolio.')],
       [x('Gelir paylaşın', 'Share revenue'), x('Her aktif müşteri için düzenli gelir elde edin.', 'Earn recurring revenue for every active customer.')]
     ]),
     cta(x('Partner olmak ister misiniz?', 'Want to partner with us?'), x('Programın detaylarını konuşalım.', 'Let us walk you through the details.'), [{ label: x('Başvuru Gönder', 'Apply Now'), href: '/iletisim', primary: true }, { label: x('Bayilik Programı', 'Reseller Program'), href: '/bayilik' }])
   ]);
 
   def('bayilik', x('Bayilik Programı', 'Reseller Program'),
-    x('Bölgenizde HASACA bayisi olun.', 'Become a HASACA reseller in your region.'), [
-    hero(x('Bayilik', 'Reseller'), x('Bölgenizin HASACA temsilcisi olun', 'Represent HASACA in your region'),
-      x('Kendi bölgenizde restoranlara HASACA\'yı satın, kurun ve destekleyin; düzenli gelir elde edin.',
-        'Sell, install and support HASACA for restaurants in your region and build recurring revenue.'), [{ label: x('Bayilik Başvurusu', 'Apply as Reseller'), href: '/iletisim', primary: true }]),
+    x('Bölgenizde tada bayisi olun.', 'Become a tada reseller in your region.'), [
+    hero(x('Bayilik', 'Reseller'), x('Bölgenizin tada temsilcisi olun', 'Represent tada in your region'),
+      x('Kendi bölgenizde restoranlara tada\'yı satın, kurun ve destekleyin; düzenli gelir elde edin.',
+        'Sell, install and support tada for restaurants in your region and build recurring revenue.'), [{ label: x('Bayilik Başvurusu', 'Apply as Reseller'), href: '/iletisim', primary: true }]),
     cards(x('Bayilere sunduklarımız', 'What resellers get'), null, [
       [x('Bölge önceliği', 'Territory priority'), x('Belirlenen bölgede öncelikli temsil hakkı.', 'Priority representation in an agreed territory.')],
       [x('Satış materyali', 'Sales material'), x('Sunum, demo hesabı ve pazarlama içerikleri.', 'Presentations, a demo account and marketing content.')],
@@ -480,7 +480,7 @@
   /* ======================= RESOURCES / SUPPORT ========================== */
 
   def('destek', x('Destek Merkezi', 'Support Center'),
-    x('HASACA destek ekibine ulaşın; kanallar ve yanıt süreleri.', 'Reach the HASACA support team — channels and response times.'), [
+    x('tada destek ekibine ulaşın; kanallar ve yanıt süreleri.', 'Reach the tada support team — channels and response times.'), [
     hero(x('Destek', 'Support'), x('Yanınızdayız', 'We are here for you'),
       x('Kurulumdan günlük kullanıma kadar her aşamada gerçek insanlardan destek alın.',
         'Get support from real people at every stage, from setup to daily use.'), [{ label: x('Destek Talebi Oluştur', 'Open a Ticket'), href: '/iletisim', primary: true }, { label: x('Yardım Merkezi', 'Help Center'), href: '/yardim' }]),
@@ -521,7 +521,7 @@
   ]);
 
   def('dokumantasyon', x('Dokümantasyon', 'Documentation'),
-    x('HASACA platformunun tüm modülleri için kullanım kılavuzu.', 'Usage guides for every HASACA module.'), [
+    x('tada platformunun tüm modülleri için kullanım kılavuzu.', 'Usage guides for every tada module.'), [
     hero(x('Dokümantasyon', 'Documentation'), x('Platformu uçtan uca öğrenin', 'Learn the platform end to end'),
       x('Kurulumdan ileri düzey ayarlara kadar tüm modüllerin kullanım rehberleri.',
         'Guides for every module, from setup to advanced configuration.'), [{ label: x('API Dokümantasyonu', 'API Docs'), href: '/api-docs', primary: true }, { label: x('Yardım Merkezi', 'Help Center'), href: '/yardim' }]),
@@ -546,7 +546,7 @@
   ]);
 
   def('api-docs', x('API Dokümantasyonu', 'API Documentation'),
-    x('HASACA REST API — Kurumsal plan için genel bakış.', 'The HASACA REST API — an overview for the Enterprise plan.'), [
+    x('tada REST API — Kurumsal plan için genel bakış.', 'The tada REST API — an overview for the Enterprise plan.'), [
     hero(x('API', 'API'), x('Kendi sistemlerinizle konuşun', 'Talk to your own systems'),
       x('Kurumsal planda REST API ile sipariş, ürün ve rezervasyon verinize programatik erişin. Bu sayfa genel bir tanıtımdır; erişim anahtarları hesabınıza özel verilir.',
         'On the Enterprise plan, access your order, product and reservation data programmatically via REST. This page is an overview; access keys are issued per account.'),
@@ -587,7 +587,7 @@
   /* =========================== FORM PAGES ============================== */
 
   def('demo-talep', x('Demo Talep Formu', 'Request a Demo'),
-    x('Size özel, ücretsiz bir HASACA demosu talep edin.', 'Request a free, tailored HASACA demo.'), [
+    x('Size özel, ücretsiz bir tada demosu talep edin.', 'Request a free, tailored tada demo.'), [
     hero(x('Demo', 'Demo'), x('Ücretsiz demo talep edin', 'Request a free demo'),
       x('Formu doldurun; ekibimiz 24 saat içinde size özel hazırlanmış bir demoyla dönsün. Taahhüt yok.',
         'Fill in the form and our team will return within 24 hours with a demo prepared for you. No commitment.'), []),
@@ -614,7 +614,7 @@
   ]);
 
   def('satis-ekibi', x('Satış Ekibi ile Görüş', 'Talk to Sales'),
-    x('HASACA satış ekibiyle birebir görüşün.', 'Speak one-to-one with the HASACA sales team.'), [
+    x('tada satış ekibiyle birebir görüşün.', 'Speak one-to-one with the tada sales team.'), [
     hero(x('Satış', 'Sales'), x('Satış ekibiyle görüşün', 'Talk to our sales team'),
       x('Kurumsal ihtiyaçlar, çoklu şube kurulumu ve API erişimi için doğrudan ekibimizle konuşun.',
         'Speak directly with our team about enterprise needs, multi-branch rollouts and API access.'), []),
@@ -622,13 +622,13 @@
     cards(x('Kimler için?', 'Who is this for?'), null, [
       [x('Zincir restoranlar', 'Restaurant chains'), x('Çok şubeli kurulum ve merkezî yönetim planlaması.', 'Multi-branch rollout and central management planning.')],
       [x('Kurumsal ihtiyaçlar', 'Enterprise needs'), x('SLA, özel entegrasyon ve API erişimi.', 'SLA, custom integrations and API access.')],
-      [x('Geçiş süreci', 'Migration'), x('Mevcut sisteminizden HASACA\'ya veri aktarımı.', 'Migrating your data from an existing system.')],
+      [x('Geçiş süreci', 'Migration'), x('Mevcut sisteminizden tada\'ya veri aktarımı.', 'Migrating your data from an existing system.')],
       [x('Özel fiyatlandırma', 'Custom pricing'), x('Hacme göre özel ticari koşullar.', 'Commercial terms based on volume.')]
     ])
   ]);
 
   def('iletisim', x('İletişim', 'Contact'),
-    x('HASACA ile iletişime geçin.', 'Get in touch with HASACA.'), [
+    x('tada ile iletişime geçin.', 'Get in touch with tada.'), [
     hero(x('İletişim', 'Contact'), x('Bize ulaşın', 'Reach out to us'),
       x('Sorularınız, önerileriniz ve iş birliği talepleriniz için formu doldurun.',
         'Fill in the form for questions, suggestions and partnership requests.'), []),
@@ -644,7 +644,7 @@
   /* ===================== STATUS / ROADMAP / CHANGELOG =================== */
 
   def('durum', x('Sistem Durumu', 'System Status'),
-    x('HASACA servislerinin anlık çalışma durumu.', 'Live operational status of HASACA services.'), [
+    x('tada servislerinin anlık çalışma durumu.', 'Live operational status of tada services.'), [
     hero(x('Durum', 'Status'), x('Tüm sistemler çalışıyor', 'All systems operational'),
       x('Servislerimizin güncel durumunu buradan izleyebilirsiniz. Planlı bakımlar önceden duyurulur.',
         'Track the current state of our services here. Planned maintenance is announced in advance.'), []),
@@ -663,7 +663,7 @@
   ]);
 
   def('yol-haritasi', x('Yol Haritası', 'Roadmap'),
-    x('HASACA\'da sırada ne var?', 'What is next on the HASACA roadmap?'), [
+    x('tada\'da sırada ne var?', 'What is next on the tada roadmap?'), [
     hero(x('Yol Haritası', 'Roadmap'), x('Sırada ne var?', 'What is coming next'),
       x('Ürünü müşterilerimizle birlikte geliştiriyoruz. Aşağıdaki planlar geri bildirimlerinize göre şekilleniyor.',
         'We build the product with our customers. These plans are shaped by your feedback.'), []),
@@ -681,7 +681,7 @@
   ]);
 
   def('surum-notlari', x('Sürüm Notları', 'Changelog'),
-    x('HASACA platformunda yapılan güncellemeler.', 'Updates shipped to the HASACA platform.'), [
+    x('tada platformunda yapılan güncellemeler.', 'Updates shipped to the tada platform.'), [
     hero(x('Sürüm Notları', 'Changelog'), x('Neler değişti?', 'What changed'),
       x('Platforma eklenen yeni özellikler ve iyileştirmeler.',
         'New features and improvements added to the platform.'), []),
@@ -697,12 +697,12 @@
   ]);
 
   def('sss', x('Sık Sorulan Sorular', 'FAQ'),
-    x('HASACA hakkında en çok sorulan sorular ve yanıtları.', 'The most common questions about HASACA, answered.'), [
+    x('tada hakkında en çok sorulan sorular ve yanıtları.', 'The most common questions about tada, answered.'), [
     hero(x('SSS', 'FAQ'), x('Merak edilenler', 'Common questions'),
       x('Aradığınız cevabı bulamazsanız ekibimize yazmaktan çekinmeyin.',
         'If you cannot find your answer here, do not hesitate to write to us.'), [{ label: x('Destek Merkezi', 'Support Center'), href: '/destek' }]),
     faq(x('Genel', 'General'), [
-      [x('HASACA tam olarak nedir?', 'What exactly is HASACA?'), x('Restoranlar için komisyonsuz bir dijital platform: web sitesi, QR menü, online sipariş, rezervasyon ve yönetim paneli tek yerde.', 'A commission-free digital platform for restaurants: website, QR menu, online ordering, reservations and an admin panel in one place.')],
+      [x('tada tam olarak nedir?', 'What exactly is tada?'), x('Restoranlar için komisyonsuz bir dijital platform: web sitesi, QR menü, online sipariş, rezervasyon ve yönetim paneli tek yerde.', 'A commission-free digital platform for restaurants: website, QR menu, online ordering, reservations and an admin panel in one place.')],
       [x('Gerçekten komisyon almıyor musunuz?', 'Do you really take no commission?'), x('Evet. Siparişlerinizden pay almıyoruz; yalnızca sabit plan ücreti ödersiniz.', 'Correct. We take no share of your orders — you only pay a fixed plan fee.')],
       [x('Kurulum ne kadar sürer?', 'How long does setup take?'), x('Ortalama 5 dakika. Menü aktarımında ekibimiz ücretsiz yardımcı olur.', 'About 5 minutes. Our team helps with menu migration free of charge.')],
       [x('Teknik bilgi gerekiyor mu?', 'Do I need technical skills?'), x('Hayır. Panel gündelik bir uygulama kadar basittir.', 'No. The panel is as simple as any everyday app.')]
@@ -723,7 +723,7 @@
   /* ============================ LEGAL / TRUST =========================== */
 
   def('guvenlik', x('Güvenlik', 'Security'),
-    x('HASACA verilerinizi nasıl koruyor?', 'How HASACA protects your data.'), [
+    x('tada verilerinizi nasıl koruyor?', 'How tada protects your data.'), [
     hero(x('Güvenlik', 'Security'), x('Verileriniz güvende', 'Your data is protected'),
       x('Restoranınızın ve misafirlerinizin verisini korumak, ürünümüzün temel tasarım ilkesidir.',
         'Protecting your restaurant\'s and your guests\' data is a core design principle of our product.'), []),
@@ -745,7 +745,7 @@
 
   legal('gizlilik', x('Gizlilik Politikası', 'Privacy Policy'),
     x('Kişisel verilerinizi nasıl işlediğimizi açıklar.', 'How we process your personal data.'), [
-    [x('Genel', 'Overview'), x('Bu politika, HASACA platformunu kullanırken toplanan kişisel verilerin nasıl işlendiğini açıklar. Platformu kullanarak bu politikayı kabul etmiş olursunuz.', 'This policy explains how personal data collected while using the HASACA platform is processed. By using the platform you accept this policy.')],
+    [x('Genel', 'Overview'), x('Bu politika, tada platformunu kullanırken toplanan kişisel verilerin nasıl işlendiğini açıklar. Platformu kullanarak bu politikayı kabul etmiş olursunuz.', 'This policy explains how personal data collected while using the tada platform is processed. By using the platform you accept this policy.')],
     [x('Toplanan veriler', 'Data we collect'), x('Hesap bilgileri (ad, e-posta, telefon), işletme bilgileri, sipariş ve rezervasyon kayıtları ile teknik kayıtlar (IP adresi, tarayıcı bilgisi) toplanır.', 'Account details (name, email, phone), business details, order and reservation records, and technical logs (IP address, browser information).')],
     [x('Kullanım amacı', 'Purpose of use'), x('Veriler yalnızca hizmetin sunulması, destek verilmesi, güvenliğin sağlanması ve yasal yükümlülüklerin yerine getirilmesi amacıyla kullanılır.', 'Data is used only to deliver the service, provide support, maintain security and meet legal obligations.')],
     [x('Paylaşım', 'Sharing'), x('Kişisel verileriniz satılmaz. Yalnızca hizmetin sunulması için gerekli altyapı sağlayıcılarıyla ve yasal zorunluluk halinde yetkili mercilerle paylaşılır.', 'Your personal data is never sold. It is shared only with infrastructure providers necessary to deliver the service, and with authorities where legally required.')],
@@ -756,7 +756,7 @@
 
   legal('kvkk', x('KVKK Aydınlatma Metni', 'KVKK / GDPR Notice'),
     x('6698 sayılı KVKK kapsamında aydınlatma metni.', 'Data protection notice under Turkish KVKK law no. 6698.'), [
-    [x('Veri sorumlusu', 'Data controller'), x('6698 sayılı Kişisel Verilerin Korunması Kanunu kapsamında veri sorumlusu HASACA\'dır. Bu metin, kişisel verilerinizin işlenmesine ilişkin olarak sizi bilgilendirmek amacıyla hazırlanmıştır.', 'Under Turkish law no. 6698 on the Protection of Personal Data, HASACA acts as data controller. This notice informs you about the processing of your personal data.')],
+    [x('Veri sorumlusu', 'Data controller'), x('6698 sayılı Kişisel Verilerin Korunması Kanunu kapsamında veri sorumlusu tada\'dır. Bu metin, kişisel verilerinizin işlenmesine ilişkin olarak sizi bilgilendirmek amacıyla hazırlanmıştır.', 'Under Turkish law no. 6698 on the Protection of Personal Data, tada acts as data controller. This notice informs you about the processing of your personal data.')],
     [x('İşleme amaçları', 'Processing purposes'), x('Kişisel verileriniz; hizmetin sunulması, sözleşmenin ifası, müşteri desteği, güvenliğin sağlanması ve yasal yükümlülüklerin yerine getirilmesi amaçlarıyla işlenir.', 'Your data is processed to deliver the service, perform the contract, provide customer support, ensure security and fulfil legal obligations.')],
     [x('Hukuki sebep', 'Legal basis'), x('Veriler, sözleşmenin kurulması ve ifası, hukuki yükümlülüklerin yerine getirilmesi ve meşru menfaat hukuki sebeplerine dayanılarak işlenir.', 'Data is processed on the basis of contract formation and performance, compliance with legal obligations and legitimate interest.')],
     [x('Aktarım', 'Transfers'), x('Veriler, hizmetin sunulabilmesi için gerekli altyapı sağlayıcılarına ve yasal olarak yetkili kamu kurumlarına aktarılabilir.', 'Data may be transferred to infrastructure providers required to deliver the service and to legally authorised public authorities.')],
@@ -775,7 +775,7 @@
 
   legal('kullanim-sartlari', x('Kullanım Şartları', 'Terms of Use'),
     x('Platformu kullanırken geçerli olan koşullar.', 'The terms that apply when using the platform.'), [
-    [x('Kabul', 'Acceptance'), x('HASACA platformunu kullanarak bu kullanım şartlarını kabul etmiş sayılırsınız. Şartları kabul etmiyorsanız platformu kullanmamalısınız.', 'By using the HASACA platform you accept these terms. If you do not accept them, you should not use the platform.')],
+    [x('Kabul', 'Acceptance'), x('tada platformunu kullanarak bu kullanım şartlarını kabul etmiş sayılırsınız. Şartları kabul etmiyorsanız platformu kullanmamalısınız.', 'By using the tada platform you accept these terms. If you do not accept them, you should not use the platform.')],
     [x('Hesap sorumluluğu', 'Account responsibility'), x('Hesap bilgilerinizin gizliliğinden ve hesabınız üzerinden gerçekleştirilen tüm işlemlerden siz sorumlusunuz. Şüpheli bir erişim fark ederseniz derhal bize bildirin.', 'You are responsible for keeping your credentials confidential and for all activity performed through your account. Report any suspicious access to us immediately.')],
     [x('Kabul edilebilir kullanım', 'Acceptable use'), x('Platform; yasa dışı içerik barındırmak, üçüncü kişilerin haklarını ihlal etmek veya sistemin işleyişini bozmak amacıyla kullanılamaz.', 'The platform may not be used to host unlawful content, infringe third-party rights or disrupt the operation of the system.')],
     [x('İçerik sorumluluğu', 'Content responsibility'), x('Menü, görsel ve işletme bilgileri dâhil olmak üzere platforma yüklediğiniz tüm içeriğin doğruluğundan ve hukuka uygunluğundan siz sorumlusunuz.', 'You are responsible for the accuracy and legality of all content you upload, including menus, images and business information.')],
@@ -786,12 +786,12 @@
 
   legal('hizmet-sozlesmesi', x('Hizmet Sözleşmesi', 'Service Agreement'),
     x('Abonelik hizmetine ilişkin sözleşme esasları.', 'The principles governing the subscription service.'), [
-    [x('Konu', 'Subject'), x('Bu sözleşme, HASACA tarafından sunulan yazılım hizmetinin abonelik esasıyla kullanılmasına ilişkin tarafların hak ve yükümlülüklerini düzenler.', 'This agreement sets out the parties\' rights and obligations regarding subscription use of the software service provided by HASACA.')],
+    [x('Konu', 'Subject'), x('Bu sözleşme, tada tarafından sunulan yazılım hizmetinin abonelik esasıyla kullanılmasına ilişkin tarafların hak ve yükümlülüklerini düzenler.', 'This agreement sets out the parties\' rights and obligations regarding subscription use of the software service provided by tada.')],
     [x('Hizmet kapsamı', 'Scope of service'), x('Hizmet kapsamı seçilen abonelik planına göre belirlenir. Plan içerikleri fiyatlandırma sayfasında yayımlanır.', 'Scope is determined by the selected subscription plan. Plan contents are published on the pricing page.')],
     [x('Ücret ve ödeme', 'Fees and payment'), x('Abonelik ücreti seçilen plana göre aylık veya yıllık olarak tahsil edilir. Ücretler peşin ödenir ve komisyon içermez.', 'The subscription fee is charged monthly or annually according to the selected plan. Fees are paid in advance and contain no commission.')],
     [x('Deneme süresi', 'Trial period'), x('Yeni aboneler 14 günlük ücretsiz deneme süresinden yararlanır. Deneme süresi sonunda abonelik başlatılmadığı takdirde ücret tahsil edilmez.', 'New subscribers receive a 14-day free trial. No fee is charged if the subscription is not started at the end of the trial.')],
     [x('Veri sahipliği', 'Data ownership'), x('Platforma girilen tüm işletme ve müşteri verisi aboneye aittir. Abonelik sona erdiğinde veriler talep üzerine dışa aktarılabilir.', 'All business and customer data entered into the platform belongs to the subscriber. On termination, data can be exported on request.')],
-    [x('Sorumluluk sınırı', 'Limitation of liability'), x('HASACA, hizmetin kullanılmasından doğan dolaylı zararlardan sorumlu tutulamaz. Sorumluluk her hâlükârda ilgili döneme ait abonelik bedeli ile sınırlıdır.', 'HASACA is not liable for indirect damages arising from use of the service. Liability is in all cases limited to the subscription fee for the relevant period.')],
+    [x('Sorumluluk sınırı', 'Limitation of liability'), x('tada, hizmetin kullanılmasından doğan dolaylı zararlardan sorumlu tutulamaz. Sorumluluk her hâlükârda ilgili döneme ait abonelik bedeli ile sınırlıdır.', 'tada is not liable for indirect damages arising from use of the service. Liability is in all cases limited to the subscription fee for the relevant period.')],
     [x('Yürürlük', 'Effect'), x('Sözleşme, abonelik başlatıldığı anda yürürlüğe girer ve abonelik devam ettiği sürece geçerliliğini korur.', 'The agreement takes effect when the subscription starts and remains valid for its duration.')]
   ]);
 

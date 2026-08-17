@@ -17,7 +17,7 @@
   <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600;700&family=Syne:wght@600;700;800&family=Dancing+Script:wght@600;700&display=swap" rel="stylesheet">
   <!-- SEO -->
-  <meta name="description" content="A restaurant website powered by the HASACA platform.">
+  <meta name="description" content="A restaurant website powered by the tada platform.">
   <meta name="keywords" content="restaurant, menu, online order, food, reservation, QR menu">
   <meta name="author" content="My Restaurant">
   <meta name="robots" content="index, follow">
@@ -37,7 +37,7 @@
     "@context": "https://schema.org",
     "@type": "Restaurant",
     "name": "My Restaurant",
-    "description": "A restaurant website powered by the HASACA platform.",
+    "description": "A restaurant website powered by the tada platform.",
     "url": "",
     "telephone": "123456789",
     "address": {
@@ -3034,8 +3034,8 @@ body.theme-bw .rez-select-trigger:hover {
     <!-- SIDEBAR -->
     <aside class="app-sidebar" id="adminAppSidebar">
       <div class="side-brand">
-        <span class="mark"><svg class="hasaca-logo-svg" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 12l10 5 10-5"/><path d="M2 17l10 5 10-5"/></svg></span>
-        <span class="txt"><b id="adminSideBrandName">HASACA</b><small data-i18n="admin_panel_title">Yönetim Paneli</small></span>
+        <span class="mark"><img class="tada-logo-img" src="/icons/tada-logo.png" alt="tada" style="width:100%;height:100%;object-fit:contain;display:block;"></span>
+        <span class="txt"><b id="adminSideBrandName">tada</b><small data-i18n="admin_panel_title">Yönetim Paneli</small></span>
       </div>
 
       <div class="nav-group">
@@ -3046,17 +3046,8 @@ body.theme-bw .rez-select-trigger:hover {
         </button>
       </div>
 
-      <div class="nav-group">
-        <div class="lbl" data-i18n="admin_nav_grp_myrestaurant">Restoranım</div>
-        <button class="nav-item" data-view="restaurant-info" onclick="showAdminView('restaurant-info')">
-          <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18M5 21V7l7-4 7 4v14M9 21v-6h6v6"/></svg></span>
-          <span class="lbl" data-i18n="admin_nav_restaurant_info">Restoran Bilgileri</span>
-        </button>
-        <button class="nav-item" data-view="branding" onclick="showAdminView('branding')">
-          <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l3 6 6 1-4.5 4.5L18 20l-6-3-6 3 1.5-6.5L3 9l6-1 3-6z"/></svg></span>
-          <span class="lbl" data-i18n="admin_nav_branding">Marka &amp; Site</span>
-        </button>
-      </div>
+      <!-- "Restoranım" grubu (Restoran Bilgileri + Marka) sidebar'dan kaldırıldı — artık profil
+           ikonundan açılan tek "Ayarlar" ekranının içinde (Faz 6 birleştirme). -->
 
       <div class="nav-group">
         <div class="lbl" data-i18n="admin_nav_grp_products">Ürünler</div>
@@ -3082,19 +3073,12 @@ body.theme-bw .rez-select-trigger:hover {
           <span class="lbl" data-i18n="admin_tab_rez">Rezervasyonlar</span>
           <span class="nbadge" id="adminRezBadge" style="display:none;">0</span>
         </button>
-        <button class="nav-item" data-view="tables" onclick="showAdminView('tables')">
-          <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10h18M3 10l1.5-5h15L21 10M4 10v9h16v-9M9 19v-4h6v4"/></svg></span>
-          <span class="lbl" data-i18n="admin_tab_tables">Masa Yönetimi</span>
-        </button>
         <button class="nav-item" data-view="table-orders" onclick="showAdminView('table-orders')">
           <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg></span>
           <span class="lbl" data-i18n="admin_tab_tableorders">Masa Sipariş Kontrolü</span>
           <span class="nbadge" id="adminTableOrdersBadge" style="display:none;">0</span>
         </button>
-        <button class="nav-item" data-view="table-card" onclick="showAdminView('table-card')">
-          <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="3"/><path d="M7.5 9.5a3.2 3.2 0 0 1 0 5"/><path d="M10.5 7.5a6.4 6.4 0 0 1 0 9"/></svg></span>
-          <span class="lbl" data-i18n="admin_tab_cards">Masa Kartı Tasarla</span>
-        </button>
+        <!-- "Masa Yönetimi" ve "Masa Kartı Tasarla" Ayarlar ekranına taşındı (Faz 6). -->
       </div>
 
       <div class="nav-group">
@@ -3105,53 +3089,21 @@ body.theme-bw .rez-select-trigger:hover {
         </button>
       </div>
 
-      <div class="nav-group">
-        <div class="lbl" data-i18n="admin_nav_grp_comms">İletişim</div>
-        <button class="nav-item" data-view="push" onclick="showAdminView('push')">
-          <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9M13.7 21a2 2 0 0 1-3.4 0"/></svg></span>
-          <span class="lbl" data-i18n="admin_nav_push">Bildirim Gönder</span>
-        </button>
-      </div>
-
-      <div class="nav-group">
-        <div class="lbl" data-i18n="admin_nav_grp_site">Web Sitesi</div>
-        <a class="nav-item" id="adminViewSiteLink" href="/menu" target="_blank" rel="noopener">
-          <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg></span>
-          <span class="lbl" data-i18n="admin_nav_view_site">Siteyi Görüntüle</span>
-        </a>
-        <button class="nav-item" data-view="website-editor" onclick="showAdminView('website-editor')">
-          <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/><path d="M9 21V9"/></svg></span>
-          <span class="lbl" data-i18n="admin_nav_website_editor">Web Sitesi Editörü</span>
-        </button>
-      </div>
+      <!-- Push bildirimi ŞİMDİLİK kaldırıldı (kullanıcı kararı — ileride mobil uygulamayla farklı
+           bir bildirim sistemi gelecek). Yalnızca UI gizlendi; backend endpoint'leri ve SW korundu,
+           geri açmak için bu grubu ve dashboard hızlı-işlem butonunu geri göstermek yeterli. -->
 
       <div class="nav-group">
         <div class="lbl" data-i18n="admin_nav_grp_ai">Yapay Zeka</div>
         <button class="nav-item" data-view="ai-assistant" onclick="showAdminView('ai-assistant')">
-          <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a4 4 0 0 1 4 4v1a4 4 0 0 1-8 0V6a4 4 0 0 1 4-4z"/><path d="M8 14a4 4 0 0 0-4 4v1h16v-1a4 4 0 0 0-4-4H8z"/><path d="M12 7v3"/></svg></span>
+          <span class="ic"><img src="/icons/ai-logo.png" alt="" style="width:20px;height:20px;object-fit:contain;display:block;"></span>
           <span class="lbl" data-i18n="admin_nav_ai">AI Asistanı</span>
         </button>
       </div>
 
-      <div class="nav-group">
-        <div class="lbl" data-i18n="admin_nav_grp_settings">Ayarlar</div>
-        <button class="nav-item" data-view="widgets" onclick="showAdminView('widgets')">
-          <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/></svg></span>
-          <span class="lbl" data-i18n="admin_nav_widgets">Widget Ayarları</span>
-        </button>
-        <button class="nav-item" onclick="adminLogout()">
-          <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/></svg></span>
-          <span class="lbl" data-i18n="admin_nav_logout">Çıkış</span>
-        </button>
-      </div>
-
-      <div class="nav-group">
-        <div class="lbl" data-i18n="admin_nav_grp_danger">Tehlikeli Bölge</div>
-        <button class="nav-item" data-view="danger-zone" onclick="showAdminView('danger-zone')">
-          <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></span>
-          <span class="lbl" data-i18n="admin_nav_danger">Tehlikeli Bölge</span>
-        </button>
-      </div>
+      <!-- "Web Sitesi" (Siteyi Görüntüle + Editör), "Ayarlar" (Widget) ve "Tehlikeli Bölge"
+           grupları sidebar'dan kaldırıldı — hepsi profil ikonundan açılan tek "Ayarlar"
+           ekranının içinde birleştirildi (Faz 6). Çıkış zaten profil menüsünde mevcut. -->
 
       <div class="side-spacer"></div>
       <div class="side-foot">
@@ -3186,6 +3138,7 @@ body.theme-bw .rez-select-trigger:hover {
             <span class="av" id="adminProfileAv">A</span><span class="nm" id="adminProfileNm" data-i18n="admin_nav_admin">Yönetici</span>
           </button>
           <div class="profile-menu" id="adminProfileMenu">
+            <button onclick="apToggleProfileMenu(false); showAdminView('settings')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg><span data-i18n="admin_nav_settings">Ayarlar</span></button>
             <button onclick="adminLogout()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/></svg><span data-i18n="admin_nav_logout">Çıkış</span></button>
           </div>
         </div>
@@ -3195,6 +3148,41 @@ body.theme-bw .rez-select-trigger:hover {
         <!-- Faz 3A: çoklu ekran bölme (Bottom Container panoları) — .view elemanları split-mode
              açıkken buraya taşınır (klonlanmaz), kapanınca .app-content'e geri taşınır. -->
         <div class="ap-split-grid" id="apSplitGrid" hidden></div>
+        <!-- ═══ AYARLAR (Faz 6): profil ikonundan açılır, solda bölüm menüsü + sağda içerik.
+             8 mevcut panel (view-restaurant-info, view-branding, adminTabTablesCont,
+             adminTabCardsCont, view-website-editor, view-widgets, view-danger-zone) init'te
+             #setBody içine JS ile TAŞINIR — kendi kaydetme/lazy-load mantıkları korunur. ═══ -->
+        <section class="view" id="view-settings" hidden>
+          <div class="set-layout">
+            <nav class="set-nav" id="setNav">
+              <button class="set-nav-item" data-sec="restaurant-info" onclick="showSettingsSection('restaurant-info')">
+                <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18M5 21V7l7-4 7 4v14M9 21v-6h6v6"/></svg></span>
+                <span data-i18n="admin_nav_restaurant_info">Restoran Bilgileri</span></button>
+              <button class="set-nav-item" data-sec="branding" onclick="showSettingsSection('branding')">
+                <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l3 6 6 1-4.5 4.5L18 20l-6-3-6 3 1.5-6.5L3 9l6-1 3-6z"/></svg></span>
+                <span data-i18n="admin_nav_branding">Marka &amp; Site</span></button>
+              <button class="set-nav-item" data-sec="tables" onclick="showSettingsSection('tables')">
+                <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10h18M3 10l1.5-5h15L21 10M4 10v9h16v-9M9 19v-4h6v4"/></svg></span>
+                <span data-i18n="admin_tab_tables">Masa Yönetimi</span></button>
+              <button class="set-nav-item" data-sec="table-card" onclick="showSettingsSection('table-card')">
+                <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="3"/><path d="M7.5 9.5a3.2 3.2 0 0 1 0 5"/><path d="M10.5 7.5a6.4 6.4 0 0 1 0 9"/></svg></span>
+                <span data-i18n="admin_tab_cards">Masa Kartı Tasarla</span></button>
+              <button class="set-nav-item" data-sec="website-editor" onclick="showSettingsSection('website-editor')">
+                <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/><path d="M9 21V9"/></svg></span>
+                <span data-i18n="admin_nav_website_editor">Web Sitesi Editörü</span></button>
+              <button class="set-nav-item" data-sec="widgets" onclick="showSettingsSection('widgets')">
+                <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/></svg></span>
+                <span data-i18n="admin_nav_widgets">Widget Ayarları</span></button>
+              <a class="set-nav-item" id="adminViewSiteLink" href="/menu" target="_blank" rel="noopener">
+                <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg></span>
+                <span data-i18n="admin_nav_view_site">Siteyi Görüntüle</span></a>
+              <button class="set-nav-item danger" data-sec="danger-zone" onclick="showSettingsSection('danger-zone')">
+                <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></span>
+                <span data-i18n="admin_nav_danger">Tehlikeli Bölge</span></button>
+            </nav>
+            <div class="set-body" id="setBody"></div>
+          </div>
+        </section>
         <!-- RESTAURANT HUB VIEW (Phase 50: multi-restaurant Google accounts) -->
         <section class="view" id="view-hub" hidden>
           <div class="hub-welcome">
@@ -3265,7 +3253,6 @@ body.theme-bw .rez-select-trigger:hover {
                 <button onclick="showAdminView('products')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg><span data-i18n="admin_add_product">Yeni Ürün Ekle</span></button>
                 <button onclick="showAdminView('orders')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="18" cy="21" r="1"/><path d="M1 1h4l2.6 12.4a2 2 0 0 0 2 1.6h9.7a2 2 0 0 0 2-1.6L23 6H6"/></svg><span data-i18n="admin_tab_orders">Siparişler</span></button>
                 <button onclick="showAdminView('table-orders')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg><span data-i18n="admin_tab_tableorders">Masa Sipariş Kontrolü</span></button>
-                <button onclick="showAdminView('push')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/></svg><span data-i18n="admin_nav_push">Bildirim Gönder</span></button>
               </div>
             </div>
           </div>
@@ -3300,7 +3287,7 @@ body.theme-bw .rez-select-trigger:hover {
             <div class="ai-chat-body-wrap">
               <div class="ai-chat-body" id="aAiMessages">
                 <div class="ai-chat-empty" id="aAiEmpty">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a4 4 0 0 1 4 4v1a4 4 0 0 1-8 0V6a4 4 0 0 1 4-4z"/><path d="M5 21v-2a7 7 0 0 1 14 0v2"/><path d="M9 11.5v1M15 11.5v1"/></svg>
+                  <img class="ai-empty-logo" src="/icons/ai-logo.png" alt="">
                   <div class="t" data-i18n="admin_ai_empty_title">Nasıl yardımcı olabilirim?</div>
                   <div class="s" data-i18n="admin_ai_empty_sub">Ürün, kategori ve fiyatlarınızı doğal dille düzenleyebilirim.</div>
                 </div>
@@ -4789,6 +4776,7 @@ const i18nData = {
     admin_nav_grp_site: "Web Sitesi",
     admin_nav_grp_ai: "Yapay Zeka",
     admin_nav_grp_settings: "Ayarlar",
+    admin_nav_settings: "Ayarlar",
     admin_nav_dashboard: "Panel",
     admin_nav_categories: "Kategoriler",
     admin_split_toggle: "Ekranı Böl",
@@ -5271,6 +5259,7 @@ const i18nData = {
     admin_nav_grp_site: "Website",
     admin_nav_grp_ai: "AI",
     admin_nav_grp_settings: "Settings",
+    admin_nav_settings: "Settings",
     admin_nav_dashboard: "Dashboard",
     admin_nav_categories: "Categories",
     admin_split_toggle: "Split View",
@@ -6857,6 +6846,11 @@ function openAdminPanel() {
   updateFormCategoryOptions();
   document.getElementById('adminSearchInput').value = '';
   document.getElementById('adminPanelOverlay').classList.add('open');
+  // .admin-modal-backdrop kullanan panel modalları (masa/kart onayı vb.) DOM'da bu overlay'in
+  // KARDEŞİ olduğundan overlay-scoped --ap-* token'larını miras alamıyor (ölçülerek doğrulandı —
+  // pre-existing bug). body üzerinde ayrı bir sınıfla CSS'te düz seçiciyle hedefleniyor;
+  // :has(#adminPanelOverlay.open) denendi ama bu ortamda beklenen cascade önceliğini vermedi.
+  document.body.classList.add('ap-open');
   document.body.style.overflow = 'hidden';
   apInitTheme(); // Phase 25: panel theme (scoped to the overlay; customer site untouched)
 
@@ -6927,6 +6921,11 @@ function hubMsg(text) {
 }
 async function showRestaurantHub(days) {
   document.getElementById('adminPanelOverlay').classList.add('open');
+  // .admin-modal-backdrop kullanan panel modalları (masa/kart onayı vb.) DOM'da bu overlay'in
+  // KARDEŞİ olduğundan overlay-scoped --ap-* token'larını miras alamıyor (ölçülerek doğrulandı —
+  // pre-existing bug). body üzerinde ayrı bir sınıfla CSS'te düz seçiciyle hedefleniyor;
+  // :has(#adminPanelOverlay.open) denendi ama bu ortamda beklenen cascade önceliğini vermedi.
+  document.body.classList.add('ap-open');
   document.body.style.overflow = 'hidden';
   const shell = document.getElementById('adminAppShell');
   if (shell) shell.classList.add('hub-mode');
@@ -7065,7 +7064,8 @@ const AP_VIEW_MAP = {
   'danger-zone':  { id: 'view-danger-zone',           title: 'admin_nav_danger' },
   'website-editor': { id: 'view-website-editor',      title: 'admin_nav_website_editor' },
   'category-form':{ id: 'adminCategoryFormPanel',   title: 'admin_add_category_btn' },
-  'product-form': { id: 'adminFormPanel',           title: 'admin_lbl_edit_product' }
+  'product-form': { id: 'adminFormPanel',           title: 'admin_lbl_edit_product' },
+  'settings':     { id: 'view-settings',            title: 'admin_nav_settings' }
 };
 // Phase 27 Part A: the category/product forms used to be full-viewport overlays
 // (position:fixed;inset:0) living OUTSIDE #adminPanelOverlay. Relocate them (once) into
@@ -7083,6 +7083,47 @@ const AP_VIEW_MAP = {
     }
   });
 })();
+
+// ═══ AYARLAR birleştirmesi (Faz 6) ═══
+// 8 ayar bölümü → mevcut panel DOM id'si + lazy-load fonksiyonu. Paneller YENİDEN YAZILMAZ;
+// init'te #setBody içine TAŞINIR, kendi kaydetme/render mantıkları aynen korunur.
+const SETTINGS_SECTIONS = {
+  'restaurant-info': { id: 'view-restaurant-info', load: 'loadRestaurantInfo' },
+  'branding':        { id: 'view-branding',        load: 'loadBranding' },
+  'tables':          { id: 'adminTabTablesCont',   load: 'loadTables' },
+  'table-card':      { id: 'adminTabCardsCont',    load: 'cdInit' },
+  'website-editor':  { id: 'view-website-editor',  load: 'loadWebsiteEditor' },
+  'widgets':         { id: 'view-widgets',         load: 'loadTenantWidgets' },
+  'danger-zone':     { id: 'view-danger-zone',     load: 'loadDangerZone' }
+};
+let apCurrentSettingsSection = 'restaurant-info';
+// 8 paneli #setBody'ye taşı (bir kez). Taşınan paneller artık #view-settings içinde olduğundan
+// showAdminView'in genel `.view` toggle'ından hariç tutuluyor (aşağıya bakınız).
+(function relocateSettingsPanels(){
+  const body = document.getElementById('setBody');
+  if (!body) return;
+  Object.values(SETTINGS_SECTIONS).forEach(sec => {
+    const el = document.getElementById(sec.id);
+    if (el && el.parentElement !== body) { el.hidden = true; body.appendChild(el); }
+  });
+})();
+// Ayarlar içinde bir bölümü göster: diğerlerini gizle, menüyü işaretle, lazy-load'u çağır.
+function showSettingsSection(section){
+  if (!SETTINGS_SECTIONS[section]) section = 'restaurant-info';
+  apCurrentSettingsSection = section;
+  const body = document.getElementById('setBody');
+  if (body) {
+    Object.entries(SETTINGS_SECTIONS).forEach(([key, sec]) => {
+      const el = document.getElementById(sec.id);
+      if (el) el.hidden = (key !== section);
+    });
+  }
+  document.querySelectorAll('#setNav .set-nav-item[data-sec]').forEach(b =>
+    b.classList.toggle('active', b.getAttribute('data-sec') === section));
+  const fn = SETTINGS_SECTIONS[section].load;
+  if (fn && typeof window[fn] === 'function') { try { window[fn](); } catch(e){ console.error('settings load '+fn, e); } }
+}
+
 function showAdminView(view) {
   // Faz 3A: sidebar'dan normal tek-görünüm gezintisine dönmek her zaman split-mode'dan çıkar —
   // panolara atama SADECE pano başlığındaki picker'dan yapılır, sidebar tıklaması karışıklık
@@ -7094,15 +7135,26 @@ function showAdminView(view) {
   // geçişlerinde tutarlı olsun diye burada genel olarak uygulanıyor).
   const apContentEl = document.querySelector('#adminPanelOverlay .app-content');
   if (apContentEl) apContentEl.scrollTop = 0;
+  // Ayarlar yönlendirmesi (Faz 6): 8 ayar bölümünün view-anahtarı (branding, tables, table-card,
+  // restaurant-info, website-editor, widgets, danger-zone) ile ya da doğrudan 'settings' ile
+  // çağrılınca, dış kabuk 'view-settings' olur ve ilgili bölüm sağ tarafta gösterilir.
+  // /admin#table-card gibi landing derin-bağlantıları da böylece çalışmaya devam eder.
+  let settingsTarget = null;
+  if (SETTINGS_SECTIONS[view]) { settingsTarget = view; view = 'settings'; }
+  else if (view === 'settings') { settingsTarget = apCurrentSettingsSection || 'restaurant-info'; }
   const spec = AP_VIEW_MAP[view] || AP_VIEW_MAP['dashboard'];
-  // Toggle all .view panes inside the shell
+  // Toggle all .view panes inside the shell. Ayarlar İÇİNE taşınan paneller (#view-settings
+  // altındakiler) bu genel toggle'dan hariç — onların görünürlüğünü showSettingsSection yönetir.
   document.querySelectorAll('#adminPanelOverlay .view').forEach(el => {
+    if (el.id !== 'view-settings' && el.closest('#view-settings')) return;
     el.hidden = (el.id !== spec.id);
   });
-  // Nav item active state
+  // Nav item active state (Ayarlar sidebar'da olmadığından, settings modunda tüm sidebar
+  // öğelerinin active'i temizlenir).
   document.querySelectorAll('#adminPanelOverlay .nav-item[data-view]').forEach(a => {
     a.classList.toggle('active', a.getAttribute('data-view') === view);
   });
+  if (view === 'settings') showSettingsSection(settingsTarget);
   // Topbar page title (i18n)
   const pt = document.getElementById('adminPageTitle');
   if (pt) {
@@ -7118,22 +7170,17 @@ function showAdminView(view) {
   if (addCatBtn) addCatBtn.style.display = isProd ? 'inline-block' : 'none';
   // Lazy-load per view — same calls the old switchAdminPanelTab did, plus reservations
   // which the Explore pass found was never called on tab-switch before (a real gap).
+  // Ayarlar bölümlerinin (restaurant-info/branding/tables/table-card/website-editor/widgets/
+  // danger-zone) lazy-load'u showSettingsSection içinde yapılıyor — burada tekrarlanmaz.
   if (view === 'dashboard')       loadAdminDashboard();
-  else if (view === 'restaurant-info') loadRestaurantInfo();
-  else if (view === 'branding')   loadBranding();
   else if (view === 'analytics')  loadAdminAnalytics();
   else if (view === 'orders')     loadOrders();
   else if (view === 'reservations' && typeof loadReservations === 'function') loadReservations();
   else if (view === 'push')       loadPushDashboardData();
-  else if (view === 'tables') { if (typeof loadTables === 'function') loadTables(); }
   else if (view === 'table-orders') {
     if (typeof loadTableOrders === 'function') loadTableOrders();
     if (typeof loadServiceRequests === 'function') loadServiceRequests();
   }
-  else if (view === 'table-card') { if (typeof cdInit === 'function') cdInit(); }
-  else if (view === 'widgets') loadTenantWidgets();
-  else if (view === 'website-editor') loadWebsiteEditor();
-  else if (view === 'danger-zone') loadDangerZone();
   // Close the mobile drawer after navigating
   apToggleSidebar(false);
 }
@@ -8123,6 +8170,15 @@ function aiAsstResolveLabel(a) {
 let adminAiPlanId = null;
 let adminAiPendingBubble = null; // the .ai-msg element holding the currently-actionable plan, if any
 let adminAiLastUserMsg = ''; // for the "regenerate" action — re-sends the last real user message
+// Konuşma geçmişi — AI'nın önceki mesajları hatırlaması için (önceden HİÇ gönderilmiyordu, bu yüzden
+// her cevap "bağlamdan kopuk" geliyordu). Yalnızca son birkaç tur, kısa metin olarak gönderilir
+// (TPM'i şişirmemek için backend'de de sınırlanır). role: 'user' | 'assistant'.
+let adminAiHistory = [];
+function adminAiPushHistory(role, content){
+  if (!content) return;
+  adminAiHistory.push({ role, content: String(content).slice(0, 600) });
+  if (adminAiHistory.length > 12) adminAiHistory = adminAiHistory.slice(-12);
+}
 
 function adminAiActionsRowHTML(){
   return '<div class="ai-msg-actions">' +
@@ -8468,6 +8524,34 @@ function adminAiUserBubbleHTML(text){
 function adminAiTypingHTML(){
   return '<div class="ai-bubble ai-thinking-bubble"><canvas id="aAiThinkingOrb"></canvas></div>';
 }
+// Daktilo efekti: AI'nın metin cevabı "pat diye" değil, soldan sağa harf harf yazılır.
+// text düz metin; bittiğinde cb() çağrılır (görsel/aksiyon satırı sonradan eklenir).
+let adminAiTypeTimer = null;
+function adminAiTypeInto(el, text, cb){
+  if (adminAiTypeTimer) { clearTimeout(adminAiTypeTimer); adminAiTypeTimer = null; }
+  el.textContent = '';
+  el.classList.add('typing');
+  const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (reduce || !text) { el.textContent = text || ''; el.classList.remove('typing'); if (cb) cb(); return; }
+  let i = 0;
+  const total = text.length;
+  // uzun cevaplarda toplam süreyi makul tut: karakter başına 8-22ms arası, uzunlukla ölçekli
+  const per = Math.max(8, Math.min(22, Math.round(1600 / Math.max(20, total))));
+  (function step(){
+    if (i < total){
+      // her adımda birkaç karakter (uzun metinde daha hızlı) — akıcı ama bekletmeyen
+      const chunk = total > 220 ? 3 : (total > 90 ? 2 : 1);
+      i = Math.min(total, i + chunk);
+      el.textContent = text.slice(0, i);
+      adminAiScrollToBottom();
+      adminAiTypeTimer = setTimeout(step, per);
+    } else {
+      el.classList.remove('typing');
+      adminAiTypeTimer = null;
+      if (cb) cb();
+    }
+  })();
+}
 let adminAiOrbInstance = null;
 // Picks the orb state that best matches what kind of request was just sent — a simple client-side
 // keyword read on the outgoing message (the backend call is a single non-streaming round trip, so
@@ -8582,6 +8666,13 @@ function adminAiPlanRowHTML(a){
     return '<div class="ai-plan-row"><div class="ai-plan-field">&minus; ' + aiAsstEsc(tableLabel) + '</div>' +
       '<div class="ai-plan-diff"><span class="ai-plan-old">' + aiAsstEsc(a.label) + '</span></div></div>';
   }
+  if (a.type === 'setting') {
+    // Restoran ayarı — ürün/kategori değil; dostça etiket + eski→yeni değer.
+    const oldV = a.oldValue ? aiAsstEsc(a.oldValue) : '—';
+    return '<div class="ai-plan-row"><div class="ai-plan-field">⚙ ' + aiAsstEsc(a.label || a.field) + '</div>' +
+      '<div class="ai-plan-diff"><span class="ai-plan-old">' + oldV + '</span>' +
+      '<span class="ai-plan-arrow">→</span><span class="ai-plan-new">' + aiAsstEsc(a.newValue) + '</span></div></div>';
+  }
   return '<div class="ai-plan-row"><div class="ai-plan-field">' + aiAsstEsc(aiAsstResolveLabel(a)) + '</div>' +
     '<div class="ai-plan-diff"><span class="ai-plan-old">' + aiAsstEsc(a.oldValue) + '</span>' +
     '<span class="ai-plan-arrow">→</span><span class="ai-plan-new">' + aiAsstEsc(a.newValue) + '</span></div></div>';
@@ -8627,12 +8718,21 @@ function adminAiShowOnboardingWelcome(){
 // (DB-driven, not LLM-guessed) missing-image lookup from a command instead.
 function adminAiIsCompleteMenuCommand(msg){
   const m = msg.toLowerCase();
-  const mentionsImage = /görsel|resim|foto|image/.test(m);
+  const mentionsImage = /görsel|resim|resm|foto|image|görsell/.test(m); // "resmini/resmi" (Türkçe çekim: resim→resm) de yakalanır
   const mentionsComplete = /eksik|tamamla|complete|missing/.test(m);
   const mentionsMenu = /menü|menu/.test(m);
-  // Either "complete the missing images" (explicit) or "complete the menu" (the old button's own
-  // label — a user retyping it verbatim should still work) triggers the same flow.
-  return (mentionsImage && mentionsComplete) || (mentionsMenu && mentionsComplete);
+  const mentionsAll = /tüm|tum|bütün|butun|hepsi|hepsine|all/.test(m);
+  const mentionsProducts = /ürün|urun|product/.test(m);
+  const mentionsGenerate = /oluştur|olustur|yap\b|üret|uret|ekle|generate|create/.test(m);
+  // "eksik görselleri tamamla" / "menüyü tamamla" (mevcut) VEYA "tüm ürünlere görsel oluştur"
+  // gibi TOPLU görsel oluşturma istekleri — hepsi aynı gerçek toplu-üretim akışına (thinking orb +
+  // eksik görsel bulma + oluşturma) yönlenir; yoksa AI sadece "oluşturulacak" deyip hiçbir şey
+  // yapmıyordu (kullanıcı işaretledi).
+  return (mentionsImage && mentionsComplete)
+      || (mentionsMenu && mentionsComplete)
+      // "tüm/bütün/hepsi + görsel/foto + oluştur/yap" → toplu ürün görseli üretimi (ürün kelimesi
+      // geçmese de "hepsine görsel oluştur" gibi ifadeleri kapsar).
+      || (mentionsAll && mentionsImage && mentionsGenerate);
 }
 async function adminAiSend(){
   const input = document.getElementById('aAiInput');
@@ -8654,7 +8754,9 @@ async function adminAiSend(){
   try {
     const res = await fetch('/api/admin/ai-assistant/plan', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ message: msg })
+      // Konuşma geçmişini de gönder (son turlar) — AI önceki mesajları hatırlasın (bağlam kopukluğu
+      // düzeltmesi). Bu mesajı henüz geçmişe eklemedik, o yüzden ayrıca message olarak gidiyor.
+      body: JSON.stringify({ message: msg, history: adminAiHistory.slice(-8) })
     });
     const data = await res.json();
     adminAiStopThinkingOrb();
@@ -8673,12 +8775,29 @@ async function adminAiSend(){
     }
     if (!data.planId && !(data.actions && data.actions.length)) {
       const text = data.summary || aiT('admin_ai_no_actions', 'İsteğinizden uygulanabilir bir değişiklik çıkaramadım.');
-      typingBubble.innerHTML = (data.unsupported && data.unsupported.length) ? adminAiPlanHTML(data)
-        : '<div class="ai-bubble">' + aiAsstEsc(text) + adminAiImageHTML(data) + '</div>';
-      typingBubble.insertAdjacentHTML('beforeend', adminAiActionsRowHTML());
-      adminAiScrollToBottom();
+      adminAiPushHistory('user', msg);
+      adminAiPushHistory('assistant', data.summary || text);
+      if (data.unsupported && data.unsupported.length) {
+        typingBubble.innerHTML = adminAiPlanHTML(data);
+        typingBubble.insertAdjacentHTML('beforeend', adminAiActionsRowHTML());
+        adminAiScrollToBottom();
+      } else {
+        // Metin cevabı daktilo efektiyle yazılır; bitince görsel (varsa) + aksiyon satırı eklenir.
+        const bubble = document.createElement('div');
+        bubble.className = 'ai-bubble';
+        typingBubble.innerHTML = '';
+        typingBubble.appendChild(bubble);
+        adminAiTypeInto(bubble, text, () => {
+          const imgHTML = adminAiImageHTML(data);
+          if (imgHTML) bubble.insertAdjacentHTML('beforeend', imgHTML);
+          typingBubble.insertAdjacentHTML('beforeend', adminAiActionsRowHTML());
+          adminAiScrollToBottom();
+        });
+      }
       return;
     }
+    adminAiPushHistory('user', msg);
+    adminAiPushHistory('assistant', data.summary || aiT('admin_ai_plan_ready', 'Bir plan hazırladım, onayınızı bekliyorum.'));
     typingBubble.innerHTML = adminAiPlanHTML(data);
     typingBubble.insertAdjacentHTML('beforeend', adminAiActionsRowHTML());
     adminAiPlanId = data.planId || null;
@@ -10806,6 +10925,19 @@ async function deletePush(id) {
     border-radius:var(--ap-radius-pill); font-weight:700; transition:transform var(--ap-t), box-shadow var(--ap-t), background var(--ap-t);
   }
   #adminPanelOverlay .admin-btn:hover{ transform:translateY(-1px); box-shadow:0 10px 26px -12px var(--ap-gold); }
+  /* Pre-existing bug (ölçülerek doğrulandı — bu değişiklikle ilgisiz, addTableBackdrop'ta da aynı):
+     .admin-modal-backdrop kullanan tüm panel modalları (masa/kart onayı/vb.) DOM'da
+     #adminPanelOverlay'in KARDEŞİ, içinde değil — yukarıdaki --ap-gold/--ap-gold-text (mavi/beyaz)
+     onlara hiç ulaşmıyor, bunun yerine aynı isimli ama farklı müşteri-sitesi token'larını miras
+     alıp neredeyse siyah-üstüne-siyah bir buton üretiyorlardı (yazı görünmüyordu). Admin panelinin
+     iki temasında da (satır ~10741, ~10774) bu ikisi hep aynı (mavi/beyaz) olduğundan burada sabit
+     değer yeterli. openAdminPanel()'de eklenen body.ap-open sınıfıyla hedefleniyor —
+     :has(#adminPanelOverlay.open) denendi, doğru eşleşmesine rağmen (verified via
+     el.matches()) bu ortamda cascade'de beklenen önceliği vermedi, düz sınıf seçicisine
+     geçildi. */
+  body.ap-open .admin-modal-backdrop .admin-btn:not(.secondary):not(.danger){
+    background:#387AFF !important; color:#ffffff !important;
+  }
   #adminPanelOverlay .admin-btn.secondary{ background:var(--ap-card); color:var(--ap-text); border-color:var(--ap-line); box-shadow:none; }
   #adminPanelOverlay .admin-btn.secondary:hover{ background:var(--ap-elev); border-color:var(--ap-line-2); box-shadow:none; }
 
@@ -10862,6 +10994,16 @@ async function deletePush(id) {
     outline:none; border-color:var(--ap-gold); box-shadow:0 0 0 3px var(--ap-gold-soft);
   }
   #adminPanelOverlay ::placeholder{ color:var(--ap-faint); }
+  /* Tarayıcı (Chrome/Edge) e-posta/şifre alanlarına kendi native autofill/"anahtar-kilit"
+     ikonunu basıyor; kullanıcı bunu marka sekmesindeki e-posta kutusunda "sabit kalan kilit
+     ikonu" olarak işaretledi. login.html'de zaten bastırılan aynı kurallar burada da uygulanıyor. */
+  #adminPanelOverlay input::-webkit-credentials-auto-fill-button,
+  #adminPanelOverlay input::-webkit-strong-password-auto-fill-button,
+  #adminPanelOverlay input::-webkit-contacts-auto-fill-button{
+    display:none !important; visibility:hidden; pointer-events:none; position:absolute; right:0; width:0; height:0;
+  }
+  #adminPanelOverlay input[type="password"]::-ms-reveal,
+  #adminPanelOverlay input[type="password"]::-ms-clear{ display:none; }
 
   /* Custom dropdown */
   #adminPanelOverlay .custom-select-trigger{
@@ -11092,6 +11234,36 @@ async function deletePush(id) {
   #adminPanelOverlay .profile-menu button:hover{ background:var(--ap-card); }
   #adminPanelOverlay .profile-menu button svg{ width:16px; height:16px; }
 
+  /* ═══ AYARLAR ekranı (Faz 6): solda bölüm menüsü + sağda içerik ═══ */
+  #adminPanelOverlay .set-layout{ display:grid; grid-template-columns:230px 1fr; gap:22px; align-items:start; }
+  #adminPanelOverlay .set-nav{
+    display:flex; flex-direction:column; gap:4px; position:sticky; top:0;
+    background:var(--ap-panel); border:1px solid var(--ap-line); border-radius:var(--ap-radius); padding:10px;
+  }
+  #adminPanelOverlay .set-nav-item{
+    display:flex; align-items:center; gap:11px; width:100%; text-align:left;
+    padding:11px 12px; border-radius:12px; border:1px solid transparent; background:none;
+    color:var(--ap-text); font-size:14px; font-weight:600; font-family:inherit; cursor:pointer;
+    transition:background var(--ap-t), color var(--ap-t); text-decoration:none;
+  }
+  #adminPanelOverlay .set-nav-item .ic{ flex:none; display:grid; place-items:center; color:var(--ap-muted); }
+  #adminPanelOverlay .set-nav-item .ic svg{ width:18px; height:18px; }
+  #adminPanelOverlay .set-nav-item:hover{ background:var(--ap-card); }
+  #adminPanelOverlay .set-nav-item.active{ background:var(--ap-gold); color:var(--ap-gold-text); }
+  #adminPanelOverlay .set-nav-item.active .ic{ color:var(--ap-gold-text); }
+  #adminPanelOverlay .set-nav-item.danger{ color:var(--ap-bad); margin-top:6px; border-top:1px solid var(--ap-line); border-radius:0 0 12px 12px; padding-top:14px; }
+  #adminPanelOverlay .set-nav-item.danger .ic{ color:var(--ap-bad); }
+  #adminPanelOverlay .set-nav-item.danger.active{ background:var(--ap-bad); color:#fff; }
+  #adminPanelOverlay .set-nav-item.danger.active .ic{ color:#fff; }
+  /* Taşınan panellerin dış boşluğunu sıfırla; başlıkları zaten kendi içlerinde. */
+  #adminPanelOverlay .set-body > .view{ margin:0; }
+  @media (max-width:860px){
+    #adminPanelOverlay .set-layout{ grid-template-columns:1fr; }
+    #adminPanelOverlay .set-nav{ position:static; flex-direction:row; flex-wrap:wrap; }
+    #adminPanelOverlay .set-nav-item{ width:auto; flex:1 1 auto; justify-content:center; }
+    #adminPanelOverlay .set-nav-item.danger{ border-top:none; margin-top:0; padding-top:11px; border-radius:12px; }
+  }
+
   #adminPanelOverlay .dash-grid{ display:grid; grid-template-columns:repeat(4,1fr); gap:16px; margin-bottom:22px; }
   #adminPanelOverlay .stat-card{ background:var(--ap-panel); border:1px solid var(--ap-line); border-radius:var(--ap-radius); padding:20px; transition:transform var(--ap-t), border-color var(--ap-t); }
   #adminPanelOverlay .stat-card:hover{ transform:translateY(-3px); border-color:var(--ap-line-2); }
@@ -11176,15 +11348,15 @@ async function deletePush(id) {
      scroll ile TAŞINMAYAN bir kardeş overlay (.ai-chat-body'nin İÇİNDE değil, wrap'in içinde),
      backdrop-filter:blur + kendi üstüne bindirilmiş bir mask-gradient: üstte tamamen görünmez
      (içerik keskin), alta doğru hem bulanıklık hem opaklık artıyor. */
-  #adminPanelOverlay .ai-chat-fade{
-    position:absolute; left:0; right:0; bottom:0; height:56px; pointer-events:none; z-index:2;
-    background:linear-gradient(to bottom, transparent, var(--ap-panel) 85%);
-    -webkit-backdrop-filter:blur(6px); backdrop-filter:blur(6px);
-    -webkit-mask-image:linear-gradient(to bottom, transparent 0%, #000 65%);
-    mask-image:linear-gradient(to bottom, transparent 0%, #000 65%);
-  }
+  /* Composer üstünde çirkin bir gölge/blur bandı olarak görünüyordu (kullanıcı işaretledi) —
+     dekoratif solma örtüsü kaldırıldı. */
+  #adminPanelOverlay .ai-chat-fade{ display:none; }
   #adminPanelOverlay .ai-chat-empty{ margin:auto; text-align:center; max-width:300px; color:var(--ap-muted); }
   #adminPanelOverlay .ai-chat-empty svg{ width:36px; height:36px; color:var(--ap-faint); margin-bottom:10px; }
+  #adminPanelOverlay .ai-chat-empty .ai-empty-logo{ width:46px; height:46px; object-fit:contain; margin:0 auto 12px; display:block; }
+  /* Daktilo imleci — AI metin cevabı yazılırken yanıp söner. */
+  #adminPanelOverlay .ai-bubble.typing::after{ content:''; display:inline-block; width:2px; height:1em; background:currentColor; margin-left:2px; vertical-align:-2px; animation:apAiCaret 1s steps(1) infinite; }
+  @keyframes apAiCaret{ 50%{ opacity:0; } }
   #adminPanelOverlay .ai-chat-empty .t{ color:var(--ap-text); font-weight:700; font-size:.95rem; margin-bottom:5px; }
   #adminPanelOverlay .ai-chat-empty .s{ font-size:.82rem; line-height:1.5; }
 

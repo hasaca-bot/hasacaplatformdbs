@@ -3,22 +3,23 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Çoklu Şube — HASACA</title>
+<title>Çoklu Şube — tada</title>
 <meta name="description" content="Zincirinizi tek merkezden yönetin.">
-<meta name="keywords" content="Çoklu Şube, HASACA, restoran yazılımı, komisyonsuz sipariş">
-<link rel="canonical" href="https://hasacaplatform.netlify.app/coklu-sube">
+<meta name="keywords" content="Çoklu Şube, tada, restoran yazılımı, komisyonsuz sipariş">
+<link rel="canonical" href="https://tadadigital.netlify.app/coklu-sube">
 <meta name="robots" content="index,follow">
 <meta property="og:type" content="website">
-<meta property="og:site_name" content="HASACA">
-<meta property="og:title" content="Çoklu Şube — HASACA">
+<meta property="og:site_name" content="tada">
+<meta property="og:title" content="Çoklu Şube — tada">
 <meta property="og:description" content="Zincirinizi tek merkezden yönetin.">
-<meta property="og:url" content="https://hasacaplatform.netlify.app/coklu-sube">
-<meta property="og:image" content="https://hasacaplatform.netlify.app/logo.png">
+<meta property="og:url" content="https://tadadigital.netlify.app/coklu-sube">
+<meta property="og:image" content="/icons/tada-logo.png">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="Çoklu Şube — HASACA">
+<meta name="twitter:title" content="Çoklu Şube — tada">
 <meta name="twitter:description" content="Zincirinizi tek merkezden yönetin.">
 <meta name="theme-color" content="#0a0a0b">
-<script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Ana Sayfa","item":"https://hasacaplatform.netlify.app/landing"},{"@type":"ListItem","position":2,"name":"Çoklu Şube","item":"https://hasacaplatform.netlify.app/coklu-sube"}]}</script>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Ana Sayfa","item":"https://tadadigital.netlify.app/landing"},{"@type":"ListItem","position":2,"name":"Çoklu Şube","item":"https://tadadigital.netlify.app/coklu-sube"}]}</script>
+<meta property="og:image" content="https://tadadigital.netlify.app/icons/tada-logo.png">
 <link rel="icon" type="image/svg+xml" href="/icons/favicon.svg">
 <link rel="icon" href="/favicon.ico">
 <script>document.documentElement.className += ' js-anim';</script>
@@ -38,7 +39,7 @@
 
 <nav class="nav" id="nav">
   <div class="nav-in">
-    <a href="/landing" class="brand"><span class="mark"><svg class="hasaca-logo-svg" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 12l10 5 10-5"/><path d="M2 17l10 5 10-5"/></svg></span> HASACA</a>
+    <a href="/landing" class="brand"><span class="mark"><img class="tada-logo-img" src="/icons/tada-logo.png" alt="tada" style="width:100%;height:100%;object-fit:contain;display:block;"></span> tada</a>
     <div class="nav-links" id="navLinks">
       <a href="/ozellikler" data-nav="ozellikler">Özellikler</a>
       <a href="/cozumler" data-nav="cozumler">Çözümler</a>
@@ -70,7 +71,7 @@
 <footer class="footer"><div class="wrap">
   <div class="foot-grid" id="footGrid"></div>
   <div class="foot-bottom">
-    <p>© <span id="year"></span> HASACA. <span id="rights">Tüm hakları saklıdır.</span></p>
+    <p>© <span id="year"></span> tada. <span id="rights">Tüm hakları saklıdır.</span></p>
     <button class="theme-switch" id="themeSwitchBtnFoot" onclick="toggleLandingTheme()" aria-label="Tema" title="Siyah &amp; Beyaz Tema">
       <svg class="theme-switch-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 14.5A8.5 8.5 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z" fill="currentColor" stroke="none"/></svg>
     </button>
@@ -156,7 +157,7 @@ const R = {
 
   steps: b => `<section class="block wrap"><div class="rv">
       <div class="b-head"><h2>${esc(t(b.h))}</h2></div>
-      <div class="steps">${b.items.map((i,n)=>`<div class="step"><div class="num"><span class="shine">${n+1}</span></div>
+      <div class="steps">${b.items.map((i,n)=>`<div class="step"><div class="num">${n+1}</div>
         <div><h4>${esc(t(i[0]))}</h4><p>${esc(t(i[1]))}</p></div></div>`).join('')}</div></div></section>`,
 
   faq: b => `<section class="block wrap"><div class="rv">
@@ -265,7 +266,7 @@ function render(){
 
   // footer
   document.getElementById('footGrid').innerHTML =
-    `<div class="foot-brand"><a href="/landing" class="brand"><span class="mark"><svg class="hasaca-logo-svg" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 12l10 5 10-5"/><path d="M2 17l10 5 10-5"/></svg></span> HASACA</a>
+    `<div class="foot-brand"><a href="/landing" class="brand"><span class="mark"><img class="tada-logo-img" src="/icons/tada-logo.png" alt="tada" style="width:100%;height:100%;object-fit:contain;display:block;"></span> tada</a>
       <p>${u('tagline')}</p>
       <div class="foot-social">
         <a href="/iletisim" aria-label="Instagram"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="6"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/></svg></a>

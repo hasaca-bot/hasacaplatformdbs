@@ -734,13 +734,13 @@ async function seedPlatform() {
   try { platform = platformRow ? JSON.parse(platformRow.settings || '{}') : {}; } catch (e) {}
   if (!platformRow) {
     platform = {
-      platform_name: 'HASACA',
+      platform_name: 'tada',
       logo_url: '/icons/placeholder-logo.svg',
       favicon_url: '/icons/favicon.svg',
       login_logo_url: '/icons/placeholder-logo.svg',
-      landing_title: 'HASACA',
+      landing_title: 'tada',
       landing_subtitle: 'Restaurant Platform',
-      footer_brand: 'HASACA',
+      footer_brand: 'tada',
       ai_enabled: false,
       ai_provider: 'groq',
       ai_model: 'llama-3.3-70b-versatile'
@@ -749,7 +749,7 @@ async function seedPlatform() {
       isPg ? 'INSERT INTO platform_settings (id, settings, updated_at) VALUES ($1,$2,$3)' : 'INSERT INTO platform_settings (id, settings, updated_at) VALUES (?,?,?)',
       ['platform', JSON.stringify(platform), now]
     );
-    console.log('[DB] Seeded platform_settings (generic HASACA branding).');
+    console.log('[DB] Seeded platform_settings (generic tada branding).');
   }
 
   // Default tenant = the generic "My Restaurant" master template.

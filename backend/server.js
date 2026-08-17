@@ -559,7 +559,7 @@ app.post('/api/reservations', async (req, res) => {
   }
 });
 
-// POST /api/landing/contact — public lead capture from the HASACA marketing landing page.
+// POST /api/landing/contact — public lead capture from the tada marketing landing page.
 // No auth (public form). Validated + length-capped; stored in landing_messages for the Root Panel.
 app.post('/api/landing/contact', async (req, res) => {
   try {
@@ -1502,13 +1502,13 @@ app.get('/api/platform-config', async (req, res) => {
     let s = {};
     try { s = JSON.parse((row && row.settings) || '{}') || {}; } catch (e) {}
     res.json({
-      platform_name: s.platform_name || 'HASACA',
+      platform_name: s.platform_name || 'tada',
       logo_url: s.logo_url || '/icons/placeholder-logo.svg',
       favicon_url: s.favicon_url || '/icons/favicon.svg',
       login_logo_url: s.login_logo_url || s.logo_url || '/icons/placeholder-logo.svg',
-      landing_title: s.landing_title || s.platform_name || 'HASACA',
+      landing_title: s.landing_title || s.platform_name || 'tada',
       landing_subtitle: s.landing_subtitle || '',
-      footer_brand: s.footer_brand || s.platform_name || 'HASACA',
+      footer_brand: s.footer_brand || s.platform_name || 'tada',
       ai_enabled: !!s.ai_enabled,
       // Client IDs are not secret (unlike API keys) — safe to expose publicly. Empty when unset
       // so the frontend can hide the Google button instead of showing a broken one.
@@ -2016,6 +2016,24 @@ const AI_FIELD_WHITELIST = {
   categories: ['name_tr', 'name_en', ...CATEGORY_LANG_COLUMNS]
 };
 
+// AI asistanının düzenleyebileceği RESTORAN AYARLARI (tenants.settings JSON'unda saklanır) —
+// yalnızca güvenli metin alanları + tema. Bilerek DIŞARIDA bırakılanlar: logo/favicon (dosya
+// yükleme gerekir), sosyal/URL alanları (AI'ın URL uydurması riskli), ve hiçbir güvenlik/ödeme/
+// müşteri/API alanı yok. Küçük veri seti olduğundan prompt'a kompakt biçimde her mesajda eklenir
+// (TPM maliyeti minimal). Mevcut ADMIN_BRANDING_ALLOWED altyapısıyla aynı depolamayı kullanır.
+const AI_SETTING_WHITELIST = ['company_name', 'contact_phone', 'contact_email', 'address', 'whatsapp',
+  'hero_title_tr', 'hero_title_en', 'hero_sub_tr', 'hero_sub_en',
+  'banner_text_tr', 'banner_text_en', 'footer_text', 'theme',
+  'seo_title', 'seo_description', 'seo_keywords'];
+// Kullanıcı dostu Türkçe etiketler (prompt'ta AI'ya alanların ne olduğunu anlatmak için).
+const AI_SETTING_LABELS = {
+  company_name: 'restoran adı', contact_phone: 'telefon', contact_email: 'e-posta', address: 'adres',
+  whatsapp: 'whatsapp numarası', hero_title_tr: 'ana başlık (TR)', hero_title_en: 'ana başlık (EN)',
+  hero_sub_tr: 'alt başlık (TR)', hero_sub_en: 'alt başlık (EN)', banner_text_tr: 'duyuru bandı (TR)',
+  banner_text_en: 'duyuru bandı (EN)', footer_text: 'alt bilgi metni',
+  theme: 'site teması (değerler: dark=koyu, light=açık, bw=siyah-beyaz)',
+  seo_title: 'SEO başlığı', seo_description: 'SEO açıklaması', seo_keywords: 'SEO anahtar kelimeleri' };
+
 const DEFAULT_AI_MODEL = 'llama-3.3-70b-versatile';
 
 // A value saved before the Phase 38 Groq swap ("gemini-...") is not a valid Groq model — treat it
@@ -2101,12 +2119,20 @@ function saveGeneratedImageFile(dataUri, tenantId) {
 // Groq's chat completions endpoint is OpenAI-compatible: Bearer auth, messages array,
 // response_format:{type:"json_object"} for JSON mode. The generated text lives at
 // choices[0].message.content (a string) — parsed the same way the old Gemini path did.
-async function callAiJSON(key, model, systemPrompt, userMessage) {
+async function callAiJSON(key, model, systemPrompt, userMessage, history) {
   const url = 'https://api.groq.com/openai/v1/chat/completions';
+  // Konuşma geçmişi (varsa) sistem promptu ile güncel mesaj arasına eklenir — AI önceki turları
+  // hatırlasın (bağlam kopukluğu düzeltmesi). Güvenlik/TPM için: yalnızca user/assistant rolleri,
+  // kısaltılmış içerik, en fazla son 8 mesaj.
+  const priorMsgs = (Array.isArray(history) ? history : [])
+    .filter(m => m && (m.role === 'user' || m.role === 'assistant') && typeof m.content === 'string' && m.content.trim())
+    .slice(-8)
+    .map(m => ({ role: m.role, content: m.content.slice(0, 600) }));
   const body = {
     model,
     messages: [
       { role: 'system', content: systemPrompt },
+      ...priorMsgs,
       { role: 'user', content: userMessage }
     ],
     response_format: { type: 'json_object' },
@@ -2133,6 +2159,7 @@ app.post('/api/admin/ai-assistant/plan', adminAuth, async (req, res) => {
   try {
     const message = String((req.body && req.body.message) || '').trim().slice(0, 500);
     if (!message) return res.status(400).json({ error: 'message_required' });
+    const history = (req.body && Array.isArray(req.body.history)) ? req.body.history : [];
 
     const cfg = await getAiConfig();
     if (!cfg.ai_enabled || !cfg.ai_key) return res.status(400).json({ error: 'ai_not_configured' });
@@ -2176,85 +2203,45 @@ app.post('/api/admin/ai-assistant/plan', adminAuth, async (req, res) => {
     const productsForPrompt = products.map(stripEmpty);
     const categoriesForPrompt = categories.map(stripEmpty);
 
-    const systemPrompt = `Sen bir restoran yönetim panelinin genel amaçlı AI asistanısın. Konuşduğun kişi
-restoranın sahibi/yöneticisi. Sadece menü düzenlemeyle sınırlı değilsin — sorulara doğal ve serbestçe
-cevap ver, tavsiye ver, sohbet et, görsel oluşturma isteklerini karşıla. Yanıtını HER ZAMAN aşağıdaki
-JSON şemasıyla ver, başka hiçbir şey yazma:
-{"summary": string, "actions": [
-  {"type":"update", "table":"products"|"categories", "targetId": string, "field": string, "newValue": string},
-  {"type":"create", "table":"products"|"categories", "tempId": string, "fields": object},
-  {"type":"delete", "table":"products"|"categories", "targetId": string}
-], "unsupported": [string], "image_prompt": string|null,
-"image_target_product_id": string|null, "image_target_candidates": [string]|null}
+    // Restoran ayarlarını (küçük veri) yükle — AI restoran bilgisi/hero/tema düzenleyebilsin.
+    // Yalnızca AI-whitelist alanları, dolu olanlar prompt'a girer (TPM için kompakt).
+    let tenantSettingsForPrompt = {};
+    try {
+      const tRow = await db.get(isPg ? 'SELECT settings FROM tenants WHERE id = $1' : 'SELECT settings FROM tenants WHERE id = ?', [req.tenantId]);
+      const tSet = JSON.parse((tRow && tRow.settings) || '{}') || {};
+      for (const k of AI_SETTING_WHITELIST) {
+        if (tSet[k] !== undefined && tSet[k] !== '' && tSet[k] !== null) tenantSettingsForPrompt[k] = tSet[k];
+      }
+    } catch (e) {}
 
-Dil kodları (çok dilli menü alanlarında SADECE bu kodları kullan): Türkçe=tr, İngilizce=en,
-Almanca=de, Fransızca=fr, İspanyolca=es, Japonca=ja, Korece=ko, Çince=zh. "tr" TEMEL/ANA dildir —
-çeviri isteklerinde ASLA name_tr/description_tr/portion_tr/ingredients_tr alanlarına dokunma,
-sadece hedef dilin alanlarını (örn. name_de, description_de) doldur/güncelle.
+    // NOT: Sistem promptu, TPM'in HER mesajda ödenen sabit maliyetidir — önceki (çok uzun/tekrarlı)
+    // sürüm basit bir "merhaba"da bile ~2000 token yükü getiriyordu. Aşağıdaki sürüm TÜM kuralları
+    // korur ama söz dizimini belirgin biçimde sıkıştırır (TPM optimizasyonu).
+    const systemPrompt = `Restoran yönetim panelinin AI asistanısın; muhatabın restoran sahibi/yöneticisi. Menü düzenlemenin yanında serbestçe sohbet/tavsiye/görsel-oluşturma da yaparsın. YANITINI SADECE şu JSON ile ver, başka metin yazma:
+{"summary":string,"actions":[{"type":"update","table":"products"|"categories","targetId":string,"field":string,"newValue":string},{"type":"create","table":"products"|"categories","tempId":string,"fields":object},{"type":"delete","table":"products"|"categories","targetId":string},{"type":"setting","field":string,"newValue":string}],"unsupported":[string],"image_prompt":string|null,"image_target_product_id":string|null,"image_target_candidates":[string]|null}
 
-Üç action tipi var:
-- "update": var olan bir ürün/kategoriyi düzenler. SADECE verilen GERÇEK id'leri ve izin verilen
-  alanları kullan. Hesaplama gerekiyorsa (yüzde artış, çeviri vb.) SONUCU SEN HESAPLA ve newValue'ya
-  nihai değeri yaz — asla formül yazma. Fiyat (price) her zaman sayı string'i olmalı (örn. "112.5").
-  ÇOK DİLLİ TOPLU ÇEVİRİ: kullanıcı "menümü Almanca'ya çevir" gibi bir dile TÜM menüyü çevirmeni
-  isterse, bu bir TOPLU "update" işidir, "create" DEĞİL — ürünler/kategoriler zaten var. Sana
-  verilen HER ürün için ilgili alanları (name_XX, description_XX; portion_tr/ingredients_tr doluysa
-  portion_XX/ingredients_XX da) GERÇEK targetId ile ayrı ayrı "update" action'ı olarak öner, aynı
-  şekilde HER kategori için name_XX update'i. Bir ürünün ilgili tr alanı boşsa o alan için action
-  üretme. Kullanıcı "sadece eksik olanları çevir" demediyse, hedef dilde zaten bir değer olsa bile
-  YENİDEN çevir (güncel/tutarlı bir çeviri olarak ele al, atlama).
-- "create": YENİ bir ürün veya kategori oluşturur — kullanıcı "menüme X ekle", "Y kategorisi aç",
-  "restoranımın menüsü şöyle: ..." gibi var olmayan bir şeyi tarif ettiğinde kullan. "tempId" alanına
-  bu plan içinde bu yeni kaydı referans vermek için kendi uydurduğun kısa bir metin yaz (örn. "new-1",
-  "cat-icecekler") — gerçek veritabanı id'si SUNUCU tarafından üretilecek, senin tempId'n sadece AYNI
-  plan içindeki bağımlılıklar için (örn. yeni oluşturduğun bir kategoriye yeni bir ürün atamak
-  istediğinde, o ürünün "fields.category" alanına kategorinin GERÇEK id'si yerine SENİN VERDİĞİN
-  tempId'yi yaz, sunucu bunu otomatik eşleştirecek). products için "fields": {name_tr, name_en,
-  description_tr, description_en, price, category} (name_tr zorunlu, category bir GERÇEK kategori
-  id'si veya AYNI planda oluşturduğun bir kategori tempId'si olmalı) — kullanıcı yeni ürünü birden
-  fazla dilde tarif ettiyse name_de/description_de gibi diğer dil alanlarını da fields'a ekleyebilirsin
-  (hepsi opsiyonel). categories için "fields": {name_tr, name_en} (name_tr zorunlu, name_de gibi
-  diğer dil alanları opsiyonel). Kullanıcı "menümü baştan kur" gibi büyük bir istek yaparsa
-  birden fazla create action'ı tek planda üretmekten çekinme (önce kategoriler, sonra o kategorilere
-  ait ürünler sırayla).
-- "delete": var olan bir ürün/kategoriyi SİLER — kullanıcı açıkça "X'i kaldır/sil" dediğinde kullan,
-  asla kendi kararınla silme. "targetId" GERÇEK id olmalı. Bir kategori silinirse içindeki ürünler
-  otomatik silinmez — kullanıcı "kategoriyi ürünleriyle birlikte kaldır" derse o ürünler için de ayrı
-  delete action'ları ekle.
-Sistemde OLMAYAN bir alan istenirse (açılış saati, telefon, adres vb.) onu "unsupported"a kısa bir
-açıklamayla ekle, ASLA action üretme.
-- Kullanıcı bir görsel oluşturmanı isterse: "image_prompt" alanına SADECE yemeğin/görselin KENDİSİNİ
-  (malzemeler, sunum, tabak/ortam) net bir İngilizce tanımla yaz (örn. "a margherita pizza with fresh
-  basil, melted mozzarella, tomato sauce, wood-fired crust") — stüdyo/kalite/ışık talimatları YAZMA,
-  bunlar otomatik ekleniyor, sadece YEMEĞİN NE OLDUĞUNU tarif et. "summary"ye kısaca ne yaptığını
-  yaz, "actions" boş kalsın. İstek belirli bir menü ürününe atıfta bulunuyorsa (örn. "Margherita
-  Pizza için görsel oluştur", "şu ürün için bir görsel yap", "bu ürünün görselini değiştir", TR/EN
-  fark etmez) — SANA VERİLEN Ürünler listesindeki o ürünün GERÇEK adını, açıklamasını ve kategorisini
-  bul, "image_prompt"u bu gerçek bilgiye göre oluştur (malzemeler, sunum tarzı vb. açıklamadan/
-  isimden çıkar) — asla ürünün ne olduğunu uydurma veya görmezden gelip jenerik bir görsel isteme.
-  Üründe hiç açıklama yoksa sadece ismine göre makul bir tanım oluştur. Görsel belirli bir ürün İÇİN
-  isteniyorsa (o ürünün menü fotoğrafı olacaksa) "image_target_product_id"ye o ürünün GERÇEK id'sini
-  yaz — kullanıcı görseli daha sonra o ürüne fotoğraf olarak atayabilecek. Görsel bir ürünle ilgili
-  DEĞİLSE (genel/dekoratif bir istek) "image_target_product_id" null kalsın. İstek BELİRSİZSE —
-  verilen isim birden fazla GERÇEK ürüne uyabiliyorsa (örn. sadece "burger" dendi ve listede birden
-  fazla burger-benzeri ürün var) — "image_target_product_id"yi null bırak, bunun yerine
-  "image_target_candidates"e olası ürünlerin GERÇEK id'lerini yaz (en az 2), "image_prompt" yine de
-  makul bir genel tanımla doldurulsun (kullanıcı hangi ürünü kastettiğini seçtikten sonra kullanılacak).
-  Belirsizlik yoksa "image_target_candidates" null kalsın.
-- Diğer HER TÜRLÜ soru/sohbet/tavsiye isteğinde (menüyle ilgili olsun olmasın): doğal, yardımcı,
-  samimi bir cevabı "summary" alanına yaz; "actions" ve "image_prompt" boş/null kalsın.
-- SADECE sana aşağıda verilen ürün/kategori JSON verisine erişimin var. Bunun dışında (siparişler,
-  müşteri bilgileri, ödeme/finansal veri, diğer restoranların verisi, sistem/güvenlik ayarları, API
-  anahtarları vb.) HİÇBİR VERİN YOK ve göremezsin/değiştiremezsin — böyle bir şey istenirse elinde
-  olmadığını "summary"de nazikçe belirt, asla veri uydurma.
-İzin verilen düzenlenebilir alanlar — products: ${AI_FIELD_WHITELIST.products.join(', ')}.
-categories: ${AI_FIELD_WHITELIST.categories.join(', ')}.
+Dil kodları (çok dilli alanlarda SADECE bunlar): tr,en,de,fr,es,ja,ko,zh. "tr" ana dildir: çeviride *_tr alanlarına ASLA dokunma, yalnızca hedef dilin alanlarını (name_de vb.) yaz.
+
+Action tipleri:
+- update: var olan kaydı düzenler. SADECE verilen GERÇEK id + izinli alanlar. Hesabı (yüzde/çeviri) SEN yap, newValue'ya NİHAİ değeri yaz (formül yazma). price daima sayı string'i ("112.5"). TOPLU ÇEVİRİ (ör. "menüyü Almanca'ya çevir") create DEĞİL, update'tir: her ürün için ilgili alanları (name_XX, description_XX; ilgili *_tr doluysa portion_XX/ingredients_XX da) ayrı update olarak GERÇEK targetId ile öner; her kategori için name_XX. İlgili tr alanı boşsa o alanı atla. "sadece eksikleri çevir" denmedikçe hedefte değer olsa bile yeniden çevir.
+- create: YENİ ürün/kategori (ör. "menüme X ekle", "Y kategorisi aç"). tempId = plan-içi referans için uydurduğun kısa metin ("new-1"); gerçek id'yi SUNUCU üretir. Aynı planda yeni kategoriye ürün atarken ürünün fields.category alanına o kategorinin tempId'sini yaz (sunucu eşler). products.fields:{name_tr(zorunlu),name_en,description_tr,description_en,price,category(GERÇEK id veya plan-içi tempId)} + istenirse diğer dil alanları. categories.fields:{name_tr(zorunlu),name_en,+opsiyonel diğer diller}. Büyük istekte ("menümü baştan kur") çok create üret (önce kategoriler, sonra ürünler).
+- delete: SADECE kullanıcı açıkça "sil/kaldır" derse; targetId GERÇEK id. Kategori silmek ürünlerini silmez; "ürünleriyle sil" denirse ürünler için de delete ekle.
+- setting: RESTORAN AYARLARINI düzenler (restoran adı, iletişim, ana sayfa hero metni, tema vb. — ürün/kategori DEĞİL). "field" aşağıdaki izinli ayar alanlarından biri olmalı, "newValue" nihai değer. Ör. "restoran adını X yap" → {"type":"setting","field":"company_name","newValue":"X"}; "temayı koyu yap" → {"type":"setting","field":"theme","newValue":"dark"}; "ana başlığı ... yap" → hero_title_tr. Sadece kullanıcının açıkça istediği alan(lar)ı değiştir.
+İzinli ayar alanları (setting): ${AI_SETTING_WHITELIST.map(k => `${k} (${AI_SETTING_LABELS[k] || k})`).join('; ')}.
+Bu listede OLMAYAN bir ayar (çalışma saati, ödeme, güvenlik vb.) istenirse action üretme, "unsupported"a kısa not ekle.
+
+Görsel isteğinde: image_prompt = SADECE yemeğin İngilizce tanımı (malzeme/sunum), stüdyo/ışık/kalite YAZMA (otomatik eklenir). summary'ye kısa not, actions boş. İstek belirli bir ürüne atıfsa o ürünün GERÇEK ad/açıklamasından tanım çıkar (uydurma); açıklama yoksa isimden makul tanım. Ürüne aitse image_target_product_id = o ürünün GERÇEK id'si; değilse null. İsim birden çok ürüne uyuyorsa (belirsiz) product_id null, image_target_candidates'e ≥2 GERÇEK id yaz; belirsiz değilse candidates null.
+
+Diğer tüm soru/sohbet/tavsiyede: doğal ve samimi cevabı summary'ye yaz, actions boş/null.
+SADECE aşağıdaki ürün/kategori verisine ve izinli restoran ayarlarına erişimin var; sipariş, müşteri kişisel verisi, ödeme/finans, başka restoran, sistem/güvenlik, API anahtarı vb. verin YOK ve düzenleyemezsin — istenirse summary'de nazikçe belirt, veri uydurma.
+İzinli alanlar — products: ${AI_FIELD_WHITELIST.products.join(', ')}. categories: ${AI_FIELD_WHITELIST.categories.join(', ')}.
 Ürünler: ${JSON.stringify(productsForPrompt)}
-Kategoriler: ${JSON.stringify(categoriesForPrompt)}`;
+Kategoriler: ${JSON.stringify(categoriesForPrompt)}
+Mevcut restoran ayarları (setting action için): ${JSON.stringify(tenantSettingsForPrompt)}`;
 
     let plan;
     try {
-      plan = await callAiJSON(cfg.ai_key, cfg.ai_model, systemPrompt, message);
+      plan = await callAiJSON(cfg.ai_key, cfg.ai_model, systemPrompt, message, history);
     } catch (e) {
       return res.json({ planId: null, summary: '', actions: [], unsupported: [], error: e.message });
     }
@@ -2311,6 +2298,14 @@ Kategoriler: ${JSON.stringify(categoriesForPrompt)}`;
     // Extremely large menus (200+ products) could still exceed this; a real fix there would be
     // multi-round/chunked translation, out of scope for now.
     for (const a of (Array.isArray(plan.actions) ? plan.actions : []).slice(0, 600)) {
+      // Ayar (restoran bilgisi/hero/tema) action'ı — ürün/kategori tablosundan bağımsız.
+      if (a.type === 'setting') {
+        if (!AI_SETTING_WHITELIST.includes(a.field)) { unsupported.push(`Desteklenmeyen ayar: ${a.field}`); continue; }
+        let v = String(a.newValue ?? '').slice(0, 2000);
+        if (a.field === 'theme') { const tv = v.toLowerCase().trim(); v = ['dark','light','bw'].includes(tv) ? tv : (tv === 'koyu' ? 'dark' : tv === 'açık' || tv === 'acik' ? 'light' : (tv === 'siyah-beyaz' || tv === 'mono' ? 'bw' : '')); if (!v) { unsupported.push('Geçersiz tema değeri'); continue; } }
+        actions.push({ type: 'setting', field: a.field, oldValue: tenantSettingsForPrompt[a.field] ?? '', newValue: v, label: AI_SETTING_LABELS[a.field] || a.field });
+        continue;
+      }
       const table = a.table === 'categories' ? 'categories' : (a.table === 'products' ? 'products' : null);
       if (!table) { unsupported.push(`Desteklenmeyen tablo: ${a.table}`); continue; }
       const type = a.type === 'create' ? 'create' : (a.type === 'delete' ? 'delete' : 'update');
@@ -2418,6 +2413,29 @@ app.post('/api/admin/ai-assistant/execute', adminAuth, async (req, res) => {
           [a.targetId, req.tenantId]
         );
         if (result.changes) applied.push(a);
+      } else if (a.type === 'setting') {
+        // Restoran ayarı — tenants.settings JSON'una yazılır (branding endpoint'iyle aynı depolama).
+        // Yalnızca AI_SETTING_WHITELIST alanları (planlamada zaten doğrulandı, burada bir kez daha).
+        if (!AI_SETTING_WHITELIST.includes(a.field)) continue;
+        const tRow = await db.get(isPg ? 'SELECT settings FROM tenants WHERE id = $1' : 'SELECT settings FROM tenants WHERE id = ?', [req.tenantId]);
+        if (!tRow) continue;
+        let settings = {}; try { settings = JSON.parse(tRow.settings || '{}') || {}; } catch (e) {}
+        settings[a.field] = stripHtmlTags(String(a.newValue ?? ''));
+        // Legacy tenant kolonlarını (iletişim/adres) senkron tut — branding endpoint'iyle aynı davranış.
+        const legacyCols = { contact_phone: 'contact_phone', contact_email: 'contact_email', address: 'address' };
+        if (legacyCols[a.field]) {
+          await db.run(
+            isPg ? `UPDATE tenants SET settings = $1, ${legacyCols[a.field]} = $2, updated_at = $3 WHERE id = $4`
+                 : `UPDATE tenants SET settings = ?, ${legacyCols[a.field]} = ?, updated_at = ? WHERE id = ?`,
+            [JSON.stringify(settings), settings[a.field], Date.now(), req.tenantId]
+          );
+        } else {
+          await db.run(
+            isPg ? 'UPDATE tenants SET settings = $1, updated_at = $2 WHERE id = $3' : 'UPDATE tenants SET settings = ?, updated_at = ? WHERE id = ?',
+            [JSON.stringify(settings), Date.now(), req.tenantId]
+          );
+        }
+        applied.push(a);
       } else if (a.type === 'create' && a.table === 'products') {
         let category = a.fields.category;
         if (tempIdToRealId[category]) category = tempIdToRealId[category];
@@ -2901,7 +2919,7 @@ app.use((req, res, next) => {
 // own site here, unchanged — resolveTenant() (mounted globally, runs before this handler) already
 // read all of that and set req.tenantId accordingly. Only the genuine "nothing was specified at all"
 // case changes: it used to silently render a real tenant's site (whichever one happened to own the
-// host-fallback id); it now renders the HASACA landing page instead. req.tenantId === null is the
+// host-fallback id); it now renders the tada landing page instead. req.tenantId === null is the
 // single source of truth for that case — resolveTenant() only ever sets it to null when no tenant was
 // specified by any means, so this replaces the old duplicate, dev-only-gated host re-derivation.
 // Real per-tenant SEO in index.html's raw HTML, not just client-side (applySiteConfig() still
@@ -2947,7 +2965,7 @@ app.get(['/admin.html', '/admin'], (req, res) => {
   res.sendFile(path.join(rootDir, 'admin.html'));
 });
 
-// HASACA public marketing landing page (platform site — distinct from a tenant's own restaurant site).
+// tada public marketing landing page (platform site — distinct from a tenant's own restaurant site).
 app.get(['/landing', '/hasaca'], (req, res) => {
   res.sendFile(path.join(rootDir, 'landing.html'));
 });
@@ -2960,7 +2978,7 @@ app.get('/tenant/:slug', (req, res) => {
   res.redirect('/?tenant=' + encodeURIComponent(req.params.slug));
 });
 
-// ── HASACA marketing sub-pages (Phase 23) ──
+// ── tada marketing sub-pages (Phase 23) ──
 // One shared shell (marketing.html) renders every page from marketing-data.js.
 // Meta is injected server-side per slug so each URL is genuinely crawlable — this
 // route matters for local dev and any direct-Render request, but in PRODUCTION
@@ -3012,7 +3030,7 @@ app.get(['/restoran-olustur', '/ai-ile-baslayin'], (req, res) => {
 // them (not part of the verified property). PUBLIC_SITE_URL is the one place to update this by
 // hand if the canonical domain ever changes again (matches landing.html's own hardcoded-domain
 // comment) — an env var overrides it without a code change/redeploy if ever needed.
-const PUBLIC_SITE_URL = process.env.PUBLIC_SITE_URL || 'https://hasacaplatform.netlify.app';
+const PUBLIC_SITE_URL = process.env.PUBLIC_SITE_URL || 'https://tadadigital.netlify.app';
 
 function baseUrl(req) {
   const proto = (req.headers['x-forwarded-proto'] || req.protocol || 'https').split(',')[0];
@@ -3029,7 +3047,7 @@ app.get('/robots.txt', (req, res) => {
 app.get('/sitemap.xml', (req, res) => {
   const url = baseUrl(req) + '/';
   const today = new Date().toISOString().slice(0, 10);
-  // The tenant homepage's own lastmod reflects that tenant's real last edit; HASACA-owned pages
+  // The tenant homepage's own lastmod reflects that tenant's real last edit; tada-owned pages
   // (landing + every marketing page) must NOT borrow whichever tenant happened to resolve the
   // request — they used to, which made /landing's lastmod flip depending on which restaurant's
   // host served the sitemap. They get today's date instead (no real per-marketing-page edit
@@ -3050,7 +3068,7 @@ app.use(express.static(rootDir));
 
 // Phase 36: same rule as bare '/' and '/admin' — an unmatched path with no tenant specified must
 // not silently render any real restaurant's site. (The exact bare '/' path is handled separately,
-// above, and shows the HASACA landing page for this same no-tenant case — this catch-all covers
+// above, and shows the tada landing page for this same no-tenant case — this catch-all covers
 // every other unmatched path, where landing.html would not make sense.)
 app.get('*', (req, res) => {
   if (req.tenantId === null) {
@@ -3070,7 +3088,7 @@ app.get('*', (req, res) => {
 initDatabase().then(() => {
   app.listen(PORT, '0.0.0.0', () => {
     console.log(`==================================================`);
-    console.log(` HASACA Platform Server is running!`);
+    console.log(` tada Server is running!`);
     console.log(` Port: ${PORT}`);
     console.log(` Local:  http://localhost:${PORT}`);
     console.log(` Mode:   ${process.env.DATABASE_URL ? 'PRODUCTION (PostgreSQL)' : 'DEVELOPMENT (SQLite)'}`);

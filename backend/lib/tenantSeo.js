@@ -11,7 +11,7 @@
 // NOTE (see phase-51.md): this route only actually executes for requests that
 // reach Express directly (local dev, or a tenant's own custom domain pointed
 // straight at Render) — Netlify's _redirects serves /menu, /t/*, /tenant/* on
-// the shared platformhasaca.netlify.app domain as static files today, bypassing
+// the shared tadadigital.netlify.app domain as static files today, bypassing
 // this entirely, same as it did for the marketing pages before prerendering.
 // =============================================
 
@@ -21,7 +21,7 @@ const esc = (s) => String(s == null ? '' : s)
 function buildTenantHead(tenant, settings, url) {
   const name = settings.company_name || tenant.display_name || tenant.name || 'My Restaurant';
   const title = settings.seo_title || name;
-  const desc = settings.seo_description || `${name} — lezzetli yemekler, hızlı teslimat. HASACA platformu ile oluşturulmuş restoran sitesi.`;
+  const desc = settings.seo_description || `${name} — lezzetli yemekler, hızlı teslimat. tada platformu ile oluşturulmuş restoran sitesi.`;
   const keywords = settings.seo_keywords || 'restoran, menü, online sipariş, yemek, rezervasyon, QR menü';
   const canonical = settings.seo_canonical || url;
   const robots = settings.seo_robots === 'noindex' ? 'noindex,nofollow' : 'index, follow';

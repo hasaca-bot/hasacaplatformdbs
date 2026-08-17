@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Yönetici Girişi — HASACA</title>
-<meta name="description" content="HASACA yönetim paneline güvenli giriş yapın.">
+<title>Yönetici Girişi — tada</title>
+<meta name="description" content="tada yönetim paneline güvenli giriş yapın.">
 <meta name="robots" content="noindex,nofollow">
 <link rel="icon" type="image/svg+xml" href="/icons/favicon.svg">
 <link rel="icon" href="/favicon.ico">
@@ -126,9 +126,19 @@ svg{ stroke-width:2.25; stroke-linecap:round; stroke-linejoin:round; }
    bu, sitenin özel .eye butonuyla aynı sağ köşeye çakışıp kayık/çift ikon görünümüne yol açıyordu. */
 .field input[type="password"]::-ms-reveal,
 .field input[type="password"]::-ms-clear{ display:none; }
+/* Chrome/Edge (Chromium), kayıtlı/önerilen şifre olan alanlara kendi "anahtar" simgesini basıyor
+   — bu da sağ kenarda .eye butonuna bitişik ikinci bir ikon gibi görünüyordu (kullanıcı bunu
+   "kilit ikonu" olarak işaretledi). Standart bastırma yöntemi. */
+.field input[type="password"]::-webkit-credentials-auto-fill-button,
+.field input[type="password"]::-webkit-strong-password-auto-fill-button{
+  display:none !important; visibility:hidden; pointer-events:none; position:absolute; right:0;
+}
 .field input:focus{ outline:none; border-color:rgba(255,255,255,.55); box-shadow:0 0 0 3px var(--gold-soft); }
 .field.err input{ border-color:#c0463a; box-shadow:0 0 0 3px rgba(192,70,58,.18); }
-.eye{ position:absolute; right:8px; background:none; border:none; color:var(--text-mute); cursor:pointer; padding:8px; border-radius:999px; display:grid; place-items:center; }
+/* background:none yerine input yüzeyiyle aynı opak renk — üstteki iki bastırma kuralı bir
+   tarayıcı/eklenti ikonunu tam gizleyemezse bile, bu buton artık şeffaf olmadığından altındaki
+   hiçbir şey sızıp göz ikonuna "bitişik ikinci ikon" gibi görünmez. */
+.eye{ position:absolute; right:8px; background:var(--bg-2); border:none; color:var(--text-mute); cursor:pointer; padding:8px; border-radius:999px; display:grid; place-items:center; }
 .eye:hover{ color:var(--text); }
 .eye svg{ width:17px; height:17px; }
 
@@ -189,7 +199,7 @@ svg{ stroke-width:2.25; stroke-linecap:round; stroke-linejoin:round; }
 
 <div class="shell">
   <div class="top">
-    <a href="/landing" class="brand"><span class="mark"><svg class="hasaca-logo-svg" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 12l10 5 10-5"/><path d="M2 17l10 5 10-5"/></svg></span> HASACA</a>
+    <a href="/landing" class="brand"><span class="mark"><img class="tada-logo-img" src="/icons/tada-logo.png" alt="tada" style="width:100%;height:100%;object-fit:contain;display:block;"></span> tada</a>
     <h1 id="ttl">Yönetici Girişi</h1>
     <p id="sub">Yönetim panelinize erişmek için giriş yapın.</p>
   </div>
@@ -320,7 +330,7 @@ function apply(){
   const isRoot = PANEL === 'root';
   document.getElementById('ttl').textContent = T(isRoot ? 'ttlR' : 'ttlT');
   document.getElementById('sub').textContent = T(isRoot ? 'subR' : 'subT');
-  document.title = T(isRoot ? 'ttlR' : 'ttlT') + ' — HASACA';
+  document.title = T(isRoot ? 'ttlR' : 'ttlT') + ' — tada';
   document.getElementById('tabTenant').textContent = T('tabT');
   document.getElementById('tabRoot').textContent = T('tabR');
   document.getElementById('lblUser').textContent = T('user');

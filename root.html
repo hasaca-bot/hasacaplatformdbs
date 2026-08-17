@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="robots" content="noindex, nofollow">
-<title>HASACA Root Panel</title>
+<title>tada Root Panel</title>
 <link rel="icon" type="image/svg+xml" href="/icons/favicon.svg">
 <link rel="icon" href="/favicon.ico">
 <style>
@@ -233,8 +233,8 @@
   <!-- SIDEBAR -->
   <aside class="app-sidebar" id="appSidebar">
     <div class="side-brand">
-      <span class="mark"><svg class="hasaca-logo-svg" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 12l10 5 10-5"/><path d="M2 17l10 5 10-5"/></svg></span>
-      <span class="txt"><b id="sideBrandName">HASACA</b><small>Root Panel</small></span>
+      <span class="mark"><img class="tada-logo-img" src="/icons/tada-logo.png" alt="tada" style="width:100%;height:100%;object-fit:contain;display:block;"></span>
+      <span class="txt"><b id="sideBrandName">tada</b><small>Root Panel</small></span>
     </div>
 
     <div class="nav-group">
@@ -439,7 +439,7 @@
             <div class="ai-chat-target-wrap">
               <label data-i18n="root_ai_asst_target">Hedef</label>
               <select id="rAiTarget" onchange="rootAiTargetChanged()">
-                <option value="" data-i18n="root_ai_asst_platform">Platform (HASACA markası)</option>
+                <option value="" data-i18n="root_ai_asst_platform">Platform (tada markası)</option>
               </select>
               <p class="ai-chat-target-hint" id="rAiTargetHint" data-i18n="root_ai_asst_platform_hint">Platform adı, logo ve landing metinleri düzenlenir.</p>
             </div>
@@ -707,7 +707,7 @@
 <div class="overlay" id="landingOverlay" onclick="if(event.target===this)closeModal('landingOverlay')">
   <div class="modal" style="width:min(920px,100%);">
     <h2 data-i18n="root_landing_title">Landing Mesajları</h2>
-    <p class="hint" data-i18n="root_landing_hint">HASACA tanıtım sitesindeki iletişim formundan gelen talepler.</p>
+    <p class="hint" data-i18n="root_landing_hint">tada tanıtım sitesindeki iletişim formundan gelen talepler.</p>
     <div style="display:flex;gap:8px;flex-wrap:wrap;margin:10px 0;align-items:center;">
       <select id="lmStatus" onchange="loadLandingMessages()" style="max-width:170px;">
         <option value="" data-i18n="root_landing_all">Tümü</option>
@@ -896,7 +896,7 @@ const i18nData = {
     root_notify_send: "Gönder", root_notify_history: "Gönderim Geçmişi", root_notify_sent: "Gönderildi",
     root_notify_need: "Başlık ve mesaj gerekli.", root_notify_pick: "En az bir restoran seçin.", root_notify_ok: "Bildirim gönderildi",
     root_landing: "Landing Mesajları", root_landing_title: "Landing Mesajları",
-    root_landing_hint: "HASACA tanıtım sitesindeki iletişim formundan gelen talepler.",
+    root_landing_hint: "tada tanıtım sitesindeki iletişim formundan gelen talepler.",
     root_landing_all: "Tümü", root_landing_unread: "Okunmamış", root_landing_read: "Okunmuş", root_landing_archived: "Arşiv",
     root_landing_search: "Ad, restoran veya e-posta ara", root_landing_csv: "CSV Dışa Aktar",
     root_landing_when: "Tarih", root_landing_rest: "Restoran", root_landing_name: "Ad",
@@ -918,8 +918,8 @@ const i18nData = {
     nav_grp_general: "Genel", nav_grp_monitor: "İzleme", nav_grp_comms: "İletişim", nav_grp_settings: "Ayarlar", nav_grp_ai: "Yapay Zeka",
     nav_dashboard: "Panel", nav_restaurants: "Restoranlar", nav_collapse: "Daralt", nav_ai_assistant: "AI Asistanı",
     root_ai_asst_title: "AI Asistanı", root_ai_asst_desc: 'Platform markanızı veya seçtiğiniz restoranın menüsünü doğal dille yönetin.',
-    root_ai_asst_target: "Hedef", root_ai_asst_platform: "Platform (HASACA markası)",
-    root_ai_asst_platform_hint: 'Platform adı, logo ve landing metinleri düzenlenir. Örn: "Platform adını HASACA Pro yap".',
+    root_ai_asst_target: "Hedef", root_ai_asst_platform: "Platform (tada markası)",
+    root_ai_asst_platform_hint: 'Platform adı, logo ve landing metinleri düzenlenir. Örn: "Platform adını tada Pro yap".',
     root_ai_asst_tenant_hint: 'Seçili restoranın ürünleri ve kategorileri düzenlenir. Örn: "Tüm içeceklerin fiyatını %10 artır".',
     root_ai_asst_ph: "Ne yapmak istersiniz?", root_ai_asst_send: "Gönder", root_ai_asst_thinking: "Düşünülüyor…",
     root_ai_asst_plan_title: "Önerilen Değişiklikler", root_ai_asst_confirm: "Onayla ve Uygula", root_ai_asst_cancel: "İptal",
@@ -1019,7 +1019,7 @@ const i18nData = {
     root_notify_send: "Send", root_notify_history: "Send History", root_notify_sent: "Sent",
     root_notify_need: "Title and message are required.", root_notify_pick: "Select at least one restaurant.", root_notify_ok: "Notification sent",
     root_landing: "Landing Messages", root_landing_title: "Landing Messages",
-    root_landing_hint: "Requests from the contact form on the HASACA marketing site.",
+    root_landing_hint: "Requests from the contact form on the tada marketing site.",
     root_landing_all: "All", root_landing_unread: "Unread", root_landing_read: "Read", root_landing_archived: "Archived",
     root_landing_search: "Search name, restaurant or email", root_landing_csv: "Export CSV",
     root_landing_when: "Date", root_landing_rest: "Restaurant", root_landing_name: "Name",
@@ -1041,8 +1041,8 @@ const i18nData = {
     nav_grp_general: "General", nav_grp_monitor: "Monitoring", nav_grp_comms: "Communication", nav_grp_settings: "Settings", nav_grp_ai: "AI",
     nav_dashboard: "Dashboard", nav_restaurants: "Restaurants", nav_collapse: "Collapse", nav_ai_assistant: "AI Assistant",
     root_ai_asst_title: "AI Assistant", root_ai_asst_desc: "Manage your platform branding — or a selected restaurant's menu — in plain language.",
-    root_ai_asst_target: "Target", root_ai_asst_platform: "Platform (HASACA branding)",
-    root_ai_asst_platform_hint: 'Edits the platform name, logo and landing copy. E.g. "Rename the platform to HASACA Pro".',
+    root_ai_asst_target: "Target", root_ai_asst_platform: "Platform (tada branding)",
+    root_ai_asst_platform_hint: 'Edits the platform name, logo and landing copy. E.g. "Rename the platform to tada Pro".',
     root_ai_asst_tenant_hint: 'Edits the selected restaurant\'s products and categories. E.g. "Increase all drink prices by 10%".',
     root_ai_asst_ph: "What would you like to do?", root_ai_asst_send: "Send", root_ai_asst_thinking: "Thinking…",
     root_ai_asst_plan_title: "Proposed Changes", root_ai_asst_confirm: "Confirm & Apply", root_ai_asst_cancel: "Cancel",
@@ -1405,15 +1405,27 @@ function viewCardOrder(id){
 }
 
 async function coSetStatus(id){
-  const status = document.getElementById('coStatusSel').value;
+  const sel = document.getElementById('coStatusSel');
+  if (!sel) { toast(T('root_err')); return; }   // detay paneli render edilmemişse sessiz TypeError yerine net hata
+  const status = sel.value;
   try {
-    await rootFetch('/api/root/card-orders/' + encodeURIComponent(id) + '/status', {
+    const res = await rootFetch('/api/root/card-orders/' + encodeURIComponent(id) + '/status', {
       method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ status })
     });
+    // rootFetch yalnızca 401/403'te throw eder; 400/404/500 sessiz geçiyordu — res.ok kontrolü
+    // olmadan başarısız güncelleme "başarılı" görünüp sonra kaybolabiliyordu. Artık gerçek hata
+    // mesajı gösterilip erken çıkılıyor.
+    if (!res.ok) {
+      let msg = T('root_err');
+      try { const d = await res.json(); if (d && d.error) msg = T('root_err') + ' (' + d.error + ')'; } catch(_){}
+      toast(msg);
+      return;
+    }
     toast(T('root_co_updated'));
-    await loadCardOrders();
-    viewCardOrder(id);
-  } catch(e){ toast(T('root_err')); }
+  } catch(e){ toast(T('root_err')); return; }
+  // Güncelleme başarılı — listeyi/ detayı tazele. Buradaki bir render hatası, BAŞARILI olan
+  // güncellemeyi "başarısız" gibi göstermesin diye ayrı bir try içinde (önceki hata buradaydı).
+  try { await loadCardOrders(); viewCardOrder(id); } catch(_){}
 }
 
 function coCopyText(text){
@@ -1884,7 +1896,7 @@ async function applyPlatformConfig(){
   try {
     const cfg = await (await fetch('/api/platform-config')).json();
     platformCfg = cfg || {};
-    const name = cfg.platform_name || 'HASACA';
+    const name = cfg.platform_name || 'tada';
     const sbn = document.getElementById('sideBrandName'); if (sbn) sbn.textContent = name;
     if (cfg.favicon_url) { let f = document.querySelector('link[rel="icon"]'); if (f) f.href = cfg.favicon_url; }
     document.title = name + ' Root Panel';
@@ -1962,7 +1974,7 @@ function updateSeoPreview(){
   const prev = document.getElementById('bSeoPreview');
   if (prev) {
     const esc = s => String(s||'').replace(/[<>&]/g,c=>({'<':'&lt;','>':'&gt;','&':'&amp;'}[c]));
-    prev.innerHTML = `<div class="sp-title">${esc(title || (company ? company + ' | HASACA' : 'My Restaurant | HASACA'))}</div>`
+    prev.innerHTML = `<div class="sp-title">${esc(title || (company ? company + ' | tada' : 'My Restaurant | tada'))}</div>`
       + `<div class="sp-url">${esc((location.origin||'https://restoran.hasaca.com'))}</div>`
       + `<div class="sp-desc">${esc(desc || '—')}</div>`;
   }

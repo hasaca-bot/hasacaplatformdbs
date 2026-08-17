@@ -2696,7 +2696,12 @@ body.theme-bw .dinein-actions button.primary {
 <!-- TOP BAR -->
 <header class="topbar">
   <a href="#" class="topbar-logo" onclick="window.scrollTo({top:0,behavior:'smooth'});return false;">
-    <img src="/icons/placeholder-logo.svg" alt="My Restaurant" data-i18n-alt="brand_name">
+    <!-- onerror: tenant'ın logo_url'i kırık bir yola işaret ederse (ör. prod'da yüklenmiş ama
+         erişilemeyen /uploads dosyası) tarayıcının broken-image ikonu görünmesin — temiz
+         placeholder'a düş. this.onerror=null sonsuz döngüyü önler (placeholder da bir kez başarısız
+         olursa tekrar denemez). -->
+    <img src="/icons/placeholder-logo.svg" alt="My Restaurant" data-i18n-alt="brand_name"
+         onerror="if(this.src.indexOf('placeholder-logo.svg')===-1){this.onerror=null;this.src='/icons/placeholder-logo.svg';}">
   </a>
   <div style="flex-grow:1;"></div>
 
@@ -4659,7 +4664,7 @@ function renderMenuCards(category) {
     return `
       <div class="food-card" onclick="openFoodDetail('${item.id}')">
         <div class="food-card-img">
-          <img src="${item.image}" alt="${itemName}" loading="lazy">
+          <img src="${item.image}" alt="${itemName}" loading="lazy" onerror="if(this.src.indexOf('placeholder-dish')===-1){this.onerror=null;this.src='/icons/placeholder-dish-1.svg';}">
         </div>
         <div class="food-card-info">
           <h4 class="food-card-title">${itemName}</h4>
@@ -4966,9 +4971,14 @@ function closeFoodDetail(updateHash = true) {
   document.getElementById('foodDetailPanel').classList.remove('open');
   document.body.style.overflow = '';
   
-  // Clear Hash
+  // Clear Hash — `window.location.hash = ''` tarayıcıyı sayfanın EN ÜSTÜNE kaydırıyordu
+  // (mobilde: ürün detayından sepete ekleyip kapatınca menüde başa atma sorununun kaynağı).
+  // Kaydırma konumunu kaydedip hemen geri yükleyerek hash temizlenirken sayfada kalınıyor;
+  // hashchange tabanlı geri-tuşu deep-link davranışı korunuyor.
   if (updateHash && window.location.hash.startsWith('#detay-')) {
+    const y = window.scrollY || window.pageYOffset || 0;
     window.location.hash = '';
+    window.scrollTo(0, y);
   }
 }
 
@@ -7319,7 +7329,7 @@ async function applySiteConfig() {
     }
 
     // ── SEO — full per-tenant meta (title/description/keywords/OG/Twitter/canonical/robots/JSON-LD) ──
-    const seoTitle = s.seo_title || (displayName + ' | HASACA');
+    const seoTitle = s.seo_title || (displayName + ' | tada');
     window.__siteTitle = seoTitle;
     const seoDesc = s.seo_description || '';
     const ogImage = s.og_image || s.logo_url || '/icons/placeholder-logo.svg';
