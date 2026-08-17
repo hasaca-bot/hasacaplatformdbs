@@ -237,6 +237,14 @@ h1,h2,h3{ line-height:1.08; letter-spacing:-.02em; overflow-wrap:break-word; }
   backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px);
   background:rgba(255,255,255,.15); box-shadow:none;
   transition:background .3s;
+  /* Android Chrome smears/ghosts a backdrop-filter'd element that sits inside a
+     position:fixed ancestor while the page scrolls underneath it (compositor doesn't
+     fully repaint the blurred region between frames) — promoting this element to its
+     own GPU layer via transform stops it sharing a layer with the scrolling content,
+     which eliminates the trail (reported: "telefonda kayma", nav pill leaving a
+     blurred smear over the section heading below it while scrolling). */
+  transform:translateZ(0); -webkit-transform:translateZ(0);
+  will-change:transform; isolation:isolate;
 }
 .nav.scrolled .nav-in{ background:rgba(255,255,255,.22); }
 .brand{ display:flex; align-items:center; gap:11px; font-size:20px; letter-spacing:.02em; }
