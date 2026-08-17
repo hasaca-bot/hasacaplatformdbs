@@ -2,11 +2,22 @@
 /api/*       https://hasaca-api.onrender.com/api/:splat     200!
 /uploads/*   https://hasaca-api.onrender.com/uploads/:splat 200!
 
-# robots.txt / sitemap.xml are per-tenant/host-derived (backend/server.js) — proxied so the
-# real dynamic version is served instead of the static placeholder files at the repo root.
-# Bots tolerate Render's free-tier cold start fine; this is not a real-visitor page load.
-/robots.txt  https://hasaca-api.onrender.com/robots.txt     200!
+# sitemap.xml is per-tenant/host-derived (backend/server.js) — proxied so the real dynamic
+# version is served instead of the static placeholder file at the repo root. Bots tolerate
+# Render's free-tier cold start fine for this one; a slow/failed sitemap fetch just gets
+# retried by Search Console later, no global consequence.
 /sitemap.xml https://hasaca-api.onrender.com/sitemap.xml    200!
+
+# robots.txt is served as a STATIC file (below, no Render proxy) on purpose — see phase-82.md.
+# When this route WAS proxied to Render, a cold Render dyno made the robots.txt fetch itself
+# time out, and Google (per the robots.txt spec: unreachable robots.txt = assume everything is
+# disallowed) responded by blocking indexing of the ENTIRE site, not just one page — confirmed
+# live via Search Console's URL Inspection ("Robots.txt tarafından engellendi"). robots.txt
+# doesn't need per-tenant logic on this shared marketing domain (no tenant context resolves for
+# a bare host request here anyway), so trading the Render-side seo_robots dynamism for a file
+# Netlify can always serve instantly removed the failure mode outright. Tenant CUSTOM domains
+# still get the real dynamic per-tenant robots.txt from backend/server.js, since those point
+# straight at Render and never touch this file (see tenantSeo.js's own note on this).
 
 # Platform Core Entry Points
 /root        /root.html        200

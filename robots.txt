@@ -1,4 +1,10 @@
-# Served dynamically per tenant by the server (backend/server.js → GET /robots.txt).
-# This static file is a minimal fallback and is normally superseded by the dynamic route.
+# Served directly by Netlify for this shared marketing domain — NOT proxied to Render (see
+# _redirects and development-logs/phase-82.md). A cold Render dyno made this fetch itself
+# time out, and per the robots.txt spec, an unreachable robots.txt makes Google block indexing
+# of the ENTIRE site, not just this file — confirmed live via Search Console. Tenant custom
+# domains still get the real dynamic per-tenant robots.txt from backend/server.js (they point
+# straight at Render and never touch this file).
 User-agent: *
 Allow: /
+
+Sitemap: https://tadadigital.netlify.app/sitemap.xml
