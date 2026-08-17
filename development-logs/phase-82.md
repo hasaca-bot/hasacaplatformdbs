@@ -91,6 +91,36 @@ dolu bir stored değeri hep tercih ediyor). Bunun yerine mevcut "eski Gemini adl
 haritalıyor (`DEPRECATED_AI_MODELS` map'i, server.js + root.js'te ayrı ayrı). Bu sayede tek bir kod
 deploy'u, elle DB düzeltmesi gerekmeden, üretimdeki bozuk kaydı da otomatik onarıyor.
 
+## 6) TPM optimizasyonu + profesyonel hata mesajları + çok-sağlayıcı (Groq/Gemini)
+
+Kullanıcı canlıda AI'ya art arda mesaj atınca Groq'un ücretsiz TPM limitine (8.000 token/dakika,
+model başına) takılıyordu; ayrıca ham sağlayıcı hata metni ("Rate limit reached... Limit 8000...",
+"model does not exist") kullanıcıya olduğu gibi gösteriliyordu. Kök neden: her çağrı `max_tokens:
+4000`'i sabit rezerve ediyordu (Groq TPM'de prompt+max_tokens sayar) ve tüm menü her mesajda
+gömülüyordu. Yapılanlar (`backend/server.js`, `backend/routes/root.js`, `admin.html`, `root.html`):
+
+- **Dinamik `max_tokens`** (`callAiJSON(...,opts)`): sohbet/tekil düzenleme 1024, yalnızca toplu
+  istek (çeviri / menüyü baştan kur / tüm fiyatlar — `aiClassifyIntent`) 4000. Tipik istek
+  6864→~3600 token (ölçüldü, gerçek tenant verisiyle ~1.8x; çevirili tenant'ta daha fazla).
+- **Ek dil sütunları yalnızca çeviri niyetinde** prompt'a girer (aksi halde saf israf).
+- **Konuşma geçmişi** 8×600 → 6×400 karakter.
+- **Güvenli hata mesajları:** backend ham metin yerine kararlı kod döndürür (`classifyAiError` →
+  `ai_rate_limited`/`ai_provider_error`/`ai_timeout`/`ai_error`); frontend (`adminAiErrorText`/
+  `rootAiErrorText`) sade Türkçe metne çevirir. Ham metin yalnızca sunucu log'una yazılır.
+- **429'da bir kez sınırlı otomatik yeniden deneme** (`retry-after`, ≤3 sn) — anlık TPM tıkanması
+  kullanıcıyı hataya düşürmeden toparlanır.
+- **Çok-sağlayıcı yönlendirme (asıl büyük kazanç):** model adı `gemini*` ise Google'ın
+  OpenAI-uyumlu ucuna (`generativelanguage.googleapis.com/v1beta/openai/...`), aksi halde Groq'a
+  gider (`aiIsGemini`/`aiChatUrl`). İkisi de aynı OpenAI-uyumlu şema → tek kod yolu. Gemini
+  ücretsiz katmanı **250.000 TPM** (Groq'un ~31 katı) sunuyor, kart gerektirmiyor. `cleanAiModel`
+  artık gemini adlarını engellemiyor (Phase 38'de bırakılan NATIVE Gemini API'nin aksine, bu sefer
+  OpenAI-uyumlu uç kullanılıyor — o zamanki "billing gerekiyor" sorununu aşan yol). Bağlantı-testi
+  (`/ai-settings/test`) de modele göre doğru uca gider. **Toleranslı JSON ayrıştırma** (`parseAiJSON`
+  — düz / ```json``` çiti / ilk {..} bloğu) eklendi: bir sağlayıcı `response_format`'ı tam
+  uygulamazsa yanıt yine ayrıştırılır. Varsayılan model Groq gpt-oss-120b kalır (Gemini anahtarı
+  girilene kadar mevcut kurulum çalışmaya devam eder); kullanıcı Root → AI Ayarları'ndan
+  `gemini-2.5-flash` + Gemini anahtarını girip geçiş yapar.
+
 ## Verification
 - tada logosu: flood-fill arka plan temizleme sonucu doğrulandı (iç kıvrım çizgileri korundu,
   sadece kenar-bağlı beyaz bölge şeffaflaştı); siyah-beyaz temada renk değişmediği teyit edildi.

@@ -223,7 +223,12 @@ body.theme-bw .topbar.scrolled {
   background: rgba(255, 255, 255, 0.95);
   border-bottom: 1px solid rgba(15,18,25, 0.08);
 }
+.topbar-logo{ display:flex; align-items:center; gap:10px; text-decoration:none; }
 .topbar-logo img{height:48px;width:auto;object-fit:contain;}
+/* Restoran adı, logonun SAĞINDA (logo solda) — üst bar şeffafken hero üstünde açık renk,
+   bw temada kaydırılınca beyaz zemine düştüğü için koyu renge geçer. */
+.topbar-name{ color:var(--cream); font-size:1.05rem; font-weight:800; letter-spacing:.3px; white-space:nowrap; }
+body.theme-bw .topbar.scrolled .topbar-name{ color:#15171c; }
 .topbar-actions{display:flex;gap:12px;align-items:center;}
 .topbar-phone{
   display:flex;align-items:center;gap:6px;
@@ -2702,6 +2707,7 @@ body.theme-bw .dinein-actions button.primary {
          olursa tekrar denemez). -->
     <img src="/icons/placeholder-logo.svg" alt="My Restaurant" data-i18n-alt="brand_name"
          onerror="if(this.src.indexOf('placeholder-logo.svg')===-1){this.onerror=null;this.src='/icons/placeholder-logo.svg';}">
+    <span class="topbar-name" data-i18n="brand_name">My Restaurant</span>
   </a>
   <div style="flex-grow:1;"></div>
 

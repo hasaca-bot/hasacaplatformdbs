@@ -8154,6 +8154,21 @@ function aiT(key, fallback) {
   return (typeof i18nData !== 'undefined' && i18nData[lang] && i18nData[lang][key]) || fallback;
 }
 function aiAsstEsc(x) { return String(x == null ? '' : x).replace(/[<>&]/g, c => ({'<':'&lt;','>':'&gt;','&':'&amp;'}[c])); }
+// Backend artık ham sağlayıcı (Groq) hata metni yerine kararlı bir KOD döndürür — burada sade,
+// güven veren Türkçe metne çevrilir. Model adı/TPM sayısı gibi teknik ayrıntılar kullanıcıya
+// asla gösterilmez. Bilinmeyen kod → nazik genel mesaj (ham kodu göstermeyiz).
+function adminAiErrorText(code) {
+  switch (code) {
+    case 'ai_not_configured': return aiT('admin_ai_not_configured', 'AI asistanı henüz yapılandırılmadı.');
+    case 'ai_quota_exceeded': return aiT('admin_ai_quota_exceeded', 'Ücretsiz deneme mesaj hakkınız doldu. Devam etmek için bizimle iletişime geçin — yakında ödeme sistemi eklenecek.');
+    case 'ai_rate_limited': return aiT('admin_ai_rate_limited', 'AI şu an çok yoğun. Birkaç saniye sonra tekrar deneyin.');
+    case 'ai_provider_error': return aiT('admin_ai_provider_error', 'AI geçici olarak kullanılamıyor. Lütfen biraz sonra tekrar deneyin.');
+    case 'ai_timeout': return aiT('admin_ai_timeout', 'Bağlantı sorunu oldu, lütfen tekrar deneyin.');
+    case 'plan_not_found':
+    case 'plan_expired': return aiT('admin_ai_plan_expired', 'Bu öneri artık geçerli değil. Lütfen isteğinizi tekrar yazın.');
+    default: return aiT('admin_ai_error_generic', 'Bir şeyler ters gitti, tekrar deneyin.');
+  }
+}
 function aiAsstResolveLabel(a) {
   try {
     if (a.table === 'products' && Array.isArray(window.menuData)) {
@@ -8756,7 +8771,7 @@ async function adminAiSend(){
       method: 'POST', headers: { 'Content-Type': 'application/json' },
       // Konuşma geçmişini de gönder (son turlar) — AI önceki mesajları hatırlasın (bağlam kopukluğu
       // düzeltmesi). Bu mesajı henüz geçmişe eklemedik, o yüzden ayrıca message olarak gidiyor.
-      body: JSON.stringify({ message: msg, history: adminAiHistory.slice(-8) })
+      body: JSON.stringify({ message: msg, history: adminAiHistory.slice(-6) })
     });
     const data = await res.json();
     adminAiStopThinkingOrb();
@@ -8767,10 +8782,7 @@ async function adminAiSend(){
     // "no actionable change found").
     if (data.quota !== undefined) adminAiUpdateQuotaBadge(data.quota);
     if (!res.ok || data.error) {
-      const errMsg = data.error === 'ai_not_configured' ? aiT('admin_ai_not_configured', 'AI asistanı henüz yapılandırılmadı.')
-        : data.error === 'ai_quota_exceeded' ? aiT('admin_ai_quota_exceeded', 'Ücretsiz deneme mesaj hakkınız doldu. Devam etmek için bizimle iletişime geçin — yakında ödeme sistemi eklenecek.')
-        : (data.error || aiT('admin_ai_error_generic', 'Bir hata oluştu.'));
-      typingBubble.innerHTML = '<div class="ai-bubble err">' + aiAsstEsc(errMsg) + '</div>';
+      typingBubble.innerHTML = '<div class="ai-bubble err">' + aiAsstEsc(adminAiErrorText(data.error)) + '</div>';
       return;
     }
     if (!data.planId && !(data.actions && data.actions.length)) {
@@ -8822,7 +8834,7 @@ async function adminAiConfirm(btn){
     });
     const data = await res.json();
     if (!res.ok) {
-      actionsRow.insertAdjacentHTML('beforebegin', '<div class="ai-msg-tag err">' + aiAsstEsc(data.error || aiT('admin_ai_error_generic', 'Bir hata oluştu.')) + '</div>');
+      actionsRow.insertAdjacentHTML('beforebegin', '<div class="ai-msg-tag err">' + aiAsstEsc(adminAiErrorText(data.error)) + '</div>');
       actionsRow.querySelectorAll('button').forEach(b => b.disabled = false);
       return;
     }

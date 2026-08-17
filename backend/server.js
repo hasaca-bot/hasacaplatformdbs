@@ -2042,8 +2042,32 @@ const DEFAULT_AI_MODEL = 'openai/gpt-oss-120b';
 // sent straight to a doomed request — this fixes every existing install without a manual DB edit.
 const DEPRECATED_AI_MODELS = { 'llama-3.3-70b-versatile': 'openai/gpt-oss-120b', 'llama-3.1-8b-instant': 'openai/gpt-oss-20b' };
 function cleanAiModel(m) {
-  if (!m || /^gemini/i.test(m)) return '';
+  if (!m) return '';
   return DEPRECATED_AI_MODELS[m] || m;
+}
+
+// Sağlayıcı, model adından belirlenir: "gemini*" → Google'ın OpenAI-uyumlu ucu (ücretsiz katmanda
+// çok daha yüksek TPM, ~250K/dk); aksi halde Groq. İkisi de aynı OpenAI-uyumlu şemayı (Bearer +
+// messages + response_format + max_tokens) konuştuğu için tek callAiJSON kod yolu ikisine de gider;
+// yalnızca istek URL'i değişir. Anahtar da (ai_key) hangi sağlayıcı seçiliyse ona ait olmalı.
+function aiIsGemini(model) { return /^gemini/i.test(String(model || '')); }
+function aiChatUrl(model) {
+  return aiIsGemini(model)
+    ? 'https://generativelanguage.googleapis.com/v1beta/openai/chat/completions'
+    : 'https://api.groq.com/openai/v1/chat/completions';
+}
+// Toleranslı JSON ayrıştırma — response_format'ı tam uygulamayan bir sağlayıcı yanıtı ```json```
+// bloğu içinde veya çevresinde açıklama metniyle döndürebilir. Önce düz JSON, sonra çit-soyulmuş,
+// sonra ilk {..son} bloğu denenir; hiçbiri tutmazsa 'bad_json' fırlatılır (üstte ai_error olur).
+function parseAiJSON(text) {
+  if (typeof text !== 'string' || !text.trim()) throw new Error('bad_json');
+  let s = text.trim();
+  const fence = s.match(/```(?:json)?\s*([\s\S]*?)\s*```/i);
+  if (fence) s = fence[1].trim();
+  try { return JSON.parse(s); } catch (_) {}
+  const a = s.indexOf('{'), b = s.lastIndexOf('}');
+  if (a !== -1 && b > a) { try { return JSON.parse(s.slice(a, b + 1)); } catch (_) {} }
+  throw new Error('bad_json');
 }
 
 async function getAiConfig() {
@@ -2122,18 +2146,35 @@ function saveGeneratedImageFile(dataUri, tenantId) {
   return `/uploads/${filename}`;
 }
 
+// Sağlayıcı (Groq) ham hata metnini/HTTP kodunu kullanıcıya GÖSTERİLMEYECEK kararlı bir koda
+// çevirir — model adı, TPM sayıları, "does not exist" gibi teknik/korkutucu ayrıntılar sızmasın.
+// Frontend bu kodu yerelleştirilmiş nazik metne çevirir (admin.html adminAiErrorText / root.html).
+function classifyAiError(status, msg) {
+  const m = String(msg || '').toLowerCase();
+  if (status === 429 || /rate limit|tokens per minute|\btpm\b|too many requests|quota/.test(m)) return 'ai_rate_limited';
+  if (status === 401 || status === 403 || status === 404 ||
+      /does not exist|no access|invalid api key|invalid_api_key|model_not_found|model_decommissioned|unauthorized|permission|authentication/.test(m)) return 'ai_provider_error';
+  if (/tim(e|ed) ?out|network|fetch failed|econn|socket|aborted|dns|getaddrinfo/.test(m)) return 'ai_timeout';
+  return 'ai_error';
+}
+
 // Groq's chat completions endpoint is OpenAI-compatible: Bearer auth, messages array,
 // response_format:{type:"json_object"} for JSON mode. The generated text lives at
 // choices[0].message.content (a string) — parsed the same way the old Gemini path did.
-async function callAiJSON(key, model, systemPrompt, userMessage, history) {
-  const url = 'https://api.groq.com/openai/v1/chat/completions';
+// opts.maxTokens: TPM optimizasyonu — Groq TPM muhasebesinde prompt+max_tokens sayılır, bu yüzden
+// rezerv isteğin gerçekten ne kadar çıktı ürettiğine göre ölçeklenir (sohbet ~1024, toplu ~4000).
+// Fırlatılan Error'a .aiCode (kararlı kod) ve varsa .retryAfter iliştirilir; 429'da bir kez sınırlı
+// bekleyip sessizce tekrar dener (anlık TPM tıkanması kullanıcıyı hataya düşürmeden toparlansın).
+async function callAiJSON(key, model, systemPrompt, userMessage, history, opts) {
+  opts = opts || {};
+  const url = aiChatUrl(model);
   // Konuşma geçmişi (varsa) sistem promptu ile güncel mesaj arasına eklenir — AI önceki turları
   // hatırlasın (bağlam kopukluğu düzeltmesi). Güvenlik/TPM için: yalnızca user/assistant rolleri,
-  // kısaltılmış içerik, en fazla son 8 mesaj.
+  // kısaltılmış içerik, en fazla son 6 mesaj.
   const priorMsgs = (Array.isArray(history) ? history : [])
     .filter(m => m && (m.role === 'user' || m.role === 'assistant') && typeof m.content === 'string' && m.content.trim())
-    .slice(-8)
-    .map(m => ({ role: m.role, content: m.content.slice(0, 600) }));
+    .slice(-6)
+    .map(m => ({ role: m.role, content: m.content.slice(0, 400) }));
   const body = {
     model,
     messages: [
@@ -2142,21 +2183,58 @@ async function callAiJSON(key, model, systemPrompt, userMessage, history) {
       { role: 'user', content: userMessage }
     ],
     response_format: { type: 'json_object' },
-    // Explicit ceiling: a full-menu translate-to-one-language request can produce a much larger
-    // JSON response than any prior use of this endpoint (one update action per product per new
-    // field) — without this, a large menu risks a silently-truncated response that fails
-    // JSON.parse (caught below, surfaces as a generic chat error, not data corruption).
-    // Kept modest on purpose: this account's Groq tier caps input+output at 12000 tokens PER
-    // MINUTE (live-tested: 8000 pushed a themed 11-product/4-category tenant over that limit
-    // outright). 4000 leaves headroom for the prompt + product/category data on top.
-    max_tokens: 4000
+    max_tokens: Math.max(256, Math.min(6000, opts.maxTokens || 1024))
   };
-  const r = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + key }, body: JSON.stringify(body) });
-  const data = await r.json();
-  if (!r.ok) throw new Error((data.error && data.error.message) || ('http_' + r.status));
-  const text = data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content;
-  if (!text) throw new Error('empty_response');
-  return JSON.parse(text);
+  let attempt = 0;
+  while (true) {
+    let r, data;
+    try {
+      r = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + key }, body: JSON.stringify(body) });
+    } catch (netErr) {
+      const err = new Error('network_error'); err.aiCode = 'ai_timeout'; throw err;
+    }
+    try { data = await r.json(); } catch (_) { data = {}; }
+    if (r.ok) {
+      const text = data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content;
+      if (!text) { const err = new Error('empty_response'); err.aiCode = 'ai_error'; throw err; }
+      try { return parseAiJSON(text); }
+      catch (_) { const err = new Error('bad_json'); err.aiCode = 'ai_error'; throw err; }
+    }
+    const rawMsg = (data.error && data.error.message) || ('http_' + r.status);
+    const code = classifyAiError(r.status, rawMsg);
+    const retryHdr = parseFloat(r.headers.get('retry-after'));
+    const retryFromMsg = parseFloat((rawMsg.match(/try again in ([\d.]+)s/i) || [])[1]);
+    // 429: anlık TPM tıkanması — bir kez, kısa ve üst-sınırlı bekleyip sessizce yeniden dene.
+    if (code === 'ai_rate_limited' && attempt === 0) {
+      let waitMs = (Number.isFinite(retryHdr) ? retryHdr : (Number.isFinite(retryFromMsg) ? retryFromMsg : 2)) * 1000;
+      waitMs = Math.min(Math.max(waitMs, 500), 3000);
+      attempt++;
+      await new Promise(res => setTimeout(res, waitMs));
+      continue;
+    }
+    // Ham metin YALNIZCA sunucu log'una (teşhis) — istemciye kararlı kod gider.
+    console.error('[AI] Groq error', r.status, rawMsg);
+    const err = new Error(rawMsg);
+    err.aiCode = code;
+    err.retryAfter = code === 'ai_rate_limited' ? (Number.isFinite(retryHdr) ? retryHdr : (Number.isFinite(retryFromMsg) ? retryFromMsg : null)) : null;
+    throw err;
+  }
+}
+
+// TPM optimizasyonu — isteğin niyetini mesaj metninden hafifçe tespit eder. Tek kaynak: sunucu
+// (mesaj zaten buraya geliyor), frontend'e kopyalanmaz. İki karar üretir:
+//  - bulk: büyük JSON çıktısı beklenir mi (toplu çeviri / menüyü baştan kur / tüm fiyatlar) →
+//    max_tokens tavanı yükseltilir; aksi halde sohbet/tekil düzenleme için düşük tavan.
+//  - translation: çeviri isteği mi → yalnızca bu durumda ek dil sütunları (name_de, ...) prompt'a
+//    eklenir (aksi halde saf token israfı; çeviri yapmış bir tenant her mesajda 6 dili gönderiyordu).
+function aiClassifyIntent(msg) {
+  const m = String(msg || '').toLowerCase();
+  const translation = /çevir|cevir|çeviri|ceviri|translate|translation|almanca|i̇ngilizce|ingilizce|fransızca|fransizca|ispanyolca|italyanca|japonca|korece|çince|cince|rusça|rusca|arapça|arapca|german|deutsch|french|spanish|japanese|korean|chinese/.test(m);
+  const allWords = /tüm|tum|bütün|butun|hepsi|hepsini|tamamı|tamami|komple|toplu|baştan|bastan|sıfırdan|sifirdan|\ball\b|entire|whole/.test(m);
+  const rebuild = /(menü|menu)[^.!?]{0,40}(kur|oluştur|olustur|yeniden|sıfırdan|sifirdan)|(kur|oluştur|olustur)[^.!?]{0,40}(menü|menu)/.test(m);
+  const bulkPrice = allWords && /fiyat|price|zam|indirim|%|yüzde|yuzde/.test(m);
+  const bulkCatalog = allWords && /ürün|urun|product|kategori|category|menü|menu/.test(m);
+  return { bulk: translation || rebuild || bulkPrice || bulkCatalog, translation };
 }
 
 // POST /api/admin/ai-assistant/plan — { message } -> { planId, summary, actions, unsupported }
@@ -2166,6 +2244,9 @@ app.post('/api/admin/ai-assistant/plan', adminAuth, async (req, res) => {
     const message = String((req.body && req.body.message) || '').trim().slice(0, 500);
     if (!message) return res.status(400).json({ error: 'message_required' });
     const history = (req.body && Array.isArray(req.body.history)) ? req.body.history : [];
+    // TPM: isteğin niyeti (toplu çıktı mı / çeviri mi) — max_tokens tavanı ve ek-dil sütunlarının
+    // prompt'a girip girmeyeceği buna göre belirlenir (aşağıda).
+    const intent = aiClassifyIntent(message);
 
     const cfg = await getAiConfig();
     if (!cfg.ai_enabled || !cfg.ai_key) return res.status(400).json({ error: 'ai_not_configured' });
@@ -2198,16 +2279,17 @@ app.post('/api/admin/ai-assistant/plan', adminAuth, async (req, res) => {
       [req.tenantId]
     );
 
-    // Boş (henüz çevrilmemiş) alanları prompt'a gömmeden önce at — bir tenant 6 ek dile hiç
-    // çeviri yaptırmadıysa ürün başına 24 sütunun çoğu boş string olur ve modele bilgi
-    // taşımadan sadece token tüketir (Groq'un ücretsiz TPM limitine karşı gereksiz maliyet).
-    // Sadece prompt'a giden kopyayı etkiler — action doğrulaması hâlâ orijinal products/
-    // categories'i kullanır.
-    const stripEmpty = row => Object.fromEntries(
-      Object.entries(row).filter(([, v]) => v !== '' && v !== null)
+    // Prompt'a giden kopyayı incelt (TPM): (1) boş (henüz çevrilmemiş) alanları at; (2) ÇEVİRİ
+    // isteği DEĞİLSE ek dil sütunlarını (name_de, description_fr … × 6 dil) tamamen çıkar — bunlar
+    // yalnızca çeviri isteğinde işe yarar, çeviri yapmış bir tenant için aksi halde her mesajda
+    // (ör. "merhaba") saf token israfıdır. Yalnızca prompt kopyasını etkiler — action doğrulaması
+    // hâlâ orijinal, TAM sütunlu products/categories'i kullanır (aşağıda productsById).
+    const langCols = new Set([...PRODUCT_LANG_COLUMNS, ...CATEGORY_LANG_COLUMNS]);
+    const stripForPrompt = row => Object.fromEntries(
+      Object.entries(row).filter(([k, v]) => v !== '' && v !== null && (intent.translation || !langCols.has(k)))
     );
-    const productsForPrompt = products.map(stripEmpty);
-    const categoriesForPrompt = categories.map(stripEmpty);
+    const productsForPrompt = products.map(stripForPrompt);
+    const categoriesForPrompt = categories.map(stripForPrompt);
 
     // Restoran ayarlarını (küçük veri) yükle — AI restoran bilgisi/hero/tema düzenleyebilsin.
     // Yalnızca AI-whitelist alanları, dolu olanlar prompt'a girer (TPM için kompakt).
@@ -2245,11 +2327,17 @@ SADECE aşağıdaki ürün/kategori verisine ve izinli restoran ayarlarına eri�
 Kategoriler: ${JSON.stringify(categoriesForPrompt)}
 Mevcut restoran ayarları (setting action için): ${JSON.stringify(tenantSettingsForPrompt)}`;
 
+    // TPM: Groq muhasebesinde prompt+max_tokens sayılır. Sohbet/tekil düzenleme küçük bir yanıt
+    // üretir → düşük tavan (bütçenin çoğu boşuna rezerve edilmesin). Yalnızca gerçekten büyük JSON
+    // üreten toplu istekler (çeviri / menüyü baştan kur / tüm fiyatlar) yüksek tavan alır.
+    const maxTokens = intent.bulk ? 4000 : 1024;
+
     let plan;
     try {
-      plan = await callAiJSON(cfg.ai_key, cfg.ai_model, systemPrompt, message, history);
+      plan = await callAiJSON(cfg.ai_key, cfg.ai_model, systemPrompt, message, history, { maxTokens });
     } catch (e) {
-      return res.json({ planId: null, summary: '', actions: [], unsupported: [], error: e.message });
+      // Ham sağlayıcı metni istemciye ASLA gitmez — kararlı kod + (varsa) retryAfter döner.
+      return res.json({ planId: null, summary: '', actions: [], unsupported: [], error: e.aiCode || 'ai_error', retryAfter: e.retryAfter || null });
     }
 
     // Counts against quota once the Groq call actually succeeds — a real API call was spent

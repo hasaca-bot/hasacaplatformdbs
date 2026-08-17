@@ -648,8 +648,27 @@ module.exports = function createRootRouter({ db, isPg, invalidateTenantCache, si
   // sent straight to a doomed request — this fixes every existing install without a manual DB edit.
   const DEPRECATED_AI_MODELS = { 'llama-3.3-70b-versatile': 'openai/gpt-oss-120b', 'llama-3.1-8b-instant': 'openai/gpt-oss-20b' };
   const cleanAiModel = m => {
-    if (!m || /^gemini/i.test(m)) return '';
+    if (!m) return '';
     return DEPRECATED_AI_MODELS[m] || m;
+  };
+  // Sağlayıcı model adından: "gemini*" → Google OpenAI-uyumlu ucu (yüksek ücretsiz TPM); aksi Groq.
+  // (server.js'teki aiIsGemini/aiChatUrl/parseAiJSON'ın ikizi; modüller bağımsız kalsın diye burada.)
+  const aiIsGemini = model => /^gemini/i.test(String(model || ''));
+  const aiChatUrl = model => aiIsGemini(model)
+    ? 'https://generativelanguage.googleapis.com/v1beta/openai/chat/completions'
+    : 'https://api.groq.com/openai/v1/chat/completions';
+  const aiModelsUrl = model => aiIsGemini(model)
+    ? 'https://generativelanguage.googleapis.com/v1beta/openai/models'
+    : 'https://api.groq.com/openai/v1/models';
+  const parseAiJSON = text => {
+    if (typeof text !== 'string' || !text.trim()) throw new Error('bad_json');
+    let s = text.trim();
+    const fence = s.match(/```(?:json)?\s*([\s\S]*?)\s*```/i);
+    if (fence) s = fence[1].trim();
+    try { return JSON.parse(s); } catch (_) {}
+    const a = s.indexOf('{'), b = s.lastIndexOf('}');
+    if (a !== -1 && b > a) { try { return JSON.parse(s.slice(a, b + 1)); } catch (_) {} }
+    throw new Error('bad_json');
   };
 
   router.get('/ai-settings', async (req, res) => {
@@ -692,16 +711,18 @@ module.exports = function createRootRouter({ db, isPg, invalidateTenantCache, si
     }
   });
 
-  // POST /api/root/ai-settings/test — validates a Groq key with a cheap model-list call
-  // (no content generation, no quota spent). Tests the submitted key, or falls back to the saved one.
+  // POST /api/root/ai-settings/test — validates a key with a cheap model-list call (no content
+  // generation, no quota spent). Sağlayıcı, gönderilen (yoksa kayıtlı) model adından belirlenir —
+  // Gemini anahtarı Google ucunda, Groq anahtarı Groq ucunda test edilir.
   router.post('/ai-settings/test', async (req, res) => {
     try {
       const b = req.body || {};
       let key = typeof b.ai_key === 'string' ? b.ai_key.trim() : '';
-      if (!key) { const p = await getPlatform(); key = p.ai_key || ''; }
+      let model = typeof b.ai_model === 'string' ? b.ai_model.trim() : '';
+      if (!key || !model) { const p = await getPlatform(); if (!key) key = p.ai_key || ''; if (!model) model = cleanAiModel(p.ai_model) || DEFAULT_AI_MODEL; }
       if (!key) return res.json({ ok: false, error: 'no_key_configured' });
 
-      const r = await fetch('https://api.groq.com/openai/v1/models', { headers: { 'Authorization': 'Bearer ' + key } });
+      const r = await fetch(aiModelsUrl(model), { headers: { 'Authorization': 'Bearer ' + key } });
       if (r.ok) return res.json({ ok: true });
       const errBody = await r.json().catch(() => ({}));
       return res.json({ ok: false, error: (errBody.error && errBody.error.message) || ('http_' + r.status) });
@@ -727,22 +748,55 @@ module.exports = function createRootRouter({ db, isPg, invalidateTenantCache, si
 
   // OpenAI-compatible: Bearer auth, messages array, response_format json_object. See server.js's
   // callAiJSON for the tenant-side twin of this function (identical shape, different call sites).
+  // Sağlayıcı ham hatasını kullanıcıya gösterilmeyecek kararlı koda çevirir (server.js'teki
+  // classifyAiError'ın ikizi; iki modül bağımsız kalsın diye küçük helper burada da tanımlı).
+  const classifyAiError = (status, msg) => {
+    const m = String(msg || '').toLowerCase();
+    if (status === 429 || /rate limit|tokens per minute|\btpm\b|too many requests|quota/.test(m)) return 'ai_rate_limited';
+    if (status === 401 || status === 403 || status === 404 ||
+        /does not exist|no access|invalid api key|invalid_api_key|model_not_found|model_decommissioned|unauthorized|permission|authentication/.test(m)) return 'ai_provider_error';
+    if (/tim(e|ed) ?out|network|fetch failed|econn|socket|aborted|dns|getaddrinfo/.test(m)) return 'ai_timeout';
+    return 'ai_error';
+  };
   async function callAiJSONRoot(key, model, systemPrompt, userMessage) {
-    const url = 'https://api.groq.com/openai/v1/chat/completions';
+    const url = aiChatUrl(model);
     const body = {
       model,
       messages: [
         { role: 'system', content: systemPrompt },
         { role: 'user', content: userMessage }
       ],
-      response_format: { type: 'json_object' }
+      response_format: { type: 'json_object' },
+      // TPM: Groq prompt+max_tokens sayar; root planları da açık, ölçülü bir tavanla gitsin.
+      max_tokens: 2000
     };
-    const r = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + key }, body: JSON.stringify(body) });
-    const data = await r.json();
-    if (!r.ok) throw new Error((data.error && data.error.message) || ('http_' + r.status));
-    const text = data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content;
-    if (!text) throw new Error('empty_response');
-    return JSON.parse(text);
+    let attempt = 0;
+    while (true) {
+      let r, data;
+      try {
+        r = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + key }, body: JSON.stringify(body) });
+      } catch (netErr) { const err = new Error('network_error'); err.aiCode = 'ai_timeout'; throw err; }
+      try { data = await r.json(); } catch (_) { data = {}; }
+      if (r.ok) {
+        const text = data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content;
+        if (!text) { const err = new Error('empty_response'); err.aiCode = 'ai_error'; throw err; }
+        try { return parseAiJSON(text); }
+        catch (_) { const err = new Error('bad_json'); err.aiCode = 'ai_error'; throw err; }
+      }
+      const rawMsg = (data.error && data.error.message) || ('http_' + r.status);
+      const code = classifyAiError(r.status, rawMsg);
+      const retryHdr = parseFloat(r.headers.get('retry-after'));
+      const retryFromMsg = parseFloat((rawMsg.match(/try again in ([\d.]+)s/i) || [])[1]);
+      if (code === 'ai_rate_limited' && attempt === 0) {
+        let waitMs = (Number.isFinite(retryHdr) ? retryHdr : (Number.isFinite(retryFromMsg) ? retryFromMsg : 2)) * 1000;
+        waitMs = Math.min(Math.max(waitMs, 500), 3000);
+        attempt++;
+        await new Promise(res => setTimeout(res, waitMs));
+        continue;
+      }
+      console.error('[ROOT AI] Groq error', r.status, rawMsg);
+      const err = new Error(rawMsg); err.aiCode = code; throw err;
+    }
   }
 
   router.post('/ai-assistant/plan', async (req, res) => {
@@ -811,7 +865,7 @@ Kategoriler: ${JSON.stringify(categories)}`;
 
       let plan;
       try { plan = await callAiJSONRoot(p.ai_key, cleanAiModel(p.ai_model) || DEFAULT_AI_MODEL, systemPrompt, message); }
-      catch (e) { return res.json({ planId: null, summary: '', actions: [], unsupported: [], error: e.message }); }
+      catch (e) { return res.json({ planId: null, summary: '', actions: [], unsupported: [], error: e.aiCode || 'ai_error' }); }
 
       const unsupported = Array.isArray(plan.unsupported) ? plan.unsupported.slice(0, 20) : [];
       const actions = resolveActions(plan, unsupported);

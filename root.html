@@ -636,7 +636,7 @@
 <!-- AI SETTINGS MODAL (Phase G) -->
 <div class="overlay" id="aiOverlay" onclick="if(event.target===this)closeModal('aiOverlay')">
   <div class="modal">
-    <h2 data-i18n="root_ai_title">AI Ayarları (Groq)</h2>
+    <h2 data-i18n="root_ai_title">AI Ayarları</h2>
     <p class="hint" data-i18n="root_ai_hint">Tek bir platform anahtarı. Restoran sahipleri anahtar girmez. Anahtar yalnız sunucuda saklanır.</p>
     <label style="display:flex;align-items:center;gap:8px;text-transform:none;letter-spacing:0;color:var(--text);font-weight:600;">
       <input type="checkbox" id="aiEnabled"> <span data-i18n="root_ai_enable">AI özelliklerini etkinleştir</span>
@@ -645,7 +645,8 @@
     <input type="password" id="aiKey" autocomplete="off" placeholder="gsk_...">
     <div class="hint" id="aiKeyStatus"></div>
     <label data-i18n="root_ai_model">Varsayılan Model</label>
-    <input type="text" id="aiModel" placeholder="llama-3.3-70b-versatile">
+    <input type="text" id="aiModel" placeholder="gemini-2.5-flash">
+    <div class="hint" data-i18n="root_ai_model_hint">Google Gemini için <b>gemini-2.5-flash</b> (ücretsiz, yüksek limit — anahtar: aistudio.google.com/apikey) · Groq için <b>openai/gpt-oss-120b</b>. Anahtar seçtiğiniz sağlayıcıya ait olmalı.</div>
     <div id="aiTestResult" style="margin-top:10px;font-size:.85rem;"></div>
 
     <div style="margin-top:18px;padding-top:16px;border-top:1px solid var(--line);">
@@ -835,7 +836,7 @@ const i18nData = {
     root_branding_hint: "Kod değiştirmeden platformun logosu, favicon'u ve giriş logosunu buradan ayarlayın.",
     root_brand_platform_name: "Platform Adı", root_brand_logo_url: "Logo",
     root_brand_login_logo: "Giriş Logosu", root_brand_favicon: "Favicon", root_brand_footer: "Footer Markası",
-    root_ai_title: "AI Ayarları (Groq)",
+    root_ai_title: "AI Ayarları",
     root_ai_hint: "Tek bir platform anahtarı. Restoran sahipleri anahtar girmez. Anahtar yalnız sunucuda saklanır.",
     root_ai_enable: "AI özelliklerini etkinleştir", root_ai_key: "API Anahtarı",
     root_ai_model: "Varsayılan Model", root_ai_test: "Bağlantıyı Test Et",
@@ -958,7 +959,7 @@ const i18nData = {
     root_branding_hint: "Set the platform logo, favicon and login logo here — no code changes needed.",
     root_brand_platform_name: "Platform Name", root_brand_logo_url: "Logo",
     root_brand_login_logo: "Login Logo", root_brand_favicon: "Favicon", root_brand_footer: "Footer Brand",
-    root_ai_title: "AI Settings (Groq)",
+    root_ai_title: "AI Settings",
     root_ai_hint: "One shared platform key. Restaurant owners never enter keys. The key is stored on the backend only.",
     root_ai_enable: "Enable AI features", root_ai_key: "API Key",
     root_ai_model: "Default Model", root_ai_test: "Test Connection",
@@ -2215,7 +2216,7 @@ async function openAiSettingsModal(){
   try {
     const s = await (await rootFetch('/api/root/ai-settings')).json();
     document.getElementById('aiEnabled').checked = !!s.ai_enabled;
-    document.getElementById('aiModel').value = s.ai_model || 'llama-3.3-70b-versatile';
+    document.getElementById('aiModel').value = s.ai_model || 'gemini-2.5-flash';
     document.getElementById('aiKey').value = '';
     document.getElementById('aiKeyStatus').textContent = s.key_set ? T('root_ai_key_set') : T('root_ai_key_unset');
     document.getElementById('aiTestResult').textContent = '';
@@ -2260,6 +2261,26 @@ async function testAiConnection(){
 let rootAiPlanId = null;
 let rootAiPendingBubble = null; // the .ai-msg element holding the currently-actionable plan, if any
 function rootAiEsc(x){ return String(x == null ? '' : x).replace(/[<>&]/g, c => ({'<':'&lt;','>':'&gt;','&':'&amp;'}[c])); }
+// Backend artık ham sağlayıcı (Groq) hata metni yerine kararlı bir KOD döndürür — burada sade,
+// güven veren metne çevrilir (model adı/TPM sayısı gibi teknik ayrıntılar kullanıcıya sızmaz).
+function rootAiErrorText(code){
+  const tr = {
+    ai_not_configured: T('root_ai_asst_not_configured'),
+    ai_rate_limited: 'AI şu an çok yoğun. Birkaç saniye sonra tekrar deneyin.',
+    ai_provider_error: 'AI geçici olarak kullanılamıyor. Lütfen biraz sonra tekrar deneyin.',
+    ai_timeout: 'Bağlantı sorunu oldu, lütfen tekrar deneyin.',
+    ai_error: 'Bir şeyler ters gitti, tekrar deneyin.'
+  };
+  const en = {
+    ai_not_configured: T('root_ai_asst_not_configured'),
+    ai_rate_limited: 'The AI is very busy right now. Please try again in a few seconds.',
+    ai_provider_error: 'AI is temporarily unavailable. Please try again shortly.',
+    ai_timeout: 'A connection problem occurred, please try again.',
+    ai_error: 'Something went wrong, please try again.'
+  };
+  const map = (lang === 'en') ? en : tr;
+  return map[code] || map.ai_error;
+}
 
 // Phase 30: the assistant can target the platform's own branding OR one specific tenant's menu.
 function rootAiPopulateTargets(){
@@ -2353,8 +2374,7 @@ async function rootAiSend(){
     // key and a genuinely vague request look completely different to the user and need different
     // next steps (fix the key vs. rephrase the request).
     if (!res.ok || data.error) {
-      const errMsg = data.error === 'ai_not_configured' ? T('root_ai_asst_not_configured') : (data.error || T('root_err'));
-      typingBubble.innerHTML = '<div class="ai-bubble err">' + rootAiEsc(errMsg) + '</div>';
+      typingBubble.innerHTML = '<div class="ai-bubble err">' + rootAiEsc(rootAiErrorText(data.error)) + '</div>';
       return;
     }
     if (!data.planId && !(data.actions && data.actions.length)) {
