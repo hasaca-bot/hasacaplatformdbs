@@ -743,7 +743,7 @@ async function seedPlatform() {
       footer_brand: 'tada',
       ai_enabled: false,
       ai_provider: 'groq',
-      ai_model: 'llama-3.3-70b-versatile'
+      ai_model: 'openai/gpt-oss-120b'
     };
     await dbDriver.run(
       isPg ? 'INSERT INTO platform_settings (id, settings, updated_at) VALUES ($1,$2,$3)' : 'INSERT INTO platform_settings (id, settings, updated_at) VALUES (?,?,?)',

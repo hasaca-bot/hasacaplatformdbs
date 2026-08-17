@@ -2034,11 +2034,17 @@ const AI_SETTING_LABELS = {
   theme: 'site teması (değerler: dark=koyu, light=açık, bw=siyah-beyaz)',
   seo_title: 'SEO başlığı', seo_description: 'SEO açıklaması', seo_keywords: 'SEO anahtar kelimeleri' };
 
-const DEFAULT_AI_MODEL = 'llama-3.3-70b-versatile';
+const DEFAULT_AI_MODEL = 'openai/gpt-oss-120b';
 
-// A value saved before the Phase 38 Groq swap ("gemini-...") is not a valid Groq model — treat it
-// as unset so old installs fall through to the new default instead of sending a doomed request.
-function cleanAiModel(m) { return (m && !/^gemini/i.test(m)) ? m : ''; }
+// Groq retired llama-3.3-70b-versatile and llama-3.1-8b-instant on 2026-08-16 — every request
+// using either now 400s with "model does not exist". A value saved before that (or before the
+// earlier Phase 38 Gemini->Groq swap, "gemini-...") is mapped to a live model instead of being
+// sent straight to a doomed request — this fixes every existing install without a manual DB edit.
+const DEPRECATED_AI_MODELS = { 'llama-3.3-70b-versatile': 'openai/gpt-oss-120b', 'llama-3.1-8b-instant': 'openai/gpt-oss-20b' };
+function cleanAiModel(m) {
+  if (!m || /^gemini/i.test(m)) return '';
+  return DEPRECATED_AI_MODELS[m] || m;
+}
 
 async function getAiConfig() {
   const row = await db.get(isPg ? 'SELECT settings FROM platform_settings WHERE id = $1' : 'SELECT settings FROM platform_settings WHERE id = ?', ['platform']);

@@ -74,6 +74,23 @@ içeriği tam repaint etmiyor, geride bulanık bir iz bırakıyordu. `.nav-in`'e
 `transform:translateZ(0)` + `will-change:transform` + `isolation:isolate` eklenerek kendi GPU
 katmanına alındı, scroll'daki içerikten izole edildi.
 
+## 5) AI asistanı canlıda tamamen kırıktı — Groq model deprecation'ı (aynı fazın devamı)
+
+Kullanıcı canlıda AI Asistanı'na her mesaj attığında `"The model 'llama-3.3-70b-versatile' does not
+exist or you do not have access to it."` hatası aldığını bildirdi. Araştırma (Groq'un resmi
+deprecation sayfası): Groq bu modeli **17 Ağustos 2026'da tam bu turun ortasında** kaldırdı (aynı
+gün `llama-3.1-8b-instant`'ı da kaldırdı), önerilen yerine geçen: `openai/gpt-oss-120b` (birincil,
+131K context, structured output destekli) / `openai/gpt-oss-20b` (küçük model için).
+
+Model adı 3 yerde sabitti (`backend/db.js` seed, `backend/server.js` `DEFAULT_AI_MODEL`,
+`backend/routes/root.js`'ın kendi ayrı kopyası) — üçü de `openai/gpt-oss-120b`'ye güncellendi.
+Asıl kritik kısım: canlı `platform_settings` satırında ZATEN kaydedilmiş eski model adı vardı —
+sadece varsayılanı değiştirmek bu satırı düzeltmezdi (`cleanAiModel(s.ai_model) || DEFAULT` mantığı
+dolu bir stored değeri hep tercih ediyor). Bunun yerine mevcut "eski Gemini adlarını temizle" deseni
+(`cleanAiModel`) genişletildi — artık bilinen deprecated Groq model adlarını yeni karşılıklarına
+haritalıyor (`DEPRECATED_AI_MODELS` map'i, server.js + root.js'te ayrı ayrı). Bu sayede tek bir kod
+deploy'u, elle DB düzeltmesi gerekmeden, üretimdeki bozuk kaydı da otomatik onarıyor.
+
 ## Verification
 - tada logosu: flood-fill arka plan temizleme sonucu doğrulandı (iç kıvrım çizgileri korundu,
   sadece kenar-bağlı beyaz bölge şeffaflaştı); siyah-beyaz temada renk değişmediği teyit edildi.
