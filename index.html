@@ -163,13 +163,13 @@
   <!-- TopAppBar (Web) -->
   <header class="hidden md:flex fixed top-0 left-0 w-full z-50 justify-between items-center px-gutter h-16 bg-surface/95 backdrop-blur-md shadow-sm border-b border-surface-container">
     <div class="flex items-center gap-3 cursor-pointer" onclick="window.scrollTo({top:0,behavior:'smooth'})">
-      <span class="material-symbols-outlined text-primary text-2xl" style="font-variation-settings: 'FILL' 1;">restaurant_menu</span>
+      <img id="brandLogoWeb" src="/icons/placeholder-logo.svg" alt="" class="w-8 h-8 rounded-lg object-contain" onerror="if(this.src.indexOf('placeholder-logo.svg')===-1){this.onerror=null;this.src='/icons/placeholder-logo.svg';}">
       <span class="font-display text-display text-primary" style="font-size: 22px;" id="brandTitleWeb" data-i18n="brand_name">Lumière Dining</span>
     </div>
     <nav class="flex items-center gap-6">
-      <a class="font-label-md text-label-md text-primary font-bold hover:opacity-80 transition-opacity" href="#menu">Menu</a>
-      <a class="font-label-md text-label-md text-on-surface-variant hover:opacity-80 transition-opacity" href="#rezervasyon" data-i18n="bottom_nav_book">Rezervasyon</a>
-      <a class="font-label-md text-label-md text-on-surface-variant hover:opacity-80 transition-opacity" href="#info" data-i18n="bottom_nav_contact">İletişim</a>
+      <a class="font-label-md text-label-md hover:opacity-80 transition-opacity" data-navlink="menu" href="#menu">Menu</a>
+      <a class="font-label-md text-label-md hover:opacity-80 transition-opacity" data-navlink="rezervasyon" href="#rezervasyon" data-i18n="bottom_nav_book">Rezervasyon</a>
+      <a class="font-label-md text-label-md hover:opacity-80 transition-opacity" data-navlink="info" href="#info" data-i18n="bottom_nav_contact">İletişim</a>
       
       <!-- Language Dropdown -->
       <div class="relative">
@@ -189,7 +189,7 @@
   <!-- TopAppBar (Mobile) -->
   <header class="md:hidden fixed top-0 left-0 w-full z-50 flex justify-between items-center px-margin-mobile h-16 bg-surface/95 backdrop-blur-md shadow-sm border-b border-surface-container">
     <div class="flex items-center gap-2">
-      <span class="material-symbols-outlined text-primary text-2xl" style="font-variation-settings: 'FILL' 1;">restaurant_menu</span>
+      <img id="brandLogoMobile" src="/icons/placeholder-logo.svg" alt="" class="w-7 h-7 rounded-lg object-contain" onerror="if(this.src.indexOf('placeholder-logo.svg')===-1){this.onerror=null;this.src='/icons/placeholder-logo.svg';}">
       <span class="font-display text-display text-primary" style="font-size: 20px;" id="brandTitleMobile" data-i18n="brand_name">Lumière Dining</span>
     </div>
     
@@ -375,12 +375,12 @@
 
   <!-- BottomNavBar (Stitch Mobile Nav) -->
   <nav class="md:hidden fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-4 py-3 pb-safe bg-surface shadow-[0_-4px_20px_rgba(0,0,0,0.06)] rounded-t-xl border-t border-surface-container">
-    <a class="flex flex-col items-center justify-center bg-primary-container text-on-primary-container rounded-full px-5 py-1 active:scale-90 transition-transform duration-200" href="#menu">
-      <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">restaurant</span>
+    <a class="flex flex-col items-center justify-center rounded-full px-5 py-1 active:scale-90 transition-transform duration-200 transition-colors" data-navlink="menu" href="#menu">
+      <span class="material-symbols-outlined" data-navicon>restaurant</span>
       <span class="font-label-md text-label-md">Menu</span>
     </a>
-    <a class="flex flex-col items-center justify-center text-secondary hover:bg-surface-container-low transition-colors px-5 py-1 rounded-full active:scale-90 transition-transform duration-200" href="#rezervasyon">
-      <span class="material-symbols-outlined">table_restaurant</span>
+    <a class="flex flex-col items-center justify-center rounded-full px-5 py-1 active:scale-90 transition-transform duration-200 transition-colors" data-navlink="rezervasyon" href="#rezervasyon">
+      <span class="material-symbols-outlined" data-navicon>table_restaurant</span>
       <span class="font-label-md text-label-md mt-0.5" data-i18n="bottom_nav_book">Rezerve</span>
     </a>
     <a class="flex flex-col items-center justify-center text-secondary hover:bg-surface-container-low transition-colors px-5 py-1 rounded-full active:scale-90 transition-transform duration-200" href="javascript:void(0)" onclick="openCart()">
@@ -1413,6 +1413,14 @@
         document.querySelectorAll('[data-i18n="brand_name"]').forEach(el => { el.textContent = dName; });
         document.title = dName;
 
+        // Real tenant logo (falls back to the placeholder <img>'s own src if unset)
+        if (s.logo_url) {
+          const logoWeb = document.getElementById('brandLogoWeb');
+          const logoMobile = document.getElementById('brandLogoMobile');
+          if (logoWeb) logoWeb.src = s.logo_url;
+          if (logoMobile) logoMobile.src = s.logo_url;
+        }
+
         // Hero text — keep both languages so switching language doesn't lose the tenant's copy
         if (s.hero_title_tr) i18nData.tr.hero_title_main = s.hero_title_tr;
         if (s.hero_title_en) i18nData.en.hero_title_main = s.hero_title_en;
@@ -1450,6 +1458,40 @@
       } catch(e){}
     }
 
+    // ── NAV SCROLLSPY: keep the top/bottom nav's active-tab highlight in sync with scroll position ──
+    function setActiveNav(sectionId) {
+      // Desktop top nav (Menu / Rezervasyon / İletişim)
+      document.querySelectorAll('header.md\\:flex [data-navlink]').forEach(el => {
+        const on = el.dataset.navlink === sectionId;
+        el.classList.toggle('text-primary', on);
+        el.classList.toggle('font-bold', on);
+        el.classList.toggle('text-on-surface-variant', !on);
+      });
+      // Mobile bottom nav (Menu / Rezerve)
+      document.querySelectorAll('nav.md\\:hidden [data-navlink]').forEach(el => {
+        const on = el.dataset.navlink === sectionId;
+        el.classList.toggle('bg-primary-container', on);
+        el.classList.toggle('text-on-primary-container', on);
+        el.classList.toggle('text-secondary', !on);
+        el.classList.toggle('hover:bg-surface-container-low', !on);
+        const icon = el.querySelector('[data-navicon]');
+        if (icon) icon.style.fontVariationSettings = on ? "'FILL' 1" : "'FILL' 0";
+      });
+    }
+
+    function initNavScrollspy() {
+      const sections = ['menu', 'rezervasyon', 'info'].map(id => document.getElementById(id)).filter(Boolean);
+      if (!sections.length) return;
+      setActiveNav('menu');
+      const observer = new IntersectionObserver((entries) => {
+        const visible = entries.filter(e => e.isIntersecting);
+        if (!visible.length) return;
+        visible.sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top);
+        setActiveNav(visible[0].target.id);
+      }, { rootMargin: '-45% 0px -50% 0px', threshold: 0 });
+      sections.forEach(s => observer.observe(s));
+    }
+
     // ── INITIALIZE ──
     async function init() {
       if (/^\/t\/[A-Za-z0-9]/.test(window.location.pathname)) await dkInitDinein();
@@ -1459,6 +1501,7 @@
       // into i18nData, so the first paint shows the right language AND the tenant's own copy.
       applyLanguage(window.currentLanguage || 'tr');
       refreshCartUI();
+      initNavScrollspy();
     }
 
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
