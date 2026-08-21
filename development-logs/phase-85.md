@@ -47,5 +47,18 @@ Kullanıcı iki ekran görüntüsüyle bildirdi:
 
 ## Push durumu
 
-Commit edilmedi. `037a9be` (Render-only hosting, Phase 84) de hâlâ push edilmemiş durumda —
-kullanıcıya ikisini birlikte mi push edeceğimiz soruldu.
+`2a1d128` ile commit edildi, `037a9be` ile birlikte push edildi (kullanıcı onayı: "pushla").
+
+## Ek düzeltme (aynı gün, ikinci tur)
+
+Kullanıcı bir ekran görüntüsüyle footer'da da aynı hatanın (jenerik `restaurant_menu` ikonu,
+gerçek logo yerine) sürdüğünü fark etti — ilk turda sadece topbar (masaüstü+mobil) düzeltilmiş,
+footer'daki aynı desen atlanmıştı. Düzeltme: footer'daki ikon `<span>` da `<img id="brandLogoFooter">`
+oldu, `applySiteConfig()`'teki logo bloğuna üçüncü hedef eklendi. `grep restaurant_menu` ile dosya
+genelinde başka kalan örnek olmadığı doğrulandı. Tarayıcıda footer'da doğru logonun göründüğü
+teyit edildi. Bu tekrar eden desenin (bir yerde düzeltip aynı deseni başka yerde atlamak) bir daha
+olmaması için `C:\HASACA-beyin\00_CORE\RULES.md`'e yeni bir kural eklendi (Kural 8: bir UI/UX
+hatası düzeltilirken dosya genelinde aynı desen için grep at, tek noktada bırakma).
+
+Kullanıcı ayrıca push politikasını değiştirdi: artık her push için ayrı onay istemeyeceğim,
+doğrulanan her değişikliği otomatik push edeceğim (bkz. RULES.md Kural 1, güncellenmiş hali).

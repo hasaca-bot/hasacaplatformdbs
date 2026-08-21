@@ -570,7 +570,7 @@
   <!-- FOOTER -->
   <footer class="text-center py-8 text-xs text-outline border-t border-surface-container/40 mt-12 cursor-pointer" onclick="window.location.href='admin.html'">
     <div class="flex items-center justify-center gap-2 mb-2 text-primary">
-      <span class="material-symbols-outlined text-lg" style="font-variation-settings: 'FILL' 1;">restaurant_menu</span>
+      <img id="brandLogoFooter" src="/icons/placeholder-logo.svg" alt="" class="w-5 h-5 rounded object-contain" onerror="if(this.src.indexOf('placeholder-logo.svg')===-1){this.onerror=null;this.src='/icons/placeholder-logo.svg';}">
       <span class="font-bold text-sm" data-i18n="brand_name">Lumière Dining</span>
     </div>
     <p data-i18n="footer_text">© 2026 Lumière Dining — Powered by tada</p>
@@ -1417,8 +1417,10 @@
         if (s.logo_url) {
           const logoWeb = document.getElementById('brandLogoWeb');
           const logoMobile = document.getElementById('brandLogoMobile');
+          const logoFooter = document.getElementById('brandLogoFooter');
           if (logoWeb) logoWeb.src = s.logo_url;
           if (logoMobile) logoMobile.src = s.logo_url;
+          if (logoFooter) logoFooter.src = s.logo_url;
         }
 
         // Hero text — keep both languages so switching language doesn't lose the tenant's copy
