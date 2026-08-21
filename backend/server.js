@@ -1239,6 +1239,11 @@ app.post('/api/auth/google', rateLimiter(15), async (req, res) => {
       const ticket = await googleClient.verifyIdToken({ idToken: credential, audience: process.env.GOOGLE_CLIENT_ID });
       payload = ticket.getPayload();
     } catch (e) {
+      // This catch used to swallow the reason silently, leaving "Google sign-in stopped working"
+      // reports undiagnosable from Render logs alone. e.message from google-auth-library is
+      // specific (e.g. "Token used too late", "Wrong recipient, payload audience != requiring audience")
+      // and safe to log server-side — never sent to the client.
+      console.error('[AUTH] Google verifyIdToken failed:', e.message);
       return res.status(401).json({ error: 'invalid_google_token' });
     }
     if (!payload || !payload.email_verified) {
