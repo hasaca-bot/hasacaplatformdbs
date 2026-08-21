@@ -4748,10 +4748,21 @@ async function loadBranding() {
   set('brHeroTr', s.hero_title_tr); set('brHeroEn', s.hero_title_en);
   set('brHeroSubTr', s.hero_sub_tr); set('brHeroSubEn', s.hero_sub_en);
   set('brFooter', s.footer_text);
+  set('brBannerTr', s.banner_text_tr); set('brBannerEn', s.banner_text_en);
   set('brSeoTitle', s.seo_title); set('brSeoDesc', s.seo_description); set('brSeoKeywords', s.seo_keywords);
+  set('brOgImage', s.og_image); set('brSeoCanonical', s.seo_canonical);
+  set('brSeoRobots', s.seo_robots || 'index');
   set('brTheme', s.theme || 'dark');
-  set('brPhone', s.contact_phone); set('brWhatsapp', s.whatsapp); set('brEmail', s.contact_email);
-  set('brWebsite', s.website); set('brAddress', s.address);
+  // VERI KAYBI DUZELTMESI (Faz 88): telefon/e-posta/adres hem settings JSON'unda hem de tenants
+  // tablosunun kendi sutunlarinda durur. Restoran bu degerleri "Restoran Bilgileri" ekranindan
+  // girdiyse (ya da kurulum sirasinda gelmisse) yalnizca SUTUNDA olur, settings'te olmaz. Bu
+  // alanlar sadece s.* okundugu icin form BOS aciliyor, saveBranding() ise her alani kosulsuz
+  // gonderdigi icin kaydete basildigi anda restoranin telefonu/adresi SESSIZCE siliniyordu.
+  // Artik settings yoksa sutun degerine dusuluyor.
+  set('brPhone', s.contact_phone || cfg.contact_phone);
+  set('brWhatsapp', s.whatsapp);
+  set('brEmail', s.contact_email || cfg.contact_email);
+  set('brWebsite', s.website); set('brAddress', s.address || cfg.address);
   set('brMapsLink', s.maps_link); set('brMapsEmbed', s.maps_embed);
   set('brInstagram', s.instagram); set('brFacebook', s.facebook); set('brTwitter', s.twitter);
   set('brTiktok', s.tiktok); set('brYoutube', s.youtube);
@@ -4836,7 +4847,9 @@ async function saveBranding() {
     hero_title_tr: get('brHeroTr'), hero_title_en: get('brHeroEn'),
     hero_sub_tr: get('brHeroSubTr'), hero_sub_en: get('brHeroSubEn'),
     footer_text: get('brFooter'),
+    banner_text_tr: get('brBannerTr'), banner_text_en: get('brBannerEn'),
     seo_title: get('brSeoTitle'), seo_description: get('brSeoDesc'), seo_keywords: get('brSeoKeywords'),
+    og_image: get('brOgImage'), seo_canonical: get('brSeoCanonical'), seo_robots: get('brSeoRobots'),
     theme: get('brTheme'),
     contact_phone: get('brPhone'), whatsapp: get('brWhatsapp'), contact_email: get('brEmail'),
     website: get('brWebsite'), address: get('brAddress'),

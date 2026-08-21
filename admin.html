@@ -809,6 +809,13 @@
             <input type="text" id="brHeroSubEn" class="admin-input">
             <label class="hint" style="display:block; margin-top:10px;" data-i18n="admin_brand_footer">Footer Metni</label>
             <input type="text" id="brFooter" class="admin-input">
+            <!-- Duyuru bandı: backend (ADMIN_BRANDING_ALLOWED) bu iki alanı zaten kabul ediyordu
+                 ama panelde girecek yer yoktu — Faz 88'de eklendi. Boş bırakılırsa bant hiç çıkmaz. -->
+            <label class="hint" style="display:block; margin-top:14px;" data-i18n="admin_brand_banner">Duyuru Bandı (TR)</label>
+            <input type="text" id="brBannerTr" class="admin-input" placeholder="Örn: Pazar günleri kapalıyız">
+            <label class="hint" style="display:block; margin-top:10px;">Announcement (EN)</label>
+            <input type="text" id="brBannerEn" class="admin-input" placeholder="e.g. Closed on Sundays">
+            <div class="hint" style="margin-top:6px; opacity:.75;" data-i18n="admin_brand_banner_hint">Boş bırakırsanız sitede duyuru bandı gösterilmez.</div>
           </div>
 
           <div class="panel-card" style="margin-top:16px;">
@@ -819,6 +826,19 @@
             <textarea id="brSeoDesc" class="admin-input" rows="2" style="resize:vertical;" maxlength="220"></textarea>
             <label class="hint" style="display:block; margin-top:10px;" data-i18n="admin_brand_seo_keywords">Anahtar Kelimeler</label>
             <input type="text" id="brSeoKeywords" class="admin-input" placeholder="restoran, menü, sipariş">
+            <!-- og_image / seo_canonical / seo_robots: backend ve tenantSeo.js bunları zaten
+                 okuyordu, panelde giriş alanı yoktu — Faz 88'de eklendi. -->
+            <label class="hint" style="display:block; margin-top:10px;" data-i18n="admin_brand_og_image">Paylaşım Görseli (OG)</label>
+            <input type="text" id="brOgImage" class="admin-input" placeholder="/uploads/… veya https://…">
+            <div class="hint" style="margin-top:6px; opacity:.75;" data-i18n="admin_brand_og_hint">WhatsApp/Facebook'ta link paylaşılınca çıkan görsel. Boşsa logonuz kullanılır.</div>
+            <label class="hint" style="display:block; margin-top:10px;" data-i18n="admin_brand_canonical">Canonical URL</label>
+            <input type="text" id="brSeoCanonical" class="admin-input" placeholder="https://…">
+            <div class="hint" style="margin-top:6px; opacity:.75;" data-i18n="admin_brand_canonical_hint">Boş bırakın — yalnızca kendi alan adınız varsa doldurun.</div>
+            <label class="hint" style="display:block; margin-top:10px;" data-i18n="admin_brand_robots">Arama Motorları</label>
+            <select id="brSeoRobots" class="admin-input">
+              <option value="index" data-i18n="admin_brand_robots_index">Siteme Google'da yer ver (varsayılan)</option>
+              <option value="noindex" data-i18n="admin_brand_robots_noindex">Arama sonuçlarında gizle</option>
+            </select>
             <label class="hint" style="display:block; margin-top:10px;" data-i18n="admin_brand_theme">Tema</label>
             <select id="brTheme" class="admin-input">
               <option value="dark" data-i18n="admin_brand_theme_dark">Sıcak (Varsayılan)</option>

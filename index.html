@@ -212,8 +212,13 @@
     <span class="font-bold" id="dineinTableText">Table: 5</span>
   </div>
 
+  <!-- DUYURU BANDI — yalnizca yonetim panelinden metin girilmisse gosterilir (Faz 88). -->
+  <div id="announceBanner" class="hidden w-full bg-primary-container text-on-primary-container px-margin-mobile py-2.5 text-center">
+    <span class="font-label-md text-label-md font-semibold" id="announceBannerText" data-i18n="banner_text"></span>
+  </div>
+
   <main class="w-full max-w-max-width mx-auto">
-    
+
     <!-- Hero Section (Stitch Menu Home) -->
     <section class="w-full h-[45vh] md:h-[50vh] relative overflow-hidden mb-lg rounded-b-[32px] md:rounded-[32px] md:mt-6">
       <div id="heroImageBg" class="absolute inset-0 bg-cover bg-center w-full h-full transition-all duration-700" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuAYCIZXUgWTe56VfLI4X6qkmKdzrOdqgZ20PgwW_Pwue1CXT8CIklym1BIp5FYJTinE4Gaw4B7-8RgaaGmVk82H07LFcRBLsSZ2nMW4edlGW9lpqHSTpz-i1C1_R92tnR6mtFPKeGPVWa9xQNh6zQa3pEKsHWVbm0nTFSjk4kTg2KLCAUzNsyZW7NMsc37JKDnH-2NwZ1pAys30GD1hXRzbcAXPWGlN9fdb2iGcZIDO7JkEBW4f0yOj')"></div>
@@ -337,6 +342,29 @@
                   <span class="font-semibold text-sm" id="contactPhoneVal">123 456 789</span>
                 </div>
               </a>
+              <!-- WhatsApp / e-posta / Instagram: hepsi varsayilan olarak GIZLI; applySiteConfig()
+                   yalnizca deger girilmis VE widget'i kapatilmamis olanlari acar (Faz 88). -->
+              <a id="contactWhatsappRow" href="#" target="_blank" rel="noopener" style="display:none;" class="flex items-center gap-3 p-3 rounded-xl bg-surface-container text-on-surface hover:bg-surface-container-high transition-colors">
+                <span class="material-symbols-outlined text-primary">chat</span>
+                <div>
+                  <span class="block text-xs text-outline font-bold">WhatsApp</span>
+                  <span class="font-semibold text-sm" id="contactWhatsappVal"></span>
+                </div>
+              </a>
+              <a id="contactEmailRow" href="#" style="display:none;" class="flex items-center gap-3 p-3 rounded-xl bg-surface-container text-on-surface hover:bg-surface-container-high transition-colors">
+                <span class="material-symbols-outlined text-primary">mail</span>
+                <div>
+                  <span class="block text-xs text-outline font-bold" data-i18n="contact_email_lbl">E-posta</span>
+                  <span class="font-semibold text-sm" id="contactEmailVal"></span>
+                </div>
+              </a>
+              <a id="contactInstagramRow" href="#" target="_blank" rel="noopener" style="display:none;" class="flex items-center gap-3 p-3 rounded-xl bg-surface-container text-on-surface hover:bg-surface-container-high transition-colors">
+                <span class="material-symbols-outlined text-primary">photo_camera</span>
+                <div>
+                  <span class="block text-xs text-outline font-bold">Instagram</span>
+                  <span class="font-semibold text-sm" id="contactInstagramVal"></span>
+                </div>
+              </a>
               <div class="flex items-center gap-3 p-3 rounded-xl bg-surface-container text-on-surface">
                 <span class="material-symbols-outlined text-primary">location_on</span>
                 <div>
@@ -345,9 +373,12 @@
                 </div>
               </div>
             </div>
+
+            <!-- Sosyal medya butonlari — yalnizca dolu ve acik olanlar basilir, hepsi bossa kutu bos kalir. -->
+            <div id="socialLinks" class="flex flex-wrap gap-2 mt-4"></div>
           </div>
 
-          <div class="mt-4 rounded-xl overflow-hidden border border-surface-container h-32 relative">
+          <div id="gmapWidgetBox" class="mt-4 rounded-xl overflow-hidden border border-surface-container h-32 relative">
             <iframe id="gmap-iframe" src="https://maps.google.com/maps?q=restaurant&output=embed&hl=tr" class="w-full h-full border-0" loading="lazy"></iframe>
           </div>
         </div>
@@ -657,6 +688,8 @@
         btn_book: "Rezervasyon Yap",
         contact_hours_lbl: "Çalışma Saatleri",
         contact_heading: "İletişim & Konum",
+        contact_email_lbl: "E-posta",
+        banner_text: "",
         contact_address_val: "123 Example Street, City",
         bottom_nav_book: "Rezerve",
         bottom_nav_contact: "İletişim",
@@ -713,6 +746,8 @@
         btn_book: "Book Table",
         contact_hours_lbl: "Opening Hours",
         contact_heading: "Contact & Location",
+        contact_email_lbl: "Email",
+        banner_text: "",
         contact_address_val: "123 Example Street, City",
         bottom_nav_book: "Book",
         bottom_nav_contact: "Contact",
@@ -1454,10 +1489,89 @@
         if (address) {
           const av = document.getElementById('contactAddressVal');
           if (av) { av.textContent = address; av.removeAttribute('data-i18n'); }
-          const map = document.getElementById('gmap-iframe');
-          if (map) map.src = 'https://maps.google.com/maps?q=' + encodeURIComponent(address) + '&output=embed&hl=' + (lang === 'tr' ? 'tr' : 'en');
         }
-      } catch(e){}
+
+        // ── Faz 88: asagidaki her sey Faz 83'teki yeniden yazimda DUSMUSTU ──
+        // Ayarlar paneline girilip kaydediliyor, backend saklıyordu, ama musteri sitesi hicbirini
+        // okumuyordu. Eski (koyu tema) index.html'deki mantik, yeni tasarima uyarlanarak geri geldi.
+
+        // Widget aç/kapa bayrakları (Faz 28). Anahtar YOKSA acik sayilir — bu ayara hic dokunmamis
+        // restoranlar eskisi gibi gormeye devam etsin diye (eski dosyadaki davranisin aynisi).
+        const widgets = s.widgets || {};
+        const on = (key) => widgets[key] !== false;
+
+        // Bir iletisim satirini goster + baglantisini kur; degeri yoksa gizli birakir.
+        const setRow = (rowId, valId, href, text) => {
+          const row = document.getElementById(rowId); if (!row) return;
+          if (href) {
+            row.style.display = '';
+            row.href = href;
+            const v = document.getElementById(valId);
+            if (v && text != null) v.textContent = text;
+          } else { row.style.display = 'none'; }
+        };
+
+        const wa = on('whatsapp') ? String(s.whatsapp || '').replace(/[^\d]/g, '') : '';
+        setRow('contactWhatsappRow', 'contactWhatsappVal', wa ? 'https://wa.me/' + wa : '', s.whatsapp || '');
+
+        const email = s.contact_email || cfg.contact_email || '';
+        setRow('contactEmailRow', 'contactEmailVal', email ? 'mailto:' + email : '', email);
+
+        if (s.instagram && on('instagram')) {
+          const handle = '@' + String(s.instagram).replace(/\/+$/, '').split('/').pop().replace(/^@/, '');
+          setRow('contactInstagramRow', 'contactInstagramVal', s.instagram, handle);
+        } else {
+          const r = document.getElementById('contactInstagramRow'); if (r) r.style.display = 'none';
+        }
+
+        // Harita: panelden girilen embed/link her zaman kazanir, yoksa adresten turetilir.
+        const mapBox = document.getElementById('gmapWidgetBox');
+        if (mapBox) mapBox.style.display = on('maps') ? '' : 'none';
+        const map = document.getElementById('gmap-iframe');
+        if (map) {
+          if (s.maps_embed) map.src = s.maps_embed;
+          else if (address) map.src = 'https://maps.google.com/maps?q=' + encodeURIComponent(address) + '&output=embed&hl=' + (lang === 'tr' ? 'tr' : 'en');
+        }
+
+        // Sosyal medya butonlari — sadece dolu, gecerli http(s) olan ve kapatilmamis olanlar.
+        const socialIcons = {
+          facebook: 'thumb_up', twitter: 'alternate_email', tiktok: 'music_note',
+          youtube: 'smart_display', website: 'language'
+        };
+        const socialBox = document.getElementById('socialLinks');
+        if (socialBox) {
+          socialBox.innerHTML = '';
+          ['facebook', 'twitter', 'tiktok', 'youtube', 'website'].forEach(key => {
+            const url = s[key];
+            if (url && on(key) && /^https?:\/\//i.test(url)) {
+              const a = document.createElement('a');
+              a.href = url; a.target = '_blank'; a.rel = 'noopener';
+              a.setAttribute('aria-label', key);
+              a.className = 'w-10 h-10 flex items-center justify-center rounded-full bg-surface-container text-primary hover:bg-primary-container transition-colors active:scale-95';
+              a.innerHTML = '<span class="material-symbols-outlined text-[20px]">' + socialIcons[key] + '</span>';
+              socialBox.appendChild(a);
+            }
+          });
+        }
+
+        // Duyuru bandi — panelde bos birakilirsa hic gosterilmez. Metni i18nData'ya yaziyoruz ki
+        // dil degistiginde applyLanguage() bandi da kendi guncellesin (footer_text ile ayni desen).
+        const bTr = s.banner_text_tr || s.banner_text_en || '';
+        const bEn = s.banner_text_en || s.banner_text_tr || '';
+        i18nData.tr.banner_text = bTr;
+        i18nData.en.banner_text = bEn;
+        const banner = document.getElementById('announceBanner');
+        if (banner) banner.classList.toggle('hidden', !(bTr || bEn));
+
+        // Favicon — restoranin kendi ikonu (sekme simgesi).
+        if (s.favicon_url) {
+          let fav = document.querySelector('link[rel="icon"]');
+          if (!fav) { fav = document.createElement('link'); fav.rel = 'icon'; document.head.appendChild(fav); }
+          fav.href = s.favicon_url;
+          const apple = document.querySelector('link[rel="apple-touch-icon"]');
+          if (apple) apple.href = s.favicon_url;
+        }
+      } catch(e){ console.error('[SITE-CONFIG] uygulanamadi:', e); }
     }
 
     // ── NAV SCROLLSPY: keep the top/bottom nav's active-tab highlight in sync with scroll position ──
