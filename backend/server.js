@@ -63,6 +63,7 @@ const PORT = process.env.PORT || 17888;
 
 // Enable CORS with robust origin support for Netlify subdomains, previews, and local development
 const allowedOrigins = [
+  'https://hasaca-api.onrender.com',
   'https://dayikatik.netlify.app',
   'https://hasacadesign.netlify.app',
   'https://dayikatikornek.netlify.app',
@@ -3072,6 +3073,18 @@ app.get('/tenant/:slug', (req, res) => {
   res.redirect('/?tenant=' + encodeURIComponent(req.params.slug));
 });
 
+// Render-only hosting (no Netlify _redirects layer anymore): /menu and /menu/* used to be
+// mapped straight to index.html by _redirects. Mirrored here so the pretty URL keeps working
+// when this app is the sole host. Falls through to the same per-tenant head injection as '/'.
+app.get(['/menu', '/menu/*'], (req, res) => {
+  sendTenantIndex(req, res);
+});
+
+// Legacy alias URLs (not real marketing-data.js slugs, existed only as _redirects entries) —
+// point at their real counterpart's dynamic marketing route.
+app.get('/gizlilik-politikasi', (req, res) => res.redirect(301, '/gizlilik'));
+app.get('/kvkk-aydinlatma-metni', (req, res) => res.redirect(301, '/kvkk'));
+
 // ── tada marketing sub-pages (Phase 23) ──
 // One shared shell (marketing.html) renders every page from marketing-data.js.
 // Meta is injected server-side per slug so each URL is genuinely crawlable — this
@@ -3124,7 +3137,7 @@ app.get(['/restoran-olustur', '/ai-ile-baslayin'], (req, res) => {
 // them (not part of the verified property). PUBLIC_SITE_URL is the one place to update this by
 // hand if the canonical domain ever changes again (matches landing.html's own hardcoded-domain
 // comment) — an env var overrides it without a code change/redeploy if ever needed.
-const PUBLIC_SITE_URL = process.env.PUBLIC_SITE_URL || 'https://tadadigital.netlify.app';
+const PUBLIC_SITE_URL = process.env.PUBLIC_SITE_URL || 'https://hasaca-api.onrender.com';
 
 function baseUrl(req) {
   const proto = (req.headers['x-forwarded-proto'] || req.protocol || 'https').split(',')[0];

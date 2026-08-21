@@ -1,10 +1,13 @@
-# Served directly by Netlify for this shared marketing domain — NOT proxied to Render (see
-# _redirects and development-logs/phase-82.md). A cold Render dyno made this fetch itself
-# time out, and per the robots.txt spec, an unreachable robots.txt makes Google block indexing
-# of the ENTIRE site, not just this file — confirmed live via Search Console. Tenant custom
-# domains still get the real dynamic per-tenant robots.txt from backend/server.js (they point
-# straight at Render and never touch this file).
+# DEAD FILE as of Render-only hosting (Phase 84) — kept only as a plain-text fallback/reference.
+# backend/server.js has its own GET /robots.txt route (dynamic, per-tenant seo_robots-aware),
+# registered before express.static, so it ALWAYS answers first; this file is never actually
+# served. Previously (Netlify+Render split, see phase-82.md) this file mattered a lot: a cold
+# Render dyno made a PROXIED robots.txt fetch time out, and per the robots.txt spec an
+# unreachable robots.txt makes Google block indexing of the ENTIRE site — that's why this used
+# to be static. That specific failure mode doesn't apply to this file anymore (nothing proxies to
+# it), but the SAME cold-start risk now applies to the live dynamic route on every request, since
+# there's no static host in front of Render anymore — see hasaca-to-render-only-hosting decision.
 User-agent: *
 Allow: /
 
-Sitemap: https://tadadigital.netlify.app/sitemap.xml
+Sitemap: https://hasaca-api.onrender.com/sitemap.xml

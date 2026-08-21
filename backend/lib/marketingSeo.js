@@ -36,7 +36,7 @@ function breadcrumbJsonLd(page, url, baseUrl) {
   };
 }
 
-// baseUrl: origin only, no trailing slash (e.g. "https://tadadigital.netlify.app").
+// baseUrl: origin only, no trailing slash (e.g. "https://hasaca-api.onrender.com").
 function buildMarketingHead(slug, page, baseUrl) {
   const title = page.title[0] + ' — tada';
   const desc = page.desc[0];

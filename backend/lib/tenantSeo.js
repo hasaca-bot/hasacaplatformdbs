@@ -8,11 +8,13 @@
 // applySiteConfig() is untouched and still runs on top — it's idempotent
 // against whatever this already set correctly.
 //
-// NOTE (see phase-51.md): this route only actually executes for requests that
-// reach Express directly (local dev, or a tenant's own custom domain pointed
-// straight at Render) — Netlify's _redirects serves /menu, /t/*, /tenant/* on
-// the shared tadadigital.netlify.app domain as static files today, bypassing
-// this entirely, same as it did for the marketing pages before prerendering.
+// NOTE (updated Phase 84 — Render-only hosting): this used to only execute for requests that
+// reached Express directly (local dev, or a tenant's own custom domain) — Netlify's _redirects
+// served /menu, /t/*, /tenant/* as static files on the shared domain, bypassing this entirely
+// (see phase-51.md for that original split). Now that hasaca-api.onrender.com is the sole host
+// (no Netlify layer), this route executes for EVERY request, including the shared domain — real
+// per-tenant SEO now reaches every tenant that resolves (custom domain, ?tenant=, or /t/<token>),
+// not just custom-domain tenants.
 // =============================================
 
 const esc = (s) => String(s == null ? '' : s)
