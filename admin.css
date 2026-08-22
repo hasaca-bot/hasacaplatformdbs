@@ -3525,3 +3525,50 @@ body.theme-bw{ --ord-surface:#FFFFFF; --ord-surface2:#F6EFE8; --ord-line:rgba(0,
   #adminPanelOverlay .img-picker-preview{
     background:var(--ap-elev); border-color:var(--ap-line-2); color:var(--ap-muted);
   }
+
+  /* ================================================================
+     MUTFAK EKRANI (KDS) — 3 sütunlu iş akışı panosu (Faz 93).
+     Mutfakta uzaktan bakılır: büyük yazı, net kontrast, az süsleme.
+     ================================================================ */
+  #adminPanelOverlay .kds-board{
+    display:grid; grid-template-columns:repeat(3,1fr); gap:14px; align-items:start;
+  }
+  #adminPanelOverlay .kds-col{
+    background:var(--ap-bg-2); border:1px solid var(--ap-line);
+    border-radius:var(--ap-radius-sm); overflow:hidden;
+  }
+  #adminPanelOverlay .kds-col-head{
+    display:flex; align-items:center; justify-content:space-between; gap:8px;
+    padding:12px 14px; font-weight:800; font-size:.86rem; color:var(--ap-text);
+    border-bottom:1px solid var(--ap-line); background:var(--ap-panel);
+  }
+  #adminPanelOverlay .kds-col-body{ padding:10px; display:flex; flex-direction:column; gap:10px; }
+  #adminPanelOverlay .kds-card{
+    background:var(--ap-card); border:1px solid var(--ap-line);
+    border-radius:var(--ap-radius-sm); padding:12px;
+  }
+  /* Geciken sipariş kırmızı kenarlıkla öne çıkar — mutfakta en pahalı hata gecikmedir. */
+  #adminPanelOverlay .kds-card.urgent{ border-color:var(--ap-bad); background:var(--ap-bad-soft); }
+  #adminPanelOverlay .kds-card-top{
+    display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:8px;
+  }
+  #adminPanelOverlay .kds-table{ font-weight:800; font-size:.95rem; color:var(--ap-text); }
+  #adminPanelOverlay .kds-time{
+    font-size:.76rem; font-weight:700; color:var(--ap-muted);
+    background:var(--ap-elev); padding:3px 9px; border-radius:999px;
+  }
+  #adminPanelOverlay .kds-time.urgent{ color:var(--ap-bad); background:var(--ap-bad-soft); }
+  #adminPanelOverlay .kds-items{ list-style:none; margin:0 0 8px; padding:0; }
+  #adminPanelOverlay .kds-items li{
+    font-size:.86rem; color:var(--ap-text); padding:3px 0; line-height:1.4;
+  }
+  #adminPanelOverlay .kds-qty{ font-weight:800; color:var(--ap-gold); margin-right:2px; }
+  #adminPanelOverlay .kds-note{
+    font-size:.76rem; color:var(--ap-muted); background:var(--ap-elev);
+    border-radius:8px; padding:6px 9px; margin-bottom:8px;
+  }
+  #adminPanelOverlay .kds-advance{ width:100%; margin:0; padding:9px; font-size:.82rem; }
+
+  @media (max-width:900px){
+    #adminPanelOverlay .kds-board{ grid-template-columns:1fr; }
+  }

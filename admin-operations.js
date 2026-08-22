@@ -479,6 +479,88 @@
   };
 
   // ============================================================
+  // MUTFAK EKRANI (KDS) — 3 sütunlu iş akışı panosu.
+  // Yeni bir sipariş sistemi KURMAZ: mevcut orders tablosunu, mevcut dine-in durum akışını
+  // ve mevcut PUT /api/orders/:id/status ucunu kullanır. "Masa Sipariş Kontrolü" ekranı
+  // yöneticinin liste görünümü; bu ise mutfağın panosu — ikisi aynı veriye bakar.
+  // ============================================================
+  const KDS_COLS = [
+    { key: 'received',  label: 'Yeni Siparişler', next: 'preparing', nextLabel: 'Hazırlamaya Başla' },
+    { key: 'preparing', label: 'Hazırlanıyor',    next: 'ready',     nextLabel: 'Hazır' },
+    { key: 'ready',     label: 'Servise Hazır',   next: 'serving',   nextLabel: 'Servise Ver' }
+  ];
+
+  // Siparişin ne kadar süredir beklediği — mutfakta en kritik bilgi budur.
+  function kdsMinutes(createdAt) {
+    const ms = Date.now() - Number(createdAt || 0);
+    return Math.max(0, Math.floor(ms / 60000));
+  }
+
+  window.kdsLoad = async function () {
+    const board = document.getElementById('kdsBoard');
+    if (!board) return;
+    board.innerHTML = stateHtml.loading();
+    try {
+      // Mevcut uç: aktif (arşivlenmemiş) masa siparişleri.
+      const res = await fetch('/api/orders?type=dinein&archived=0', {
+        headers: { 'Authorization': 'Bearer ' + (typeof getAdminToken === 'function' ? getAdminToken() : '') }
+      });
+      if (!res.ok) throw new Error('http_' + res.status);
+      const data = await res.json();
+      const orders = Array.isArray(data) ? data : (data.orders || data.items || []);
+
+      const badge = document.getElementById('adminKitchenBadge');
+      const active = orders.filter(o => ['received', 'preparing', 'ready'].includes(o.status));
+      if (badge) { badge.textContent = active.length; badge.style.display = active.length ? '' : 'none'; }
+
+      board.innerHTML = KDS_COLS.map(col => {
+        const list = orders.filter(o => o.status === col.key);
+        const cards = list.length ? list.map(o => {
+          const mins = kdsMinutes(o.created_at);
+          // 15 dakikayı geçen sipariş acil sayılır — mutfakta gecikme en pahalı hatadır.
+          const urgent = mins >= 15;
+          const items = (o.items || []).map(it =>
+            '<li><span class="kds-qty">' + (it.quantity || 1) + '×</span> ' + esc(it.name || it.product_name || '') + '</li>'
+          ).join('');
+          return '<div class="kds-card' + (urgent ? ' urgent' : '') + '">' +
+            '<div class="kds-card-top">' +
+              '<span class="kds-table">' + esc(o.table_name || o.table || 'Masa') + '</span>' +
+              '<span class="kds-time' + (urgent ? ' urgent' : '') + '">' + mins + ' dk</span>' +
+            '</div>' +
+            '<ul class="kds-items">' + (items || '<li class="ops-sub">Kalem yok</li>') + '</ul>' +
+            (o.order_notes ? '<div class="kds-note">' + esc(o.order_notes) + '</div>' : '') +
+            '<button class="admin-btn kds-advance" onclick="kdsAdvance(\'' + o.id + '\',\'' + col.next + '\')">' +
+              esc(col.nextLabel) + '</button>' +
+          '</div>';
+        }).join('') : '<div class="ops-empty" style="padding:24px 8px;">Bu aşamada sipariş yok.</div>';
+
+        return '<div class="kds-col">' +
+          '<div class="kds-col-head"><span>' + esc(col.label) + '</span>' +
+            '<span class="ops-badge neutral">' + list.length + '</span></div>' +
+          '<div class="kds-col-body">' + cards + '</div>' +
+        '</div>';
+      }).join('');
+    } catch (e) {
+      board.innerHTML = stateHtml.error();
+      console.warn('[KDS]', e);
+    }
+  };
+
+  window.kdsAdvance = async function (orderId, nextStatus) {
+    try {
+      const res = await fetch('/api/orders/' + orderId + '/status', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + (typeof getAdminToken === 'function' ? getAdminToken() : '') },
+        body: JSON.stringify({ status: nextStatus })
+      });
+      if (!res.ok) throw new Error('http_' + res.status);
+      window.kdsLoad();
+    } catch (e) {
+      alertBox('Sipariş durumu güncellenemedi, tekrar deneyin.', 'İşlem başarısız', 'warning');
+    }
+  };
+
+  // ============================================================
   // UYARILAR — sistemden türetilir, saklanmaz, kullanıcı işaretleyemez.
   // ============================================================
   let alertFilter = 'all';
@@ -897,7 +979,8 @@
     expenses: () => window.opsLoadExpenses(),
     customers: () => window.opsLoadCustomers(),
     alerts: () => window.opsLoadAlerts(),
-    reminders: () => window.opsLoadReminders()
+    reminders: () => window.opsLoadReminders(),
+    kitchen: () => window.kdsLoad()
   };
 
   function hookViewSwitching() {
