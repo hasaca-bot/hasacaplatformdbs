@@ -2099,9 +2099,13 @@ const AI_FIELD_WHITELIST = {
 // yükleme gerekir), sosyal/URL alanları (AI'ın URL uydurması riskli), ve hiçbir güvenlik/ödeme/
 // müşteri/API alanı yok. Küçük veri seti olduğundan prompt'a kompakt biçimde her mesajda eklenir
 // (TPM maliyeti minimal). Mevcut ADMIN_BRANDING_ALLOWED altyapısıyla aynı depolamayı kullanır.
+// "theme" BİLEREK burada YOK (Faz 97): Faz 94'te kullanıcı Marka & Site'tan tema seçiciyi
+// "gerek yok" diyerek kaldırmıştı, ama bu whitelist'te unutulmuştu — AI hâlâ kullanıcıya
+// "dark/light/bw (siyah-beyaz)" gibi artık var olmayan bir seçenek sunabiliyordu. Backend
+// alanı (`theme`) hâlâ duruyor (kimse silmedi), sadece AI'ın bunu önermesi/yazması engellendi.
 const AI_SETTING_WHITELIST = ['company_name', 'contact_phone', 'contact_email', 'address', 'whatsapp',
   'hero_title_tr', 'hero_title_en', 'hero_sub_tr', 'hero_sub_en',
-  'banner_text_tr', 'banner_text_en', 'footer_text', 'theme',
+  'banner_text_tr', 'banner_text_en', 'footer_text',
   'seo_title', 'seo_description', 'seo_keywords'];
 // Kullanıcı dostu Türkçe etiketler (prompt'ta AI'ya alanların ne olduğunu anlatmak için).
 const AI_SETTING_LABELS = {
@@ -2109,7 +2113,6 @@ const AI_SETTING_LABELS = {
   whatsapp: 'whatsapp numarası', hero_title_tr: 'ana başlık (TR)', hero_title_en: 'ana başlık (EN)',
   hero_sub_tr: 'alt başlık (TR)', hero_sub_en: 'alt başlık (EN)', banner_text_tr: 'duyuru bandı (TR)',
   banner_text_en: 'duyuru bandı (EN)', footer_text: 'alt bilgi metni',
-  theme: 'site teması (değerler: dark=koyu, light=açık, bw=siyah-beyaz)',
   seo_title: 'SEO başlığı', seo_description: 'SEO açıklaması', seo_keywords: 'SEO anahtar kelimeleri' };
 
 // Varsayılan model GEMINI (Faz 95). Groq'un ücretsiz katmanı model başına 8.000 token/dakika;
@@ -2542,9 +2545,9 @@ Action tipleri:
 - update: var olan kaydı düzenler. SADECE verilen GERÇEK id + izinli alanlar. Hesabı (yüzde/çeviri) SEN yap, newValue'ya NİHAİ değeri yaz (formül yazma). price daima sayı string'i ("112.5"). TOPLU ÇEVİRİ (ör. "menüyü Almanca'ya çevir") create DEĞİL, update'tir: her ürün için ilgili alanları (name_XX, description_XX; ilgili *_tr doluysa portion_XX/ingredients_XX da) ayrı update olarak GERÇEK targetId ile öner; her kategori için name_XX. İlgili tr alanı boşsa o alanı atla. "sadece eksikleri çevir" denmedikçe hedefte değer olsa bile yeniden çevir.
 - create: YENİ ürün/kategori (ör. "menüme X ekle", "Y kategorisi aç"). tempId = plan-içi referans için uydurduğun kısa metin ("new-1"); gerçek id'yi SUNUCU üretir. Aynı planda yeni kategoriye ürün atarken ürünün fields.category alanına o kategorinin tempId'sini yaz (sunucu eşler). products.fields:{name_tr(zorunlu),name_en,description_tr,description_en,price,category(GERÇEK id veya plan-içi tempId)} + istenirse diğer dil alanları. categories.fields:{name_tr(zorunlu),name_en,+opsiyonel diğer diller}. Büyük istekte ("menümü baştan kur") çok create üret (önce kategoriler, sonra ürünler).
 - delete: SADECE kullanıcı açıkça "sil/kaldır" derse; targetId GERÇEK id. Kategori silmek ürünlerini silmez; "ürünleriyle sil" denirse ürünler için de delete ekle.
-- setting: RESTORAN AYARLARINI düzenler (restoran adı, iletişim, ana sayfa hero metni, tema vb. — ürün/kategori DEĞİL). "field" aşağıdaki izinli ayar alanlarından biri olmalı, "newValue" nihai değer. Ör. "restoran adını X yap" → {"type":"setting","field":"company_name","newValue":"X"}; "temayı koyu yap" → {"type":"setting","field":"theme","newValue":"dark"}; "ana başlığı ... yap" → hero_title_tr. Sadece kullanıcının açıkça istediği alan(lar)ı değiştir.
+- setting: RESTORAN AYARLARINI düzenler (restoran adı, iletişim, ana sayfa hero metni vb. — ürün/kategori DEĞİL). "field" aşağıdaki izinli ayar alanlarından biri olmalı, "newValue" nihai değer. Ör. "restoran adını X yap" → {"type":"setting","field":"company_name","newValue":"X"}; "ana başlığı ... yap" → hero_title_tr. Sadece kullanıcının açıkça istediği alan(lar)ı değiştir.
 İzinli ayar alanları (setting): ${AI_SETTING_WHITELIST.map(k => `${k} (${AI_SETTING_LABELS[k] || k})`).join('; ')}.
-Bu listede OLMAYAN bir ayar (çalışma saati, ödeme, güvenlik vb.) istenirse action üretme, "unsupported"a kısa not ekle.
+Bu listede OLMAYAN bir ayar (tema, çalışma saati, ödeme, güvenlik vb.) istenirse action üretme, "unsupported"a kısa not ekle — "tema" veya "site rengi" özelliği artık yok, kullanıcı sorarsa bu özelliğin kaldırıldığını söyle.
 
 Görsel isteğinde: image_prompt = SADECE yemeğin İngilizce tanımı (malzeme/sunum), stüdyo/ışık/kalite YAZMA (otomatik eklenir). summary'ye kısa not, actions boş. İstek belirli bir ürüne atıfsa o ürünün GERÇEK ad/açıklamasından tanım çıkar (uydurma); açıklama yoksa isimden makul tanım. Ürüne aitse image_target_product_id = o ürünün GERÇEK id'si; değilse null. İsim birden çok ürüne uyuyorsa (belirsiz) product_id null, image_target_candidates'e ≥2 GERÇEK id yaz; belirsiz değilse candidates null.
 
@@ -2652,7 +2655,6 @@ Veri: ${JSON.stringify(opsForPrompt)}` : ''}`;
       if (a.type === 'setting') {
         if (!AI_SETTING_WHITELIST.includes(a.field)) { unsupported.push(`Desteklenmeyen ayar: ${a.field}`); continue; }
         let v = String(a.newValue ?? '').slice(0, 2000);
-        if (a.field === 'theme') { const tv = v.toLowerCase().trim(); v = ['dark','light','bw'].includes(tv) ? tv : (tv === 'koyu' ? 'dark' : tv === 'açık' || tv === 'acik' ? 'light' : (tv === 'siyah-beyaz' || tv === 'mono' ? 'bw' : '')); if (!v) { unsupported.push('Geçersiz tema değeri'); continue; } }
         actions.push({ type: 'setting', field: a.field, oldValue: tenantSettingsForPrompt[a.field] ?? '', newValue: v, label: AI_SETTING_LABELS[a.field] || a.field });
         continue;
       }
