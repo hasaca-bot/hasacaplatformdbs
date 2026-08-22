@@ -642,12 +642,14 @@ module.exports = function createRootRouter({ db, isPg, invalidateTenantCache, si
   // linked to the underlying Google Cloud project even to use the nominal "free tier" — a key can
   // pass a cheap validation call but every real generation request 404s with "limit: 0" without
   // billing. Groq's free tier needs no card. Groq's API is OpenAI-compatible.
-  const DEFAULT_AI_MODEL = 'openai/gpt-oss-120b';
+  // Varsayılan Gemini (Faz 95) — server.js'teki DEFAULT_AI_MODEL ile aynı gerekçe:
+  // Groq ücretsiz katmanı 8K TPM, Gemini ~250K. Groq desteği duruyor.
+  const DEFAULT_AI_MODEL = 'gemini-flash-latest';
   // Groq retired llama-3.3-70b-versatile and llama-3.1-8b-instant on 2026-08-16 — every request
   // using either now 400s with "model does not exist". A value saved before that (or before the
   // earlier Phase 38 Gemini->Groq swap, "gemini-...") is mapped to a live model instead of being
   // sent straight to a doomed request — this fixes every existing install without a manual DB edit.
-  const DEPRECATED_AI_MODELS = { 'llama-3.3-70b-versatile': 'openai/gpt-oss-120b', 'llama-3.1-8b-instant': 'openai/gpt-oss-20b' };
+  const DEPRECATED_AI_MODELS = { 'llama-3.3-70b-versatile': 'openai/gpt-oss-120b', 'llama-3.1-8b-instant': 'openai/gpt-oss-20b', 'gemini-2.5-flash': 'gemini-flash-latest', 'gemini-1.5-flash': 'gemini-flash-latest', 'gemini-2.0-flash': 'gemini-flash-latest' };
   const cleanAiModel = m => {
     if (!m) return '';
     return DEPRECATED_AI_MODELS[m] || m;

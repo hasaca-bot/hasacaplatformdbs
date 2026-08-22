@@ -665,8 +665,8 @@
     </div>
 
     <label style="margin-top:16px;" data-i18n="root_ai_model">Varsayılan Model</label>
-    <input type="text" id="aiModel" placeholder="gemini-2.5-flash">
-    <div class="hint" data-i18n="root_ai_model_hint">Google Gemini için <b>gemini-2.5-flash</b> · Groq için <b>openai/gpt-oss-120b</b>. Sağlayıcı bu isimden otomatik seçilir ve o sağlayıcının yukarıdaki anahtarı kullanılır.</div>
+    <input type="text" id="aiModel" placeholder="gemini-flash-latest">
+    <div class="hint" data-i18n="root_ai_model_hint">Google Gemini için <b>gemini-flash-latest</b> · Groq için <b>openai/gpt-oss-120b</b>. Sağlayıcı bu isimden otomatik seçilir ve o sağlayıcının yukarıdaki anahtarı kullanılır.</div>
 
     <div style="margin-top:18px;padding-top:16px;border-top:1px solid var(--line);">
       <div style="font-weight:700;color:var(--text);margin-bottom:4px;" data-i18n="root_hf_title">Görsel Oluşturma (Hugging Face)</div>
@@ -2238,7 +2238,7 @@ async function openAiSettingsModal(){
   try {
     const s = await (await rootFetch('/api/root/ai-settings')).json();
     document.getElementById('aiEnabled').checked = !!s.ai_enabled;
-    document.getElementById('aiModel').value = s.ai_model || 'gemini-2.5-flash';
+    document.getElementById('aiModel').value = s.ai_model || 'gemini-flash-latest';
     document.getElementById('aiKey').value = '';
     document.getElementById('aiKeyStatus').textContent = s.key_set ? T('root_ai_key_set') : T('root_ai_key_unset');
     document.getElementById('aiGeminiKey').value = '';
@@ -2281,7 +2281,7 @@ async function testAiConnection(provider){
     // test ettiğiniz "Varsayılan Model" kutusuna ne yazdığınızdan bağımsız çalışır.
     const typedModel = document.getElementById('aiModel').value.trim();
     const typedIsGemini = /^gemini/i.test(typedModel);
-    const model = (typedModel && typedIsGemini === isGemini) ? typedModel : (isGemini ? 'gemini-2.5-flash' : 'openai/gpt-oss-120b');
+    const model = (typedModel && typedIsGemini === isGemini) ? typedModel : (isGemini ? 'gemini-flash-latest' : 'openai/gpt-oss-120b');
     const res = await rootFetch('/api/root/ai-settings/test', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ ai_key: key || undefined, ai_model: model, provider }) });
     const data = await res.json();
     if (res.ok && data.ok) { el.textContent = T('root_test_ok'); el.style.color = 'var(--ok)'; }

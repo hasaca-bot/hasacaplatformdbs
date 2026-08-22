@@ -2112,13 +2112,43 @@ const AI_SETTING_LABELS = {
   theme: 'site teması (değerler: dark=koyu, light=açık, bw=siyah-beyaz)',
   seo_title: 'SEO başlığı', seo_description: 'SEO açıklaması', seo_keywords: 'SEO anahtar kelimeleri' };
 
-const DEFAULT_AI_MODEL = 'openai/gpt-oss-120b';
+// Varsayılan model GEMINI (Faz 95). Groq'un ücretsiz katmanı model başına 8.000 token/dakika;
+// bu panelin sabit prompt maliyetiyle birkaç mesajda doluyordu. Gemini'nin ücretsiz katmanı
+// ~250.000 TPM — yaklaşık 30 kat. Groq desteği duruyor: model adı "gemini" ile başlamıyorsa
+// istek yine Groq'a gider (bkz. aiIsGemini).
+// "gemini-flash-latest" bilinçli olarak "-latest" takma adı: Google, sürüm numaralı modelleri
+// ("gemini-2.5-flash") bir süre sonra YENİ kullanıcılara kapatıyor — /models listesinde görünmeye
+// devam ediyor ama sohbet çağrısı 404 veriyor. Takma ad bu tuzağı ortadan kaldırır.
+const DEFAULT_AI_MODEL = 'gemini-flash-latest';
+
+// ── AI'ın ERİŞEBİLECEĞİ İŞLETME MODÜLLERİ (Faz 95) ──
+// Faz 92-93'te eklenen modüller AI'a kapalıydı. Artık okuyabiliyor ve sınırlı yazabiliyor.
+// Bilerek DIŞARIDA: reçeteler (iç içe kalem yapısı — yanlış yazma riski yüksek, AI okuyabilir
+// ama düzenleyemez), müşteriler (kişisel veri), stok bakiyesi (yalnızca hareket üzerinden
+// değişmeli — bkz. operations-data-model-decisions).
+const AI_OPS_WHITELIST = {
+  ingredients: ['name', 'unit', 'category', 'min_stock', 'max_stock', 'unit_cost', 'location'],
+  suppliers:   ['name', 'contact_name', 'phone', 'email', 'address', 'category', 'notes'],
+  expenses:    ['description', 'category', 'amount', 'vendor', 'status', 'note'],
+  reminders:   ['title', 'description', 'priority', 'category', 'recurring']
+};
+const AI_OPS_LABELS = {
+  ingredients: 'malzeme', suppliers: 'tedarikçi', expenses: 'gider', reminders: 'hatırlatıcı'
+};
 
 // Groq retired llama-3.3-70b-versatile and llama-3.1-8b-instant on 2026-08-16 — every request
 // using either now 400s with "model does not exist". A value saved before that (or before the
 // earlier Phase 38 Gemini->Groq swap, "gemini-...") is mapped to a live model instead of being
 // sent straight to a doomed request — this fixes every existing install without a manual DB edit.
-const DEPRECATED_AI_MODELS = { 'llama-3.3-70b-versatile': 'openai/gpt-oss-120b', 'llama-3.1-8b-instant': 'openai/gpt-oss-20b' };
+// Faz 95: gemini-2.5-flash de aynı kaderi paylaştı — /models listesinde duruyor ama sohbet
+// çağrısında "no longer available to new users" (404). "-latest" takma adına yönlendiriliyor.
+const DEPRECATED_AI_MODELS = {
+  'llama-3.3-70b-versatile': 'openai/gpt-oss-120b',
+  'llama-3.1-8b-instant': 'openai/gpt-oss-20b',
+  'gemini-2.5-flash': 'gemini-flash-latest',
+  'gemini-1.5-flash': 'gemini-flash-latest',
+  'gemini-2.0-flash': 'gemini-flash-latest'
+};
 function cleanAiModel(m) {
   if (!m) return '';
   return DEPRECATED_AI_MODELS[m] || m;
@@ -2285,16 +2315,24 @@ async function callAiJSON(key, model, systemPrompt, userMessage, history, opts) 
     const code = classifyAiError(r.status, rawMsg);
     const retryHdr = parseFloat(r.headers.get('retry-after'));
     const retryFromMsg = parseFloat((rawMsg.match(/try again in ([\d.]+)s/i) || [])[1]);
-    // 429: anlık TPM tıkanması — bir kez, kısa ve üst-sınırlı bekleyip sessizce yeniden dene.
-    if (code === 'ai_rate_limited' && attempt === 0) {
-      let waitMs = (Number.isFinite(retryHdr) ? retryHdr : (Number.isFinite(retryFromMsg) ? retryFromMsg : 2)) * 1000;
+    // 429 (anlık TPM tıkanması) VE 503 (sağlayıcı geçici olarak yoğun) — kısa, üst-sınırlı
+    // bekleyip sessizce yeniden dene. 503 Faz 95'te eklendi: Gemini'ye geçtikten sonra
+    // ölçümlerde 503 belirgin biçimde sık çıktı ve tek denemede istek boşa gidiyordu.
+    // 503'te sunucu genelde retry-after vermiyor, o yüzden sabit kısa bir bekleme kullanılıyor.
+    const transient = code === 'ai_rate_limited' || r.status === 503;
+    if (transient && attempt < 2) {
+      let waitMs = r.status === 503
+        ? 800 * (attempt + 1)
+        : (Number.isFinite(retryHdr) ? retryHdr : (Number.isFinite(retryFromMsg) ? retryFromMsg : 2)) * 1000;
       waitMs = Math.min(Math.max(waitMs, 500), 3000);
       attempt++;
       await new Promise(res => setTimeout(res, waitMs));
       continue;
     }
     // Ham metin YALNIZCA sunucu log'una (teşhis) — istemciye kararlı kod gider.
-    console.error('[AI] Groq error', r.status, rawMsg);
+    // Etiket sağlayıcıya göre yazılır: eskiden hep "Groq" yazıyordu ve Gemini hatalarını
+    // teşhis ederken yanlış yere baktırıyordu.
+    console.error('[AI] ' + (aiIsGemini(model) ? 'Gemini' : 'Groq') + ' error', r.status, rawMsg);
     const err = new Error(rawMsg);
     err.aiCode = code;
     err.retryAfter = code === 'ai_rate_limited' ? (Number.isFinite(retryHdr) ? retryHdr : (Number.isFinite(retryFromMsg) ? retryFromMsg : null)) : null;
@@ -2315,7 +2353,34 @@ function aiClassifyIntent(msg) {
   const rebuild = /(menü|menu)[^.!?]{0,40}(kur|oluştur|olustur|yeniden|sıfırdan|sifirdan)|(kur|oluştur|olustur)[^.!?]{0,40}(menü|menu)/.test(m);
   const bulkPrice = allWords && /fiyat|price|zam|indirim|%|yüzde|yuzde/.test(m);
   const bulkCatalog = allWords && /ürün|urun|product|kategori|category|menü|menu/.test(m);
-  return { bulk: translation || rebuild || bulkPrice || bulkCatalog, translation };
+
+  // ── TPM: HANGİ VERİYİ prompt'a koyacağımızı belirler (Faz 95) ──
+  // Önceden ürün+kategori listesi HER mesajda gönderiliyordu; "merhaba" yazıldığında bile tüm
+  // menü prompt'a giriyordu. Sabit maliyetin asıl kaynağı buydu. Artık mesaj neyle ilgiliyse
+  // sadece o veri gönderiliyor; hiçbiriyle ilgili değilse (sohbet) hiçbir liste gönderilmiyor.
+  const menuWords = /ürün|urun|product|menü|menu|kategori|category|fiyat|price|yemek|içecek|icecek|tatlı|tatli|porsiyon|alerjen|kalori|açıklama|aciklama|görsel|gorsel|resim|foto/.test(m);
+  const opsWords = /stok|stock|malzeme|ingredient|hammadde|reçete|recete|recipe|tedarikçi|tedarikci|supplier|gider|expense|masraf|fatura|kira|hatırlat|hatirlat|reminder|görev|gorev|envanter|depo|kritik|azal|tüken|tuken|maliyet|kâr|kar marj|karlı|karli/.test(m);
+  const settingWords = /ayar|setting|restoran adı|restoran adi|telefon|adres|e-posta|eposta|whatsapp|hero|başlık|baslik|alt başlık|alt baslik|duyuru|banner|footer|tema|theme|seo/.test(m);
+
+  return {
+    bulk: translation || rebuild || bulkPrice || bulkCatalog,
+    translation,
+    // Belirsizse (hiçbir anahtar kelime yok ama bir işlem isteniyor olabilir) menüyü göndeririz —
+    // menü bu panelin ana işi. Ama saf sohbette (aşağıdaki chat) o da gönderilmez.
+    wantsMenu: menuWords || translation || rebuild || bulkPrice || bulkCatalog,
+    wantsOps: opsWords,
+    wantsSettings: settingWords
+  };
+}
+
+// Mesaj hiçbir alanla ilgili değilse (selamlama, teşekkür, genel sohbet/tavsiye) hiçbir veri
+// listesi prompt'a konmaz — TPM'in büyük kısmı burada kazanılır.
+function aiIsSmallTalk(msg, intent) {
+  if (intent.wantsMenu || intent.wantsOps || intent.wantsSettings) return false;
+  const m = String(msg || '').trim().toLowerCase();
+  // Kısa ve soru/komut içermeyen mesajlar sohbet sayılır. Uzun mesajlarda emin olamayız —
+  // veri göndermemek yanlış cevaba yol açabilir, o yüzden uzunsa menüyü yine gönderiyoruz.
+  return m.length <= 60;
 }
 
 // POST /api/admin/ai-assistant/plan — { message } -> { planId, summary, actions, unsupported }
@@ -2369,8 +2434,13 @@ app.post('/api/admin/ai-assistant/plan', adminAuth, async (req, res) => {
     const stripForPrompt = row => Object.fromEntries(
       Object.entries(row).filter(([k, v]) => v !== '' && v !== null && (intent.translation || !langCols.has(k)))
     );
-    const productsForPrompt = products.map(stripForPrompt);
-    const categoriesForPrompt = categories.map(stripForPrompt);
+    // TPM (Faz 95): mesaj menüyle ilgili değilse ürün/kategori listesi HİÇ gönderilmez.
+    // Doğrulama tarafı (productsById) etkilenmez — o hâlâ tam listeyi kullanır, yani AI
+    // uydurma bir id gönderirse yine yakalanır.
+    const smallTalk = aiIsSmallTalk(message, intent);
+    const includeMenu = intent.wantsMenu || (!smallTalk && !intent.wantsOps && !intent.wantsSettings);
+    const productsForPrompt = includeMenu ? products.map(stripForPrompt) : [];
+    const categoriesForPrompt = includeMenu ? categories.map(stripForPrompt) : [];
 
     // Restoran ayarlarını (küçük veri) yükle — AI restoran bilgisi/hero/tema düzenleyebilsin.
     // Yalnızca AI-whitelist alanları, dolu olanlar prompt'a girer (TPM için kompakt).
@@ -2382,6 +2452,44 @@ app.post('/api/admin/ai-assistant/plan', adminAuth, async (req, res) => {
         if (tSet[k] !== undefined && tSet[k] !== '' && tSet[k] !== null) tenantSettingsForPrompt[k] = tSet[k];
       }
     } catch (e) {}
+
+    // ── İŞLETME VERİSİ (Faz 95) — yalnızca mesaj bu konuyla ilgiliyse yüklenir ──
+    // Böylece menü sohbetinde stok/gider listesi TPM harcamaz, stok sorusunda da menü harcamaz.
+    let opsForPrompt = null;
+    if (intent.wantsOps) {
+      try {
+        const p1 = isPg ? '$1' : '?';
+        const [ings, sups, exps, recs, rems] = await Promise.all([
+          db.all(`SELECT id, name, unit, category, stock_qty, min_stock, unit_cost, supplier_id FROM ingredients WHERE tenant_id = ${p1}`, [req.tenantId]),
+          db.all(`SELECT id, name, category, phone FROM suppliers WHERE tenant_id = ${p1}`, [req.tenantId]),
+          db.all(`SELECT id, description, category, amount, status FROM expenses WHERE tenant_id = ${p1}`, [req.tenantId]),
+          db.all(`SELECT id, name, product_id, servings, items FROM recipes WHERE tenant_id = ${p1}`, [req.tenantId]),
+          db.all(`SELECT id, title, priority, category, done FROM reminders WHERE tenant_id = ${p1}`, [req.tenantId])
+        ]);
+        // Reçetelerin maliyetini burada hesaplayıp veriyoruz — AI'ın malzeme fiyatlarından
+        // kendi hesap yapmasını beklemek hem token harcar hem hata riski taşır.
+        const ingCost = {};
+        ings.forEach(i => { ingCost[i.id] = Number(i.unit_cost) || 0; });
+        const recipesLite = recs.map(r => {
+          let items = []; try { items = JSON.parse(r.items || '[]') || []; } catch (e) {}
+          const cost = items.reduce((s, it) => s + (ingCost[it.ingredient_id] || 0) * (Number(it.qty) || 0), 0);
+          const servings = Math.max(1, parseInt(r.servings, 10) || 1);
+          return { id: r.id, name: r.name, product_id: r.product_id || '', cost_per_serving: Math.round((cost / servings) * 100) / 100 };
+        });
+        opsForPrompt = {
+          malzemeler: ings.map(i => ({
+            id: i.id, ad: i.name, birim: i.unit, kategori: i.category || '',
+            stok: Number(i.stock_qty) || 0, kritik_esik: Number(i.min_stock) || 0,
+            birim_maliyet: Number(i.unit_cost) || 0,
+            kritik_mi: (Number(i.stock_qty) || 0) <= (Number(i.min_stock) || 0)
+          })),
+          tedarikciler: sups.map(s => ({ id: s.id, ad: s.name, kategori: s.category || '', telefon: s.phone || '' })),
+          giderler: exps.map(e => ({ id: e.id, aciklama: e.description, kategori: e.category || '', tutar: Number(e.amount) || 0, durum: e.status })),
+          receteler: recipesLite,
+          hatirlaticilar: rems.map(r => ({ id: r.id, baslik: r.title, oncelik: r.priority, tamam: r.done === 1 || r.done === true }))
+        };
+      } catch (e) { console.warn('[AI] ops verisi yuklenemedi:', e.message); }
+    }
 
     // NOT: Sistem promptu, TPM'in HER mesajda ödenen sabit maliyetidir — önceki (çok uzun/tekrarlı)
     // sürüm basit bir "merhaba"da bile ~2000 token yükü getiriyordu. Aşağıdaki sürüm TÜM kuralları
@@ -2404,14 +2512,31 @@ Görsel isteğinde: image_prompt = SADECE yemeğin İngilizce tanımı (malzeme/
 Diğer tüm soru/sohbet/tavsiyede: doğal ve samimi cevabı summary'ye yaz, actions boş/null.
 SADECE aşağıdaki ürün/kategori verisine ve izinli restoran ayarlarına erişimin var; sipariş, müşteri kişisel verisi, ödeme/finans, başka restoran, sistem/güvenlik, API anahtarı vb. verin YOK ve düzenleyemezsin — istenirse summary'de nazikçe belirt, veri uydurma.
 İzinli alanlar — products: ${AI_FIELD_WHITELIST.products.join(', ')}. categories: ${AI_FIELD_WHITELIST.categories.join(', ')}.
-Ürünler: ${JSON.stringify(productsForPrompt)}
-Kategoriler: ${JSON.stringify(categoriesForPrompt)}
-Mevcut restoran ayarları (setting action için): ${JSON.stringify(tenantSettingsForPrompt)}`;
+${includeMenu ? `Ürünler: ${JSON.stringify(productsForPrompt)}
+Kategoriler: ${JSON.stringify(categoriesForPrompt)}` : `(Ürün/kategori listesi bu mesaja dahil edilmedi. Menüyle ilgili bir işlem istenirse "unsupported"a "menü verisi bu istekte yüklenmedi, lütfen ürün/menü kelimesini kullanarak tekrar sorun" notu ekle.)`}
+Mevcut restoran ayarları (setting action için): ${JSON.stringify(tenantSettingsForPrompt)}${opsForPrompt ? `
+
+İŞLETME VERİSİ (stok/malzeme/tedarikçi/gider/reçete/hatırlatıcı). Bunları "ops" action ile düzenlersin:
+{"type":"ops","table":"ingredients"|"suppliers"|"expenses"|"reminders","op":"create"|"update"|"delete","targetId":string,"fields":object}
+- create: fields içinde en az ad/başlık olsun (ingredients/suppliers: name, expenses: description+amount, reminders: title).
+- update: GERÇEK id + izinli alanlar. delete: GERÇEK id.
+- İzinli alanlar — ${Object.entries(AI_OPS_WHITELIST).map(([t, f]) => `${t}: ${f.join(', ')}`).join(' | ')}
+- STOK MİKTARINI (stok alanını) ops ile DEĞİŞTİREMEZSİN. Stok yalnızca stok hareketiyle değişir;
+  "50 kg domates geldi" gibi bir istekte action üretme, summary'de "Stok ekranından giriş yapın" de.
+- REÇETELERİ düzenleyemezsin (yalnızca okursun); istenirse unsupported'a not ekle.
+Veri: ${JSON.stringify(opsForPrompt)}` : ''}`;
 
     // TPM: Groq muhasebesinde prompt+max_tokens sayılır. Sohbet/tekil düzenleme küçük bir yanıt
     // üretir → düşük tavan (bütçenin çoğu boşuna rezerve edilmesin). Yalnızca gerçekten büyük JSON
     // üreten toplu istekler (çeviri / menüyü baştan kur / tüm fiyatlar) yüksek tavan alır.
-    const maxTokens = intent.bulk ? 4000 : 1024;
+    // SAĞLAYICIYA GÖRE TAVAN (Faz 95). Groq'ta prompt+max_tokens birlikte 8K TPM'e sayıldığı için
+    // dar tutmak zorundaydık. Gemini'de iki şey değişiyor: (1) TPM ~250K, dar tutmaya gerek yok;
+    // (2) "düşünme" (thinking) tokenları da bu bütçeden harcanıyor — 1024 ile model düşünürken
+    // bütçeyi bitiriyor ve yanıt BOŞ dönüyor (ölçüldü: 1024 → boş, 2048 → doğru JSON).
+    // Bu yüzden Gemini'de taban belirgin biçimde yüksek.
+    const maxTokens = aiIsGemini(cfg.ai_model)
+      ? (intent.bulk ? 16000 : 4096)
+      : (intent.bulk ? 4000 : 1024);
 
     let plan;
     try {
@@ -2481,6 +2606,31 @@ Mevcut restoran ayarları (setting action için): ${JSON.stringify(tenantSetting
         actions.push({ type: 'setting', field: a.field, oldValue: tenantSettingsForPrompt[a.field] ?? '', newValue: v, label: AI_SETTING_LABELS[a.field] || a.field });
         continue;
       }
+      // İşletme modülü action'ı (Faz 95) — malzeme/tedarikçi/gider/hatırlatıcı.
+      if (a.type === 'ops') {
+        const t = String(a.table || '');
+        if (!AI_OPS_WHITELIST[t]) { unsupported.push(`Desteklenmeyen tablo: ${a.table}`); continue; }
+        if (!opsForPrompt) { unsupported.push('İşletme verisi bu istekte yüklenmedi'); continue; }
+        const op = ['create', 'update', 'delete'].includes(a.op) ? a.op : 'update';
+        const allowed = AI_OPS_WHITELIST[t];
+
+        if (op === 'delete') {
+          if (!a.targetId) { unsupported.push(`${AI_OPS_LABELS[t]}: id eksik`); continue; }
+          actions.push({ type: 'ops', table: t, op: 'delete', targetId: a.targetId, label: AI_OPS_LABELS[t] });
+          continue;
+        }
+        // İzinli olmayan alanları sessizce atma — kullanıcıya neyin uygulanmadığını söyle.
+        const fields = {};
+        for (const [k, v] of Object.entries(a.fields || {})) {
+          if (allowed.includes(k)) fields[k] = String(v ?? '').slice(0, 600);
+          else unsupported.push(`${AI_OPS_LABELS[t]}: "${k}" alanı düzenlenemez`);
+        }
+        if (!Object.keys(fields).length) { unsupported.push(`${AI_OPS_LABELS[t]}: düzenlenecek geçerli alan yok`); continue; }
+        if (op === 'update' && !a.targetId) { unsupported.push(`${AI_OPS_LABELS[t]}: id eksik`); continue; }
+        actions.push({ type: 'ops', table: t, op, targetId: a.targetId || '', fields, label: AI_OPS_LABELS[t] });
+        continue;
+      }
+
       const table = a.table === 'categories' ? 'categories' : (a.table === 'products' ? 'products' : null);
       if (!table) { unsupported.push(`Desteklenmeyen tablo: ${a.table}`); continue; }
       const type = a.type === 'create' ? 'create' : (a.type === 'delete' ? 'delete' : 'update');
@@ -2588,6 +2738,46 @@ app.post('/api/admin/ai-assistant/execute', adminAuth, async (req, res) => {
           [a.targetId, req.tenantId]
         );
         if (result.changes) applied.push(a);
+      } else if (a.type === 'ops') {
+        // İşletme modülü yazımı (Faz 95). Her sorgu tenant_id ile kısıtlı — AI başka bir
+        // restoranın kaydına dokunamaz. Alanlar planlamada doğrulandı, burada bir kez daha.
+        const t = a.table;
+        if (!AI_OPS_WHITELIST[t]) continue;
+        const allowed = AI_OPS_WHITELIST[t];
+        const clean = (v) => stripHtmlTags(String(v ?? '')).slice(0, 600);
+        const P2 = (n) => (isPg ? `$${n}` : '?');
+
+        if (a.op === 'delete') {
+          const r = await db.run(`DELETE FROM ${t} WHERE id = ${P2(1)} AND tenant_id = ${P2(2)}`, [a.targetId, req.tenantId]);
+          if (r.changes) applied.push(a);
+          continue;
+        }
+
+        const entries = Object.entries(a.fields || {}).filter(([k]) => allowed.includes(k));
+        if (!entries.length) continue;
+        // Sayısal alanlar metin olarak gelirse veritabanına metin yazmayalım.
+        const numeric = new Set(['min_stock', 'max_stock', 'unit_cost', 'amount']);
+        const val = (k, v) => numeric.has(k) ? (parseFloat(v) || 0) : clean(v);
+
+        if (a.op === 'create') {
+          const prefix = { ingredients: 'ing', suppliers: 'sup', expenses: 'exp', reminders: 'rem' }[t];
+          const id = `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+          const cols = ['id', 'tenant_id', ...entries.map(([k]) => k), 'created_at', 'updated_at'];
+          const vals = [id, req.tenantId, ...entries.map(([k, v]) => val(k, v)), Date.now(), Date.now()];
+          const ph = cols.map((_, i) => P2(i + 1)).join(',');
+          await db.run(`INSERT INTO ${t} (${cols.join(', ')}) VALUES (${ph})`, vals);
+          applied.push({ ...a, createdId: id });
+          continue;
+        }
+
+        // update
+        const setSql = entries.map(([k], i) => `${k}=${P2(i + 1)}`).join(', ');
+        const params = [...entries.map(([k, v]) => val(k, v)), Date.now(), a.targetId, req.tenantId];
+        const r = await db.run(
+          `UPDATE ${t} SET ${setSql}, updated_at=${P2(entries.length + 1)} WHERE id=${P2(entries.length + 2)} AND tenant_id=${P2(entries.length + 3)}`,
+          params
+        );
+        if (r.changes) applied.push(a);
       } else if (a.type === 'setting') {
         // Restoran ayarı — tenants.settings JSON'una yazılır (branding endpoint'iyle aynı depolama).
         // Yalnızca AI_SETTING_WHITELIST alanları (planlamada zaten doğrulandı, burada bir kez daha).
