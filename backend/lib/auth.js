@@ -34,6 +34,24 @@ if (!SECRET) {
   } catch (e) {
     console.error('[AUTH] Failed to persist auth secret (tokens will invalidate on restart):', e.message);
   }
+
+  // ⚠️ ÜRETİMDE BU BİR HATADIR — ve daha önce tamamen SESSİZ kalıyordu (Faz 90).
+  // data/secret.json .gitignore'da (doğrusu bu — gizli anahtar herkese açık repoda durmamalı),
+  // Render'ın diski de her deploy/restart'ta sıfırlanıyor. Yani AUTH_SECRET ortam değişkeni
+  // tanımlı DEĞİLSE her yeniden başlatmada yepyeni bir anahtar üretilir ve o ana kadar verilmiş
+  // BÜTÜN oturum token'ları anında geçersiz olur — herkes login ekranına atılır. Dosya yazma
+  // başarılı olduğu için yukarıdaki catch de tetiklenmez, hiçbir uyarı çıkmazdı.
+  // Bu, "root→tenant girişi bazen login'e atıyor" şikayetinin (Görev #1) en olası nedeni:
+  // "bazen" = "her deploy'dan sonra".
+  if (process.env.NODE_ENV === 'production' || process.env.RENDER || process.env.DATABASE_URL) {
+    console.error('='.repeat(78));
+    console.error('[AUTH] ⚠️  UYARI: AUTH_SECRET ortam değişkeni TANIMLI DEĞİL.');
+    console.error('[AUTH] Geçici, rastgele bir anahtar üretildi. Sunucu her yeniden başladığında');
+    console.error('[AUTH] bu anahtar DEĞİŞİR ve tüm kullanıcılar oturumdan düşer (login ekranına atılır).');
+    console.error('[AUTH] ÇÖZÜM: Render panelinde Environment > AUTH_SECRET olarak uzun ve rastgele');
+    console.error('[AUTH] bir değer tanımlayın (bir kez), sonra servisi yeniden başlatın.');
+    console.error('='.repeat(78));
+  }
 }
 
 // ── PASSWORD HASHING (scrypt) ──

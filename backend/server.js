@@ -1097,12 +1097,19 @@ setInterval(() => {
   for (const ip in ipCounts) delete ipCounts[ip];
 }, 60000);
 
+// DÜZELTME (Faz 90): sayaç eskiden SADECE IP bazlıydı, yani rateLimiter kullanan 8 uç noktanın
+// HEPSİ aynı sayacı paylaşıyordu. Sonuç: en düşük limit fiilen hepsini yönetiyordu — örneğin
+// müşteri birkaç sipariş verdiğinde (limit 30) aynı sayaç artıyor ve ardından Google ile giriş
+// (limit 15) sebepsiz yere 429 dönebiliyordu. Ortak IP arkasındaki kullanıcılar (ofis ağı, mobil
+// operatör CGNAT) de aynı sayacı paylaştığı için hata "bazen oluyor bazen olmuyor" görünüyordu.
+// Artık her uç nokta kendi kovasını kullanıyor: anahtar = IP + yol.
 function rateLimiter(limit = 60) {
   return (req, res, next) => {
     const xff = String(req.headers['x-forwarded-for'] || '').split(',')[0].trim();
     const ip = req.ip || xff || req.socket.remoteAddress || 'unknown';
-    ipCounts[ip] = (ipCounts[ip] || 0) + 1;
-    if (ipCounts[ip] > limit) {
+    const key = `${ip}|${req.baseUrl || ''}${req.route ? req.route.path : req.path}`;
+    ipCounts[key] = (ipCounts[key] || 0) + 1;
+    if (ipCounts[key] > limit) {
       return res.status(429).json({ error: 'Too many requests. Please try again later.' });
     }
     next();
