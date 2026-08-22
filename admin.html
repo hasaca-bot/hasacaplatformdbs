@@ -1224,11 +1224,11 @@
 
           <div class="push-stats-grid" style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-bottom:20px;">
             <div style="background:rgba(255,255,255,0.03); padding:10px; border-radius:8px; text-align:center; border:1px solid rgba(255,255,255,0.05);">
-              <div style="font-size:0.6rem; color:var(--muted); text-transform:uppercase;">Abone</div>
+              <div style="font-size:0.6rem; color:var(--ap-muted); text-transform:uppercase;">Abone</div>
               <div id="pushStatSubscribers" style="font-size:1.1rem; font-weight:700; color:var(--ember);">0</div>
             </div>
             <div style="background:rgba(255,255,255,0.03); padding:10px; border-radius:8px; text-align:center; border:1px solid rgba(255,255,255,0.05);">
-              <div style="font-size:0.6rem; color:var(--muted); text-transform:uppercase;">Gönderilen</div>
+              <div style="font-size:0.6rem; color:var(--ap-muted); text-transform:uppercase;">Gönderilen</div>
               <div id="pushStatTotal" style="font-size:1.1rem; font-weight:700; color:var(--ember);">0</div>
             </div>
           </div>
@@ -1286,7 +1286,7 @@
             <input type="hidden" id="pushCollapseKey" value="">
             <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
                <button class="admin-btn secondary" style="margin:0;" onclick="sendTestPush()">Test</button>
-               <button class="admin-btn" style="margin:0; background:var(--fire);color:var(--fire-text);" onclick="openPushConfirmModal()">Gönder</button>
+               <button class="admin-btn" style="margin:0; background:var(--ap-gold);color:var(--ap-gold-text);" onclick="openPushConfirmModal()">Gönder</button>
             </div>
           </div>
             </div>
@@ -1534,6 +1534,64 @@
   
   <input type="hidden" id="formProductId" />
 
+
+  <!-- TEMEL ALANLAR — Faz 93: form sadelestirildi. Gelismis alanlar asagida
+       katlanabilir bolumlerde; hicbir alan silinmedi, sadece varsayilan olarak kapali. -->
+  <div class="admin-form-row admin-lang-panel" data-lang="tr">
+    <div>
+      <label class="admin-form-label" data-i18n="admin_lbl_prod_name_tr">Ürün Adı (Türkçe)</label>
+      <input type="text" id="formProductName" class="admin-input" data-i18n-placeholder="form_product_name_placeholder_tr" placeholder="Örn: Zurna Tavuk" />
+    </div>
+  </div>
+  <div class="admin-form-row" style="grid-template-columns: 1fr 1fr; gap:16px;">
+    <div>
+      <label class="admin-form-label" data-i18n="admin_lbl_prod_price">Fiyat (TL)</label>
+      <div class="custom-stepper">
+        <button type="button" onclick="stepDown('formProductPrice', 5)">-</button>
+        <input type="number" id="formProductPrice" data-i18n-placeholder="ph_price" placeholder="Örn: 180" />
+        <button type="button" onclick="stepUp('formProductPrice', 5)">+</button>
+      </div>
+      <div class="hint" id="formPortionPriceNote" style="margin-top:6px; opacity:.75; display:none;" data-i18n="admin_portion_price_note">Porsiyon eklediğiniz için müşteri fiyatı porsiyondan görecek. Bu alan yedek fiyat olarak kalır.</div>
+    </div>
+    <div>
+      <label class="admin-form-label" data-i18n="admin_lbl_select_category">Kategori</label>
+      <div class="custom-select-container" id="formProductCategoryContainer" style="width: 100%;">
+        <div class="custom-select-trigger" onclick="toggleFormProductCategoryDropdown(event)" style="height: 48px;">
+          <span id="formProductCategorySelectedText" data-i18n="admin_lbl_select_category">Kategori Seçin</span>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="margin-left:auto; transition:transform 0.2s;"><polyline points="6 9 12 15 18 9"/></svg>
+        </div>
+        <div class="custom-select-options" id="formProductCategoryOptions">
+          <!-- Dynamic Form Options -->
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="admin-form-row" style="grid-template-columns: 1fr; gap:16px;">
+    <div>
+      <label class="admin-form-label" data-i18n="admin_lbl_prod_image">Ürün Görseli</label>
+      <input type="hidden" id="formProductImage" value="" />
+      <div class="img-picker" style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;">
+        <!-- Faz 93: arka plan/kenarlık sabit koyu renklerdi (#1c1c1c + açık kesikli çizgi), açık
+             temada kutu siyah kalıp okunmuyordu. Artık panel token'larını kullanıyor. -->
+        <div id="formProductImagePreview" class="img-picker-preview" style="width:84px;height:84px;border-radius:12px;background:var(--ap-elev) center/cover no-repeat;border:1.5px dashed var(--ap-line-2);flex-shrink:0;display:flex;align-items:center;justify-content:center;color:var(--ap-muted);font-size:0.65rem;text-align:center;overflow:hidden;">
+          <span data-i18n="admin_img_none">Görsel yok</span>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:8px;">
+          <label class="admin-file-upload-btn" style="cursor:pointer;">
+            <input type="file" id="formProductFile" accept="image/png,image/jpeg,image/webp,image/gif,image/svg+xml" onchange="handleAdminImageUpload(this)" style="display:none;" />
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="vertical-align:-3px;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+            <span data-i18n="admin_btn_choose_image">Görsel Seç</span>
+          </label>
+          <button type="button" id="formProductImageRemove" onclick="clearAdminProductImage()" style="display:none;background:none;border:none;color:var(--ap-muted);font-size:0.75rem;cursor:pointer;text-align:left;padding:0;text-decoration:underline;" data-i18n="admin_btn_remove_image">Görseli kaldır</button>
+        </div>
+        <span id="formProductImageStatus" style="font-size:0.72rem;color:var(--ap-muted);"></span>
+      </div>
+    </div>
+  </div>
+
+  <details class="ap-form-section">
+    <summary>Açıklama ve Diğer Diller<span class="ap-sec-hint">İsteğe bağlı — menüde gösterilecek açıklama ve 8 dil desteği</span></summary>
+    <div class="ap-form-section-body">
   <div class="admin-lang-tabs" id="productLangTabs">
     <button type="button" class="admin-lang-tab active" data-lang="tr" onclick="setProductFormLang('tr')">TR</button>
     <button type="button" class="admin-lang-tab" data-lang="en" onclick="setProductFormLang('en')">EN</button>
@@ -1543,13 +1601,6 @@
     <button type="button" class="admin-lang-tab" data-lang="zh" onclick="setProductFormLang('zh')">中文</button>
     <button type="button" class="admin-lang-tab" data-lang="ja" onclick="setProductFormLang('ja')">日本語</button>
     <button type="button" class="admin-lang-tab" data-lang="ko" onclick="setProductFormLang('ko')">한국어</button>
-  </div>
-
-  <div class="admin-form-row admin-lang-panel" data-lang="tr">
-    <div>
-      <label class="admin-form-label" data-i18n="admin_lbl_prod_name_tr">Ürün Adı (Türkçe)</label>
-      <input type="text" id="formProductName" class="admin-input" data-i18n-placeholder="form_product_name_placeholder_tr" placeholder="Örn: Zurna Tavuk" />
-    </div>
   </div>
   <div class="admin-form-row admin-lang-panel" data-lang="en" style="display:none;">
     <div>
@@ -1575,65 +1626,6 @@
   <div class="admin-form-row admin-lang-panel" data-lang="ko" style="display:none;">
     <div><label class="admin-form-label">Ürün Adı (Korece)</label><input type="text" id="formProductName_ko" class="admin-input" /></div>
   </div>
-  
-  <div class="admin-form-row" style="grid-template-columns: 1fr 1fr; gap:16px;">
-    <div>
-      <label class="admin-form-label" data-i18n="admin_lbl_prod_price">Fiyat (TL)</label>
-      <div class="custom-stepper">
-        <button type="button" onclick="stepDown('formProductPrice', 5)">-</button>
-        <input type="number" id="formProductPrice" data-i18n-placeholder="ph_price" placeholder="Örn: 180" />
-        <button type="button" onclick="stepUp('formProductPrice', 5)">+</button>
-      </div>
-      <div class="hint" id="formPortionPriceNote" style="margin-top:6px; opacity:.75; display:none;" data-i18n="admin_portion_price_note">Porsiyon eklediğiniz için müşteri fiyatı porsiyondan görecek. Bu alan yedek fiyat olarak kalır.</div>
-    </div>
-    <div>
-      <label class="admin-form-label" data-i18n="admin_lbl_select_category">Kategori</label>
-      <div class="custom-select-container" id="formProductCategoryContainer" style="width: 100%;">
-        <div class="custom-select-trigger" onclick="toggleFormProductCategoryDropdown(event)" style="height: 48px;">
-          <span id="formProductCategorySelectedText" data-i18n="admin_lbl_select_category">Kategori Seçin</span>
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="margin-left:auto; transition:transform 0.2s;"><polyline points="6 9 12 15 18 9"/></svg>
-        </div>
-        <div class="custom-select-options" id="formProductCategoryOptions">
-          <!-- Dynamic Form Options -->
-        </div>
-      </div>
-    </div>
-  </div>
-  
-  <!-- PORSİYON / BOYUT FİYATLANDIRMASI (Faz 89).
-       Hiç satır eklenmezse ürün eskisi gibi tek fiyatla çalışır — mevcut ürünler etkilenmez. -->
-  <div class="admin-form-row" style="grid-template-columns: 1fr; gap:16px;">
-    <div>
-      <label class="admin-form-label" data-i18n="admin_lbl_portions">Porsiyon / Boyut Seçenekleri</label>
-      <div class="hint" style="margin-bottom:10px; opacity:.75;" data-i18n="admin_portions_hint">İsteğe bağlı. Örn: Küçük 120₺, Büyük 180₺. Boş bırakırsanız ürün tek fiyatla satılır.</div>
-      <div id="formPortionsList" style="display:flex; flex-direction:column; gap:8px;"></div>
-      <button type="button" class="admin-btn secondary" onclick="addPortionRow()" style="margin-top:10px; width:auto; padding:9px 14px; font-size:.85rem;">
-        <span data-i18n="admin_btn_add_portion">+ Porsiyon Ekle</span>
-      </button>
-    </div>
-  </div>
-
-  <div class="admin-form-row" style="grid-template-columns: 1fr; gap:16px;">
-    <div>
-      <label class="admin-form-label" data-i18n="admin_lbl_prod_image">Ürün Görseli</label>
-      <input type="hidden" id="formProductImage" value="" />
-      <div class="img-picker" style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;">
-        <div id="formProductImagePreview" class="img-picker-preview" style="width:84px;height:84px;border-radius:12px;background:#1c1c1c center/cover no-repeat;border:1.5px dashed rgba(244,244,246,0.22);flex-shrink:0;display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:0.65rem;text-align:center;overflow:hidden;">
-          <span data-i18n="admin_img_none">Görsel yok</span>
-        </div>
-        <div style="display:flex;flex-direction:column;gap:8px;">
-          <label class="admin-file-upload-btn" style="cursor:pointer;">
-            <input type="file" id="formProductFile" accept="image/png,image/jpeg,image/webp,image/gif,image/svg+xml" onchange="handleAdminImageUpload(this)" style="display:none;" />
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="vertical-align:-3px;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-            <span data-i18n="admin_btn_choose_image">Görsel Seç</span>
-          </label>
-          <button type="button" id="formProductImageRemove" onclick="clearAdminProductImage()" style="display:none;background:none;border:none;color:var(--muted);font-size:0.75rem;cursor:pointer;text-align:left;padding:0;text-decoration:underline;" data-i18n="admin_btn_remove_image">Görseli kaldır</button>
-        </div>
-        <span id="formProductImageStatus" style="font-size:0.72rem;color:var(--muted);"></span>
-      </div>
-    </div>
-  </div>
-
   <div class="admin-form-row admin-lang-panel" data-lang="tr">
     <div>
       <label class="admin-form-label" data-i18n="admin_lbl_prod_desc_tr">Açıklama (Türkçe)</label>
@@ -1664,8 +1656,33 @@
   <div class="admin-form-row admin-lang-panel" data-lang="ko" style="display:none;">
     <div><label class="admin-form-label">Açıklama (Korece)</label><textarea id="formProductDesc_ko" class="admin-input" rows="2" style="resize:vertical;"></textarea></div>
   </div>
+    </div>
+  </details>
+
+  <details class="ap-form-section">
+    <summary>Porsiyon / Boyut Fiyatlandırması<span class="ap-sec-hint">İsteğe bağlı — aynı ürünü farklı boyutlarda satmak için</span></summary>
+    <div class="ap-form-section-body">
   
-  <div style="border-top: 1px solid rgba(244,244,246,0.06); padding-top: 16px; margin-top: 10px; margin-bottom: 20px;">
+  <!-- PORSİYON / BOYUT FİYATLANDIRMASI (Faz 89).
+       Hiç satır eklenmezse ürün eskisi gibi tek fiyatla çalışır — mevcut ürünler etkilenmez. -->
+  <div class="admin-form-row" style="grid-template-columns: 1fr; gap:16px;">
+    <div>
+      <label class="admin-form-label" data-i18n="admin_lbl_portions">Porsiyon / Boyut Seçenekleri</label>
+      <div class="hint" style="margin-bottom:10px; opacity:.75;" data-i18n="admin_portions_hint">İsteğe bağlı. Örn: Küçük 120₺, Büyük 180₺. Boş bırakırsanız ürün tek fiyatla satılır.</div>
+      <div id="formPortionsList" style="display:flex; flex-direction:column; gap:8px;"></div>
+      <button type="button" class="admin-btn secondary" onclick="addPortionRow()" style="margin-top:10px; width:auto; padding:9px 14px; font-size:.85rem;">
+        <span data-i18n="admin_btn_add_portion">+ Porsiyon Ekle</span>
+      </button>
+    </div>
+  </div>
+    </div>
+  </details>
+
+  <details class="ap-form-section">
+    <summary>Besin Değerleri ve Alerjenler<span class="ap-sec-hint">İsteğe bağlı — müşterinin ürün detayında göreceği bilgiler</span></summary>
+    <div class="ap-form-section-body">
+  
+  <div style="border-top: 1px solid var(--ap-line); padding-top: 16px; margin-top: 10px; margin-bottom: 20px;">
     <h3 style="font-family:'Syne',sans-serif; font-size:1rem; color:var(--ember); margin-bottom:12px;" data-i18n="admin_lbl_nutrition_section">Besin Değerleri & Makrolar</h3>
     <div class="admin-form-row admin-lang-panel" data-lang="tr">
       <div>
@@ -1779,7 +1796,7 @@
     </div>
   </div>
   
-  <div style="border-top: 1px solid rgba(244,244,246,0.06); padding-top: 16px; margin-bottom: 20px;">
+  <div style="border-top: 1px solid var(--ap-line); padding-top: 16px; margin-bottom: 20px;">
     <h3 style="font-family:'Syne',sans-serif; font-size:1rem; color:var(--ember); margin-bottom:12px;" data-i18n="admin_lbl_other_info">Diğer Bilgiler</h3>
     
     <div class="admin-form-row admin-lang-panel" data-lang="tr" style="margin-bottom:10px;">
@@ -1845,6 +1862,9 @@
       </div>
     </div>
   </div>
+    </div>
+  </details>
+
 </div>
 
 <!-- Panelin ana mantigi — eskiden burada ~6500 satirlik satir-ici <script> vardi. -->

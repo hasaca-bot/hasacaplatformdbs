@@ -3479,3 +3479,49 @@ body.theme-bw{ --ord-surface:#FFFFFF; --ord-surface2:#F6EFE8; --ord-line:rgba(0,
     #adminPanelOverlay .ops-row .ops-right{ text-align:left; }
     #adminPanelOverlay .ops-recipe-item{ grid-template-columns:1fr 90px 36px; }
   }
+
+  /* ================================================================
+     ÜRÜN FORMU — katlanabilir gelişmiş bölümler (Faz 93).
+     Form ~30 alan gösteriyordu; artık varsayılan görünümde sadece
+     Ad/Fiyat/Kategori/Görsel var, gerisi bu bölümlerde. Hiçbir alan
+     silinmedi — sadece istendiğinde açılıyor.
+     ================================================================ */
+  #adminPanelOverlay .ap-form-section{
+    border:1px solid var(--ap-line); border-radius:var(--ap-radius-sm);
+    background:var(--ap-card); margin-bottom:12px; overflow:hidden;
+  }
+  #adminPanelOverlay .ap-form-section > summary{
+    padding:14px 16px; cursor:pointer; font-weight:700; font-size:.92rem;
+    color:var(--ap-text); list-style:none; display:flex; align-items:center;
+    gap:10px; flex-wrap:wrap; transition:background var(--ap-t);
+  }
+  #adminPanelOverlay .ap-form-section > summary:hover{ background:var(--ap-elev); }
+  #adminPanelOverlay .ap-form-section > summary::-webkit-details-marker{ display:none; }
+  /* Kendi oku — kapalıyken sağa, açıkken aşağı bakar */
+  #adminPanelOverlay .ap-form-section > summary::before{
+    content:''; width:8px; height:8px; flex:none;
+    border-right:2px solid var(--ap-muted); border-bottom:2px solid var(--ap-muted);
+    transform:rotate(-45deg); transition:transform var(--ap-t); margin-right:2px;
+  }
+  #adminPanelOverlay .ap-form-section[open] > summary::before{ transform:rotate(45deg); }
+  #adminPanelOverlay .ap-form-section[open] > summary{ border-bottom:1px solid var(--ap-line); }
+  #adminPanelOverlay .ap-sec-hint{
+    font-weight:500; font-size:.76rem; color:var(--ap-muted); margin-left:auto;
+  }
+  #adminPanelOverlay .ap-form-section-body{ padding:16px; }
+  /* Bölüm içindeki son satırın alt boşluğu kutuyu şişirmesin */
+  #adminPanelOverlay .ap-form-section-body > .admin-form-row:last-child{ margin-bottom:0; }
+
+  @media (max-width:640px){
+    #adminPanelOverlay .ap-sec-hint{ margin-left:0; width:100%; }
+  }
+
+  /* Görsel seçme butonu — müşteri sitesi token'larını (--fire) kullanıyordu, panel temasıyla
+     birlikte değişmiyordu: açık temada koyu kalıp kontrast bozuluyordu (Faz 93). */
+  #adminPanelOverlay .admin-file-upload-btn{
+    background:var(--ap-gold); color:var(--ap-gold-text);
+  }
+  #adminPanelOverlay .admin-file-upload-btn:hover{ opacity:.92; }
+  #adminPanelOverlay .img-picker-preview{
+    background:var(--ap-elev); border-color:var(--ap-line-2); color:var(--ap-muted);
+  }
