@@ -3407,3 +3407,75 @@ body.theme-bw{ --ord-surface:#FFFFFF; --ord-surface2:#F6EFE8; --ord-line:rgba(0,
   @media (max-width:400px){
     #adminPanelOverlay .app-topbar .page-title{ display:none; }
   }
+
+  /* ================================================================
+     İŞLETME YÖNETİMİ EKRANLARI (Faz 92) — stok, malzeme, reçete,
+     tedarikçi, gider, müşteri. Yeni renk/ölçü İCAT EDİLMEDİ: tamamı
+     mevcut --ap-* token'larını ve panel-card/admin-btn dilini kullanır.
+     ================================================================ */
+  #adminPanelOverlay .ops-toolbar{ display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin-bottom:14px; }
+  #adminPanelOverlay .ops-toolbar .admin-input{ flex:1; min-width:180px; margin:0; }
+  #adminPanelOverlay .ops-chips{ display:flex; gap:6px; flex-wrap:wrap; }
+  #adminPanelOverlay .ops-chip{
+    padding:8px 14px; border-radius:999px; border:1px solid var(--ap-line);
+    background:var(--ap-card); color:var(--ap-muted); font-size:.82rem; font-weight:600;
+    cursor:pointer; font-family:inherit; transition:all var(--ap-t); white-space:nowrap;
+  }
+  #adminPanelOverlay .ops-chip:hover{ border-color:var(--ap-line-2); color:var(--ap-text); }
+  #adminPanelOverlay .ops-chip.active{ background:var(--ap-gold); border-color:var(--ap-gold); color:var(--ap-gold-text); }
+
+  #adminPanelOverlay .ops-list{ display:flex; flex-direction:column; }
+  #adminPanelOverlay .ops-row{
+    display:flex; align-items:center; gap:14px; padding:14px 2px;
+    border-top:1px solid var(--ap-line); font-size:13.5px; color:var(--ap-text);
+  }
+  #adminPanelOverlay .ops-row:first-child{ border-top:none; }
+  #adminPanelOverlay .ops-row .ops-main{ flex:1; min-width:0; }
+  #adminPanelOverlay .ops-row .ops-name{ font-weight:700; color:var(--ap-text); margin-bottom:3px; }
+  #adminPanelOverlay .ops-row .ops-sub{ font-size:11.8px; color:var(--ap-muted); }
+  #adminPanelOverlay .ops-row .ops-right{ text-align:right; white-space:nowrap; flex:none; }
+  #adminPanelOverlay .ops-row .ops-val{ font-weight:700; }
+  #adminPanelOverlay .ops-actions{ display:flex; gap:6px; flex:none; }
+  #adminPanelOverlay .ops-icon-btn{
+    width:32px; height:32px; border-radius:10px; display:grid; place-items:center;
+    background:var(--ap-card); border:1px solid var(--ap-line); color:var(--ap-muted);
+    cursor:pointer; transition:all var(--ap-t);
+  }
+  #adminPanelOverlay .ops-icon-btn:hover{ color:var(--ap-text); border-color:var(--ap-line-2); }
+  #adminPanelOverlay .ops-icon-btn.danger:hover{ color:var(--ap-bad); border-color:var(--ap-bad); }
+  #adminPanelOverlay .ops-icon-btn svg{ width:15px; height:15px; }
+
+  /* Stok doluluk çubuğu — renk anlam taşır: kırmızı=kritik, sarı=azalıyor, mavi=yeterli */
+  #adminPanelOverlay .ops-bar{ height:6px; border-radius:999px; background:var(--ap-card); overflow:hidden; margin-top:6px; }
+  #adminPanelOverlay .ops-bar > span{ display:block; height:100%; border-radius:999px; background:var(--ap-gold); transition:width .3s; }
+  #adminPanelOverlay .ops-bar.low > span{ background:var(--ap-bad); }
+  #adminPanelOverlay .ops-bar.warn > span{ background:#e0a458; }
+
+  #adminPanelOverlay .ops-badge{
+    display:inline-block; padding:3px 9px; border-radius:999px; font-size:10.5px;
+    font-weight:700; letter-spacing:.02em; white-space:nowrap;
+  }
+  #adminPanelOverlay .ops-badge.ok{ background:var(--ap-ok-soft); color:var(--ap-ok); }
+  #adminPanelOverlay .ops-badge.bad{ background:var(--ap-bad-soft); color:var(--ap-bad); }
+  #adminPanelOverlay .ops-badge.neutral{ background:var(--ap-gold-soft); color:var(--ap-gold); }
+
+  #adminPanelOverlay .ops-empty{ text-align:center; padding:40px 20px; color:var(--ap-muted); font-size:.88rem; }
+  #adminPanelOverlay .ops-empty .ops-empty-ic{ font-size:26px; opacity:.4; margin-bottom:8px; }
+  #adminPanelOverlay .ops-error{ text-align:center; padding:28px 20px; color:var(--ap-bad); font-size:.88rem; }
+
+  #adminPanelOverlay .ops-pager{ display:flex; justify-content:center; align-items:center; gap:10px; margin-top:14px; }
+  #adminPanelOverlay .ops-pager button{
+    padding:7px 14px; border-radius:10px; background:var(--ap-card); border:1px solid var(--ap-line);
+    color:var(--ap-text); font-size:.82rem; cursor:pointer; font-family:inherit;
+  }
+  #adminPanelOverlay .ops-pager button:disabled{ opacity:.4; cursor:not-allowed; }
+  #adminPanelOverlay .ops-pager .ops-page-info{ font-size:.8rem; color:var(--ap-muted); }
+
+  /* Reçete kalemleri — form içinde satır satır malzeme + miktar */
+  #adminPanelOverlay .ops-recipe-item{ display:grid; grid-template-columns:1fr 110px 40px; gap:8px; align-items:center; margin-bottom:8px; }
+
+  @media (max-width:640px){
+    #adminPanelOverlay .ops-row{ flex-wrap:wrap; }
+    #adminPanelOverlay .ops-row .ops-right{ text-align:left; }
+    #adminPanelOverlay .ops-recipe-item{ grid-template-columns:1fr 90px 36px; }
+  }

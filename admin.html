@@ -516,6 +516,37 @@
         <!-- "Masa Yönetimi" ve "Masa Kartı Tasarla" Ayarlar ekranına taşındı (Faz 6). -->
       </div>
 
+      <!-- İŞLETME grubu (Faz 92) — mutfağın arka tarafı: neyi neyle yapıyoruz, elimizde ne var,
+           kimden alıyoruz, ne harcıyoruz. Mevcut sidebar yapısı/stili aynen korunarak eklendi. -->
+      <div class="nav-group">
+        <div class="lbl" data-i18n="admin_nav_grp_operations">İşletme</div>
+        <button class="nav-item" data-view="stock" onclick="showAdminView('stock')">
+          <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><path d="M3.27 6.96L12 12.01l8.73-5.05"/><path d="M12 22.08V12"/></svg></span>
+          <span class="lbl" data-i18n="admin_nav_stock">Stok</span>
+          <span class="nbadge" id="adminStockBadge" style="display:none;">0</span>
+        </button>
+        <button class="nav-item" data-view="ingredients" onclick="showAdminView('ingredients')">
+          <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a7 7 0 0 0-7 7c0 3 2 5 2 8h10c0-3 2-5 2-8a7 7 0 0 0-7-7z"/><path d="M9 21h6"/></svg></span>
+          <span class="lbl" data-i18n="admin_nav_ingredients">Malzemeler</span>
+        </button>
+        <button class="nav-item" data-view="recipes" onclick="showAdminView('recipes')">
+          <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg></span>
+          <span class="lbl" data-i18n="admin_nav_recipes">Reçeteler</span>
+        </button>
+        <button class="nav-item" data-view="suppliers" onclick="showAdminView('suppliers')">
+          <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="3" width="15" height="13"/><path d="M16 8h4l3 3v5h-7V8z"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg></span>
+          <span class="lbl" data-i18n="admin_nav_suppliers">Tedarikçiler</span>
+        </button>
+        <button class="nav-item" data-view="expenses" onclick="showAdminView('expenses')">
+          <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg></span>
+          <span class="lbl" data-i18n="admin_nav_expenses">Giderler</span>
+        </button>
+        <button class="nav-item" data-view="customers" onclick="showAdminView('customers')">
+          <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/></svg></span>
+          <span class="lbl" data-i18n="admin_nav_customers">Müşteriler</span>
+        </button>
+      </div>
+
       <div class="nav-group">
         <div class="lbl" data-i18n="admin_nav_grp_analytics">Analitik</div>
         <button class="nav-item" data-view="analytics" onclick="showAdminView('analytics')">
@@ -705,6 +736,123 @@
           <div class="panel-card" style="margin-top:16px;">
             <h3 data-i18n="admin_analytics_top">En Çok Satan Ürünler</h3>
             <div id="adAnTop" class="act-list"><div class="hint" data-i18n="admin_dash_loading">Yükleniyor…</div></div>
+          </div>
+        </section>
+
+        <!-- ═══════════ İŞLETME YÖNETİMİ GÖRÜNÜMLERİ (Faz 92) ═══════════
+             Altısı da aynı iskeleti paylaşır: araç çubuğu (arama + filtre + ekle) → liste kabı.
+             Liste içeriğini JS render eder; boş/yükleniyor/hata durumları ops.js'te yönetilir. -->
+
+        <!-- STOK -->
+        <section class="view" id="view-stock" hidden>
+          <div class="dash-grid" style="grid-template-columns:repeat(auto-fill,minmax(160px,1fr))">
+            <div class="stat-card"><div class="st-k" data-i18n="admin_stock_total">Malzeme Çeşidi</div><div class="st-v" id="opsStockTotal">–</div></div>
+            <div class="stat-card"><div class="st-k" data-i18n="admin_stock_low">Kritik Seviyede</div><div class="st-v" id="opsStockLow">–</div></div>
+            <div class="stat-card"><div class="st-k" data-i18n="admin_stock_value">Stok Değeri</div><div class="st-v" id="opsStockValue">–</div></div>
+          </div>
+          <div class="panel-card" style="margin-top:16px;">
+            <h3>
+              <span data-i18n="admin_nav_stock">Stok</span>
+              <button class="admin-btn secondary" style="width:auto;padding:8px 14px;font-size:.82rem;margin:0;" onclick="opsOpenMovementForm()" data-i18n="admin_stock_movement_btn">Stok Hareketi Ekle</button>
+            </h3>
+            <div class="ops-toolbar">
+              <input type="text" id="opsStockSearch" class="admin-input" data-i18n-placeholder="admin_search_ph" placeholder="Ara…" oninput="opsDebounced('stock')">
+              <div class="ops-chips" id="opsStockFilters">
+                <button class="ops-chip active" data-filter="all" onclick="opsSetStockFilter('all')" data-i18n="admin_filter_all">Tümü</button>
+                <button class="ops-chip" data-filter="low" onclick="opsSetStockFilter('low')" data-i18n="admin_filter_low">Kritik</button>
+                <button class="ops-chip" data-filter="ok" onclick="opsSetStockFilter('ok')" data-i18n="admin_filter_ok">Yeterli</button>
+              </div>
+            </div>
+            <div id="opsStockList" class="ops-list"></div>
+            <div id="opsStockPager" class="ops-pager"></div>
+          </div>
+          <div class="panel-card" style="margin-top:16px;">
+            <h3 data-i18n="admin_stock_recent_moves">Son Stok Hareketleri</h3>
+            <div id="opsMovementsList" class="ops-list"></div>
+          </div>
+        </section>
+
+        <!-- MALZEMELER -->
+        <section class="view" id="view-ingredients" hidden>
+          <div class="panel-card">
+            <h3>
+              <span data-i18n="admin_nav_ingredients">Malzemeler</span>
+              <button class="admin-btn" style="width:auto;padding:8px 14px;font-size:.82rem;margin:0;" onclick="opsOpenIngredientForm()" data-i18n="admin_ing_add">+ Malzeme Ekle</button>
+            </h3>
+            <div class="ops-toolbar">
+              <input type="text" id="opsIngSearch" class="admin-input" data-i18n-placeholder="admin_search_ph" placeholder="Ara…" oninput="opsDebounced('ingredients')">
+            </div>
+            <div id="opsIngList" class="ops-list"></div>
+            <div id="opsIngPager" class="ops-pager"></div>
+          </div>
+        </section>
+
+        <!-- REÇETELER -->
+        <section class="view" id="view-recipes" hidden>
+          <div class="panel-card">
+            <h3>
+              <span data-i18n="admin_nav_recipes">Reçeteler</span>
+              <button class="admin-btn" style="width:auto;padding:8px 14px;font-size:.82rem;margin:0;" onclick="opsOpenRecipeForm()" data-i18n="admin_rec_add">+ Reçete Ekle</button>
+            </h3>
+            <div class="hint" style="margin-bottom:12px;" data-i18n="admin_rec_hint">Bir ürünün hangi malzemelerden yapıldığını tanımlayın; maliyet ve kâr marjı otomatik hesaplanır.</div>
+            <div class="ops-toolbar">
+              <input type="text" id="opsRecSearch" class="admin-input" data-i18n-placeholder="admin_search_ph" placeholder="Ara…" oninput="opsDebounced('recipes')">
+            </div>
+            <div id="opsRecList" class="ops-list"></div>
+            <div id="opsRecPager" class="ops-pager"></div>
+          </div>
+        </section>
+
+        <!-- TEDARİKÇİLER -->
+        <section class="view" id="view-suppliers" hidden>
+          <div class="panel-card">
+            <h3>
+              <span data-i18n="admin_nav_suppliers">Tedarikçiler</span>
+              <button class="admin-btn" style="width:auto;padding:8px 14px;font-size:.82rem;margin:0;" onclick="opsOpenSupplierForm()" data-i18n="admin_sup_add">+ Tedarikçi Ekle</button>
+            </h3>
+            <div class="ops-toolbar">
+              <input type="text" id="opsSupSearch" class="admin-input" data-i18n-placeholder="admin_search_ph" placeholder="Ara…" oninput="opsDebounced('suppliers')">
+            </div>
+            <div id="opsSupList" class="ops-list"></div>
+            <div id="opsSupPager" class="ops-pager"></div>
+          </div>
+        </section>
+
+        <!-- GİDERLER -->
+        <section class="view" id="view-expenses" hidden>
+          <div class="dash-grid" style="grid-template-columns:repeat(auto-fill,minmax(160px,1fr))">
+            <div class="stat-card"><div class="st-k" data-i18n="admin_exp_total">Toplam Gider</div><div class="st-v" id="opsExpTotal">–</div></div>
+            <div class="stat-card"><div class="st-k" data-i18n="admin_exp_pending">Ödenmemiş</div><div class="st-v" id="opsExpPending">–</div></div>
+            <div class="stat-card"><div class="st-k" data-i18n="admin_exp_count">Kayıt Sayısı</div><div class="st-v" id="opsExpCount">–</div></div>
+          </div>
+          <div class="panel-card" style="margin-top:16px;">
+            <h3>
+              <span data-i18n="admin_nav_expenses">Giderler</span>
+              <button class="admin-btn" style="width:auto;padding:8px 14px;font-size:.82rem;margin:0;" onclick="opsOpenExpenseForm()" data-i18n="admin_exp_add">+ Gider Ekle</button>
+            </h3>
+            <div class="ops-toolbar">
+              <input type="text" id="opsExpSearch" class="admin-input" data-i18n-placeholder="admin_search_ph" placeholder="Ara…" oninput="opsDebounced('expenses')">
+              <div class="ops-chips">
+                <button class="ops-chip active" data-filter="" onclick="opsSetExpenseFilter('')" data-i18n="admin_filter_all">Tümü</button>
+                <button class="ops-chip" data-filter="paid" onclick="opsSetExpenseFilter('paid')" data-i18n="admin_exp_paid">Ödendi</button>
+                <button class="ops-chip" data-filter="pending" onclick="opsSetExpenseFilter('pending')" data-i18n="admin_exp_unpaid">Ödenmedi</button>
+              </div>
+            </div>
+            <div id="opsExpList" class="ops-list"></div>
+            <div id="opsExpPager" class="ops-pager"></div>
+          </div>
+        </section>
+
+        <!-- MÜŞTERİLER -->
+        <section class="view" id="view-customers" hidden>
+          <div class="panel-card">
+            <h3><span data-i18n="admin_nav_customers">Müşteriler</span></h3>
+            <div class="hint" style="margin-bottom:12px;" data-i18n="admin_cus_hint">Sipariş veren müşteriler telefon numarasına göre otomatik gruplanır. Ziyaret ve harcama bilgileri siparişlerden hesaplanır.</div>
+            <div class="ops-toolbar">
+              <input type="text" id="opsCusSearch" class="admin-input" data-i18n-placeholder="admin_search_ph" placeholder="Ara…" oninput="opsDebounced('customers')">
+            </div>
+            <div id="opsCusList" class="ops-list"></div>
+            <div id="opsCusPager" class="ops-pager"></div>
           </div>
         </section>
 
@@ -1723,5 +1871,8 @@
      hepsi birebir aynı tasarım listesini gösterir. -->
 <script src="/card-gallery.js"></script>
 <script src="/admin-card-designer.js"></script>
+<!-- İşletme yönetimi ekranları (Faz 92). admin.js'ten SONRA yüklenir — getAdminToken,
+     showCustomAlert, adminT ve showAdminView'a ihtiyaç duyar. -->
+<script src="/admin-operations.js"></script>
 </body>
 </html>
