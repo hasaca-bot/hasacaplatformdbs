@@ -10,6 +10,7 @@ backend/.env
 data/secret.json
 data/root_credentials.json
 data/vapid.json
+.codex/config.toml
 
 # Databases
 backend/dayikatik.db
