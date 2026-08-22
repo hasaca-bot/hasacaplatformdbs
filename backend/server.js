@@ -2129,6 +2129,9 @@ function aiChatUrl(model) {
     ? 'https://generativelanguage.googleapis.com/v1beta/openai/chat/completions'
     : 'https://api.groq.com/openai/v1/chat/completions';
 }
+// Faz 91: iki ayrı sağlayıcı anahtarı aynı anda saklanabilir (ai_key = Groq, ai_key_gemini =
+// Gemini) — hangisinin kullanılacağı modelin adından (yukarıdaki aiIsGemini) otomatik seçilir.
+function aiKeyFor(cfg) { return aiIsGemini(cfg.ai_model) ? (cfg.ai_key_gemini || '') : (cfg.ai_key || ''); }
 // Toleranslı JSON ayrıştırma — response_format'ı tam uygulamayan bir sağlayıcı yanıtı ```json```
 // bloğu içinde veya çevresinde açıklama metniyle döndürebilir. Önce düz JSON, sonra çit-soyulmuş,
 // sonra ilk {..son} bloğu denenir; hiçbiri tutmazsa 'bad_json' fırlatılır (üstte ai_error olur).
@@ -2146,7 +2149,7 @@ function parseAiJSON(text) {
 async function getAiConfig() {
   const row = await db.get(isPg ? 'SELECT settings FROM platform_settings WHERE id = $1' : 'SELECT settings FROM platform_settings WHERE id = ?', ['platform']);
   let s = {}; try { s = JSON.parse((row && row.settings) || '{}') || {}; } catch (e) {}
-  return { ai_enabled: !!s.ai_enabled, ai_model: cleanAiModel(s.ai_model) || DEFAULT_AI_MODEL, ai_key: s.ai_key || '', hf_key: s.hf_key || '' };
+  return { ai_enabled: !!s.ai_enabled, ai_model: cleanAiModel(s.ai_model) || DEFAULT_AI_MODEL, ai_key: s.ai_key || '', ai_key_gemini: s.ai_key_gemini || '', hf_key: s.hf_key || '' };
 }
 
 // Hugging Face Inference API (text-to-image) — the AI Assistant's "generate an image" capability.
@@ -2322,7 +2325,7 @@ app.post('/api/admin/ai-assistant/plan', adminAuth, async (req, res) => {
     const intent = aiClassifyIntent(message);
 
     const cfg = await getAiConfig();
-    if (!cfg.ai_enabled || !cfg.ai_key) return res.status(400).json({ error: 'ai_not_configured' });
+    if (!cfg.ai_enabled || !aiKeyFor(cfg)) return res.status(400).json({ error: 'ai_not_configured' });
 
     // Free-trial quota gate — only tenants with an `ai_quota` key (self-serve signups, see
     // provisionTenantForGoogleAccount) are limited; a missing key means unlimited (every existing
@@ -2407,7 +2410,7 @@ Mevcut restoran ayarları (setting action için): ${JSON.stringify(tenantSetting
 
     let plan;
     try {
-      plan = await callAiJSON(cfg.ai_key, cfg.ai_model, systemPrompt, message, history, { maxTokens });
+      plan = await callAiJSON(aiKeyFor(cfg), cfg.ai_model, systemPrompt, message, history, { maxTokens });
     } catch (e) {
       // Ham sağlayıcı metni istemciye ASLA gitmez — kararlı kod + (varsa) retryAfter döner.
       return res.json({ planId: null, summary: '', actions: [], unsupported: [], error: e.aiCode || 'ai_error', retryAfter: e.retryAfter || null });

@@ -319,6 +319,7 @@ module.exports = function createRootRouter({ db, isPg, invalidateTenantCache, si
       const p = await getPlatform();
       // never leak the AI keys here
       if (p.ai_key) delete p.ai_key;
+      if (p.ai_key_gemini) delete p.ai_key_gemini;
       if (p.hf_key) delete p.hf_key;
       res.json(p);
     } catch (err) {
@@ -660,6 +661,9 @@ module.exports = function createRootRouter({ db, isPg, invalidateTenantCache, si
   const aiModelsUrl = model => aiIsGemini(model)
     ? 'https://generativelanguage.googleapis.com/v1beta/openai/models'
     : 'https://api.groq.com/openai/v1/models';
+  // Faz 91: server.js'teki aiKeyFor'un ikizi — iki sağlayıcı anahtarı ayrı ayrı saklanır,
+  // hangisinin kullanılacağı modelin adından otomatik seçilir.
+  const aiKeyFor = p => aiIsGemini(p.ai_model) ? (p.ai_key_gemini || '') : (p.ai_key || '');
   const parseAiJSON = text => {
     if (typeof text !== 'string' || !text.trim()) throw new Error('bad_json');
     let s = text.trim();
@@ -679,6 +683,7 @@ module.exports = function createRootRouter({ db, isPg, invalidateTenantCache, si
         ai_provider: 'groq',
         ai_model: cleanAiModel(p.ai_model) || DEFAULT_AI_MODEL,
         key_set: !!p.ai_key,
+        gemini_key_set: !!p.ai_key_gemini,
         hf_key_set: !!p.hf_key
       });
     } catch (err) {
@@ -694,16 +699,20 @@ module.exports = function createRootRouter({ db, isPg, invalidateTenantCache, si
       p.ai_enabled = !!b.ai_enabled;
       p.ai_model = String(b.ai_model || DEFAULT_AI_MODEL).trim().slice(0, 60);
       p.ai_provider = 'groq';
-      // Only overwrite the stored key if a non-empty one was submitted (leaves it untouched
-      // when the admin saves other fields without retyping the key).
+      // Only overwrite a stored key if a non-empty one was submitted (leaves it untouched
+      // when the admin saves other fields without retyping the key). Groq and Gemini keys are
+      // independent — saving one never clears the other.
       if (typeof b.ai_key === 'string' && b.ai_key.trim()) {
         p.ai_key = b.ai_key.trim();
+      }
+      if (typeof b.ai_key_gemini === 'string' && b.ai_key_gemini.trim()) {
+        p.ai_key_gemini = b.ai_key_gemini.trim();
       }
       if (typeof b.hf_key === 'string' && b.hf_key.trim()) {
         p.hf_key = b.hf_key.trim();
       }
       await savePlatform(p);
-      logActivity({ tenantId: '', actor: 'root', role: 'root', action: 'ai_settings_updated', target: 'platform', details: { ai_enabled: p.ai_enabled, ai_model: p.ai_model, key_changed: !!(b.ai_key && b.ai_key.trim()), hf_key_changed: !!(b.hf_key && b.hf_key.trim()) }, ip: clientIp(req) });
+      logActivity({ tenantId: '', actor: 'root', role: 'root', action: 'ai_settings_updated', target: 'platform', details: { ai_enabled: p.ai_enabled, ai_model: p.ai_model, key_changed: !!(b.ai_key && b.ai_key.trim()), gemini_key_changed: !!(b.ai_key_gemini && b.ai_key_gemini.trim()), hf_key_changed: !!(b.hf_key && b.hf_key.trim()) }, ip: clientIp(req) });
       res.json({ success: true });
     } catch (err) {
       console.error('[ROOT API] PUT /ai-settings:', err);
@@ -717,9 +726,17 @@ module.exports = function createRootRouter({ db, isPg, invalidateTenantCache, si
   router.post('/ai-settings/test', async (req, res) => {
     try {
       const b = req.body || {};
+      // provider: hangi anahtar kutusu test ediliyor ('groq'|'gemini'). Sadece kutuda henüz
+      // kaydedilmemiş bir değer YOKSA (yani kayıtlı anahtar test ediliyorsa) kullanılır —
+      // model boşsa da o sağlayıcının bilinen varsayılanına düşülür.
+      const provider = b.provider === 'gemini' ? 'gemini' : 'groq';
       let key = typeof b.ai_key === 'string' ? b.ai_key.trim() : '';
       let model = typeof b.ai_model === 'string' ? b.ai_model.trim() : '';
-      if (!key || !model) { const p = await getPlatform(); if (!key) key = p.ai_key || ''; if (!model) model = cleanAiModel(p.ai_model) || DEFAULT_AI_MODEL; }
+      if (!key || !model) {
+        const p = await getPlatform();
+        if (!model) model = provider === 'gemini' ? 'gemini-2.5-flash' : (cleanAiModel(p.ai_model) || DEFAULT_AI_MODEL);
+        if (!key) key = (provider === 'gemini' ? p.ai_key_gemini : p.ai_key) || '';
+      }
       if (!key) return res.json({ ok: false, error: 'no_key_configured' });
 
       const r = await fetch(aiModelsUrl(model), { headers: { 'Authorization': 'Bearer ' + key } });
@@ -804,7 +821,7 @@ module.exports = function createRootRouter({ db, isPg, invalidateTenantCache, si
       const message = String((req.body && req.body.message) || '').trim().slice(0, 500);
       if (!message) return res.status(400).json({ error: 'message_required' });
       const p = await getPlatform();
-      if (!p.ai_enabled || !p.ai_key) return res.status(400).json({ error: 'ai_not_configured' });
+      if (!p.ai_enabled || !aiKeyFor(p)) return res.status(400).json({ error: 'ai_not_configured' });
 
       const scope = String((req.body && req.body.targetTenant) || '').trim() || 'platform';
       let systemPrompt, resolveActions;
@@ -864,7 +881,7 @@ Kategoriler: ${JSON.stringify(categories)}`;
       }
 
       let plan;
-      try { plan = await callAiJSONRoot(p.ai_key, cleanAiModel(p.ai_model) || DEFAULT_AI_MODEL, systemPrompt, message); }
+      try { plan = await callAiJSONRoot(aiKeyFor(p), cleanAiModel(p.ai_model) || DEFAULT_AI_MODEL, systemPrompt, message); }
       catch (e) { return res.json({ planId: null, summary: '', actions: [], unsupported: [], error: e.aiCode || 'ai_error' }); }
 
       const unsupported = Array.isArray(plan.unsupported) ? plan.unsupported.slice(0, 20) : [];

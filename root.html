@@ -637,17 +637,36 @@
 <div class="overlay" id="aiOverlay" onclick="if(event.target===this)closeModal('aiOverlay')">
   <div class="modal">
     <h2 data-i18n="root_ai_title">AI Ayarları</h2>
-    <p class="hint" data-i18n="root_ai_hint">Tek bir platform anahtarı. Restoran sahipleri anahtar girmez. Anahtar yalnız sunucuda saklanır.</p>
+    <p class="hint" data-i18n="root_ai_hint">Tek bir platform anahtarı seti. Restoran sahipleri anahtar girmez. Anahtarlar yalnız sunucuda saklanır.</p>
     <label style="display:flex;align-items:center;gap:8px;text-transform:none;letter-spacing:0;color:var(--text);font-weight:600;">
       <input type="checkbox" id="aiEnabled"> <span data-i18n="root_ai_enable">AI özelliklerini etkinleştir</span>
     </label>
-    <label data-i18n="root_ai_key">API Anahtarı</label>
+
+    <!-- İKİ AYRI SAĞLAYICI ANAHTARI (Faz 91): eskiden tek bir "API Anahtarı" alanı vardı ve model
+         hangi sağlayıcıya (Groq/Gemini) işaret ediyorsa anahtarın da ona ait olması gerekiyordu —
+         model değiştirilince anahtarı elle değiştirmeyi unutmak sessizce kırılan bir tuzaktı.
+         Artık ikisi de AYNI ANDA saklanabilir; hangisinin kullanılacağı "Varsayılan Model"
+         alanındaki isimden (gemini* → Gemini, aksi halde Groq) otomatik seçilir. -->
+    <label data-i18n="root_ai_key_groq">Groq API Anahtarı</label>
     <input type="password" id="aiKey" autocomplete="off" placeholder="gsk_...">
     <div class="hint" id="aiKeyStatus"></div>
-    <label data-i18n="root_ai_model">Varsayılan Model</label>
+    <div style="margin-top:6px;display:flex;align-items:center;gap:10px;">
+      <button type="button" class="btn small secondary" onclick="testAiConnection('groq')" data-i18n="root_ai_test">Bağlantıyı Test Et</button>
+      <span id="aiTestResultGroq" style="font-size:.85rem;"></span>
+    </div>
+
+    <label style="margin-top:16px;" data-i18n="root_ai_key_gemini">Gemini API Anahtarı</label>
+    <input type="password" id="aiGeminiKey" autocomplete="off" placeholder="AIza...">
+    <div class="hint" id="aiGeminiKeyStatus"></div>
+    <div class="hint" data-i18n="root_ai_key_gemini_hint">Ücretsiz, yüksek limit — anahtar: aistudio.google.com/apikey</div>
+    <div style="margin-top:6px;display:flex;align-items:center;gap:10px;">
+      <button type="button" class="btn small secondary" onclick="testAiConnection('gemini')" data-i18n="root_ai_test">Bağlantıyı Test Et</button>
+      <span id="aiTestResultGemini" style="font-size:.85rem;"></span>
+    </div>
+
+    <label style="margin-top:16px;" data-i18n="root_ai_model">Varsayılan Model</label>
     <input type="text" id="aiModel" placeholder="gemini-2.5-flash">
-    <div class="hint" data-i18n="root_ai_model_hint">Google Gemini için <b>gemini-2.5-flash</b> (ücretsiz, yüksek limit — anahtar: aistudio.google.com/apikey) · Groq için <b>openai/gpt-oss-120b</b>. Anahtar seçtiğiniz sağlayıcıya ait olmalı.</div>
-    <div id="aiTestResult" style="margin-top:10px;font-size:.85rem;"></div>
+    <div class="hint" data-i18n="root_ai_model_hint">Google Gemini için <b>gemini-2.5-flash</b> · Groq için <b>openai/gpt-oss-120b</b>. Sağlayıcı bu isimden otomatik seçilir ve o sağlayıcının yukarıdaki anahtarı kullanılır.</div>
 
     <div style="margin-top:18px;padding-top:16px;border-top:1px solid var(--line);">
       <div style="font-weight:700;color:var(--text);margin-bottom:4px;" data-i18n="root_hf_title">Görsel Oluşturma (Hugging Face)</div>
@@ -658,7 +677,6 @@
     </div>
 
     <div class="row">
-      <button class="btn secondary" onclick="testAiConnection()" data-i18n="root_ai_test">Bağlantıyı Test Et</button>
       <button class="btn secondary" onclick="closeModal('aiOverlay')" data-i18n="root_cancel">Vazgeç</button>
       <button class="btn" onclick="saveAiSettings()" data-i18n="root_save">Kaydet</button>
     </div>
@@ -837,8 +855,10 @@ const i18nData = {
     root_brand_platform_name: "Platform Adı", root_brand_logo_url: "Logo",
     root_brand_login_logo: "Giriş Logosu", root_brand_favicon: "Favicon", root_brand_footer: "Footer Markası",
     root_ai_title: "AI Ayarları",
-    root_ai_hint: "Tek bir platform anahtarı. Restoran sahipleri anahtar girmez. Anahtar yalnız sunucuda saklanır.",
+    root_ai_hint: "Tek bir platform anahtarı seti. Restoran sahipleri anahtar girmez. Anahtarlar yalnız sunucuda saklanır.",
     root_ai_enable: "AI özelliklerini etkinleştir", root_ai_key: "API Anahtarı",
+    root_ai_key_groq: "Groq API Anahtarı", root_ai_key_gemini: "Gemini API Anahtarı",
+    root_ai_key_gemini_hint: "Ücretsiz, yüksek limit — anahtar: aistudio.google.com/apikey",
     root_ai_model: "Varsayılan Model", root_ai_test: "Bağlantıyı Test Et",
     root_ai_key_set: "Anahtar ayarlı ✓", root_ai_key_unset: "Henüz anahtar ayarlanmadı",
     root_hf_title: "Görsel Oluşturma (Hugging Face)",
@@ -960,8 +980,10 @@ const i18nData = {
     root_brand_platform_name: "Platform Name", root_brand_logo_url: "Logo",
     root_brand_login_logo: "Login Logo", root_brand_favicon: "Favicon", root_brand_footer: "Footer Brand",
     root_ai_title: "AI Settings",
-    root_ai_hint: "One shared platform key. Restaurant owners never enter keys. The key is stored on the backend only.",
+    root_ai_hint: "One shared platform key set. Restaurant owners never enter keys. Keys are stored on the backend only.",
     root_ai_enable: "Enable AI features", root_ai_key: "API Key",
+    root_ai_key_groq: "Groq API Key", root_ai_key_gemini: "Gemini API Key",
+    root_ai_key_gemini_hint: "Free, high limit — get a key at aistudio.google.com/apikey",
     root_ai_model: "Default Model", root_ai_test: "Test Connection",
     root_ai_key_set: "Key configured ✓", root_ai_key_unset: "No key configured yet",
     root_hf_title: "Image Generation (Hugging Face)",
@@ -2219,7 +2241,10 @@ async function openAiSettingsModal(){
     document.getElementById('aiModel').value = s.ai_model || 'gemini-2.5-flash';
     document.getElementById('aiKey').value = '';
     document.getElementById('aiKeyStatus').textContent = s.key_set ? T('root_ai_key_set') : T('root_ai_key_unset');
-    document.getElementById('aiTestResult').textContent = '';
+    document.getElementById('aiGeminiKey').value = '';
+    document.getElementById('aiGeminiKeyStatus').textContent = s.gemini_key_set ? T('root_ai_key_set') : T('root_ai_key_unset');
+    document.getElementById('aiTestResultGroq').textContent = '';
+    document.getElementById('aiTestResultGemini').textContent = '';
     document.getElementById('hfKey').value = '';
     document.getElementById('hfKeyStatus').textContent = s.hf_key_set ? T('root_ai_key_set') : T('root_ai_key_unset');
     document.getElementById('aiOverlay').classList.add('open');
@@ -2233,6 +2258,8 @@ async function saveAiSettings(){
     };
     const key = document.getElementById('aiKey').value.trim();
     if (key) body.ai_key = key;
+    const geminiKey = document.getElementById('aiGeminiKey').value.trim();
+    if (geminiKey) body.ai_key_gemini = geminiKey;
     const hfKey = document.getElementById('hfKey').value.trim();
     if (hfKey) body.hf_key = hfKey;
     const res = await rootFetch('/api/root/ai-settings', { method:'PUT', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body) });
@@ -2240,12 +2267,22 @@ async function saveAiSettings(){
     closeModal('aiOverlay'); toast(T('root_saved')); applyPlatformConfig();
   } catch(e){ toast(T('root_err')); }
 }
-async function testAiConnection(){
-  const el = document.getElementById('aiTestResult');
+// provider: 'groq' | 'gemini' — hangi anahtar kutusunun test edildiğini belirtir. Kutuda henüz
+// kaydedilmemiş yeni bir değer varsa ONU test eder; boşsa sunucudaki KAYITLI anahtarı test eder
+// (backend provider'a göre doğru kayıtlı anahtarı kendisi seçer — bkz. POST /ai-settings/test).
+async function testAiConnection(provider){
+  const isGemini = provider === 'gemini';
+  const el = document.getElementById(isGemini ? 'aiTestResultGemini' : 'aiTestResultGroq');
   el.textContent = '...'; el.style.color = 'var(--muted)';
   try {
-    const key = document.getElementById('aiKey').value.trim();
-    const res = await rootFetch('/api/root/ai-settings/test', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ ai_key: key || undefined, ai_model: document.getElementById('aiModel').value.trim() }) });
+    const key = document.getElementById(isGemini ? 'aiGeminiKey' : 'aiKey').value.trim();
+    // Test edilecek model: o sağlayıcıya ait, girilmiş "Varsayılan Model" o sağlayıcıyla
+    // uyuşmuyorsa o sağlayıcının bilinen bir varsayılan modeli kullanılır — böylece hangi anahtarı
+    // test ettiğiniz "Varsayılan Model" kutusuna ne yazdığınızdan bağımsız çalışır.
+    const typedModel = document.getElementById('aiModel').value.trim();
+    const typedIsGemini = /^gemini/i.test(typedModel);
+    const model = (typedModel && typedIsGemini === isGemini) ? typedModel : (isGemini ? 'gemini-2.5-flash' : 'openai/gpt-oss-120b');
+    const res = await rootFetch('/api/root/ai-settings/test', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ ai_key: key || undefined, ai_model: model, provider }) });
     const data = await res.json();
     if (res.ok && data.ok) { el.textContent = T('root_test_ok'); el.style.color = 'var(--ok)'; }
     else { el.textContent = T('root_test_fail') + (data.error ? ': ' + data.error : ''); el.style.color = 'var(--bad)'; }
