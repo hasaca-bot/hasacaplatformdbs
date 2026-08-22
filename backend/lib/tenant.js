@@ -14,6 +14,8 @@
 // Unknown/explicit slug -> 404, disabled tenant -> 403.
 // =============================================
 
+const { verifyToken } = require('./auth');
+
 const CACHE_TTL_MS = 5 * 60 * 1000;
 const cache = new Map(); // slug -> { tenant, ts }
 
@@ -102,6 +104,28 @@ function createTenantResolver(db, isPg) {
       // /admin and the customer catch-all explicitly check for null and show "no restaurant").
       if (slug === null) {
         if (isRootPath) { req.tenant = null; req.tenantId = 'default'; return next(); }
+        // Faz 97 düzeltmesi: burada durup req.tenantId = null bırakmak, host bare olan HER
+        // ortamda (bare localhost, ve tenant subdomain'i henüz kurulmamış production) admin
+        // panelinin oturum açmış olsa bile TÜM /api/products gibi adminAuth kullanmayan uçlarda
+        // boş sonuç almasına yol açıyordu — istekte geçerli bir oturum token'ı olsa bile hiç
+        // okunmuyordu (yalnızca adminAuth token okuyordu, ama /api/products gibi hem müşteriye
+        // hem admin'e açık uçlar adminAuth kullanmıyor). Somut belirti: admin AI ile ürün
+        // oluşturdu, veritabanına yazıldı, ama Ürün Yönetimi ekranı boş göründü (tenant_id=null
+        // sorgusu hiçbir satırla eşleşmiyordu). Çözüm: host/query'den slug çıkmazsa, isteğin
+        // kendi Authorization token'ına bak — geçerliyse ve root değilse oradaki tenant_id'yi
+        // kullan. Host zaten bir tenant taşıyorsa bu koda hiç girilmez, yani mevcut
+        // izolasyon/404/403 davranışı host bazlı istekler için aynen duruyor.
+        const authHeader = String(req.headers.authorization || '');
+        const bearer = authHeader.startsWith('Bearer ') ? authHeader.slice(7) : '';
+        if (bearer) {
+          try {
+            const payload = verifyToken(bearer);
+            if (payload && payload.tenant_id && payload.role !== 'root') {
+              req.tenant = null; req.tenantId = payload.tenant_id;
+              return next();
+            }
+          } catch (e) { /* gecersiz/eksik token — asagida null'a duser, davranis degismez */ }
+        }
         req.tenant = null; req.tenantId = null;
         return next();
       }
