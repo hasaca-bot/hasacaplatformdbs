@@ -545,6 +545,10 @@
           <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/></svg></span>
           <span class="lbl" data-i18n="admin_nav_customers">Müşteriler</span>
         </button>
+        <button class="nav-item" data-view="pos" onclick="showAdminView('pos')">
+          <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M2 9h20"/><path d="M8 21h8"/><path d="M12 17v4"/></svg></span>
+          <span class="lbl" data-i18n="admin_nav_pos">Kasa (POS)</span>
+        </button>
         <button class="nav-item" data-view="kitchen" onclick="showAdminView('kitchen')">
           <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2v7a3 3 0 0 0 6 0V2"/><path d="M9 9v13"/><path d="M16 2c-1.5 2-2 4-2 6s.5 3 2 3 2-1 2-3-.5-4-2-6z"/><path d="M18 11v11"/></svg></span>
           <span class="lbl" data-i18n="admin_nav_kitchen">Mutfak Ekranı</span>
@@ -873,6 +877,65 @@
             </div>
             <div id="opsCusList" class="ops-list"></div>
             <div id="opsCusPager" class="ops-pager"></div>
+          </div>
+        </section>
+
+        <!-- KASA (POS) — personelin elle sipariş girmesi (telefonla gelen ya da kasadaki müşteri).
+             MEVCUT POST /api/orders ucunu kullanır: fiyat SUNUCUDA çözülür, istemcinin gönderdiği
+             fiyata güvenilmez. Masa seçilirse masa siparişi, seçilmezse paket siparişi olur —
+             backend'in zaten uyguladığı kural budur, yeni bir davranış eklenmedi. -->
+        <section class="view" id="view-pos" hidden>
+          <div class="pos-wrap">
+            <div class="pos-menu">
+              <div class="ops-toolbar">
+                <input type="text" id="posSearch" class="admin-input" data-i18n-placeholder="admin_search_ph" placeholder="Ara…" oninput="posFilter()">
+              </div>
+              <div class="ops-chips" id="posCategories" style="margin-bottom:12px;"></div>
+              <div class="pos-grid" id="posGrid"></div>
+            </div>
+
+            <aside class="pos-cart panel-card">
+              <h3 data-i18n="admin_pos_cart">Sipariş</h3>
+
+              <div class="ops-chips" style="margin-bottom:10px;">
+                <button class="ops-chip active" data-postype="dinein" onclick="posSetType('dinein')" data-i18n="admin_pos_dinein">Masa</button>
+                <button class="ops-chip" data-postype="delivery" onclick="posSetType('delivery')" data-i18n="admin_pos_takeaway">Paket</button>
+              </div>
+
+              <div id="posDineinBox">
+                <label class="admin-form-label" data-i18n="admin_pos_table">Masa</label>
+                <select id="posTable" class="admin-input"></select>
+              </div>
+
+              <div id="posDeliveryBox" style="display:none;">
+                <label class="admin-form-label" data-i18n="admin_pos_name">Ad Soyad *</label>
+                <input type="text" id="posName" class="admin-input">
+                <label class="admin-form-label" data-i18n="admin_pos_phone">Telefon *</label>
+                <input type="tel" id="posPhone" class="admin-input">
+                <label class="admin-form-label" data-i18n="admin_pos_address">Adres *</label>
+                <input type="text" id="posAddress" class="admin-input">
+              </div>
+
+              <div class="pos-cart-items" id="posCartItems"></div>
+
+              <label class="admin-form-label" style="margin-top:10px;" data-i18n="admin_pos_note">Sipariş Notu</label>
+              <input type="text" id="posNote" class="admin-input" data-i18n-placeholder="admin_pos_note_ph" placeholder="Örn: Az acılı olsun">
+
+              <label class="admin-form-label" data-i18n="admin_pos_payment">Ödeme</label>
+              <div class="ops-chips" id="posPayment" style="margin-bottom:12px;">
+                <button class="ops-chip active" data-pay="cash" onclick="posSetPayment('cash')" data-i18n="admin_pos_cash">Nakit</button>
+                <button class="ops-chip" data-pay="card" onclick="posSetPayment('card')" data-i18n="admin_pos_card">Kart</button>
+              </div>
+
+              <div class="pos-total">
+                <span data-i18n="admin_pos_total">Toplam</span>
+                <strong id="posTotal">₺0</strong>
+              </div>
+              <div class="hint" data-i18n="admin_pos_total_hint">Kesin tutar sipariş oluşturulurken sunucuda hesaplanır.</div>
+
+              <button class="admin-btn" id="posSubmitBtn" onclick="posSubmit()" style="margin-top:12px;" data-i18n="admin_pos_submit">Siparişi Oluştur</button>
+              <button class="admin-btn secondary" onclick="posClearCart()" data-i18n="admin_pos_clear">Sepeti Temizle</button>
+            </aside>
           </div>
         </section>
 

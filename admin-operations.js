@@ -479,6 +479,215 @@
   };
 
   // ============================================================
+  // KASA (POS) — personelin elle sipariş girmesi.
+  // Sipariş MEVCUT POST /api/orders ucundan oluşturulur; fiyat SUNUCUDA çözülür, buradan
+  // gönderilen bir fiyata asla güvenilmez (mevcut güvenlik tasarımının devamı).
+  // Referansta olup burada BİLEREK olmayanlar: kupon/indirim ve vergi — sistemde bu
+  // kavramlar yok, dış referanstan ürün özelliği uydurulmaz (external-reference-boundary).
+  // ============================================================
+  const pos = { products: [], tables: [], cart: [], type: 'dinein', payment: 'cash', category: 'all', search: '' };
+
+  window.posLoad = async function () {
+    const grid = document.getElementById('posGrid');
+    if (!grid) return;
+    grid.innerHTML = stateHtml.loading();
+    try {
+      const hdr = { 'Authorization': 'Bearer ' + (typeof getAdminToken === 'function' ? getAdminToken() : '') };
+      const [pRes, cRes, tRes] = await Promise.all([
+        fetch('/api/products', { headers: hdr }),
+        fetch('/api/categories', { headers: hdr }),
+        fetch('/api/tables', { headers: hdr })
+      ]);
+      const norm = (d) => Array.isArray(d) ? d : (d.items || d.tables || d.products || []);
+      pos.products = pRes.ok ? norm(await pRes.json()) : [];
+      const cats = cRes.ok ? norm(await cRes.json()) : [];
+      pos.tables = tRes.ok ? norm(await tRes.json()) : [];
+
+      // Kategori çipleri
+      const chips = document.getElementById('posCategories');
+      if (chips) {
+        chips.innerHTML = '<button class="ops-chip active" data-cat="all" onclick="posSetCategory(\'all\')">Tümü</button>' +
+          cats.map(c => '<button class="ops-chip" data-cat="' + esc(c.id) + '" onclick="posSetCategory(\'' + esc(c.id) + '\')">' +
+            esc(c.name || c.name_tr || c.id) + '</button>').join('');
+      }
+
+      // Masa listesi
+      const tSel = document.getElementById('posTable');
+      if (tSel) {
+        tSel.innerHTML = pos.tables.length
+          ? pos.tables.map(t => '<option value="' + esc(t.token) + '">' + esc(t.name) + '</option>').join('')
+          : '<option value="">Masa tanımlı değil</option>';
+      }
+      posFilter();
+      posRenderCart();
+    } catch (e) {
+      grid.innerHTML = stateHtml.error();
+    }
+  };
+
+  window.posSetCategory = function (c) {
+    pos.category = c;
+    document.querySelectorAll('#posCategories .ops-chip').forEach(x => x.classList.toggle('active', x.dataset.cat === c));
+    posFilter();
+  };
+
+  window.posSetType = function (t) {
+    pos.type = t;
+    document.querySelectorAll('[data-postype]').forEach(x => x.classList.toggle('active', x.dataset.postype === t));
+    const din = document.getElementById('posDineinBox');
+    const del = document.getElementById('posDeliveryBox');
+    if (din) din.style.display = t === 'dinein' ? '' : 'none';
+    if (del) del.style.display = t === 'dinein' ? 'none' : '';
+  };
+
+  window.posSetPayment = function (p) {
+    pos.payment = p;
+    document.querySelectorAll('#posPayment .ops-chip').forEach(x => x.classList.toggle('active', x.dataset.pay === p));
+  };
+
+  window.posFilter = function () {
+    const grid = document.getElementById('posGrid');
+    if (!grid) return;
+    const s = (document.getElementById('posSearch') || {}).value || '';
+    pos.search = s.trim().toLowerCase();
+    let list = pos.products;
+    if (pos.category !== 'all') list = list.filter(p => String(p.category) === pos.category);
+    if (pos.search) list = list.filter(p => String(p.name || '').toLowerCase().includes(pos.search));
+
+    if (!list.length) { grid.innerHTML = stateHtml.empty('Bu filtreye uyan ürün yok.'); return; }
+    grid.innerHTML = list.map(p => {
+      const portions = Array.isArray(p.portions) ? p.portions : [];
+      // Porsiyonlu üründe kartta EN DÜŞÜK fiyat gösterilir (müşteri sitesindeki kuralın aynısı)
+      const price = portions.length ? Math.min(...portions.map(x => Number(x.price) || 0)) : Number(p.price) || 0;
+      return '<button class="pos-item" onclick="posAdd(\'' + esc(p.id) + '\')">' +
+        '<span class="pos-item-name">' + esc(p.name) + '</span>' +
+        '<span class="pos-item-price">' + (portions.length ? '≥ ' : '') + money(price) + '</span>' +
+      '</button>';
+    }).join('');
+  };
+
+  // Porsiyonlu üründe hangi boyutun eklendiği belirsiz kalmasın — seçtiriyoruz.
+  window.posAdd = async function (productId) {
+    const p = pos.products.find(x => x.id === productId);
+    if (!p) return;
+    const portions = Array.isArray(p.portions) ? p.portions : [];
+    if (portions.length) {
+      openModal('Porsiyon Seçin — ' + p.name,
+        '<div class="ops-chips" id="posPortionPick">' +
+          portions.map((x, i) => '<button type="button" class="ops-chip' + (i === 0 ? ' active' : '') + '" data-i="' + i +
+            '" onclick="[...this.parentElement.children].forEach(b=>b.classList.remove(\'active\'));this.classList.add(\'active\')">' +
+            esc(x.name_tr) + ' · ' + money(x.price) + '</button>').join('') + '</div>',
+        async () => {
+          const sel = document.querySelector('#posPortionPick .ops-chip.active');
+          posPush(p, sel ? parseInt(sel.dataset.i, 10) : 0);
+        });
+      return;
+    }
+    posPush(p, null);
+  };
+
+  function posPush(p, portionIndex) {
+    const portions = Array.isArray(p.portions) ? p.portions : [];
+    const chosen = (portionIndex != null) ? portions[portionIndex] : null;
+    const key = p.id + '::' + (portionIndex == null ? '' : portionIndex);
+    const ex = pos.cart.find(c => c.key === key);
+    if (ex) ex.qty = Math.min(99, ex.qty + 1);
+    else pos.cart.push({
+      key, id: p.id, name: p.name,
+      portion_index: portionIndex,
+      portion_name: chosen ? chosen.name_tr : '',
+      price: chosen ? Number(chosen.price) || 0 : Number(p.price) || 0,
+      qty: 1
+    });
+    posRenderCart();
+  }
+
+  window.posQty = function (key, delta) {
+    const it = pos.cart.find(c => c.key === key);
+    if (!it) return;
+    it.qty += delta;
+    if (it.qty < 1) pos.cart = pos.cart.filter(c => c.key !== key);
+    posRenderCart();
+  };
+
+  window.posClearCart = function () { pos.cart = []; posRenderCart(); };
+
+  function posRenderCart() {
+    const box = document.getElementById('posCartItems');
+    if (!box) return;
+    if (!pos.cart.length) {
+      box.innerHTML = '<div class="ops-empty" style="padding:20px 8px;">Sepet boş. Soldan ürün seçin.</div>';
+    } else {
+      box.innerHTML = pos.cart.map(c =>
+        '<div class="pos-cart-row">' +
+          '<div class="ops-main">' +
+            '<div class="ops-name">' + esc(c.name) + '</div>' +
+            (c.portion_name ? '<div class="ops-sub">' + esc(c.portion_name) + '</div>' : '') +
+            '<div class="ops-sub">' + money(c.price) + '</div>' +
+          '</div>' +
+          '<div class="pos-qty">' +
+            '<button onclick="posQty(\'' + c.key + '\',-1)">−</button>' +
+            '<span>' + c.qty + '</span>' +
+            '<button onclick="posQty(\'' + c.key + '\',1)">+</button>' +
+          '</div>' +
+        '</div>'
+      ).join('');
+    }
+    const total = pos.cart.reduce((s, c) => s + c.price * c.qty, 0);
+    const el = document.getElementById('posTotal');
+    if (el) el.textContent = money(total);
+  }
+
+  window.posSubmit = async function () {
+    if (!pos.cart.length) { alertBox('Sepet boş.', 'Sipariş oluşturulamadı', 'warning'); return; }
+    const btn = document.getElementById('posSubmitBtn');
+    if (btn) btn.disabled = true;
+    try {
+      const body = {
+        payment_method: pos.payment,
+        order_notes: (document.getElementById('posNote') || {}).value || '',
+        // Fiyat GÖNDERİLMEZ — sunucu her kalemi kendi veritabanından fiyatlandırır.
+        items: pos.cart.map(c => ({ product_id: c.id, quantity: c.qty, portion_index: c.portion_index }))
+      };
+      if (pos.type === 'dinein') {
+        const tok = (document.getElementById('posTable') || {}).value;
+        if (!tok) throw new Error('table_required');
+        body.table_token = tok;
+        body.name = 'Kasa';           // masa siparişinde backend ad/telefon/adres istemiyor
+        body.phone = '';
+      } else {
+        body.name = (document.getElementById('posName') || {}).value.trim();
+        body.phone = (document.getElementById('posPhone') || {}).value.trim();
+        body.address = (document.getElementById('posAddress') || {}).value.trim();
+        if (!body.name || !body.phone || !body.address) throw new Error('delivery_fields_required');
+      }
+
+      const res = await fetch('/api/orders', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + (typeof getAdminToken === 'function' ? getAdminToken() : '') },
+        body: JSON.stringify(body)
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || ('http_' + res.status));
+
+      posClearCart();
+      ['posName', 'posPhone', 'posAddress', 'posNote'].forEach(id => { const e = document.getElementById(id); if (e) e.value = ''; });
+      // Siparişi hemen fiş olarak bas — kasada beklenen davranış bu.
+      if (data.id && confirm('Sipariş oluşturuldu.\n\nFiş yazdırılsın mı?')) {
+        window.kdsPrintReceipt(data.id);
+      }
+    } catch (e) {
+      const map = {
+        table_required: 'Önce bir masa seçin (Ayarlar > Masa Yönetimi\'nden masa ekleyebilirsiniz).',
+        delivery_fields_required: 'Paket sipariş için ad, telefon ve adres gerekli.'
+      };
+      alertBox(map[e.message] || humanError(e), 'Sipariş oluşturulamadı', 'warning');
+    } finally {
+      if (btn) btn.disabled = false;
+    }
+  };
+
+  // ============================================================
   // MUTFAK EKRANI (KDS) — 3 sütunlu iş akışı panosu.
   // Yeni bir sipariş sistemi KURMAZ: mevcut orders tablosunu, mevcut dine-in durum akışını
   // ve mevcut PUT /api/orders/:id/status ucunu kullanır. "Masa Sipariş Kontrolü" ekranı
@@ -1064,7 +1273,8 @@
     customers: () => window.opsLoadCustomers(),
     alerts: () => window.opsLoadAlerts(),
     reminders: () => window.opsLoadReminders(),
-    kitchen: () => window.kdsLoad()
+    kitchen: () => window.kdsLoad(),
+    pos: () => window.posLoad()
   };
 
   function hookViewSwitching() {
