@@ -623,6 +623,131 @@ async function runPlatformMigrations() {
     await ensureColumn('categories', `name_${lang}`, 'TEXT');
   }
 
+  // 9) İŞLETME YÖNETİMİ MODÜLLERİ (Faz 92+) — tedarikçi, malzeme, stok hareketi, reçete, gider,
+  // müşteri. Hepsi mevcut tenant_id desenini birebir izler (her sorgu tenant_id ile kısıtlanır).
+  // Referans alınan proje (Yasas SaaS, Figma export) yalnızca İŞLEV kapsamı için incelendi;
+  // tasarımı/kodu kopyalanmadı — bkz. 04_DECISIONS/external-reference-boundary.
+  await dbDriver.exec(`
+    CREATE TABLE IF NOT EXISTS suppliers (
+      id TEXT PRIMARY KEY,
+      tenant_id TEXT NOT NULL DEFAULT 'default',
+      name TEXT NOT NULL,
+      contact_name TEXT,
+      phone TEXT,
+      email TEXT,
+      address TEXT,
+      category TEXT,
+      notes TEXT,
+      active INTEGER NOT NULL DEFAULT 1,
+      created_at BIGINT,
+      updated_at BIGINT
+    );
+  `);
+  await dbDriver.exec(`CREATE INDEX IF NOT EXISTS idx_suppliers_tenant ON suppliers(tenant_id);`);
+
+  // Malzeme (hammadde). Satılan ÜRÜNden (products) ayrıdır: ürün müşteriye satılan menü kalemi,
+  // malzeme ise onu yapmak için tüketilen girdidir. stock_qty burada TEK doğruluk kaynağıdır;
+  // stock_movements tablosu bu değerin nasıl oluştuğunun defteridir (audit trail).
+  await dbDriver.exec(`
+    CREATE TABLE IF NOT EXISTS ingredients (
+      id TEXT PRIMARY KEY,
+      tenant_id TEXT NOT NULL DEFAULT 'default',
+      name TEXT NOT NULL,
+      sku TEXT,
+      unit TEXT NOT NULL DEFAULT 'kg',
+      category TEXT,
+      stock_qty REAL NOT NULL DEFAULT 0,
+      min_stock REAL NOT NULL DEFAULT 0,
+      max_stock REAL,
+      unit_cost REAL NOT NULL DEFAULT 0,
+      supplier_id TEXT,
+      location TEXT,
+      active INTEGER NOT NULL DEFAULT 1,
+      created_at BIGINT,
+      updated_at BIGINT
+    );
+  `);
+  await dbDriver.exec(`CREATE INDEX IF NOT EXISTS idx_ingredients_tenant ON ingredients(tenant_id);`);
+
+  // Stok hareket defteri — SADECE EKLENİR (append-only), satırlar güncellenmez/silinmez.
+  // qty_delta pozitif=giriş, negatif=çıkış. qty_after, hareket sonrası bakiyeyi dondurur ki
+  // geçmiş bir kayda bakıldığında o anki durum görülebilsin.
+  await dbDriver.exec(`
+    CREATE TABLE IF NOT EXISTS stock_movements (
+      id TEXT PRIMARY KEY,
+      tenant_id TEXT NOT NULL DEFAULT 'default',
+      ingredient_id TEXT NOT NULL,
+      type TEXT NOT NULL DEFAULT 'in',
+      qty_delta REAL NOT NULL,
+      qty_after REAL,
+      unit_cost REAL,
+      note TEXT,
+      actor TEXT,
+      created_at BIGINT
+    );
+  `);
+  await dbDriver.exec(`CREATE INDEX IF NOT EXISTS idx_stock_mov_tenant ON stock_movements(tenant_id, ingredient_id);`);
+
+  // Reçete — bir ÜRÜNÜ hangi malzemelerden ne kadar kullanarak yaptığımız. Ürün başına en fazla
+  // bir reçete olur (product_id benzersiz değil ama mantıksal olarak öyle kullanılır); kalemler
+  // JSON dizide tutulur: [{ingredient_id, qty}] — ayrı satır tablosu açmaya değmeyecek kadar
+  // küçük ve her zaman reçeteyle birlikte okunuyor (portions'taki aynı gerekçe).
+  await dbDriver.exec(`
+    CREATE TABLE IF NOT EXISTS recipes (
+      id TEXT PRIMARY KEY,
+      tenant_id TEXT NOT NULL DEFAULT 'default',
+      product_id TEXT,
+      name TEXT NOT NULL,
+      category TEXT,
+      prep_time INTEGER,
+      servings INTEGER NOT NULL DEFAULT 1,
+      items TEXT DEFAULT '[]',
+      instructions TEXT,
+      created_at BIGINT,
+      updated_at BIGINT
+    );
+  `);
+  await dbDriver.exec(`CREATE INDEX IF NOT EXISTS idx_recipes_tenant ON recipes(tenant_id);`);
+
+  await dbDriver.exec(`
+    CREATE TABLE IF NOT EXISTS expenses (
+      id TEXT PRIMARY KEY,
+      tenant_id TEXT NOT NULL DEFAULT 'default',
+      description TEXT NOT NULL,
+      category TEXT,
+      amount REAL NOT NULL DEFAULT 0,
+      expense_date BIGINT,
+      supplier_id TEXT,
+      vendor TEXT,
+      status TEXT NOT NULL DEFAULT 'paid',
+      note TEXT,
+      created_at BIGINT,
+      updated_at BIGINT
+    );
+  `);
+  await dbDriver.exec(`CREATE INDEX IF NOT EXISTS idx_expenses_tenant ON expenses(tenant_id);`);
+
+  // Müşteri (CRM). Sistemde müşteri girişi/hesabı YOK — bu yüzden tekrar eden müşteriyi eşleştiren
+  // doğal anahtar TELEFON numarasıdır (siparişte zaten toplanıyor). Bu bilinçli bir mimari karardır,
+  // bkz. 04_DECISIONS. visits/total_spend gibi alanlar siparişlerden TÜRETİLİR, elle girilmez.
+  await dbDriver.exec(`
+    CREATE TABLE IF NOT EXISTS customers (
+      id TEXT PRIMARY KEY,
+      tenant_id TEXT NOT NULL DEFAULT 'default',
+      name TEXT,
+      phone TEXT NOT NULL,
+      email TEXT,
+      address TEXT,
+      notes TEXT,
+      visits INTEGER NOT NULL DEFAULT 0,
+      total_spend REAL NOT NULL DEFAULT 0,
+      last_visit BIGINT,
+      created_at BIGINT,
+      updated_at BIGINT
+    );
+  `);
+  await dbDriver.exec(`CREATE INDEX IF NOT EXISTS idx_customers_tenant ON customers(tenant_id, phone);`);
+
   // 8) Porsiyon/boyut fiyatlandırması (Faz 89). JSON dizi olarak saklanır:
   //   [{"name_tr":"Küçük","name_en":"Small","price":120}, {"name_tr":"Büyük",...}]
   // DİKKAT — bu, yukarıdaki `portion_XX` sütunlarıyla AYNI ŞEY DEĞİL: onlar serbest metin bir

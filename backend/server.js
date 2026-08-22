@@ -1541,6 +1541,11 @@ app.use('/api', createTablesRouter({ db, isPg, events: platformEvents, adminAuth
 const createCardsRouter = require('./routes/cards');
 app.use('/api', createCardsRouter({ db, isPg, adminAuth, rateLimiter }));
 
+// İşletme yönetimi modülleri (Faz 92): tedarikçi, malzeme, stok hareketi, reçete, gider,
+// müşteri ve türetilmiş uyarılar. Hepsi tenant kapsamlı, adminAuth arkasında.
+const createOperationsRouter = require('./routes/operations');
+app.use('/api', createOperationsRouter({ db, isPg, adminAuth }));
+
 // Customer scans a QR -> /t/<token> serves the ordering page (tenant already resolved by host/override)
 app.get('/t/:token', (req, res) => {
   sendTenantIndex(req, res);
