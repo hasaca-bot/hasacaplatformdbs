@@ -698,6 +698,94 @@ module.exports = function createOperationsRouter({ db, isPg, adminAuth }) {
   });
 
   // ============================================================
+  // İŞLETME RAPORU (Faz 93) — mevcut /api/admin/analytics'in YERİNE GEÇMEZ, onu tamamlar.
+  // Orası ciro/sipariş tarafına bakar; burası yeni modüllerin (gider, stok, reçete) verisini
+  // ekleyip kâr–zarar tablosunu kurar. Hepsi hesaplanır, hiçbiri saklanmaz.
+  // ============================================================
+  router.get('/reports/summary', adminAuth, async (req, res) => {
+    try {
+      const days = Math.min(365, Math.max(1, int(req.query.days, 30)));
+      const since = Date.now() - days * 86400000;
+
+      // ── Gelir (siparişlerden) ──
+      const orders = await db.all(
+        `SELECT total, created_at, order_type FROM orders WHERE tenant_id = ${P(1)} AND created_at >= ${P(2)}`,
+        [req.tenantId, since]
+      );
+      const revenue = orders.reduce((s, o) => s + num(o.total), 0);
+
+      // ── Gider ──
+      const expenses = (await db.all(`SELECT * FROM expenses WHERE tenant_id = ${P(1)}`, [req.tenantId]))
+        .filter(e => !e.expense_date || Number(e.expense_date) >= since);
+      const expenseTotal = expenses.reduce((s, e) => s + num(e.amount), 0);
+      const expenseByCategory = {};
+      expenses.forEach(e => {
+        const k = e.category || 'Diğer';
+        expenseByCategory[k] = Math.round(((expenseByCategory[k] || 0) + num(e.amount)) * 100) / 100;
+      });
+      const unpaidExpenses = expenses.filter(e => e.status === 'pending')
+        .reduce((s, e) => s + num(e.amount), 0);
+
+      // ── Stok değeri (anlık, döneme bağlı değil) ──
+      const ingredients = await db.all(`SELECT * FROM ingredients WHERE tenant_id = ${P(1)}`, [req.tenantId]);
+      const stockValue = ingredients.reduce((s, i) => s + num(i.stock_qty) * num(i.unit_cost), 0);
+      const lowStock = ingredients.filter(i => num(i.stock_qty) <= num(i.min_stock));
+
+      // ── Reçete kârlılığı ──
+      // Maliyet reçeteden hesaplanır (saklanmaz), satış fiyatı bağlı üründen gelir.
+      const ingById = {};
+      ingredients.forEach(i => { ingById[i.id] = i; });
+      const products = await db.all(`SELECT id, name_tr, price FROM products WHERE tenant_id = ${P(1)}`, [req.tenantId]);
+      const prodById = {};
+      products.forEach(p => { prodById[p.id] = p; });
+
+      const recipes = await db.all(`SELECT * FROM recipes WHERE tenant_id = ${P(1)}`, [req.tenantId]);
+      const profitability = recipes.map(r => {
+        let items = [];
+        try { items = JSON.parse(r.items || '[]') || []; } catch (e) {}
+        const cost = items.reduce((s, it) => {
+          const ing = ingById[it.ingredient_id];
+          return s + (ing ? num(ing.unit_cost) * num(it.qty) : 0);
+        }, 0);
+        const servings = Math.max(1, int(r.servings, 1));
+        const costPer = Math.round((cost / servings) * 100) / 100;
+        const prod = prodById[r.product_id];
+        const price = prod ? num(prod.price) : 0;
+        return {
+          name: r.name,
+          product_name: prod ? prod.name_tr : '',
+          cost_per_serving: costPer,
+          selling_price: price,
+          profit: price > 0 ? Math.round((price - costPer) * 100) / 100 : null,
+          margin_pct: price > 0 ? Math.round(((price - costPer) / price) * 100) : null
+        };
+      }).filter(r => r.margin_pct != null)
+        .sort((a, b) => b.margin_pct - a.margin_pct);
+
+      const net = Math.round((revenue - expenseTotal) * 100) / 100;
+      res.json({
+        days,
+        revenue: Math.round(revenue * 100) / 100,
+        order_count: orders.length,
+        expense_total: Math.round(expenseTotal * 100) / 100,
+        expense_unpaid: Math.round(unpaidExpenses * 100) / 100,
+        expense_by_category: expenseByCategory,
+        net_profit: net,
+        // Kâr marjı yalnızca gelir varsa anlamlıdır — 0 gelirde yüzde hesabı yanıltıcı olur.
+        net_margin_pct: revenue > 0 ? Math.round((net / revenue) * 100) : null,
+        stock_value: Math.round(stockValue * 100) / 100,
+        low_stock_count: lowStock.length,
+        ingredient_count: ingredients.length,
+        most_profitable: profitability.slice(0, 5),
+        least_profitable: profitability.slice(-5).reverse()
+      });
+    } catch (err) {
+      console.error('[OPS] GET /reports/summary:', err);
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  // ============================================================
   // POS FİŞ ALTYAPISI (Faz 93)
   // GET /api/orders/:id/receipt — bir siparişin fişini hem YAPISAL veri hem de yazıcıya
   // hazır DÜZ METİN olarak döner. Amaç: ileride bir POS/termal yazıcıya bağlandığında

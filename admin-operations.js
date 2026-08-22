@@ -479,6 +479,50 @@
   };
 
   // ============================================================
+  // İŞLETME RAPORU — mevcut Analitik ekranının devamı (ayrı ekran açılmadı).
+  // ============================================================
+  window.opsLoadReport = async function (days) {
+    const box = document.getElementById('repExpenseList');
+    if (!box) return;
+    try {
+      const range = days || (document.getElementById('adAnRange') || {}).value || 30;
+      const d = await api('/reports/summary?days=' + range);
+      const set = (id, v) => { const e = document.getElementById(id); if (e) e.textContent = v; };
+      set('repExpense', money(d.expense_total));
+      set('repNet', money(d.net_profit));
+      set('repMargin', d.net_margin_pct == null ? '—' : '%' + d.net_margin_pct);
+      set('repStock', money(d.stock_value));
+      set('repUnpaid', money(d.expense_unpaid));
+
+      // Net kâr negatifse kırmızı göster — bu rakam yanlış okunmamalı.
+      const netEl = document.getElementById('repNet');
+      if (netEl) netEl.style.color = d.net_profit < 0 ? 'var(--ap-bad)' : '';
+
+      const cats = Object.entries(d.expense_by_category).sort((a, b) => b[1] - a[1]);
+      box.innerHTML = cats.length
+        ? cats.map(([k, v]) => '<div class="act-row"><div class="act-main">' + esc(k) + '</div>' +
+            '<div class="act-when">' + money(v) + '</div></div>').join('')
+        : '<div class="ops-empty" style="padding:20px 8px;">Bu dönemde gider kaydı yok.</div>';
+
+      const pbox = document.getElementById('repProfitList');
+      if (pbox) {
+        const list = d.most_profitable || [];
+        pbox.innerHTML = list.length
+          ? list.map(r => {
+              const cls = r.margin_pct >= 50 ? 'ok' : (r.margin_pct >= 20 ? 'neutral' : 'bad');
+              return '<div class="act-row"><div class="act-main">' + esc(r.name) +
+                ' <span class="ops-badge ' + cls + '">%' + r.margin_pct + '</span>' +
+                '<div class="ops-sub">maliyet ' + money(r.cost_per_serving) + ' · satış ' + money(r.selling_price) + '</div>' +
+                '</div></div>';
+            }).join('')
+          : '<div class="ops-empty" style="padding:20px 8px;">Henüz reçete tanımlı ürün yok. Reçeteler ekranından ekleyin.</div>';
+      }
+    } catch (e) {
+      box.innerHTML = stateHtml.error();
+    }
+  };
+
+  // ============================================================
   // KASA (POS) — personelin elle sipariş girmesi.
   // Sipariş MEVCUT POST /api/orders ucundan oluşturulur; fiyat SUNUCUDA çözülür, buradan
   // gönderilen bir fiyata asla güvenilmez (mevcut güvenlik tasarımının devamı).
@@ -1274,7 +1318,9 @@
     alerts: () => window.opsLoadAlerts(),
     reminders: () => window.opsLoadReminders(),
     kitchen: () => window.kdsLoad(),
-    pos: () => window.posLoad()
+    pos: () => window.posLoad(),
+    // Analitik ekranının kendi yüklemesi admin.js'te; biz sadece yeni rapor bloğunu ekliyoruz.
+    analytics: () => window.opsLoadReport()
   };
 
   function hookViewSwitching() {

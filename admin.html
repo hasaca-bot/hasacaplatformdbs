@@ -761,6 +761,28 @@
             <h3 data-i18n="admin_analytics_top">En Çok Satan Ürünler</h3>
             <div id="adAnTop" class="act-list"><div class="hint" data-i18n="admin_dash_loading">Yükleniyor…</div></div>
           </div>
+
+          <!-- İŞLETME RAPORU (Faz 93) — yeni modüllerin verisi. Ayrı bir "Raporlar" ekranı
+               AÇILMADI; rakip ekran yerine mevcut Analitik'in devamı olarak eklendi. -->
+          <div class="dash-grid" style="grid-template-columns:repeat(auto-fill,minmax(160px,1fr)); margin-top:16px;">
+            <div class="stat-card"><div class="st-k" data-i18n="admin_rep_expense">Gider</div><div class="st-v" id="repExpense">–</div></div>
+            <div class="stat-card"><div class="st-k" data-i18n="admin_rep_net">Net Kâr</div><div class="st-v" id="repNet">–</div></div>
+            <div class="stat-card"><div class="st-k" data-i18n="admin_rep_margin">Kâr Marjı</div><div class="st-v" id="repMargin">–</div></div>
+            <div class="stat-card"><div class="st-k" data-i18n="admin_rep_stock">Stok Değeri</div><div class="st-v" id="repStock">–</div></div>
+            <div class="stat-card"><div class="st-k" data-i18n="admin_rep_unpaid">Ödenmemiş Gider</div><div class="st-v" id="repUnpaid">–</div></div>
+          </div>
+
+          <div class="dash-row" style="margin-top:16px;">
+            <div class="panel-card">
+              <h3 data-i18n="admin_rep_expense_breakdown">Gider Dağılımı</h3>
+              <div id="repExpenseList" class="act-list"></div>
+            </div>
+            <div class="panel-card">
+              <h3 data-i18n="admin_rep_profitability">Ürün Kârlılığı</h3>
+              <div class="hint" style="margin-bottom:10px;" data-i18n="admin_rep_prof_hint">Reçetesi tanımlı ürünler için hesaplanır — malzeme maliyeti ile satış fiyatı arasındaki fark.</div>
+              <div id="repProfitList" class="act-list"></div>
+            </div>
+          </div>
         </section>
 
         <!-- ═══════════ İŞLETME YÖNETİMİ GÖRÜNÜMLERİ (Faz 92) ═══════════
