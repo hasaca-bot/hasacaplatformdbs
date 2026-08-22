@@ -698,6 +698,67 @@ module.exports = function createOperationsRouter({ db, isPg, adminAuth }) {
   });
 
   // ============================================================
+  // GOOGLE MAPS LİNKİNDEN ADRES ÇÖZME (Faz 94)
+  // Restoran sahibi Maps'ten "Paylaş" linkini yapıştırıyor, adres metni buradan çıkarılıyor.
+  // Eskiden 3 ayrı alan elle doldurulmak zorundaydı (adres, Maps linki, embed URL'i) ve
+  // embed URL'inin nereden bulunacağı kullanıcı için hiç açık değildi.
+  //
+  // Kısaltılmış linkler (maps.app.goo.gl / goo.gl/maps) tarayıcıdan çözülemez — CORS engeller.
+  // Sunucu tarafında yönlendirmeyi takip edip uzun URL'i alıyoruz; adres bilgisi o URL'in
+  // /place/<adres>/ bölümünde duruyor.
+  // ============================================================
+  function addressFromMapsUrl(u) {
+    try {
+      const url = new URL(u);
+      // 1) /maps/place/<isim veya adres>/@lat,lng...
+      const m = url.pathname.match(/\/place\/([^/@]+)/);
+      if (m && m[1]) {
+        const decoded = decodeURIComponent(m[1].replace(/\+/g, ' ')).trim();
+        if (decoded && !/^@/.test(decoded)) return decoded;
+      }
+      // 2) ?q=<adres> veya ?query=<adres> (paylaşım linklerinin bir başka biçimi)
+      const q = url.searchParams.get('q') || url.searchParams.get('query');
+      // Sadece koordinat ise adres sayılmaz — kullanıcıya "41.0,29.0" göstermek işe yaramaz.
+      if (q && !/^-?\d+\.?\d*,\s*-?\d+\.?\d*$/.test(q.trim())) return q.trim();
+      return '';
+    } catch (e) { return ''; }
+  }
+
+  router.post('/maps/resolve', adminAuth, async (req, res) => {
+    try {
+      const raw = clean((req.body || {}).url, 500);
+      if (!raw) return res.status(400).json({ error: 'url_required' });
+      if (!/^https?:\/\//i.test(raw)) return res.status(400).json({ error: 'invalid_url' });
+
+      let host = '';
+      try { host = new URL(raw).hostname.toLowerCase(); } catch (e) { return res.status(400).json({ error: 'invalid_url' }); }
+      // Yalnızca Google Maps alan adları — keyfi bir URL'i sunucudan çağırmak (SSRF) engellenir.
+      const allowed = ['google.com', 'www.google.com', 'maps.google.com', 'goo.gl', 'maps.app.goo.gl'];
+      const okHost = allowed.some(h => host === h || host.endsWith('.google.com'));
+      if (!okHost) return res.status(400).json({ error: 'not_a_maps_link' });
+
+      let finalUrl = raw;
+      let address = addressFromMapsUrl(raw);
+
+      // Kısaltılmış link ise yönlendirmeyi takip et.
+      if (!address && /goo\.gl$/.test(host)) {
+        try {
+          const r = await fetch(raw, { redirect: 'follow' });
+          finalUrl = r.url || raw;
+          address = addressFromMapsUrl(finalUrl);
+        } catch (e) {
+          return res.json({ ok: false, error: 'resolve_failed', address: '', final_url: raw });
+        }
+      }
+
+      res.json({ ok: !!address, address, final_url: finalUrl });
+    } catch (err) {
+      console.error('[OPS] POST /maps/resolve:', err);
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  // ============================================================
   // İŞLETME RAPORU (Faz 93) — mevcut /api/admin/analytics'in YERİNE GEÇMEZ, onu tamamlar.
   // Orası ciro/sipariş tarafına bakar; burası yeni modüllerin (gider, stok, reçete) verisini
   // ekleyip kâr–zarar tablosunu kurar. Hepsi hesaplanır, hiçbiri saklanmaz.

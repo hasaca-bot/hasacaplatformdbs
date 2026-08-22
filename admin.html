@@ -1098,68 +1098,60 @@
                 <input type="file" accept="image/png,image/jpeg,image/webp,image/gif,image/svg+xml" style="display:none;" onchange="handleBrandLogoUpload(this)">
               </label>
             </div>
-            <label class="hint" style="display:block; margin-top:14px;" data-i18n="admin_brand_favicon">Favicon (Sekme İkonu)</label>
-            <p class="hint" style="margin-top:2px; font-size:.78rem;" data-i18n="admin_brand_favicon_hint">Müşteri sitenizin tarayıcı sekmesinde görünen küçük ikon. En iyi sonuç için kare (örn. 512×512) bir görsel yükleyin — kare olmayan görseller gerilmiş görünebilir.</p>
-            <div style="display:flex; align-items:center; gap:12px; margin-top:6px;">
-              <img id="brandFaviconPreview" src="" alt="" style="width:36px; height:36px; border-radius:8px; object-fit:cover; background:var(--ap-card); border:1px solid var(--ap-line); display:none;">
-              <label class="admin-btn secondary" style="width:auto; flex:none; display:inline-flex; align-items:center; gap:8px; cursor:pointer; margin:0;">
-                <span data-i18n="admin_brand_favicon_upload">Favicon Yükle</span>
-                <input type="file" accept="image/png,image/jpeg,image/webp,image/gif,image/svg+xml" style="display:none;" onchange="handleBrandFaviconUpload(this)">
-              </label>
-            </div>
+            <!-- Favicon yükleme KALDIRILDI (Faz 94, kullanıcı kararı). Logo zaten sekme ikonu
+                 olarak da kullanılıyor; ayrı bir favicon alanı fazladan iş çıkarıyordu.
+                 Backend'deki favicon_url alanı DURUYOR — daha önce yüklenmiş favicon'lar
+                 çalışmaya devam eder, sadece yeni yükleme arayüzü yok. -->
             <label class="hint" style="display:block; margin-top:14px;" data-i18n="admin_brand_company">Şirket Adı</label>
             <input type="text" id="brCompany" class="admin-input">
           </div>
 
+          <!-- Faz 94: etiketler "Başlık (TR)" gibi teknik ifadelerdi, ne işe yaradıkları
+               anlaşılmıyordu. Artık her alan ne olduğunu ve nerede göründüğünü söylüyor. -->
           <div class="panel-card" style="margin-top:16px;">
-            <h3 data-i18n="admin_brand_hero_title">Ana Sayfa</h3>
-            <label class="hint" style="display:block; margin-top:10px;">Başlık (TR)</label>
-            <input type="text" id="brHeroTr" class="admin-input">
-            <label class="hint" style="display:block; margin-top:10px;">Title (EN)</label>
-            <input type="text" id="brHeroEn" class="admin-input">
-            <label class="hint" style="display:block; margin-top:10px;">Alt Metin (TR)</label>
-            <input type="text" id="brHeroSubTr" class="admin-input">
-            <label class="hint" style="display:block; margin-top:10px;">Subtitle (EN)</label>
-            <input type="text" id="brHeroSubEn" class="admin-input">
-            <label class="hint" style="display:block; margin-top:10px;" data-i18n="admin_brand_footer">Footer Metni</label>
-            <input type="text" id="brFooter" class="admin-input">
-            <!-- Duyuru bandı: backend (ADMIN_BRANDING_ALLOWED) bu iki alanı zaten kabul ediyordu
-                 ama panelde girecek yer yoktu — Faz 88'de eklendi. Boş bırakılırsa bant hiç çıkmaz. -->
-            <label class="hint" style="display:block; margin-top:14px;" data-i18n="admin_brand_banner">Duyuru Bandı (TR)</label>
+            <h3 data-i18n="admin_brand_hero_title">Sitenizin Karşılama Yazısı</h3>
+            <p class="hint" style="margin-top:2px;" data-i18n="admin_brand_hero_hint">Müşteriler menünüzü açtığında en üstte, büyük görselin üzerinde gördüğü yazılar.</p>
+
+            <label class="hint" style="display:block; margin-top:14px;" data-i18n="admin_brand_hero_main">Büyük başlık</label>
+            <input type="text" id="brHeroTr" class="admin-input" placeholder="Örn: Hoş Geldiniz">
+            <div class="hint" style="margin-top:4px; opacity:.75;" data-i18n="admin_brand_hero_main_hint">Sayfanın en dikkat çeken yazısı.</div>
+
+            <label class="hint" style="display:block; margin-top:14px;" data-i18n="admin_brand_hero_sub">Başlığın altındaki açıklama</label>
+            <input type="text" id="brHeroSubTr" class="admin-input" placeholder="Örn: Taze malzemelerle, ev yapımı lezzetler">
+            <div class="hint" style="margin-top:4px; opacity:.75;" data-i18n="admin_brand_hero_sub_hint">Bir cümlelik kısa tanıtım.</div>
+
+            <label class="hint" style="display:block; margin-top:14px;" data-i18n="admin_brand_banner">Duyuru şeridi</label>
             <input type="text" id="brBannerTr" class="admin-input" placeholder="Örn: Pazar günleri kapalıyız">
-            <label class="hint" style="display:block; margin-top:10px;">Announcement (EN)</label>
-            <input type="text" id="brBannerEn" class="admin-input" placeholder="e.g. Closed on Sundays">
-            <div class="hint" style="margin-top:6px; opacity:.75;" data-i18n="admin_brand_banner_hint">Boş bırakırsanız sitede duyuru bandı gösterilmez.</div>
+            <div class="hint" style="margin-top:4px; opacity:.75;" data-i18n="admin_brand_banner_hint">Sayfanın en üstünde ince bir şerit olarak çıkar. Boş bırakırsanız hiç görünmez.</div>
+
+            <label class="hint" style="display:block; margin-top:14px;" data-i18n="admin_brand_footer">Sayfa altı yazısı</label>
+            <input type="text" id="brFooter" class="admin-input" placeholder="Örn: © 2026 Lezzet Durağı">
+            <div class="hint" style="margin-top:4px; opacity:.75;" data-i18n="admin_brand_footer_hint">Menünün en altında görünen küçük yazı.</div>
+
+            <!-- İngilizce karşılıklar katlanabilir: çoğu restoran yalnızca Türkçe kullanıyor,
+                 formu gereksiz uzatmasın. Alanlar duruyor, sadece varsayılan olarak kapalı. -->
+            <details class="ap-form-section" style="margin-top:16px;">
+              <summary><span data-i18n="admin_brand_en_section">İngilizce karşılıkları</span><span class="ap-sec-hint" data-i18n="admin_brand_en_hint">İsteğe bağlı — sitenizi İngilizceye çeviren müşteriler için</span></summary>
+              <div class="ap-form-section-body">
+                <label class="hint" style="display:block;" data-i18n="admin_brand_hero_main">Büyük başlık</label>
+                <input type="text" id="brHeroEn" class="admin-input" placeholder="e.g. Welcome">
+                <label class="hint" style="display:block; margin-top:12px;" data-i18n="admin_brand_hero_sub">Başlığın altındaki açıklama</label>
+                <input type="text" id="brHeroSubEn" class="admin-input" placeholder="e.g. Home-made dishes with fresh ingredients">
+                <label class="hint" style="display:block; margin-top:12px;" data-i18n="admin_brand_banner">Duyuru şeridi</label>
+                <input type="text" id="brBannerEn" class="admin-input" placeholder="e.g. Closed on Sundays">
+              </div>
+            </details>
           </div>
 
-          <div class="panel-card" style="margin-top:16px;">
-            <h3 data-i18n="admin_brand_seo_title">SEO</h3>
-            <label class="hint" style="display:block; margin-top:10px;" data-i18n="admin_brand_seo_titlelbl">SEO Başlığı</label>
-            <input type="text" id="brSeoTitle" class="admin-input" maxlength="80">
-            <label class="hint" style="display:block; margin-top:10px;" data-i18n="admin_brand_seo_desc">SEO Açıklaması</label>
-            <textarea id="brSeoDesc" class="admin-input" rows="2" style="resize:vertical;" maxlength="220"></textarea>
-            <label class="hint" style="display:block; margin-top:10px;" data-i18n="admin_brand_seo_keywords">Anahtar Kelimeler</label>
-            <input type="text" id="brSeoKeywords" class="admin-input" placeholder="restoran, menü, sipariş">
-            <!-- og_image / seo_canonical / seo_robots: backend ve tenantSeo.js bunları zaten
-                 okuyordu, panelde giriş alanı yoktu — Faz 88'de eklendi. -->
-            <label class="hint" style="display:block; margin-top:10px;" data-i18n="admin_brand_og_image">Paylaşım Görseli (OG)</label>
-            <input type="text" id="brOgImage" class="admin-input" placeholder="/uploads/… veya https://…">
-            <div class="hint" style="margin-top:6px; opacity:.75;" data-i18n="admin_brand_og_hint">WhatsApp/Facebook'ta link paylaşılınca çıkan görsel. Boşsa logonuz kullanılır.</div>
-            <label class="hint" style="display:block; margin-top:10px;" data-i18n="admin_brand_canonical">Canonical URL</label>
-            <input type="text" id="brSeoCanonical" class="admin-input" placeholder="https://…">
-            <div class="hint" style="margin-top:6px; opacity:.75;" data-i18n="admin_brand_canonical_hint">Boş bırakın — yalnızca kendi alan adınız varsa doldurun.</div>
-            <label class="hint" style="display:block; margin-top:10px;" data-i18n="admin_brand_robots">Arama Motorları</label>
-            <select id="brSeoRobots" class="admin-input">
-              <option value="index" data-i18n="admin_brand_robots_index">Siteme Google'da yer ver (varsayılan)</option>
-              <option value="noindex" data-i18n="admin_brand_robots_noindex">Arama sonuçlarında gizle</option>
-            </select>
-            <label class="hint" style="display:block; margin-top:10px;" data-i18n="admin_brand_theme">Tema</label>
-            <select id="brTheme" class="admin-input">
-              <option value="dark" data-i18n="admin_brand_theme_dark">Sıcak (Varsayılan)</option>
-              <option value="light" data-i18n="admin_brand_theme_light">Açık</option>
-              <option value="bw" data-i18n="admin_brand_theme_bw">Siyah &amp; Beyaz</option>
-            </select>
-          </div>
+          <!-- SEO bölümü KALDIRILDI (Faz 94, kullanıcı kararı): SEO başlığı/açıklaması/anahtar
+               kelimeleri, paylaşım görseli, canonical ve robots alanları restoran sahibinin elle
+               doldurmasını bekliyordu — çoğu bunun ne olduğunu bilmiyor. Bunlar bir sonraki turda
+               AI tarafından içerikten (restoran adı, menü, hero metni) OTOMATİK üretilecek.
+               Backend alanları ve tenantSeo.js kullanımı DEĞİŞMEDİ; daha önce girilmiş değerler
+               çalışmaya devam ediyor, AI de aynı alanları dolduracak.
+
+               TEMA seçici de kaldırıldı: müşteri sitesi Faz 83'te tek bir beyaz+mavi tasarıma
+               sabitlendi, bu seçim artık hiçbir şeyi değiştirmiyordu. -->
 
           <div class="panel-card" style="margin-top:16px;">
             <h3 data-i18n="admin_brand_contact_title">İletişim &amp; Sosyal Medya</h3>
@@ -1168,15 +1160,31 @@
               <div><label class="hint">WhatsApp</label><input type="text" id="brWhatsapp" class="admin-input" placeholder="+90 555 123 4567"></div>
               <div><label class="hint">E-posta</label><input type="email" id="brEmail" class="admin-input"></div>
               <div><label class="hint" data-i18n="admin_brand_website">Web Sitesi</label><input type="text" id="brWebsite" class="admin-input" placeholder="https://…"></div>
-              <div><label class="hint">Adres</label><input type="text" id="brAddress" class="admin-input"></div>
-              <div><label class="hint">Google Maps Linki</label><input type="text" id="brMapsLink" class="admin-input" placeholder="https://maps.google.com/…"></div>
-              <div><label class="hint">Google Maps Embed URL</label><input type="text" id="brMapsEmbed" class="admin-input" placeholder="https://www.google.com/maps/embed?…"></div>
               <div><label class="hint">Instagram</label><input type="text" id="brInstagram" class="admin-input" placeholder="https://instagram.com/…"></div>
               <div><label class="hint">Facebook</label><input type="text" id="brFacebook" class="admin-input" placeholder="https://facebook.com/…"></div>
               <div><label class="hint">X (Twitter)</label><input type="text" id="brTwitter" class="admin-input" placeholder="https://x.com/…"></div>
               <div><label class="hint">TikTok</label><input type="text" id="brTiktok" class="admin-input" placeholder="https://tiktok.com/@…"></div>
               <div><label class="hint">YouTube</label><input type="text" id="brYoutube" class="admin-input" placeholder="https://youtube.com/@…"></div>
             </div>
+
+            <!-- ADRES (Faz 94): eskiden 3 ayrı alan vardı (adres metni, Maps linki, Maps embed
+                 URL'i) ve restoran sahibinin embed URL'ini nereden bulacağını bilmesi gerekiyordu.
+                 Artık tek yapılacak iş var: Google Maps linkini yapıştırmak. Adres metni bu
+                 linkten OTOMATİK çıkarılıyor (gerekirse elle düzeltilebilir). -->
+            <div style="border-top:1px solid var(--ap-line); margin-top:18px; padding-top:16px;">
+              <label class="admin-form-label" style="display:block;" data-i18n="admin_brand_maps">Google Maps Konumu</label>
+              <p class="hint" style="margin-top:2px;" data-i18n="admin_brand_maps_hint">Google Maps'te restoranınızı bulun, "Paylaş" deyip linki buraya yapıştırın. Adresiniz otomatik yazılır.</p>
+              <div style="display:flex; gap:8px; align-items:flex-start; margin-top:8px; flex-wrap:wrap;">
+                <input type="text" id="brMapsLink" class="admin-input" style="flex:1; min-width:220px; margin:0;" placeholder="https://maps.app.goo.gl/… veya https://www.google.com/maps/place/…">
+                <button type="button" class="admin-btn secondary" style="width:auto; flex:none; margin:0; padding:11px 16px;" onclick="brResolveMapsLink()" data-i18n="admin_brand_maps_fetch">Adresi Getir</button>
+              </div>
+              <div id="brMapsStatus" class="hint" style="margin-top:8px; display:none;"></div>
+
+              <label class="hint" style="display:block; margin-top:14px;" data-i18n="admin_brand_address">Adres (müşteriye gösterilen)</label>
+              <input type="text" id="brAddress" class="admin-input" placeholder="Linki yapıştırıp 'Adresi Getir'e basın">
+              <div class="hint" style="margin-top:4px; opacity:.75;" data-i18n="admin_brand_address_hint">Otomatik doldurulur; isterseniz elle düzeltebilirsiniz.</div>
+            </div>
+
             <button class="admin-btn" id="brandingSaveBtn" onclick="saveBranding()" style="width:auto; flex:none; margin-top:18px;" data-i18n="admin_brand_save">Kaydet</button>
             <div id="brandingStatus" class="hint" style="display:none; margin-top:10px;"></div>
           </div>

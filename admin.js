@@ -543,8 +543,8 @@ const i18nData = {
     admin_brand_favicon_hint: "Müşteri sitenizin tarayıcı sekmesinde görünen küçük ikon. En iyi sonuç için kare (örn. 512×512) bir görsel yükleyin — kare olmayan görseller gerilmiş görünebilir.",
     admin_brand_favicon_upload: "Favicon Yükle",
     admin_brand_company: "Şirket Adı",
-    admin_brand_hero_title: "Ana Sayfa",
-    admin_brand_footer: "Footer Metni",
+    admin_brand_hero_title: "Sitenizin Karşılama Yazısı",
+    admin_brand_footer: "Sayfa altı yazısı",
     admin_brand_seo_title: "SEO",
     admin_brand_seo_titlelbl: "SEO Başlığı",
     admin_brand_seo_desc: "SEO Açıklaması",
@@ -617,8 +617,8 @@ const i18nData = {
     admin_rem_add: "+ Hatırlatıcı Ekle", admin_rem_pending: "Bekleyen",
     admin_rem_overdue: "Tarihi Geçen", admin_rem_total: "Toplam", admin_rem_done: "Tamamlanan",
     // Faz 88/89'da eklenmiş ama sözlüğe yazılmamış alanlar (EN modda Türkçe görünüyorlardı):
-    admin_brand_banner: "Duyuru Bandı (TR)",
-    admin_brand_banner_hint: "Boş bırakırsanız sitede duyuru bandı gösterilmez.",
+    admin_brand_banner: "Duyuru şeridi",
+    admin_brand_banner_hint: "Sayfanın en üstünde ince bir şerit olarak çıkar. Boş bırakırsanız hiç görünmez.",
     admin_brand_og_image: "Paylaşım Görseli (OG)",
     admin_brand_og_hint: "WhatsApp/Facebook'ta link paylaşılınca çıkan görsel. Boşsa logonuz kullanılır.",
     admin_brand_canonical: "Canonical URL",
@@ -630,7 +630,15 @@ const i18nData = {
     admin_lbl_portions: "Porsiyon / Boyut Seçenekleri",
     admin_portions_hint: "İsteğe bağlı. Örn: Küçük 120₺, Büyük 180₺. Boş bırakırsanız ürün tek fiyatla satılır.",
     admin_btn_add_portion: "+ Porsiyon Ekle",
-    admin_nav_locale: "Dil & Bölge", admin_locale_panel_lang: "Panel Dili",
+    admin_nav_locale: "Dil & Bölge",
+    admin_brand_hero_hint: "Müşteriler menünüzü açtığında en üstte, büyük görselin üzerinde gördüğü yazılar.",
+    admin_brand_hero_main: "Büyük başlık", admin_brand_hero_main_hint: "Sayfanın en dikkat çeken yazısı.",
+    admin_brand_hero_sub: "Başlığın altındaki açıklama", admin_brand_hero_sub_hint: "Bir cümlelik kısa tanıtım.",
+    admin_brand_footer_hint: "Menünün en altında görünen küçük yazı.",
+    admin_brand_en_section: "İngilizce karşılıkları", admin_brand_en_hint: "İsteğe bağlı — sitenizi İngilizceye çeviren müşteriler için",
+    admin_brand_maps: "Google Maps Konumu", admin_brand_maps_fetch: "Adresi Getir",
+    admin_brand_maps_hint: "Google Maps'te restoranınızı bulun, 'Paylaş' deyip linki buraya yapıştırın. Adresiniz otomatik yazılır.",
+    admin_brand_address: "Adres (müşteriye gösterilen)", admin_brand_address_hint: "Otomatik doldurulur; isterseniz elle düzeltebilirsiniz.", admin_locale_panel_lang: "Panel Dili",
     admin_locale_hint: "Yönetim panelinin dili. Bu ayar yalnızca sizin panelinizi etkiler — müşteri sitenizin dili ziyaretçinin kendi seçimine göre değişir.",
     admin_locale_currency_note: "Para birimi (₺) ve tarih biçimi şu an Türkiye'ye sabittir; ileride bu bölümden seçilebilir olacak.",
     admin_nav_push: "Bildirim Gönder",
@@ -1070,7 +1078,7 @@ const i18nData = {
     admin_brand_favicon_hint: "The small icon shown in your customer site's browser tab. For best results upload a square image (e.g. 512×512) — non-square images may look stretched.",
     admin_brand_favicon_upload: "Upload Favicon",
     admin_brand_company: "Company Name",
-    admin_brand_hero_title: "Homepage",
+    admin_brand_hero_title: "Your Welcome Text",
     admin_brand_footer: "Footer Text",
     admin_brand_seo_title: "SEO",
     admin_brand_seo_titlelbl: "SEO Title",
@@ -1143,8 +1151,8 @@ const i18nData = {
     admin_sev_high: "Urgent", admin_sev_medium: "Important", admin_sev_low: "Info",
     admin_rem_add: "+ Add Reminder", admin_rem_pending: "Pending",
     admin_rem_overdue: "Overdue", admin_rem_total: "Total", admin_rem_done: "Completed",
-    admin_brand_banner: "Announcement Banner (TR)",
-    admin_brand_banner_hint: "Leave empty to hide the announcement banner on your site.",
+    admin_brand_banner: "Announcement strip",
+    admin_brand_banner_hint: "Appears as a thin strip at the very top. Leave empty and it never shows.",
     admin_brand_og_image: "Share Image (OG)",
     admin_brand_og_hint: "The image shown when your link is shared on WhatsApp/Facebook. Falls back to your logo.",
     admin_brand_canonical: "Canonical URL",
@@ -1156,7 +1164,15 @@ const i18nData = {
     admin_lbl_portions: "Portion / Size Options",
     admin_portions_hint: "Optional. e.g. Small ₺120, Large ₺180. Leave empty to sell the product at a single price.",
     admin_btn_add_portion: "+ Add Portion",
-    admin_nav_locale: "Language & Region", admin_locale_panel_lang: "Panel Language",
+    admin_nav_locale: "Language & Region",
+    admin_brand_hero_hint: "The text customers see at the top of your menu, over the large image.",
+    admin_brand_hero_main: "Main heading", admin_brand_hero_main_hint: "The most prominent line on the page.",
+    admin_brand_hero_sub: "Line under the heading", admin_brand_hero_sub_hint: "A one-sentence introduction.",
+    admin_brand_footer_hint: "The small line at the very bottom of your menu.",
+    admin_brand_en_section: "English versions", admin_brand_en_hint: "Optional — for customers who switch your site to English",
+    admin_brand_maps: "Google Maps Location", admin_brand_maps_fetch: "Fetch Address",
+    admin_brand_maps_hint: "Find your restaurant on Google Maps, tap Share, and paste the link here. Your address fills in automatically.",
+    admin_brand_address: "Address (shown to customers)", admin_brand_address_hint: "Filled in automatically; you can edit it by hand.", admin_locale_panel_lang: "Panel Language",
     admin_locale_hint: "The admin panel's language. This only affects your panel — your customer site's language follows each visitor's own choice.",
     admin_locale_currency_note: "Currency (₺) and date format are currently fixed to Turkey; these will become selectable here later.",
     admin_nav_push: "Send Notification",
@@ -4866,10 +4882,8 @@ async function loadBranding() {
   set('brHeroSubTr', s.hero_sub_tr); set('brHeroSubEn', s.hero_sub_en);
   set('brFooter', s.footer_text);
   set('brBannerTr', s.banner_text_tr); set('brBannerEn', s.banner_text_en);
-  set('brSeoTitle', s.seo_title); set('brSeoDesc', s.seo_description); set('brSeoKeywords', s.seo_keywords);
-  set('brOgImage', s.og_image); set('brSeoCanonical', s.seo_canonical);
-  set('brSeoRobots', s.seo_robots || 'index');
-  set('brTheme', s.theme || 'dark');
+  // SEO / tema alanları Faz 94'te arayüzden kaldırıldı (AI üretecek). set() olmayan elemanı
+  // sessizce atlıyor, o yüzden bu satırlar kaldırıldı — değerler backend'de duruyor.
   // VERI KAYBI DUZELTMESI (Faz 88): telefon/e-posta/adres hem settings JSON'unda hem de tenants
   // tablosunun kendi sutunlarinda durur. Restoran bu degerleri "Restoran Bilgileri" ekranindan
   // girdiyse (ya da kurulum sirasinda gelmisse) yalnizca SUTUNDA olur, settings'te olmaz. Bu
@@ -4952,28 +4966,77 @@ async function handleBrandLogoUpload(input) {
     statusEl.textContent = e.message || aiT('admin_ai_error_generic', 'Bir hata oluştu.');
   }
 }
+// Faz 94: Google Maps linkinden adres metnini otomatik çıkarır. Kısaltılmış linkler
+// (maps.app.goo.gl) tarayıcıdan çözülemez — CORS engeller; sunucu yönlendirmeyi takip ediyor.
+async function brResolveMapsLink() {
+  const linkEl = document.getElementById('brMapsLink');
+  const addrEl = document.getElementById('brAddress');
+  const statusEl = document.getElementById('brMapsStatus');
+  if (!linkEl || !addrEl || !statusEl) return;
+
+  const url = linkEl.value.trim();
+  const show = (msg, bad) => {
+    statusEl.textContent = msg;
+    statusEl.style.color = bad ? 'var(--ap-bad)' : 'var(--ap-ok)';
+    statusEl.style.display = 'block';
+  };
+  if (!url) { show('Önce Google Maps linkini yapıştırın.', true); return; }
+
+  show('Adres alınıyor…', false);
+  statusEl.style.color = 'var(--ap-muted)';
+  try {
+    const res = await fetch('/api/maps/resolve', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + getAdminToken() },
+      body: JSON.stringify({ url })
+    });
+    const d = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      const map = {
+        invalid_url: 'Bu geçerli bir bağlantı değil.',
+        not_a_maps_link: 'Bu bir Google Maps bağlantısı değil.',
+        url_required: 'Önce Google Maps linkini yapıştırın.'
+      };
+      show(map[d.error] || 'Adres alınamadı.', true);
+      return;
+    }
+    if (d.address) {
+      addrEl.value = d.address;
+      show('Adres bulundu. Gerekirse elle düzeltip Kaydet\'e basın.', false);
+    } else {
+      // Linkten adres çıkmadıysa kullanıcıyı boş bırakma — ne yapacağını söyle.
+      show('Bu linkten adres okunamadı. Adresi aşağıya elle yazabilirsiniz.', true);
+    }
+  } catch (e) {
+    show('Bağlantı hatası, tekrar deneyin.', true);
+  }
+}
+
 async function saveBranding() {
   const btn = document.getElementById('brandingSaveBtn');
   const statusEl = document.getElementById('brandingStatus');
   btn.disabled = true;
   const get = (id) => { const el = document.getElementById(id); return el ? el.value.trim() : ''; };
+  // DİKKAT (Faz 94): SEO alanları, tema ve favicon arayüzü kaldırıldı. Bu anahtarlar yükten
+  // TAMAMEN ÇIKARILDI — `get()` olmayan bir alan için '' döndürüyor ve backend gövdede bulunan
+  // her anahtarı yazdığı için, burada bırakılsalardı kayıtlı SEO değerleri her kaydetmede
+  // SİLİNİRDİ. (Faz 88'de telefon/adres için düzeltilen veri kaybı hatasının aynısı.)
+  // SEO'yu bir sonraki turda AI dolduracak; o zamana kadar mevcut değerlere dokunulmamalı.
   const payload = {
     logo_url: window.__brandLogoUrl || '',
-    favicon_url: window.__brandFaviconUrl || '',
     company_name: get('brCompany'),
     hero_title_tr: get('brHeroTr'), hero_title_en: get('brHeroEn'),
     hero_sub_tr: get('brHeroSubTr'), hero_sub_en: get('brHeroSubEn'),
     footer_text: get('brFooter'),
     banner_text_tr: get('brBannerTr'), banner_text_en: get('brBannerEn'),
-    seo_title: get('brSeoTitle'), seo_description: get('brSeoDesc'), seo_keywords: get('brSeoKeywords'),
-    og_image: get('brOgImage'), seo_canonical: get('brSeoCanonical'), seo_robots: get('brSeoRobots'),
-    theme: get('brTheme'),
     contact_phone: get('brPhone'), whatsapp: get('brWhatsapp'), contact_email: get('brEmail'),
     website: get('brWebsite'), address: get('brAddress'),
-    maps_link: get('brMapsLink'), maps_embed: get('brMapsEmbed'),
+    maps_link: get('brMapsLink'),
     instagram: get('brInstagram'), facebook: get('brFacebook'), twitter: get('brTwitter'),
     tiktok: get('brTiktok'), youtube: get('brYoutube')
   };
+  // Favicon yükleme arayüzü kaldırıldı ama önceden yüklenmiş bir favicon varsa korunur.
+  if (window.__brandFaviconUrl) payload.favicon_url = window.__brandFaviconUrl;
   try {
     const res = await fetch('/api/admin/branding', {
       method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload)
