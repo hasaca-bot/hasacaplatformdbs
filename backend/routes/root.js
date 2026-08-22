@@ -644,12 +644,12 @@ module.exports = function createRootRouter({ db, isPg, invalidateTenantCache, si
   // billing. Groq's free tier needs no card. Groq's API is OpenAI-compatible.
   // Varsayılan Gemini (Faz 95) — server.js'teki DEFAULT_AI_MODEL ile aynı gerekçe:
   // Groq ücretsiz katmanı 8K TPM, Gemini ~250K. Groq desteği duruyor.
-  const DEFAULT_AI_MODEL = 'gemini-flash-latest';
+  const DEFAULT_AI_MODEL = 'gemini-flash-lite-latest';
   // Groq retired llama-3.3-70b-versatile and llama-3.1-8b-instant on 2026-08-16 — every request
   // using either now 400s with "model does not exist". A value saved before that (or before the
   // earlier Phase 38 Gemini->Groq swap, "gemini-...") is mapped to a live model instead of being
   // sent straight to a doomed request — this fixes every existing install without a manual DB edit.
-  const DEPRECATED_AI_MODELS = { 'llama-3.3-70b-versatile': 'openai/gpt-oss-120b', 'llama-3.1-8b-instant': 'openai/gpt-oss-20b', 'gemini-2.5-flash': 'gemini-flash-latest', 'gemini-1.5-flash': 'gemini-flash-latest', 'gemini-2.0-flash': 'gemini-flash-latest' };
+  const DEPRECATED_AI_MODELS = { 'llama-3.3-70b-versatile': 'openai/gpt-oss-120b', 'llama-3.1-8b-instant': 'openai/gpt-oss-20b', 'gemini-2.5-flash': 'gemini-flash-lite-latest', 'gemini-1.5-flash': 'gemini-flash-lite-latest', 'gemini-2.0-flash': 'gemini-flash-lite-latest' };
   const cleanAiModel = m => {
     if (!m) return '';
     return DEPRECATED_AI_MODELS[m] || m;
@@ -744,7 +744,9 @@ module.exports = function createRootRouter({ db, isPg, invalidateTenantCache, si
       const r = await fetch(aiModelsUrl(model), { headers: { 'Authorization': 'Bearer ' + key } });
       if (r.ok) return res.json({ ok: true });
       const errBody = await r.json().catch(() => ({}));
-      return res.json({ ok: false, error: (errBody.error && errBody.error.message) || ('http_' + r.status) });
+      // Gemini hata govdesini DIZI dondurur, Groq nesne — ikisi de desteklenir (Faz 96).
+      const eo = Array.isArray(errBody) ? (errBody[0] && errBody[0].error) : (errBody && errBody.error);
+      return res.json({ ok: false, error: (eo && eo.message) || ('http_' + r.status) });
     } catch (err) {
       console.error('[ROOT API] POST /ai-settings/test:', err);
       res.json({ ok: false, error: 'network_error' });
@@ -802,7 +804,9 @@ module.exports = function createRootRouter({ db, isPg, invalidateTenantCache, si
         try { return parseAiJSON(text); }
         catch (_) { const err = new Error('bad_json'); err.aiCode = 'ai_error'; throw err; }
       }
-      const rawMsg = (data.error && data.error.message) || ('http_' + r.status);
+      // Gemini hata govdesini DIZI dondurur, Groq nesne — ikisi de desteklenir (Faz 96).
+      const eo2 = Array.isArray(data) ? (data[0] && data[0].error) : (data && data.error);
+      const rawMsg = (eo2 && eo2.message) || ('http_' + r.status);
       const code = classifyAiError(r.status, rawMsg);
       const retryHdr = parseFloat(r.headers.get('retry-after'));
       const retryFromMsg = parseFloat((rawMsg.match(/try again in ([\d.]+)s/i) || [])[1]);

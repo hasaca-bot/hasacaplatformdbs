@@ -2116,10 +2116,14 @@ const AI_SETTING_LABELS = {
 // bu panelin sabit prompt maliyetiyle birkaç mesajda doluyordu. Gemini'nin ücretsiz katmanı
 // ~250.000 TPM — yaklaşık 30 kat. Groq desteği duruyor: model adı "gemini" ile başlamıyorsa
 // istek yine Groq'a gider (bkz. aiIsGemini).
-// "gemini-flash-latest" bilinçli olarak "-latest" takma adı: Google, sürüm numaralı modelleri
-// ("gemini-2.5-flash") bir süre sonra YENİ kullanıcılara kapatıyor — /models listesinde görünmeye
-// devam ediyor ama sohbet çağrısı 404 veriyor. Takma ad bu tuzağı ortadan kaldırır.
-const DEFAULT_AI_MODEL = 'gemini-flash-latest';
+// Model seçimi iki tuzaktan kaçınır (ikisi de ölçülerek bulundu, Faz 96):
+//  1) Sürüm numaralı adlar ("gemini-2.5-flash") bir süre sonra YENİ kullanıcılara kapanıyor —
+//     /models listesinde görünmeye devam ediyor ama sohbet çağrısı 404 veriyor. "-latest" takma
+//     adı bunu çözer.
+//  2) Ama düz "gemini-flash-latest" en YENİ modele (gemini-3.7-flash) çözümleniyor ve o modelin
+//     ücretsiz kotası çok dar (limit 20) — birkaç istekte doluyor. "lite" sürüm ücretsiz katmanda
+//     en bol kotaya sahip: 8 ardışık istek sorunsuz geçti (düz sürümde 429 alınıyordu).
+const DEFAULT_AI_MODEL = 'gemini-flash-lite-latest';
 
 // ── AI'ın ERİŞEBİLECEĞİ İŞLETME MODÜLLERİ (Faz 95) ──
 // Faz 92-93'te eklenen modüller AI'a kapalıydı. Artık okuyabiliyor ve sınırlı yazabiliyor.
@@ -2145,9 +2149,11 @@ const AI_OPS_LABELS = {
 const DEPRECATED_AI_MODELS = {
   'llama-3.3-70b-versatile': 'openai/gpt-oss-120b',
   'llama-3.1-8b-instant': 'openai/gpt-oss-20b',
-  'gemini-2.5-flash': 'gemini-flash-latest',
-  'gemini-1.5-flash': 'gemini-flash-latest',
-  'gemini-2.0-flash': 'gemini-flash-latest'
+  'gemini-2.5-flash': 'gemini-flash-lite-latest',
+  'gemini-1.5-flash': 'gemini-flash-lite-latest',
+  'gemini-2.0-flash': 'gemini-flash-lite-latest',
+  'gemini-2.5-flash-lite': 'gemini-flash-lite-latest',
+  'gemini-2.0-flash-lite': 'gemini-flash-lite-latest'
 };
 function cleanAiModel(m) {
   if (!m) return '';
@@ -2311,7 +2317,12 @@ async function callAiJSON(key, model, systemPrompt, userMessage, history, opts) 
       try { return parseAiJSON(text); }
       catch (_) { const err = new Error('bad_json'); err.aiCode = 'ai_error'; throw err; }
     }
-    const rawMsg = (data.error && data.error.message) || ('http_' + r.status);
+    // HATA GÖVDESİ İKİ FARKLI ŞEKİLDE GELİYOR (Faz 96): Groq nesne döner ({error:{message}}),
+    // Gemini ise DİZİ ([{error:{message}}]). Eskiden yalnızca nesne okunuyordu, bu yüzden her
+    // Gemini hatası log'a "http_429" gibi kodsuz düşüyor ve gerçek sebep (dakikalık limit mi,
+    // günlük kota mı, geçersiz model mi) kayboluyordu.
+    const errObj = Array.isArray(data) ? (data[0] && data[0].error) : (data && data.error);
+    const rawMsg = (errObj && errObj.message) || ('http_' + r.status);
     const code = classifyAiError(r.status, rawMsg);
     const retryHdr = parseFloat(r.headers.get('retry-after'));
     const retryFromMsg = parseFloat((rawMsg.match(/try again in ([\d.]+)s/i) || [])[1]);
@@ -2359,8 +2370,20 @@ function aiClassifyIntent(msg) {
   // menü prompt'a giriyordu. Sabit maliyetin asıl kaynağı buydu. Artık mesaj neyle ilgiliyse
   // sadece o veri gönderiliyor; hiçbiriyle ilgili değilse (sohbet) hiçbir liste gönderilmiyor.
   const menuWords = /ürün|urun|product|menü|menu|kategori|category|fiyat|price|yemek|içecek|icecek|tatlı|tatli|porsiyon|alerjen|kalori|açıklama|aciklama|görsel|gorsel|resim|foto/.test(m);
-  const opsWords = /stok|stock|malzeme|ingredient|hammadde|reçete|recete|recipe|tedarikçi|tedarikci|supplier|gider|expense|masraf|fatura|kira|hatırlat|hatirlat|reminder|görev|gorev|envanter|depo|kritik|azal|tüken|tuken|maliyet|kâr|kar marj|karlı|karli/.test(m);
   const settingWords = /ayar|setting|restoran adı|restoran adi|telefon|adres|e-posta|eposta|whatsapp|hero|başlık|baslik|alt başlık|alt baslik|duyuru|banner|footer|tema|theme|seo/.test(m);
+
+  // ── İŞLETME ALT-ALANLARI (Faz 96) ──
+  // Önce tek bir "wantsOps" bayrağı vardı ve tetiklendiğinde BEŞ koleksiyon birden prompt'a
+  // giriyordu. "Stokta ne var?" sorusunda tedarikçi/gider/hatırlatıcı listeleri boşuna token
+  // harcıyordu. Artık her alt-alan ayrı: yalnızca sorulan koleksiyon gönderilir.
+  const wIngredients = /stok|stock|malzeme|ingredient|hammadde|envanter|depo|kritik|azal|tüken|tuken|gir(di|iş)|çık(tı|ış)|sayım|sayim|kg|litre|adet kaldı/.test(m);
+  const wSuppliers   = /tedarikçi|tedarikci|supplier|firma|satıcı|satici|toptancı|toptanci/.test(m);
+  const wExpenses    = /gider|expense|masraf|fatura|kira|ödeme|odeme|harcama|maliyet tablosu/.test(m);
+  const wReminders   = /hatırlat|hatirlat|reminder|görev|gorev|yapılacak|yapilacak|ajanda/.test(m);
+  // Reçete maliyet/kârlılık sorularında malzeme fiyatları da gerekir — ikisi birlikte gider.
+  const wRecipes     = /reçete|recete|recipe|maliyet|kâr|kar marj|karlı|karli|kârlı|porsiyon maliyeti/.test(m);
+
+  const wantsOps = wIngredients || wSuppliers || wExpenses || wReminders || wRecipes;
 
   return {
     bulk: translation || rebuild || bulkPrice || bulkCatalog,
@@ -2368,8 +2391,15 @@ function aiClassifyIntent(msg) {
     // Belirsizse (hiçbir anahtar kelime yok ama bir işlem isteniyor olabilir) menüyü göndeririz —
     // menü bu panelin ana işi. Ama saf sohbette (aşağıdaki chat) o da gönderilmez.
     wantsMenu: menuWords || translation || rebuild || bulkPrice || bulkCatalog,
-    wantsOps: opsWords,
-    wantsSettings: settingWords
+    wantsOps,
+    wantsSettings: settingWords,
+    ops: {
+      ingredients: wIngredients || wRecipes,   // reçete maliyeti malzeme fiyatı ister
+      suppliers: wSuppliers,
+      expenses: wExpenses,
+      reminders: wReminders,
+      recipes: wRecipes
+    }
   };
 }
 
@@ -2459,35 +2489,44 @@ app.post('/api/admin/ai-assistant/plan', adminAuth, async (req, res) => {
     if (intent.wantsOps) {
       try {
         const p1 = isPg ? '$1' : '?';
+        const want = intent.ops;
+        // Yalnızca gereken koleksiyonlar sorgulanır — hem veritabanı hem TPM tasarrufu.
         const [ings, sups, exps, recs, rems] = await Promise.all([
-          db.all(`SELECT id, name, unit, category, stock_qty, min_stock, unit_cost, supplier_id FROM ingredients WHERE tenant_id = ${p1}`, [req.tenantId]),
-          db.all(`SELECT id, name, category, phone FROM suppliers WHERE tenant_id = ${p1}`, [req.tenantId]),
-          db.all(`SELECT id, description, category, amount, status FROM expenses WHERE tenant_id = ${p1}`, [req.tenantId]),
-          db.all(`SELECT id, name, product_id, servings, items FROM recipes WHERE tenant_id = ${p1}`, [req.tenantId]),
-          db.all(`SELECT id, title, priority, category, done FROM reminders WHERE tenant_id = ${p1}`, [req.tenantId])
+          want.ingredients ? db.all(`SELECT id, name, unit, category, stock_qty, min_stock, unit_cost FROM ingredients WHERE tenant_id = ${p1}`, [req.tenantId]) : [],
+          want.suppliers   ? db.all(`SELECT id, name, category, phone FROM suppliers WHERE tenant_id = ${p1}`, [req.tenantId]) : [],
+          want.expenses    ? db.all(`SELECT id, description, category, amount, status FROM expenses WHERE tenant_id = ${p1}`, [req.tenantId]) : [],
+          want.recipes     ? db.all(`SELECT id, name, product_id, servings, items FROM recipes WHERE tenant_id = ${p1}`, [req.tenantId]) : [],
+          want.reminders   ? db.all(`SELECT id, title, priority, category, done FROM reminders WHERE tenant_id = ${p1}`, [req.tenantId]) : []
         ]);
-        // Reçetelerin maliyetini burada hesaplayıp veriyoruz — AI'ın malzeme fiyatlarından
-        // kendi hesap yapmasını beklemek hem token harcar hem hata riski taşır.
-        const ingCost = {};
-        ings.forEach(i => { ingCost[i.id] = Number(i.unit_cost) || 0; });
-        const recipesLite = recs.map(r => {
-          let items = []; try { items = JSON.parse(r.items || '[]') || []; } catch (e) {}
-          const cost = items.reduce((s, it) => s + (ingCost[it.ingredient_id] || 0) * (Number(it.qty) || 0), 0);
-          const servings = Math.max(1, parseInt(r.servings, 10) || 1);
-          return { id: r.id, name: r.name, product_id: r.product_id || '', cost_per_serving: Math.round((cost / servings) * 100) / 100 };
-        });
-        opsForPrompt = {
-          malzemeler: ings.map(i => ({
+
+        opsForPrompt = {};
+        if (want.ingredients) {
+          opsForPrompt.malzemeler = ings.map(i => ({
             id: i.id, ad: i.name, birim: i.unit, kategori: i.category || '',
             stok: Number(i.stock_qty) || 0, kritik_esik: Number(i.min_stock) || 0,
             birim_maliyet: Number(i.unit_cost) || 0,
             kritik_mi: (Number(i.stock_qty) || 0) <= (Number(i.min_stock) || 0)
-          })),
-          tedarikciler: sups.map(s => ({ id: s.id, ad: s.name, kategori: s.category || '', telefon: s.phone || '' })),
-          giderler: exps.map(e => ({ id: e.id, aciklama: e.description, kategori: e.category || '', tutar: Number(e.amount) || 0, durum: e.status })),
-          receteler: recipesLite,
-          hatirlaticilar: rems.map(r => ({ id: r.id, baslik: r.title, oncelik: r.priority, tamam: r.done === 1 || r.done === true }))
-        };
+          }));
+        }
+        if (want.suppliers) opsForPrompt.tedarikciler = sups.map(s => ({ id: s.id, ad: s.name, kategori: s.category || '', telefon: s.phone || '' }));
+        if (want.expenses)  opsForPrompt.giderler = exps.map(e => ({ id: e.id, aciklama: e.description, kategori: e.category || '', tutar: Number(e.amount) || 0, durum: e.status }));
+        if (want.reminders) opsForPrompt.hatirlaticilar = rems.map(r => ({ id: r.id, baslik: r.title, oncelik: r.priority, tamam: r.done === 1 || r.done === true }));
+        if (want.recipes) {
+          // Maliyeti burada hesaplayıp veriyoruz — AI'ın malzeme fiyatlarından kendi hesap
+          // yapmasını beklemek hem token harcar hem hata riski taşır.
+          const ingCost = {};
+          ings.forEach(i => { ingCost[i.id] = Number(i.unit_cost) || 0; });
+          opsForPrompt.receteler = recs.map(r => {
+            let items = []; try { items = JSON.parse(r.items || '[]') || []; } catch (e) {}
+            const cost = items.reduce((s, it) => s + (ingCost[it.ingredient_id] || 0) * (Number(it.qty) || 0), 0);
+            const servings = Math.max(1, parseInt(r.servings, 10) || 1);
+            return {
+              id: r.id, ad: r.name, urun_id: r.product_id || '', porsiyon: servings,
+              kalemler: items.map(it => ({ malzeme_id: it.ingredient_id, miktar: it.qty })),
+              porsiyon_maliyeti: Math.round((cost / servings) * 100) / 100
+            };
+          });
+        }
       } catch (e) { console.warn('[AI] ops verisi yuklenemedi:', e.message); }
     }
 
@@ -2521,9 +2560,20 @@ Mevcut restoran ayarları (setting action için): ${JSON.stringify(tenantSetting
 - create: fields içinde en az ad/başlık olsun (ingredients/suppliers: name, expenses: description+amount, reminders: title).
 - update: GERÇEK id + izinli alanlar. delete: GERÇEK id.
 - İzinli alanlar — ${Object.entries(AI_OPS_WHITELIST).map(([t, f]) => `${t}: ${f.join(', ')}`).join(' | ')}
-- STOK MİKTARINI (stok alanını) ops ile DEĞİŞTİREMEZSİN. Stok yalnızca stok hareketiyle değişir;
-  "50 kg domates geldi" gibi bir istekte action üretme, summary'de "Stok ekranından giriş yapın" de.
-- REÇETELERİ düzenleyemezsin (yalnızca okursun); istenirse unsupported'a not ekle.
+- ingredients'ta "stok" alanını ops/update ile DEĞİŞTİREMEZSİN; stok için aşağıdaki stock action'ını kullan.
+
+STOK HAREKETİ (stok miktarını değiştirmenin TEK yolu):
+{"type":"stock","ingredient_id":string,"op":"in"|"out"|"adjust","qty":number,"note":string}
+- in = stoğa ekler ("50 kg domates geldi"), out = düşer ("10 kg kullandık"),
+  adjust = sayım sonucu: qty YENİ TOPLAM miktardır ("sayımda 12 kg çıktı").
+- ingredient_id GERÇEK id olmalı (malzemeler listesinden). Malzeme yoksa action üretme,
+  summary'de "önce malzemeyi ekleyin" de.
+- Elde olandan fazla çıkış isteme; stok eksiye düşemez.
+
+REÇETE (bir ürünün hangi malzemelerden yapıldığı):
+{"type":"recipe","op":"create"|"update"|"delete","targetId":string,"fields":{"name":string,"product_id":string,"servings":number,"items":[{"ingredient_id":string,"qty":number}]}}
+- items'taki ingredient_id GERÇEK malzeme id'si olmalı. Olmayan malzeme uydurma.
+- Maliyet/kâr HESAPLAMA: veride porsiyon_maliyeti zaten var, onu kullan.
 Veri: ${JSON.stringify(opsForPrompt)}` : ''}`;
 
     // TPM: Groq muhasebesinde prompt+max_tokens sayılır. Sohbet/tekil düzenleme küçük bir yanıt
@@ -2606,6 +2656,67 @@ Veri: ${JSON.stringify(opsForPrompt)}` : ''}`;
         actions.push({ type: 'setting', field: a.field, oldValue: tenantSettingsForPrompt[a.field] ?? '', newValue: v, label: AI_SETTING_LABELS[a.field] || a.field });
         continue;
       }
+      // STOK HAREKETİ (Faz 96) — stok miktarını değiştirmenin tek yolu. Bakiye + defter aynı
+      // istekte yazılır (bkz. operations-data-model-decisions), yani AI da kuralı bozamaz.
+      if (a.type === 'stock') {
+        if (!opsForPrompt || !opsForPrompt.malzemeler) { unsupported.push('Stok verisi bu istekte yüklenmedi'); continue; }
+        const ing = opsForPrompt.malzemeler.find(x => x.id === a.ingredient_id);
+        if (!ing) { unsupported.push(`Bulunamayan malzeme: ${a.ingredient_id || '(boş)'}`); continue; }
+        const op = ['in', 'out', 'adjust'].includes(a.op) ? a.op : 'in';
+        const qty = parseFloat(a.qty);
+        if (!Number.isFinite(qty) || qty < 0) { unsupported.push(`${ing.ad}: geçersiz miktar`); continue; }
+        // Eksiye düşecek çıkışı PLANLAMA aşamasında yakala — kullanıcı onaylamadan uyarılsın.
+        if (op === 'out' && qty > ing.stok) {
+          unsupported.push(`${ing.ad}: stokta ${ing.stok} ${ing.birim} var, ${qty} çıkış yapılamaz`);
+          continue;
+        }
+        const after = op === 'in' ? ing.stok + qty : (op === 'out' ? ing.stok - qty : qty);
+        actions.push({
+          type: 'stock', ingredient_id: a.ingredient_id, op, qty,
+          note: String(a.note ?? '').slice(0, 300),
+          label: `${ing.ad}: ${ing.stok} → ${Math.round(after * 1000) / 1000} ${ing.birim}`
+        });
+        continue;
+      }
+
+      // REÇETE (Faz 96) — kalemler iç içe olduğu için ayrı action tipi.
+      if (a.type === 'recipe') {
+        if (!opsForPrompt || !opsForPrompt.receteler) { unsupported.push('Reçete verisi bu istekte yüklenmedi'); continue; }
+        const op = ['create', 'update', 'delete'].includes(a.op) ? a.op : 'update';
+        if (op === 'delete') {
+          const r = opsForPrompt.receteler.find(x => x.id === a.targetId);
+          if (!r) { unsupported.push(`Bulunamayan reçete: ${a.targetId || '(boş)'}`); continue; }
+          actions.push({ type: 'recipe', op: 'delete', targetId: a.targetId, label: r.ad });
+          continue;
+        }
+        const f = a.fields || {};
+        const name = String(f.name ?? '').trim().slice(0, 120);
+        if (op === 'create' && !name) { unsupported.push('Reçete: ad gerekli'); continue; }
+        if (op === 'update' && !opsForPrompt.receteler.some(x => x.id === a.targetId)) {
+          unsupported.push(`Bulunamayan reçete: ${a.targetId || '(boş)'}`); continue;
+        }
+        // Kalemlerdeki malzeme id'lerini GERÇEK listeye karşı doğrula — AI uydurursa yakalanır.
+        const known = new Set((opsForPrompt.malzemeler || []).map(x => x.id));
+        const items = [];
+        for (const it of (Array.isArray(f.items) ? f.items : [])) {
+          const id = String((it && it.ingredient_id) || '');
+          const q = parseFloat(it && it.qty);
+          if (!known.has(id)) { unsupported.push(`Reçete: bilinmeyen malzeme (${id || 'boş'})`); continue; }
+          if (!Number.isFinite(q) || q <= 0) { unsupported.push('Reçete: geçersiz miktar'); continue; }
+          items.push({ ingredient_id: id, qty: Math.round(q * 1000) / 1000 });
+        }
+        actions.push({
+          type: 'recipe', op, targetId: a.targetId || '',
+          fields: {
+            name, product_id: String(f.product_id ?? '').slice(0, 60),
+            servings: Math.max(1, parseInt(f.servings, 10) || 1),
+            items
+          },
+          label: name || a.targetId
+        });
+        continue;
+      }
+
       // İşletme modülü action'ı (Faz 95) — malzeme/tedarikçi/gider/hatırlatıcı.
       if (a.type === 'ops') {
         const t = String(a.table || '');
@@ -2738,6 +2849,57 @@ app.post('/api/admin/ai-assistant/execute', adminAuth, async (req, res) => {
           [a.targetId, req.tenantId]
         );
         if (result.changes) applied.push(a);
+      } else if (a.type === 'stock') {
+        // Stok hareketi — bakiye ve defter AYNI istekte yazılır, böylece ikisi asla ayrılmaz.
+        // (operations.js'teki POST /stock-movements ile aynı kural; AI da bu yoldan geçer.)
+        const P2 = (n) => (isPg ? `$${n}` : '?');
+        const ing = await db.get(`SELECT * FROM ingredients WHERE id = ${P2(1)} AND tenant_id = ${P2(2)}`, [a.ingredient_id, req.tenantId]);
+        if (!ing) continue;
+        const before = parseFloat(ing.stock_qty) || 0;
+        const qty = parseFloat(a.qty) || 0;
+        const delta = a.op === 'in' ? qty : (a.op === 'out' ? -qty : qty - before);
+        const after = Math.round((before + delta) * 1000) / 1000;
+        // Planlamada kontrol edildi ama veri o sırada değişmiş olabilir — burada da koruyoruz.
+        if (after < 0) continue;
+        await db.run(
+          `INSERT INTO stock_movements (id, tenant_id, ingredient_id, type, qty_delta, qty_after, unit_cost, note, actor, created_at)
+           VALUES (${P2(1)},${P2(2)},${P2(3)},${P2(4)},${P2(5)},${P2(6)},${P2(7)},${P2(8)},${P2(9)},${P2(10)})`,
+          [`mov-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`, req.tenantId, a.ingredient_id,
+           a.op, delta, after, parseFloat(ing.unit_cost) || 0,
+           stripHtmlTags(String(a.note || 'AI asistanı')), 'AI', Date.now()]
+        );
+        await db.run(
+          `UPDATE ingredients SET stock_qty = ${P2(1)}, updated_at = ${P2(2)} WHERE id = ${P2(3)} AND tenant_id = ${P2(4)}`,
+          [after, Date.now(), a.ingredient_id, req.tenantId]
+        );
+        applied.push(a);
+      } else if (a.type === 'recipe') {
+        const P2 = (n) => (isPg ? `$${n}` : '?');
+        if (a.op === 'delete') {
+          const r = await db.run(`DELETE FROM recipes WHERE id = ${P2(1)} AND tenant_id = ${P2(2)}`, [a.targetId, req.tenantId]);
+          if (r.changes) applied.push(a);
+          continue;
+        }
+        const f = a.fields || {};
+        const itemsJson = JSON.stringify(Array.isArray(f.items) ? f.items : []);
+        if (a.op === 'create') {
+          const id = `rec-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+          await db.run(
+            `INSERT INTO recipes (id, tenant_id, product_id, name, servings, items, created_at, updated_at)
+             VALUES (${P2(1)},${P2(2)},${P2(3)},${P2(4)},${P2(5)},${P2(6)},${P2(7)},${P2(8)})`,
+            [id, req.tenantId, stripHtmlTags(f.product_id || ''), stripHtmlTags(f.name || ''),
+             f.servings || 1, itemsJson, Date.now(), Date.now()]
+          );
+          applied.push({ ...a, createdId: id });
+        } else {
+          const r = await db.run(
+            `UPDATE recipes SET name = ${P2(1)}, product_id = ${P2(2)}, servings = ${P2(3)}, items = ${P2(4)}, updated_at = ${P2(5)}
+             WHERE id = ${P2(6)} AND tenant_id = ${P2(7)}`,
+            [stripHtmlTags(f.name || ''), stripHtmlTags(f.product_id || ''), f.servings || 1,
+             itemsJson, Date.now(), a.targetId, req.tenantId]
+          );
+          if (r.changes) applied.push(a);
+        }
       } else if (a.type === 'ops') {
         // İşletme modülü yazımı (Faz 95). Her sorgu tenant_id ile kısıtlı — AI başka bir
         // restoranın kaydına dokunamaz. Alanlar planlamada doğrulandı, burada bir kez daha.
