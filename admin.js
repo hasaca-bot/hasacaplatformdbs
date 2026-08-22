@@ -605,6 +605,23 @@ const i18nData = {
     admin_sev_high: "Acil", admin_sev_medium: "Önemli", admin_sev_low: "Bilgi",
     admin_rem_add: "+ Hatırlatıcı Ekle", admin_rem_pending: "Bekleyen",
     admin_rem_overdue: "Tarihi Geçen", admin_rem_total: "Toplam", admin_rem_done: "Tamamlanan",
+    // Faz 88/89'da eklenmiş ama sözlüğe yazılmamış alanlar (EN modda Türkçe görünüyorlardı):
+    admin_brand_banner: "Duyuru Bandı (TR)",
+    admin_brand_banner_hint: "Boş bırakırsanız sitede duyuru bandı gösterilmez.",
+    admin_brand_og_image: "Paylaşım Görseli (OG)",
+    admin_brand_og_hint: "WhatsApp/Facebook'ta link paylaşılınca çıkan görsel. Boşsa logonuz kullanılır.",
+    admin_brand_canonical: "Canonical URL",
+    admin_brand_canonical_hint: "Boş bırakın — yalnızca kendi alan adınız varsa doldurun.",
+    admin_brand_robots: "Arama Motorları",
+    admin_brand_robots_index: "Siteme Google'da yer ver (varsayılan)",
+    admin_brand_robots_noindex: "Arama sonuçlarında gizle",
+    admin_portion_price_note: "Porsiyon eklediğiniz için müşteri fiyatı porsiyondan görecek. Bu alan yedek fiyat olarak kalır.",
+    admin_lbl_portions: "Porsiyon / Boyut Seçenekleri",
+    admin_portions_hint: "İsteğe bağlı. Örn: Küçük 120₺, Büyük 180₺. Boş bırakırsanız ürün tek fiyatla satılır.",
+    admin_btn_add_portion: "+ Porsiyon Ekle",
+    admin_nav_locale: "Dil & Bölge", admin_locale_panel_lang: "Panel Dili",
+    admin_locale_hint: "Yönetim panelinin dili. Bu ayar yalnızca sizin panelinizi etkiler — müşteri sitenizin dili ziyaretçinin kendi seçimine göre değişir.",
+    admin_locale_currency_note: "Para birimi (₺) ve tarih biçimi şu an Türkiye'ye sabittir; ileride bu bölümden seçilebilir olacak.",
     admin_nav_push: "Bildirim Gönder",
     admin_nav_view_site: "Siteyi Görüntüle",
     admin_nav_ai: "AI Asistanı",
@@ -1104,6 +1121,22 @@ const i18nData = {
     admin_sev_high: "Urgent", admin_sev_medium: "Important", admin_sev_low: "Info",
     admin_rem_add: "+ Add Reminder", admin_rem_pending: "Pending",
     admin_rem_overdue: "Overdue", admin_rem_total: "Total", admin_rem_done: "Completed",
+    admin_brand_banner: "Announcement Banner (TR)",
+    admin_brand_banner_hint: "Leave empty to hide the announcement banner on your site.",
+    admin_brand_og_image: "Share Image (OG)",
+    admin_brand_og_hint: "The image shown when your link is shared on WhatsApp/Facebook. Falls back to your logo.",
+    admin_brand_canonical: "Canonical URL",
+    admin_brand_canonical_hint: "Leave empty — only fill this in if you have your own domain.",
+    admin_brand_robots: "Search Engines",
+    admin_brand_robots_index: "Allow my site on Google (default)",
+    admin_brand_robots_noindex: "Hide from search results",
+    admin_portion_price_note: "Since you added portions, customers will see portion prices. This field stays as a fallback price.",
+    admin_lbl_portions: "Portion / Size Options",
+    admin_portions_hint: "Optional. e.g. Small ₺120, Large ₺180. Leave empty to sell the product at a single price.",
+    admin_btn_add_portion: "+ Add Portion",
+    admin_nav_locale: "Language & Region", admin_locale_panel_lang: "Panel Language",
+    admin_locale_hint: "The admin panel's language. This only affects your panel — your customer site's language follows each visitor's own choice.",
+    admin_locale_currency_note: "Currency (₺) and date format are currently fixed to Turkey; these will become selectable here later.",
     admin_nav_push: "Send Notification",
     admin_nav_view_site: "View Site",
     admin_nav_ai: "AI Assistant",
@@ -1204,9 +1237,26 @@ const ADMIN_CONTENT_LANGS = [
   { code: 'ko', label: '한국어' }
 ];
 
+// Üst çubuktaki TR/EN butonu Faz 93'te kaldırıldı; bu fonksiyon KORUNDU çünkü admin.html'de
+// hâlâ (gizli) eski bir başlıkta kullanılıyor ve dışarıdan çağıran başka yerler olabilir.
 function toggleLanguage() {
   const nextLang = window.currentLanguage === 'tr' ? 'en' : 'tr';
   applyLanguage(nextLang);
+}
+
+// ── Ayarlar > Dil & Bölge (Faz 93) ──
+// Dil artık üst çubuktan değil buradan seçiliyor. applyLanguage zaten seçimi localStorage'a
+// yazıyor, burada ek olarak seçili çipin vurgusunu güncelliyoruz.
+function setPanelLanguage(lang) {
+  applyLanguage(lang === 'en' ? 'en' : 'tr');
+  loadLocaleSettings();
+}
+
+function loadLocaleSettings() {
+  const cur = window.currentLanguage || 'tr';
+  document.querySelectorAll('#localeLangChips .ops-chip').forEach(c => {
+    c.classList.toggle('active', c.getAttribute('data-lang') === cur);
+  });
 }
 
 // ── Phase 25: Tenant Admin Panel theme (Black/White/System) ──
@@ -2942,6 +2992,7 @@ const SETTINGS_SECTIONS = {
   'table-card':      { id: 'adminTabCardsCont',    load: 'cdInit' },
   'website-editor':  { id: 'view-website-editor',  load: 'loadWebsiteEditor' },
   'widgets':         { id: 'view-widgets',         load: 'loadTenantWidgets' },
+  'locale':          { id: 'view-locale',          load: 'loadLocaleSettings' },
   'danger-zone':     { id: 'view-danger-zone',     load: 'loadDangerZone' }
 };
 let apCurrentSettingsSection = 'restaurant-info';

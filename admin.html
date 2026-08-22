@@ -608,7 +608,9 @@
           <button type="button" data-theme-mode="light" onclick="apSetTheme('light')" data-i18n-title="admin_theme_light" title="Açık" aria-label="Açık"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4 12H2M22 12h-2M5 5l1.5 1.5M17.5 17.5 19 19M19 5l-1.5 1.5M6.5 17.5 5 19"/></svg></button>
           <button type="button" data-theme-mode="dark" onclick="apSetTheme('dark')" data-i18n-title="admin_theme_dark" title="Koyu" aria-label="Koyu"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.8A9 9 0 1 1 11.2 3 7 7 0 0 0 21 12.8z"/></svg></button>
         </div>
-        <button class="admin-btn secondary topbar-lang" onclick="toggleLanguage()"><span id="admin-lang-btn-text">EN</span></button>
+        <!-- Dil butonu üst çubuktan KALDIRILDI (Faz 93) — dil bir ayardır, sürekli basılan bir
+             buton değil. Artık Ayarlar > Dil & Bölge bölümünden seçiliyor. #admin-lang-btn-text
+             kimliği applyLanguage içinde hâlâ aranıyor, o yüzden orada varlık kontrolü yapılıyor. -->
         <div class="profile" id="adminProfile">
           <button class="profile-btn" onclick="apToggleProfileMenu(event)">
             <span class="av" id="adminProfileAv">A</span><span class="nm" id="adminProfileNm" data-i18n="admin_nav_admin">Yönetici</span>
@@ -649,6 +651,9 @@
               <button class="set-nav-item" data-sec="widgets" onclick="showSettingsSection('widgets')">
                 <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/></svg></span>
                 <span data-i18n="admin_nav_widgets">Widget Ayarları</span></button>
+              <button class="set-nav-item" data-sec="locale" onclick="showSettingsSection('locale')">
+                <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg></span>
+                <span data-i18n="admin_nav_locale">Dil &amp; Bölge</span></button>
               <a class="set-nav-item" id="adminViewSiteLink" href="/menu" target="_blank" rel="noopener">
                 <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg></span>
                 <span data-i18n="admin_nav_view_site">Siteyi Görüntüle</span></a>
@@ -1092,6 +1097,21 @@
         </section>
 
         <!-- WIDGET SETTINGS VIEW (Phase 28) -->
+        <!-- DİL & BÖLGE (Faz 93) — dil seçimi üst çubuktaki TR/EN butonundan buraya taşındı;
+             bir ayardır, sürekli basılan bir buton değil. -->
+        <section class="view" id="view-locale" hidden>
+          <div class="panel-card">
+            <h3 data-i18n="admin_nav_locale">Dil &amp; Bölge</h3>
+            <p class="hint" data-i18n="admin_locale_hint">Yönetim panelinin dili. Bu ayar yalnızca sizin panelinizi etkiler — müşteri sitenizin dili ziyaretçinin kendi seçimine göre değişir.</p>
+            <label class="admin-form-label" style="display:block;margin-top:16px;" data-i18n="admin_locale_panel_lang">Panel Dili</label>
+            <div class="ops-chips" id="localeLangChips" style="margin-top:8px;">
+              <button class="ops-chip" data-lang="tr" onclick="setPanelLanguage('tr')">Türkçe</button>
+              <button class="ops-chip" data-lang="en" onclick="setPanelLanguage('en')">English</button>
+            </div>
+            <div class="hint" style="margin-top:18px;" data-i18n="admin_locale_currency_note">Para birimi (₺) ve tarih biçimi şu an Türkiye'ye sabittir; ileride bu bölümden seçilebilir olacak.</div>
+          </div>
+        </section>
+
         <section class="view" id="view-widgets" hidden>
           <div class="panel-card">
             <h3 data-i18n="admin_widgets_title">Widget Ayarları</h3>

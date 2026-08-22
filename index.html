@@ -288,12 +288,12 @@
         <div class="mb-4">
           <label class="block font-label-sm text-on-surface-variant mb-1.5" data-i18n="lbl_person">Kişi Sayısı</label>
           <div class="flex gap-2 flex-wrap" id="paxButtonsContainer">
-            <button type="button" class="pax-btn active px-4 py-2 rounded-full bg-primary text-white font-label-sm" data-n="1">1 Kişi</button>
-            <button type="button" class="pax-btn px-4 py-2 rounded-full bg-surface-container text-on-surface font-label-sm" data-n="2">2 Kişi</button>
-            <button type="button" class="pax-btn px-4 py-2 rounded-full bg-surface-container text-on-surface font-label-sm" data-n="3">3 Kişi</button>
-            <button type="button" class="pax-btn px-4 py-2 rounded-full bg-surface-container text-on-surface font-label-sm" data-n="4">4 Kişi</button>
-            <button type="button" class="pax-btn px-4 py-2 rounded-full bg-surface-container text-on-surface font-label-sm" data-n="5">5 Kişi</button>
-            <button type="button" class="pax-btn px-4 py-2 rounded-full bg-surface-container text-on-surface font-label-sm" data-n="6+">6+ Kişi</button>
+            <button type="button" class="pax-btn active px-4 py-2 rounded-full bg-primary text-white font-label-sm" data-n="1" data-i18n="pax_1">1 Kişi</button>
+            <button type="button" class="pax-btn px-4 py-2 rounded-full bg-surface-container text-on-surface font-label-sm" data-n="2" data-i18n="pax_2">2 Kişi</button>
+            <button type="button" class="pax-btn px-4 py-2 rounded-full bg-surface-container text-on-surface font-label-sm" data-n="3" data-i18n="pax_3">3 Kişi</button>
+            <button type="button" class="pax-btn px-4 py-2 rounded-full bg-surface-container text-on-surface font-label-sm" data-n="4" data-i18n="pax_4">4 Kişi</button>
+            <button type="button" class="pax-btn px-4 py-2 rounded-full bg-surface-container text-on-surface font-label-sm" data-n="5" data-i18n="pax_5">5 Kişi</button>
+            <button type="button" class="pax-btn px-4 py-2 rounded-full bg-surface-container text-on-surface font-label-sm" data-n="6+" data-i18n="pax_6">6+ Kişi</button>
           </div>
         </div>
 
@@ -318,13 +318,13 @@
             <h3 class="font-headline-sm text-headline-sm text-on-surface" data-i18n="contact_hours_lbl">Çalışma Saatleri</h3>
           </div>
           <div class="space-y-2 text-sm text-on-surface-variant">
-            <div class="flex justify-between py-1 border-b border-surface-container"><span>Pazartesi</span><span class="font-semibold text-on-surface">11:00 – 22:30</span></div>
-            <div class="flex justify-between py-1 border-b border-surface-container"><span>Salı</span><span class="font-semibold text-on-surface">11:00 – 22:30</span></div>
-            <div class="flex justify-between py-1 border-b border-surface-container"><span>Çarşamba</span><span class="font-semibold text-on-surface">11:00 – 22:30</span></div>
-            <div class="flex justify-between py-1 border-b border-surface-container"><span>Perşembe</span><span class="font-semibold text-on-surface">11:00 – 22:30</span></div>
-            <div class="flex justify-between py-1 border-b border-surface-container"><span>Cuma</span><span class="font-semibold text-on-surface">11:00 – 22:30</span></div>
-            <div class="flex justify-between py-1 border-b border-surface-container"><span>Cumartesi</span><span class="font-semibold text-on-surface">11:00 – 22:30</span></div>
-            <div class="flex justify-between py-1"><span>Pazar</span><span class="font-semibold text-on-surface">11:00 – 22:30</span></div>
+            <div class="flex justify-between py-1 border-b border-surface-container"><span data-i18n="day_mon">Pazartesi</span><span class="font-semibold text-on-surface">11:00 – 22:30</span></div>
+            <div class="flex justify-between py-1 border-b border-surface-container"><span data-i18n="day_tue">Salı</span><span class="font-semibold text-on-surface">11:00 – 22:30</span></div>
+            <div class="flex justify-between py-1 border-b border-surface-container"><span data-i18n="day_wed">Çarşamba</span><span class="font-semibold text-on-surface">11:00 – 22:30</span></div>
+            <div class="flex justify-between py-1 border-b border-surface-container"><span data-i18n="day_thu">Perşembe</span><span class="font-semibold text-on-surface">11:00 – 22:30</span></div>
+            <div class="flex justify-between py-1 border-b border-surface-container"><span data-i18n="day_fri">Cuma</span><span class="font-semibold text-on-surface">11:00 – 22:30</span></div>
+            <div class="flex justify-between py-1 border-b border-surface-container"><span data-i18n="day_sat">Cumartesi</span><span class="font-semibold text-on-surface">11:00 – 22:30</span></div>
+            <div class="flex justify-between py-1"><span data-i18n="day_sun">Pazar</span><span class="font-semibold text-on-surface">11:00 – 22:30</span></div>
           </div>
         </div>
 
@@ -398,7 +398,7 @@
     <div class="flex items-center gap-3">
       <span class="font-headline-sm text-base font-bold" id="floatingCartTotal">₺0</span>
       <div class="flex items-center font-label-md font-bold">
-        <span>Sepeti Gör</span>
+        <span data-i18n="cart_view">Sepeti Gör</span>
         <span class="material-symbols-outlined text-sm ml-1">arrow_forward</span>
       </div>
     </div>
@@ -416,7 +416,7 @@
     </a>
     <a class="flex flex-col items-center justify-center text-secondary hover:bg-surface-container-low transition-colors px-5 py-1 rounded-full active:scale-90 transition-transform duration-200" href="javascript:void(0)" onclick="openCart()">
       <span class="material-symbols-outlined">shopping_cart</span>
-      <span class="font-label-md text-label-md mt-0.5">Sepet</span>
+      <span class="font-label-md text-label-md mt-0.5" data-i18n="bottom_nav_cart">Sepet</span>
     </a>
   </nav>
 
@@ -432,7 +432,7 @@
     </button>
     <button onclick="openCart()" class="flex-1 flex items-center justify-center gap-2 bg-primary py-3 rounded-[12px] text-white font-label-md active:scale-95 transition-transform font-bold">
       <span class="material-symbols-outlined">shopping_bag</span>
-      <span>Sipariş</span>
+      <span data-i18n="dinein_order">Sipariş</span>
     </button>
   </nav>
 
@@ -587,7 +587,7 @@
       <span class="font-headline-sm text-lg font-bold" data-i18n="dinein_track_title">Sipariş Durumu</span>
       <button onclick="document.getElementById('dineinTrackCard').classList.add('hidden')" class="w-8 h-8 flex items-center justify-center rounded-full bg-surface-container">✕</button>
     </div>
-    <div class="text-center font-bold text-primary text-lg mb-3" id="dtStatusText">Siparişiniz Alındı</div>
+    <div class="text-center font-bold text-primary text-lg mb-3" id="dtStatusText" data-i18n="dt_received">Siparişiniz Alındı</div>
     <div class="w-full h-2 bg-surface-container rounded-full overflow-hidden mb-3">
       <div id="dtFill" class="h-full bg-primary transition-all duration-500" style="width: 20%;"></div>
     </div>
@@ -691,6 +691,12 @@
         contact_email_lbl: "E-posta",
         portion_pick: "Porsiyon Seçin",
         banner_text: "",
+        // Faz 93: bu metinler HTML'de sabit yazılıydı, İngilizce modda Türkçe kalıyorlardı.
+        day_mon: "Pazartesi", day_tue: "Salı", day_wed: "Çarşamba", day_thu: "Perşembe",
+        day_fri: "Cuma", day_sat: "Cumartesi", day_sun: "Pazar",
+        pax_1: "1 Kişi", pax_2: "2 Kişi", pax_3: "3 Kişi", pax_4: "4 Kişi", pax_5: "5 Kişi", pax_6: "6+ Kişi",
+        cart_view: "Sepeti Gör", bottom_nav_cart: "Sepet", dinein_order: "Sipariş",
+        dt_received: "Siparişiniz Alındı",
         contact_address_val: "123 Example Street, City",
         bottom_nav_book: "Rezerve",
         bottom_nav_contact: "İletişim",
@@ -750,6 +756,11 @@
         contact_email_lbl: "Email",
         portion_pick: "Choose Portion",
         banner_text: "",
+        day_mon: "Monday", day_tue: "Tuesday", day_wed: "Wednesday", day_thu: "Thursday",
+        day_fri: "Friday", day_sat: "Saturday", day_sun: "Sunday",
+        pax_1: "1 Person", pax_2: "2 People", pax_3: "3 People", pax_4: "4 People", pax_5: "5 People", pax_6: "6+ People",
+        cart_view: "View Cart", bottom_nav_cart: "Cart", dinein_order: "Order",
+        dt_received: "Your Order Was Received",
         contact_address_val: "123 Example Street, City",
         bottom_nav_book: "Book",
         bottom_nav_contact: "Contact",
