@@ -545,6 +545,16 @@
           <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/></svg></span>
           <span class="lbl" data-i18n="admin_nav_customers">Müşteriler</span>
         </button>
+        <button class="nav-item" data-view="alerts" onclick="showAdminView('alerts')">
+          <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg></span>
+          <span class="lbl" data-i18n="admin_nav_alerts">Uyarılar</span>
+          <span class="nbadge" id="adminAlertsBadge" style="display:none;">0</span>
+        </button>
+        <button class="nav-item" data-view="reminders" onclick="showAdminView('reminders')">
+          <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/><path d="M9 16l2 2 4-4"/></svg></span>
+          <span class="lbl" data-i18n="admin_nav_reminders">Hatırlatıcılar</span>
+          <span class="nbadge" id="adminRemindersBadge" style="display:none;">0</span>
+        </button>
       </div>
 
       <div class="nav-group">
@@ -853,6 +863,52 @@
             </div>
             <div id="opsCusList" class="ops-list"></div>
             <div id="opsCusPager" class="ops-pager"></div>
+          </div>
+        </section>
+
+        <!-- UYARILAR — sistemden TÜRETİLİR, saklanmaz. Kullanıcı işaretleyemez, sorunu çözünce
+             uyarı kendiliğinden kaybolur. -->
+        <section class="view" id="view-alerts" hidden>
+          <div class="panel-card">
+            <h3>
+              <span data-i18n="admin_nav_alerts">Uyarılar</span>
+              <button class="admin-btn secondary" style="width:auto;padding:8px 14px;font-size:.82rem;margin:0;" onclick="opsLoadAlerts()" data-i18n="admin_refresh">Yenile</button>
+            </h3>
+            <div class="hint" style="margin-bottom:12px;" data-i18n="admin_alerts_hint">Bu uyarılar işletmenizin güncel durumundan otomatik oluşur. Sorunu giderdiğinizde uyarı kendiliğinden kaybolur.</div>
+            <div class="ops-toolbar">
+              <div class="ops-chips" id="opsAlertFilters">
+                <button class="ops-chip active" data-filter="all" onclick="opsSetAlertFilter('all')" data-i18n="admin_filter_all">Tümü</button>
+                <button class="ops-chip" data-filter="high" onclick="opsSetAlertFilter('high')" data-i18n="admin_sev_high">Acil</button>
+                <button class="ops-chip" data-filter="medium" onclick="opsSetAlertFilter('medium')" data-i18n="admin_sev_medium">Önemli</button>
+                <button class="ops-chip" data-filter="low" onclick="opsSetAlertFilter('low')" data-i18n="admin_sev_low">Bilgi</button>
+              </div>
+            </div>
+            <div id="opsAlertList" class="ops-list"></div>
+          </div>
+        </section>
+
+        <!-- HATIRLATICILAR — kullanıcının kendi girdiği görevler (uyarılardan farkı budur). -->
+        <section class="view" id="view-reminders" hidden>
+          <div class="dash-grid" style="grid-template-columns:repeat(auto-fill,minmax(160px,1fr))">
+            <div class="stat-card"><div class="st-k" data-i18n="admin_rem_pending">Bekleyen</div><div class="st-v" id="opsRemPending">–</div></div>
+            <div class="stat-card"><div class="st-k" data-i18n="admin_rem_overdue">Tarihi Geçen</div><div class="st-v" id="opsRemOverdue">–</div></div>
+            <div class="stat-card"><div class="st-k" data-i18n="admin_rem_total">Toplam</div><div class="st-v" id="opsRemTotal">–</div></div>
+          </div>
+          <div class="panel-card" style="margin-top:16px;">
+            <h3>
+              <span data-i18n="admin_nav_reminders">Hatırlatıcılar</span>
+              <button class="admin-btn" style="width:auto;padding:8px 14px;font-size:.82rem;margin:0;" onclick="opsOpenReminderForm()" data-i18n="admin_rem_add">+ Hatırlatıcı Ekle</button>
+            </h3>
+            <div class="ops-toolbar">
+              <input type="text" id="opsRemSearch" class="admin-input" data-i18n-placeholder="admin_search_ph" placeholder="Ara…" oninput="opsDebounced('reminders')">
+              <div class="ops-chips" id="opsRemFilters">
+                <button class="ops-chip active" data-filter="all" onclick="opsSetReminderFilter('all')" data-i18n="admin_filter_all">Tümü</button>
+                <button class="ops-chip" data-filter="pending" onclick="opsSetReminderFilter('pending')" data-i18n="admin_rem_pending">Bekleyen</button>
+                <button class="ops-chip" data-filter="done" onclick="opsSetReminderFilter('done')" data-i18n="admin_rem_done">Tamamlanan</button>
+              </div>
+            </div>
+            <div id="opsRemList" class="ops-list"></div>
+            <div id="opsRemPager" class="ops-pager"></div>
           </div>
         </section>
 

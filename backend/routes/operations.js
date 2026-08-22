@@ -698,6 +698,125 @@ module.exports = function createOperationsRouter({ db, isPg, adminAuth }) {
   });
 
   // ============================================================
+  // HATIRLATICILAR (reminders) — kullanıcının kendi girdiği görevler.
+  // Uyarılardan (alerts) farkı: bunlar SAKLANIR ve tamamlanabilir.
+  // ============================================================
+  const mapReminder = (r) => ({
+    id: r.id, title: r.title, description: r.description || '',
+    due_at: r.due_at, priority: r.priority || 'medium', category: r.category || '',
+    done: r.done === 1 || r.done === true, done_at: r.done_at,
+    recurring: r.recurring || '', created_at: r.created_at,
+    // Türetilmiş: tarihi geçmiş mi? İstemcinin aynı kuralı tekrar yazmasına gerek kalmasın.
+    overdue: !(r.done === 1 || r.done === true) && r.due_at && Number(r.due_at) < Date.now()
+  });
+
+  router.get('/reminders', adminAuth, async (req, res) => {
+    try {
+      const { limit, offset } = paging(req.query);
+      const search = clean(req.query.search, 80).toLowerCase();
+      const filter = clean(req.query.filter, 20);   // all | pending | done
+      const rows = await db.all(
+        `SELECT * FROM reminders WHERE tenant_id = ${P(1)} ORDER BY done ASC, due_at ASC, created_at DESC`,
+        [req.tenantId]
+      );
+      let list = rows;
+      if (search) list = list.filter(r => [r.title, r.description, r.category].some(v => String(v || '').toLowerCase().includes(search)));
+      if (filter === 'pending') list = list.filter(r => !(r.done === 1 || r.done === true));
+      else if (filter === 'done') list = list.filter(r => r.done === 1 || r.done === true);
+
+      const pending = rows.filter(r => !(r.done === 1 || r.done === true));
+      res.json({
+        total: list.length,
+        pending_count: pending.length,
+        overdue_count: pending.filter(r => r.due_at && Number(r.due_at) < Date.now()).length,
+        items: list.slice(offset, offset + limit).map(mapReminder)
+      });
+    } catch (err) {
+      console.error('[OPS] GET /reminders:', err);
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  router.post('/reminders', adminAuth, async (req, res) => {
+    try {
+      const b = req.body || {};
+      const title = clean(b.title, 160);
+      if (!title) return res.status(400).json({ error: 'title_required' });
+      const id = newId('rem');
+      await db.run(
+        `INSERT INTO reminders (id, tenant_id, title, description, due_at, priority, category, done, recurring, created_at, updated_at)
+         VALUES (${P(1)},${P(2)},${P(3)},${P(4)},${P(5)},${P(6)},${P(7)},${P(8)},${P(9)},${P(10)},${P(11)})`,
+        [id, req.tenantId, title, clean(b.description, 600),
+         b.due_at ? int(b.due_at, null) : null,
+         ['high', 'medium', 'low'].includes(b.priority) ? b.priority : 'medium',
+         clean(b.category, 60), 0,
+         ['weekly', 'monthly'].includes(b.recurring) ? b.recurring : '',
+         now(), now()]
+      );
+      const row = await db.get(`SELECT * FROM reminders WHERE id = ${P(1)}`, [id]);
+      res.status(201).json(mapReminder(row));
+    } catch (err) {
+      console.error('[OPS] POST /reminders:', err);
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  router.put('/reminders/:id', adminAuth, async (req, res) => {
+    try {
+      const b = req.body || {};
+      const cur = await db.get(`SELECT * FROM reminders WHERE id = ${P(1)} AND tenant_id = ${P(2)}`, [req.params.id, req.tenantId]);
+      if (!cur) return res.status(404).json({ error: 'not_found' });
+
+      // Tamamlandı işaretlenirken tekrarlayan bir görevse: kapatmak yerine bir sonraki tarihe
+      // ötelenir — "her hafta stok say" görevi tamamlanınca kaybolmamalı, yenilenmelidir.
+      const markingDone = b.done !== undefined && b.done && !(cur.done === 1 || cur.done === true);
+      if (markingDone && cur.recurring && cur.due_at) {
+        const step = cur.recurring === 'weekly' ? 7 * 86400000 : 30 * 86400000;
+        let next = Number(cur.due_at) + step;
+        while (next < Date.now()) next += step;   // uzun süre atlanmışsa geleceğe taşı
+        await db.run(
+          `UPDATE reminders SET due_at = ${P(1)}, done = 0, done_at = NULL, updated_at = ${P(2)} WHERE id = ${P(3)} AND tenant_id = ${P(4)}`,
+          [next, now(), req.params.id, req.tenantId]
+        );
+        const row = await db.get(`SELECT * FROM reminders WHERE id = ${P(1)}`, [req.params.id]);
+        return res.json({ ...mapReminder(row), rescheduled: true });
+      }
+
+      const title = b.title !== undefined ? clean(b.title, 160) : cur.title;
+      if (!title) return res.status(400).json({ error: 'title_required' });
+      const done = b.done !== undefined ? (b.done ? 1 : 0) : cur.done;
+      await db.run(
+        `UPDATE reminders SET title=${P(1)}, description=${P(2)}, due_at=${P(3)}, priority=${P(4)}, category=${P(5)},
+         done=${P(6)}, done_at=${P(7)}, recurring=${P(8)}, updated_at=${P(9)} WHERE id=${P(10)} AND tenant_id=${P(11)}`,
+        [title,
+         b.description !== undefined ? clean(b.description, 600) : cur.description,
+         b.due_at !== undefined ? (b.due_at ? int(b.due_at, null) : null) : cur.due_at,
+         b.priority !== undefined && ['high', 'medium', 'low'].includes(b.priority) ? b.priority : cur.priority,
+         b.category !== undefined ? clean(b.category, 60) : cur.category,
+         done, done ? now() : null,
+         b.recurring !== undefined ? (['weekly', 'monthly'].includes(b.recurring) ? b.recurring : '') : cur.recurring,
+         now(), req.params.id, req.tenantId]
+      );
+      const row = await db.get(`SELECT * FROM reminders WHERE id = ${P(1)}`, [req.params.id]);
+      res.json(mapReminder(row));
+    } catch (err) {
+      console.error('[OPS] PUT /reminders:', err);
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  router.delete('/reminders/:id', adminAuth, async (req, res) => {
+    try {
+      const r = await db.run(`DELETE FROM reminders WHERE id = ${P(1)} AND tenant_id = ${P(2)}`, [req.params.id, req.tenantId]);
+      if (!r.changes) return res.status(404).json({ error: 'not_found' });
+      res.json({ success: true });
+    } catch (err) {
+      console.error('[OPS] DELETE /reminders:', err);
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  // ============================================================
   // UYARILAR (alerts) — türetilmiş, saklanmaz.
   // Mevcut verilerden gerçek zamanlı hesaplanır; uydurma uyarı üretilmez.
   // ============================================================
@@ -749,6 +868,20 @@ module.exports = function createOperationsRouter({ db, isPg, adminAuth }) {
           id: 'pending-expenses', type: 'pending_expenses', severity: 'medium',
           title: `${pendingExpenses.length} ödenmemiş gider`,
           detail: `Toplam ₺${sum} tutarında ödeme bekliyor.`, link: 'expenses'
+        });
+      }
+
+      // Vadesi geçmiş hatırlatıcılar da uyarı üretir — kullanıcı kendi koyduğu görevi
+      // kaçırdıysa bunu Uyarılar ekranında da görsün.
+      const overdue = (await db.all(`SELECT * FROM reminders WHERE tenant_id = ${P(1)} AND done = 0`, [req.tenantId]))
+        .filter(r => r.due_at && Number(r.due_at) < Date.now());
+      if (overdue.length) {
+        alerts.push({
+          id: 'overdue-reminders', type: 'overdue_reminders',
+          severity: overdue.some(r => r.priority === 'high') ? 'high' : 'medium',
+          title: `${overdue.length} hatırlatıcının tarihi geçti`,
+          detail: overdue.slice(0, 3).map(r => r.title).join(', ') + (overdue.length > 3 ? '…' : ''),
+          link: 'reminders'
         });
       }
 

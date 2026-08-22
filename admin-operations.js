@@ -70,7 +70,8 @@
     recipes: { offset: 0, search: '', total: 0 },
     suppliers: { offset: 0, search: '', total: 0 },
     expenses: { offset: 0, search: '', status: '', total: 0 },
-    customers: { offset: 0, search: '', total: 0 }
+    customers: { offset: 0, search: '', total: 0 },
+    reminders: { offset: 0, search: '', filter: 'all', total: 0 }
   };
 
   function renderPager(elId, key, reloadFn) {
@@ -105,7 +106,8 @@
         recipes: ['opsRecSearch', 'recipes', window.opsLoadRecipes],
         suppliers: ['opsSupSearch', 'suppliers', window.opsLoadSuppliers],
         expenses: ['opsExpSearch', 'expenses', window.opsLoadExpenses],
-        customers: ['opsCusSearch', 'customers', window.opsLoadCustomers]
+        customers: ['opsCusSearch', 'customers', window.opsLoadCustomers],
+        reminders: ['opsRemSearch', 'reminders', window.opsLoadReminders]
       };
       const [inputId, key, fn] = map[which] || [];
       if (!fn) return;
@@ -477,6 +479,157 @@
   };
 
   // ============================================================
+  // UYARILAR — sistemden türetilir, saklanmaz, kullanıcı işaretleyemez.
+  // ============================================================
+  let alertFilter = 'all';
+  window.opsSetAlertFilter = function (f) {
+    alertFilter = f;
+    document.querySelectorAll('#opsAlertFilters .ops-chip').forEach(c => c.classList.toggle('active', c.dataset.filter === f));
+    window.opsLoadAlerts();
+  };
+
+  const SEV = {
+    high:   { label: 'ACİL',   cls: 'bad' },
+    medium: { label: 'ÖNEMLİ', cls: 'neutral' },
+    low:    { label: 'BİLGİ',  cls: 'ok' }
+  };
+
+  window.opsLoadAlerts = async function () {
+    const list = document.getElementById('opsAlertList');
+    if (!list) return;
+    list.innerHTML = stateHtml.loading();
+    try {
+      const d = await api('/alerts');
+      const badge = document.getElementById('adminAlertsBadge');
+      if (badge) {
+        const urgent = d.items.filter(a => a.severity === 'high').length;
+        badge.textContent = d.total;
+        badge.style.display = d.total > 0 ? '' : 'none';
+        badge.title = urgent ? urgent + ' acil uyarı' : '';
+      }
+      let items = d.items;
+      if (alertFilter !== 'all') items = items.filter(a => a.severity === alertFilter);
+
+      if (!items.length) {
+        list.innerHTML = stateHtml.empty(alertFilter === 'all'
+          ? 'Her şey yolunda görünüyor — bekleyen uyarı yok.'
+          : 'Bu önem derecesinde uyarı yok.');
+        return;
+      }
+      list.innerHTML = items.map(a => {
+        const s = SEV[a.severity] || SEV.low;
+        // link alanı hangi ekrana gidileceğini söyler; tıklayınca oraya götürüyoruz.
+        return '<div class="ops-row" ' + (a.link ? 'style="cursor:pointer" onclick="showAdminView(\'' + a.link + '\')"' : '') + '>' +
+          '<div class="ops-main">' +
+            '<div class="ops-name">' + esc(a.title) + ' <span class="ops-badge ' + s.cls + '">' + s.label + '</span></div>' +
+            '<div class="ops-sub">' + esc(a.detail || '') + '</div>' +
+          '</div>' +
+          (a.link ? '<div class="ops-right"><span class="ops-sub">Git ›</span></div>' : '') +
+        '</div>';
+      }).join('');
+    } catch (e) {
+      list.innerHTML = stateHtml.error();
+    }
+  };
+
+  // ============================================================
+  // HATIRLATICILAR — kullanıcının kendi görevleri.
+  // ============================================================
+  window.opsSetReminderFilter = function (f) {
+    state.reminders.filter = f;
+    state.reminders.offset = 0;
+    document.querySelectorAll('#opsRemFilters .ops-chip').forEach(c => c.classList.toggle('active', c.dataset.filter === f));
+    window.opsLoadReminders();
+  };
+
+  const PRIO = {
+    high:   { label: 'YÜKSEK', cls: 'bad' },
+    medium: { label: 'ORTA',   cls: 'neutral' },
+    low:    { label: 'DÜŞÜK',  cls: 'ok' }
+  };
+
+  window.opsLoadReminders = async function () {
+    const list = document.getElementById('opsRemList');
+    if (!list) return;
+    list.innerHTML = stateHtml.loading();
+    try {
+      const d = await api('/reminders' + q('reminders', '&filter=' + state.reminders.filter));
+      state.reminders.total = d.total;
+      const setTxt = (id, v) => { const e = document.getElementById(id); if (e) e.textContent = v; };
+      setTxt('opsRemPending', d.pending_count);
+      setTxt('opsRemOverdue', d.overdue_count);
+      setTxt('opsRemTotal', d.total);
+      const badge = document.getElementById('adminRemindersBadge');
+      if (badge) { badge.textContent = d.overdue_count; badge.style.display = d.overdue_count > 0 ? '' : 'none'; }
+
+      if (!d.items.length) {
+        list.innerHTML = stateHtml.empty(state.reminders.search || state.reminders.filter !== 'all'
+          ? 'Bu filtreye uyan hatırlatıcı yok.'
+          : 'Henüz hatırlatıcı yok. Düzenli yapmanız gereken işleri ekleyin (stok sayımı, fatura ödemesi gibi).');
+        renderPager('opsRemPager', 'reminders', window.opsLoadReminders);
+        return;
+      }
+      const loc = window.currentLanguage === 'en' ? 'en-US' : 'tr-TR';
+      list.innerHTML = d.items.map(r => {
+        const p = PRIO[r.priority] || PRIO.medium;
+        const due = r.due_at ? new Date(Number(r.due_at)).toLocaleDateString(loc) : '';
+        return '<div class="ops-row">' +
+          '<div class="ops-actions">' +
+            '<button class="ops-icon-btn" title="' + (r.done ? 'Geri al' : 'Tamamlandı işaretle') + '" onclick="opsToggleReminder(\'' + r.id + '\',' + (r.done ? 'true' : 'false') + ')">' +
+              (r.done
+                ? '<svg viewBox="0 0 24 24" fill="none" stroke="var(--ap-ok)" stroke-width="2.5"><path d="M20 6L9 17l-5-5"/></svg>'
+                : '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/></svg>') +
+            '</button>' +
+          '</div>' +
+          '<div class="ops-main">' +
+            '<div class="ops-name" style="' + (r.done ? 'opacity:.5;text-decoration:line-through;' : '') + '">' +
+              esc(r.title) + ' <span class="ops-badge ' + p.cls + '">' + p.label + '</span>' +
+              (r.overdue ? ' <span class="ops-badge bad">TARİHİ GEÇTİ</span>' : '') +
+              (r.recurring ? ' <span class="ops-badge neutral">' + (r.recurring === 'weekly' ? 'HAFTALIK' : 'AYLIK') + '</span>' : '') +
+            '</div>' +
+            '<div class="ops-sub">' + esc(r.description || '—') +
+              (r.category ? ' · ' + esc(r.category) : '') + (due ? ' · ' + due : '') + '</div>' +
+          '</div>' +
+          '<div class="ops-actions">' +
+            '<button class="ops-icon-btn" title="Düzenle" onclick="opsOpenReminderForm(\'' + r.id + '\')">' +
+              '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.12 2.12 0 0 1 3 3L12 15l-4 1 1-4z"/></svg></button>' +
+            '<button class="ops-icon-btn danger" title="Sil" onclick="opsDeleteReminder(\'' + r.id + '\')">' +
+              '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6"/></svg></button>' +
+          '</div>' +
+        '</div>';
+      }).join('');
+      renderPager('opsRemPager', 'reminders', window.opsLoadReminders);
+    } catch (e) {
+      list.innerHTML = stateHtml.error();
+    }
+  };
+
+  window.opsToggleReminder = async function (id, currentlyDone) {
+    try {
+      const r = await api('/reminders/' + id, { method: 'PUT', body: JSON.stringify({ done: !currentlyDone }) });
+      // Tekrarlayan görev tamamlanınca kapanmaz, ötelenir — kullanıcıya bunu söylüyoruz,
+      // yoksa "tamamladım ama hâlâ listede" diye kafası karışır.
+      if (r && r.rescheduled) {
+        const next = new Date(Number(r.due_at)).toLocaleDateString(window.currentLanguage === 'en' ? 'en-US' : 'tr-TR');
+        alertBox('Tekrarlayan görev, bir sonraki tarihe taşındı: ' + next, 'Tamamlandı', 'success');
+      }
+      window.opsLoadReminders();
+    } catch (e) {
+      alertBox(humanError(e), 'İşlem başarısız', 'warning');
+    }
+  };
+
+  window.opsDeleteReminder = async function (id) {
+    if (!confirm('Bu hatırlatıcı silinsin mi?')) return;
+    try {
+      await api('/reminders/' + id, { method: 'DELETE' });
+      window.opsLoadReminders();
+    } catch (e) {
+      alertBox(humanError(e), 'Silinemedi', 'warning');
+    }
+  };
+
+  // ============================================================
   // FORMLAR — mevcut panelde hazır bir "modal" bileşeni olmadığı için
   // basit prompt tabanlı akış YERİNE dinamik bir modal kurulur.
   // ============================================================
@@ -645,6 +798,37 @@
       });
   };
 
+  window.opsOpenReminderForm = async function (id) {
+    let cur = {};
+    if (id) {
+      const d = await api('/reminders?limit=200');
+      cur = (d.items || []).find(x => x.id === id) || {};
+    }
+    const dateVal = cur.due_at ? new Date(Number(cur.due_at)).toISOString().slice(0, 10) : '';
+    openModal(id ? 'Hatırlatıcıyı Düzenle' : 'Yeni Hatırlatıcı',
+      field('Başlık *', 'title', { value: cur.title, required: true, placeholder: 'Örn: Haftalık stok sayımı' }) +
+      field('Açıklama', 'description', { value: cur.description }) +
+      field('Son Tarih', 'date_str', { type: 'date', value: dateVal }) +
+      field('Öncelik', 'priority', { type: 'select', options:
+        '<option value="high"' + (cur.priority === 'high' ? ' selected' : '') + '>Yüksek</option>' +
+        '<option value="medium"' + (cur.priority !== 'high' && cur.priority !== 'low' ? ' selected' : '') + '>Orta</option>' +
+        '<option value="low"' + (cur.priority === 'low' ? ' selected' : '') + '>Düşük</option>' }) +
+      field('Kategori', 'category', { value: cur.category, placeholder: 'Örn: Operasyon, Finans' }) +
+      field('Tekrarla', 'recurring', { type: 'select', options:
+        '<option value=""' + (!cur.recurring ? ' selected' : '') + '>Tekrarlama</option>' +
+        '<option value="weekly"' + (cur.recurring === 'weekly' ? ' selected' : '') + '>Her hafta</option>' +
+        '<option value="monthly"' + (cur.recurring === 'monthly' ? ' selected' : '') + '>Her ay</option>' }) +
+      '<div class="hint" style="margin-top:10px;">Tekrarlayan bir görevi tamamladığınızda silinmez, bir sonraki tarihe taşınır.</div>',
+      async (fd) => {
+        const body = Object.fromEntries(fd.entries());
+        if (!String(body.title || '').trim()) throw new Error('title_required');
+        body.due_at = body.date_str ? new Date(body.date_str).getTime() : null;
+        delete body.date_str;
+        await api(id ? '/reminders/' + id : '/reminders', { method: id ? 'PUT' : 'POST', body: JSON.stringify(body) });
+        window.opsLoadReminders();
+      });
+  };
+
   window.opsOpenRecipeForm = async function (id) {
     const [ings, prods] = await Promise.all([
       api('/ingredients?limit=200').catch(() => ({ items: [] })),
@@ -711,7 +895,9 @@
     recipes: () => window.opsLoadRecipes(),
     suppliers: () => window.opsLoadSuppliers(),
     expenses: () => window.opsLoadExpenses(),
-    customers: () => window.opsLoadCustomers()
+    customers: () => window.opsLoadCustomers(),
+    alerts: () => window.opsLoadAlerts(),
+    reminders: () => window.opsLoadReminders()
   };
 
   function hookViewSwitching() {

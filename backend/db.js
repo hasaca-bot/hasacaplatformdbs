@@ -748,6 +748,26 @@ async function runPlatformMigrations() {
   `);
   await dbDriver.exec(`CREATE INDEX IF NOT EXISTS idx_customers_tenant ON customers(tenant_id, phone);`);
 
+  // Hatırlatıcılar (Faz 93) — UYARILARDAN (alerts) FARKLIDIR: uyarılar sistemden türetilir ve
+  // saklanmaz; hatırlatıcılar kullanıcının kendi girdiği, tamamlanabilen görevlerdir.
+  await dbDriver.exec(`
+    CREATE TABLE IF NOT EXISTS reminders (
+      id TEXT PRIMARY KEY,
+      tenant_id TEXT NOT NULL DEFAULT 'default',
+      title TEXT NOT NULL,
+      description TEXT,
+      due_at BIGINT,
+      priority TEXT NOT NULL DEFAULT 'medium',
+      category TEXT,
+      done INTEGER NOT NULL DEFAULT 0,
+      done_at BIGINT,
+      recurring TEXT,
+      created_at BIGINT,
+      updated_at BIGINT
+    );
+  `);
+  await dbDriver.exec(`CREATE INDEX IF NOT EXISTS idx_reminders_tenant ON reminders(tenant_id, done);`);
+
   // 8) Porsiyon/boyut fiyatlandırması (Faz 89). JSON dizi olarak saklanır:
   //   [{"name_tr":"Küçük","name_en":"Small","price":120}, {"name_tr":"Büyük",...}]
   // DİKKAT — bu, yukarıdaki `portion_XX` sütunlarıyla AYNI ŞEY DEĞİL: onlar serbest metin bir
