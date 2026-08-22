@@ -3572,3 +3572,36 @@ body.theme-bw{ --ord-surface:#FFFFFF; --ord-surface2:#F6EFE8; --ord-line:rgba(0,
   @media (max-width:900px){
     #adminPanelOverlay .kds-board{ grid-template-columns:1fr; }
   }
+
+  /* KDS — yumuşak geçişler (Faz 93). Butona basınca pano komple yeniden çizildiği için
+     ekran "flash" yapıyordu; artık kart soluyor ve yeni içerik yumuşakça beliriyor. */
+  #adminPanelOverlay .kds-card{
+    animation:kdsIn .22s ease-out both;
+    transition:opacity .18s ease, transform .18s ease;
+  }
+  @keyframes kdsIn{ from{ opacity:0; transform:translateY(6px); } to{ opacity:1; transform:none; } }
+  /* İşlem yapılan kart: sunucu cevabı beklenirken hemen geri bildirim ver */
+  #adminPanelOverlay .kds-card.leaving{ opacity:.35; transform:scale(.97); pointer-events:none; }
+  #adminPanelOverlay .kds-actions{ display:flex; gap:6px; align-items:center; }
+  #adminPanelOverlay .kds-actions .kds-advance{ flex:1; }
+  /* Hareket azaltma tercihi olan kullanıcılarda animasyonu kapat */
+  @media (prefers-reduced-motion: reduce){
+    #adminPanelOverlay .kds-card{ animation:none; transition:none; }
+  }
+
+  /* ── FİŞ YAZDIRMA (POS altyapısı) ──
+     Yazdırma anında SADECE fiş görünür; panelin geri kalanı gizlenir. Termal yazıcı
+     işletim sistemine tanımlıysa çıktı doğrudan fiş olarak basılır. */
+  #kdsPrintArea{ display:none; }
+  @media print{
+    body.kds-printing > *{ display:none !important; }
+    body.kds-printing #kdsPrintArea{
+      display:block !important; position:static !important;
+      width:auto; margin:0; padding:0;
+    }
+    body.kds-printing #kdsPrintArea pre{
+      font-family:ui-monospace,'Courier New',monospace !important;
+      font-size:12px; line-height:1.35; white-space:pre; margin:0; color:#000; background:#fff;
+    }
+    @page{ margin:4mm; }
+  }

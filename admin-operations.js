@@ -484,10 +484,13 @@
   // ve mevcut PUT /api/orders/:id/status ucunu kullanır. "Masa Sipariş Kontrolü" ekranı
   // yöneticinin liste görünümü; bu ise mutfağın panosu — ikisi aynı veriye bakar.
   // ============================================================
+  // Sütunlar. DİKKAT: online/paket siparişler 'new', masa siparişleri 'received' durumuyla
+  // başlar (backend: initialStatus). İkisi de "Yeni" sütununda toplanır ki mutfak tek bir
+  // yerden hem uzaktan hem masadan geleni görsün — kullanıcının istediği otomatik akış budur.
   const KDS_COLS = [
-    { key: 'received',  label: 'Yeni Siparişler', next: 'preparing', nextLabel: 'Hazırlamaya Başla' },
-    { key: 'preparing', label: 'Hazırlanıyor',    next: 'ready',     nextLabel: 'Hazır' },
-    { key: 'ready',     label: 'Servise Hazır',   next: 'serving',   nextLabel: 'Servise Ver' }
+    { key: 'received', match: ['received', 'new'], label: 'Yeni Siparişler', next: 'preparing', nextLabel: 'Hazırlamaya Başla' },
+    { key: 'preparing', match: ['preparing'],      label: 'Hazırlanıyor',    next: 'ready',     nextLabel: 'Hazır' },
+    { key: 'ready', match: ['ready'],              label: 'Servise Hazır',   next: 'serving',   nextLabel: 'Servise Ver' }
   ];
 
   // Siparişin ne kadar süredir beklediği — mutfakta en kritik bilgi budur.
@@ -496,41 +499,65 @@
     return Math.max(0, Math.floor(ms / 60000));
   }
 
-  window.kdsLoad = async function () {
+  // silent=true → yükleme durumunu GÖSTERME. Bir butona basıldıktan sonraki tazelemede
+  // panoyu "Yükleniyor…" ile sıfırlamak ekranı yanıp söndürüyordu; artık mevcut içerik
+  // yerinde kalıyor, yeni içerik yumuşak geçişle beliriyor.
+  let kdsFirstLoad = true;
+  window.kdsLoad = async function (silent) {
     const board = document.getElementById('kdsBoard');
     if (!board) return;
-    board.innerHTML = stateHtml.loading();
+    if (kdsFirstLoad && !silent) board.innerHTML = stateHtml.loading();
     try {
-      // Mevcut uç: aktif (arşivlenmemiş) masa siparişleri.
-      const res = await fetch('/api/orders?type=dinein&archived=0', {
-        headers: { 'Authorization': 'Bearer ' + (typeof getAdminToken === 'function' ? getAdminToken() : '') }
-      });
-      if (!res.ok) throw new Error('http_' + res.status);
-      const data = await res.json();
-      const orders = Array.isArray(data) ? data : (data.orders || data.items || []);
+      // HEM masa HEM uzaktan/paket siparişleri al — mutfak tek ekrandan hepsini görsün.
+      const hdr = { 'Authorization': 'Bearer ' + (typeof getAdminToken === 'function' ? getAdminToken() : '') };
+      const [dineinRes, allRes] = await Promise.all([
+        fetch('/api/orders?type=dinein&archived=0', { headers: hdr }),
+        fetch('/api/orders', { headers: hdr })
+      ]);
+      if (!dineinRes.ok) throw new Error('http_' + dineinRes.status);
+      const norm = (d) => Array.isArray(d) ? d : (d.orders || d.items || []);
+      const dinein = norm(await dineinRes.json());
+      const others = allRes.ok ? norm(await allRes.json()).filter(o => o.order_type !== 'dinein') : [];
+
+      // Aynı sipariş iki uçtan da gelebilir — id'ye göre tekilleştir.
+      const byId = {};
+      [...dinein, ...others].forEach(o => { byId[o.id] = o; });
+      const orders = Object.values(byId);
 
       const badge = document.getElementById('adminKitchenBadge');
-      const active = orders.filter(o => ['received', 'preparing', 'ready'].includes(o.status));
+      const active = orders.filter(o => ['received', 'new', 'preparing', 'ready'].includes(o.status));
       if (badge) { badge.textContent = active.length; badge.style.display = active.length ? '' : 'none'; }
 
-      board.innerHTML = KDS_COLS.map(col => {
-        const list = orders.filter(o => o.status === col.key);
+      const html = KDS_COLS.map(col => {
+        const list = orders.filter(o => col.match.includes(o.status))
+          .sort((a, b) => Number(a.created_at) - Number(b.created_at));   // en eski üstte: sıra bozulmasın
         const cards = list.length ? list.map(o => {
           const mins = kdsMinutes(o.created_at);
           // 15 dakikayı geçen sipariş acil sayılır — mutfakta gecikme en pahalı hatadır.
           const urgent = mins >= 15;
+          const isDinein = o.order_type === 'dinein';
+          const source = isDinein ? ('Masa ' + esc(o.table_name || '')) : 'Paket / Gel-Al';
           const items = (o.items || []).map(it =>
             '<li><span class="kds-qty">' + (it.quantity || 1) + '×</span> ' + esc(it.name || it.product_name || '') + '</li>'
           ).join('');
           return '<div class="kds-card' + (urgent ? ' urgent' : '') + '">' +
             '<div class="kds-card-top">' +
-              '<span class="kds-table">' + esc(o.table_name || o.table || 'Masa') + '</span>' +
+              '<span class="kds-table">' + source +
+                '<span class="ops-badge ' + (isDinein ? 'neutral' : 'ok') + '" style="margin-left:6px;">' +
+                  (isDinein ? 'MASA' : 'UZAKTAN') + '</span></span>' +
               '<span class="kds-time' + (urgent ? ' urgent' : '') + '">' + mins + ' dk</span>' +
             '</div>' +
+            (!isDinein && o.customer_name ? '<div class="ops-sub" style="margin-bottom:6px;">' + esc(o.customer_name) + '</div>' : '') +
             '<ul class="kds-items">' + (items || '<li class="ops-sub">Kalem yok</li>') + '</ul>' +
             (o.order_notes ? '<div class="kds-note">' + esc(o.order_notes) + '</div>' : '') +
-            '<button class="admin-btn kds-advance" onclick="kdsAdvance(\'' + o.id + '\',\'' + col.next + '\')">' +
-              esc(col.nextLabel) + '</button>' +
+            '<div class="kds-actions">' +
+              '<button class="admin-btn kds-advance" onclick="kdsAdvance(\'' + o.id + '\',\'' + col.next + '\',event)">' +
+                esc(col.nextLabel) + '</button>' +
+              '<button class="ops-icon-btn" title="Fiş yazdır" onclick="kdsPrintReceipt(\'' + o.id + '\')">' +
+                '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9V2h12v7"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><path d="M6 14h12v8H6z"/></svg></button>' +
+              '<button class="ops-icon-btn danger" title="Siparişi kaldır" onclick="kdsRemove(\'' + o.id + '\')">' +
+                '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg></button>' +
+            '</div>' +
           '</div>';
         }).join('') : '<div class="ops-empty" style="padding:24px 8px;">Bu aşamada sipariş yok.</div>';
 
@@ -540,13 +567,69 @@
           '<div class="kds-col-body">' + cards + '</div>' +
         '</div>';
       }).join('');
+
+      // Yeni içerik hazır olduktan SONRA tek seferde yaz — böylece ara bir "boş" kare olmuyor.
+      board.innerHTML = html;
+      kdsFirstLoad = false;
     } catch (e) {
-      board.innerHTML = stateHtml.error();
+      // Tazeleme sırasındaki geçici bir hata yüzünden dolu panoyu silme — sadece ilk
+      // yüklemede hata ekranı göster, sonrasında mevcut içerik ekranda kalsın.
+      if (kdsFirstLoad) board.innerHTML = stateHtml.error();
       console.warn('[KDS]', e);
     }
   };
 
-  window.kdsAdvance = async function (orderId, nextStatus) {
+  // ── FİŞ YAZDIRMA (POS altyapısı) ──
+  // Sunucudan yazıcıya hazır düz metni alır ve tarayıcının yazdırma penceresine verir.
+  // Termal yazıcı işletim sistemine tanımlıysa bu doğrudan fiş olarak basılır.
+  // İleride gerçek bir POS cihazına bağlanınca aynı uç (`/orders/:id/receipt`) kullanılacak —
+  // cihaz `text` alanını olduğu gibi basabilir ya da `lines` dizisinden kendi formatını üretir.
+  window.kdsPrintReceipt = async function (orderId) {
+    try {
+      const r = await api('/orders/' + orderId + '/receipt?width=42');
+      let area = document.getElementById('kdsPrintArea');
+      if (!area) {
+        area = document.createElement('div');
+        area.id = 'kdsPrintArea';
+        document.body.appendChild(area);
+      }
+      area.innerHTML = '<pre>' + esc(r.text) + '</pre>';
+      document.body.classList.add('kds-printing');
+      window.print();
+      // Yazdırma penceresi kapandıktan sonra ekranı eski hâline döndür.
+      setTimeout(() => { document.body.classList.remove('kds-printing'); }, 500);
+    } catch (e) {
+      alertBox('Fiş oluşturulamadı, tekrar deneyin.', 'İşlem başarısız', 'warning');
+    }
+  };
+
+  // Siparişi panodan kaldır — SİLMEZ, arşivler. Mutfakta yanlışlıkla basılan bir tuş
+  // gerçek sipariş kaydını yok etmemeli (ciro/analitik verisi bozulur).
+  window.kdsRemove = async function (orderId) {
+    if (!confirm('Bu sipariş mutfak panosundan kaldırılsın mı?\n\nSipariş kaydı silinmez, arşivlenir.')) return;
+    try {
+      const res = await fetch('/api/orders/' + orderId + '/status', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + (typeof getAdminToken === 'function' ? getAdminToken() : '') },
+        body: JSON.stringify({ status: 'delivered' })   // 'delivered' backend'de otomatik arşivler
+      });
+      if (!res.ok) throw new Error('http_' + res.status);
+      window.kdsLoad();
+    } catch (e) {
+      alertBox('Sipariş kaldırılamadı, tekrar deneyin.', 'İşlem başarısız', 'warning');
+    }
+  };
+
+  // Karta basınca önce kartı yumuşakça soldur, sonra sunucuya git. Böylece kullanıcı
+  // ağ gecikmesini beklemeden tepki görür ve pano "flash" yapmaz.
+  function kdsFadeOutCard(el) {
+    if (!el) return;
+    el.classList.add('leaving');
+  }
+
+  window.kdsAdvance = async function (orderId, nextStatus, ev) {
+    const card = (ev && ev.target) ? ev.target.closest('.kds-card') : null;
+    kdsFadeOutCard(card);
     try {
       const res = await fetch('/api/orders/' + orderId + '/status', {
         method: 'PUT',
@@ -554,8 +637,9 @@
         body: JSON.stringify({ status: nextStatus })
       });
       if (!res.ok) throw new Error('http_' + res.status);
-      window.kdsLoad();
+      await window.kdsLoad(true);          // sessiz tazeleme — yükleniyor ekranı yok
     } catch (e) {
+      if (card) card.classList.remove('leaving');   // başarısızsa kartı geri getir
       alertBox('Sipariş durumu güncellenemedi, tekrar deneyin.', 'İşlem başarısız', 'warning');
     }
   };

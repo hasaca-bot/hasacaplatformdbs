@@ -698,6 +698,107 @@ module.exports = function createOperationsRouter({ db, isPg, adminAuth }) {
   });
 
   // ============================================================
+  // POS FİŞ ALTYAPISI (Faz 93)
+  // GET /api/orders/:id/receipt — bir siparişin fişini hem YAPISAL veri hem de yazıcıya
+  // hazır DÜZ METİN olarak döner. Amaç: ileride bir POS/termal yazıcıya bağlandığında
+  // ekstra iş gerekmesin — cihaz ya `text` alanını doğrudan basar (ESC/POS uyumlu, sabit
+  // genişlikli), ya da `lines` dizisinden kendi formatını üretir.
+  // Yazıcı genişliği ?width=32|42 ile seçilir (58mm kağıt=32, 80mm kağıt=42 sütun).
+  // ============================================================
+  function padLine(left, right, width) {
+    const l = String(left);
+    const r = String(right);
+    const space = width - l.length - r.length;
+    if (space >= 1) return l + ' '.repeat(space) + r;
+    // Sığmıyorsa ürün adını kırp — fiş satırı ASLA taşmamalı, yoksa yazıcıda alt satıra düşer
+    const keep = Math.max(1, width - r.length - 1);
+    return l.slice(0, keep) + ' ' + r;
+  }
+  const center = (s, w) => {
+    const t = String(s).slice(0, w);
+    const pad = Math.max(0, Math.floor((w - t.length) / 2));
+    return ' '.repeat(pad) + t;
+  };
+
+  router.get('/orders/:id/receipt', adminAuth, async (req, res) => {
+    try {
+      const width = int(req.query.width, 42) === 32 ? 32 : 42;
+      const order = await db.get(
+        `SELECT * FROM orders WHERE id = ${P(1)} AND tenant_id = ${P(2)}`,
+        [req.params.id, req.tenantId]
+      );
+      if (!order) return res.status(404).json({ error: 'not_found' });
+      const items = await db.all(
+        `SELECT * FROM order_items WHERE order_id = ${P(1)} AND tenant_id = ${P(2)}`,
+        [req.params.id, req.tenantId]
+      );
+      const tenant = await db.get(`SELECT name, display_name, address, contact_phone FROM tenants WHERE id = ${P(1)}`, [req.tenantId]);
+
+      const isDinein = order.order_type === 'dinein';
+      const source = isDinein ? (order.table_name ? 'Masa ' + order.table_name : 'Masa') : 'Paket / Gel-Al';
+      const dt = new Date(Number(order.created_at));
+      const stamp = dt.toLocaleString('tr-TR');
+
+      const lines = items.map(it => ({
+        qty: int(it.quantity, 1),
+        name: it.product_name,
+        unit_price: num(it.unit_price),
+        line_total: num(it.line_total)
+      }));
+
+      // Düz metin fiş — yazıcıya olduğu gibi gönderilebilir.
+      const sep = '-'.repeat(width);
+      const txt = [];
+      txt.push(center((tenant && (tenant.display_name || tenant.name)) || 'Restoran', width));
+      if (tenant && tenant.contact_phone) txt.push(center(tenant.contact_phone, width));
+      txt.push(sep);
+      txt.push(padLine(source, '#' + String(order.id).slice(-6), width));
+      txt.push(stamp);
+      if (!isDinein && order.customer_name) txt.push('Musteri: ' + order.customer_name);
+      if (!isDinein && order.address) txt.push('Adres: ' + String(order.address).slice(0, width - 7));
+      txt.push(sep);
+      lines.forEach(l => {
+        txt.push(padLine(l.qty + 'x ' + l.name, l.line_total.toFixed(2), width));
+      });
+      txt.push(sep);
+      txt.push(padLine('ARA TOPLAM', num(order.subtotal).toFixed(2), width));
+      if (num(order.delivery_fee) > 0) txt.push(padLine('TESLIMAT', num(order.delivery_fee).toFixed(2), width));
+      if (num(order.tax) > 0) txt.push(padLine('VERGI', num(order.tax).toFixed(2), width));
+      txt.push(padLine('TOPLAM', num(order.total).toFixed(2) + ' TL', width));
+      if (order.order_notes) { txt.push(sep); txt.push('NOT: ' + order.order_notes); }
+      txt.push(sep);
+      txt.push(center('Afiyet olsun', width));
+
+      res.json({
+        order_id: order.id,
+        source,
+        order_type: order.order_type,
+        table_name: order.table_name || '',
+        customer_name: order.customer_name || '',
+        phone: order.phone || '',
+        address: order.address || '',
+        notes: order.order_notes || '',
+        created_at: order.created_at,
+        restaurant: {
+          name: (tenant && (tenant.display_name || tenant.name)) || '',
+          phone: (tenant && tenant.contact_phone) || '',
+          address: (tenant && tenant.address) || ''
+        },
+        lines,
+        subtotal: num(order.subtotal),
+        delivery_fee: num(order.delivery_fee),
+        tax: num(order.tax),
+        total: num(order.total),
+        width,
+        text: txt.join('\n')
+      });
+    } catch (err) {
+      console.error('[OPS] GET /orders/:id/receipt:', err);
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  // ============================================================
   // HATIRLATICILAR (reminders) — kullanıcının kendi girdiği görevler.
   // Uyarılardan (alerts) farkı: bunlar SAKLANIR ve tamamlanabilir.
   // ============================================================
