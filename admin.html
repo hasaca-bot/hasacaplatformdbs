@@ -1360,6 +1360,7 @@
         <input type="number" id="formProductPrice" data-i18n-placeholder="ph_price" placeholder="Örn: 180" />
         <button type="button" onclick="stepUp('formProductPrice', 5)">+</button>
       </div>
+      <div class="hint" id="formPortionPriceNote" style="margin-top:6px; opacity:.75; display:none;" data-i18n="admin_portion_price_note">Porsiyon eklediğiniz için müşteri fiyatı porsiyondan görecek. Bu alan yedek fiyat olarak kalır.</div>
     </div>
     <div>
       <label class="admin-form-label" data-i18n="admin_lbl_select_category">Kategori</label>
@@ -1375,6 +1376,19 @@
     </div>
   </div>
   
+  <!-- PORSİYON / BOYUT FİYATLANDIRMASI (Faz 89).
+       Hiç satır eklenmezse ürün eskisi gibi tek fiyatla çalışır — mevcut ürünler etkilenmez. -->
+  <div class="admin-form-row" style="grid-template-columns: 1fr; gap:16px;">
+    <div>
+      <label class="admin-form-label" data-i18n="admin_lbl_portions">Porsiyon / Boyut Seçenekleri</label>
+      <div class="hint" style="margin-bottom:10px; opacity:.75;" data-i18n="admin_portions_hint">İsteğe bağlı. Örn: Küçük 120₺, Büyük 180₺. Boş bırakırsanız ürün tek fiyatla satılır.</div>
+      <div id="formPortionsList" style="display:flex; flex-direction:column; gap:8px;"></div>
+      <button type="button" class="admin-btn secondary" onclick="addPortionRow()" style="margin-top:10px; width:auto; padding:9px 14px; font-size:.85rem;">
+        <span data-i18n="admin_btn_add_portion">+ Porsiyon Ekle</span>
+      </button>
+    </div>
+  </div>
+
   <div class="admin-form-row" style="grid-template-columns: 1fr; gap:16px;">
     <div>
       <label class="admin-form-label" data-i18n="admin_lbl_prod_image">Ürün Görseli</label>

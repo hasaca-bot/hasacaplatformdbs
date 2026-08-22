@@ -5624,6 +5624,7 @@ function openAdminForm(id = null) {
     document.getElementById(`formProductIngredients_${lang}`).value = '';
   }
   setProductFormLang('tr');
+  renderPortionRows([]);                 // Faz 89: yeni ürün formunda porsiyon listesi boş başlar
   document.getElementById('formProductPrice').value = '';
   document.getElementById('formProductImage').value = '';
   document.getElementById('formProductFile').value = '';
@@ -5665,6 +5666,7 @@ function openAdminForm(id = null) {
         document.getElementById(`formProductIngredients_${lang}`).value = item[`ingredients_${lang}`] || '';
       }
       document.getElementById('formProductPrice').value = item.price;
+      renderPortionRows(item.portions || []);   // Faz 89
       document.getElementById('formProductImage').value = item.image || '';
       setAdminProductImagePreview(item.image || '');
       window.selectedFormProductCategory = item.category;
@@ -5836,6 +5838,74 @@ function saveMenuToDisk() {
   console.log("[DB DEBUG] saveMenuToDisk bypassed. SQLite backend handles updates dynamically.");
 }
 
+/* ═══════════ PORSİYON / BOYUT FİYATLANDIRMASI (Faz 89) ═══════════
+   Ürün formundaki porsiyon satırları. Hiç satır yoksa ürün eskisi gibi tek fiyatla satılır —
+   bu yüzden hiçbir mevcut ürün etkilenmez. Fiyatlar burada sadece GİRİLİR; sipariş anında
+   geçerli fiyatı her zaman sunucu kendi veritabanından çözer (bkz. POST /api/orders). */
+const MAX_PORTION_ROWS = 8;
+
+function portionRowHtml(p) {
+  const esc = (s) => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  return `
+    <div class="portion-row" style="display:grid; grid-template-columns:1fr 1fr 110px 40px; gap:8px; align-items:center;">
+      <input type="text" class="admin-input portion-name-tr" placeholder="${esc(adminT('admin_portion_ph_tr') || 'Küçük')}" value="${esc(p.name_tr)}" maxlength="40">
+      <input type="text" class="admin-input portion-name-en" placeholder="Small" value="${esc(p.name_en)}" maxlength="40">
+      <input type="number" class="admin-input portion-price" placeholder="120" min="0" step="1" value="${p.price != null ? esc(p.price) : ''}">
+      <button type="button" class="admin-btn secondary" onclick="this.closest('.portion-row').remove(); updatePortionPriceNote();"
+              title="Sil" style="width:40px; padding:9px 0; margin:0;">✕</button>
+    </div>`;
+}
+
+function renderPortionRows(list) {
+  const box = document.getElementById('formPortionsList');
+  if (!box) return;
+  const arr = Array.isArray(list) ? list : [];
+  box.innerHTML = arr.map(portionRowHtml).join('');
+  updatePortionPriceNote();
+}
+
+function addPortionRow() {
+  const box = document.getElementById('formPortionsList');
+  if (!box) return;
+  if (box.querySelectorAll('.portion-row').length >= MAX_PORTION_ROWS) {
+    showCustomAlert(
+      window.currentLanguage === 'tr'
+        ? `En fazla ${MAX_PORTION_ROWS} porsiyon ekleyebilirsiniz.`
+        : `You can add at most ${MAX_PORTION_ROWS} portions.`,
+      window.currentLanguage === 'tr' ? 'Sınır' : 'Limit', 'warning');
+    return;
+  }
+  box.insertAdjacentHTML('beforeend', portionRowHtml({ name_tr: '', name_en: '', price: '' }));
+  updatePortionPriceNote();
+}
+
+// Porsiyon varken tek fiyat alanı artık müşteriye gösterilmiyor — kullanıcı bunu bilsin.
+function updatePortionPriceNote() {
+  const note = document.getElementById('formPortionPriceNote');
+  const box = document.getElementById('formPortionsList');
+  if (!note || !box) return;
+  note.style.display = box.querySelectorAll('.portion-row').length ? 'block' : 'none';
+}
+
+// Formdaki satırları backend'in beklediği diziye çevirir. Adı boş ya da fiyatı geçersiz olan
+// satırlar sessizce atlanır (kullanıcı satır ekleyip doldurmadan kaydedebilir).
+function collectPortions() {
+  const box = document.getElementById('formPortionsList');
+  if (!box) return [];
+  const out = [];
+  box.querySelectorAll('.portion-row').forEach(row => {
+    const nameTr = row.querySelector('.portion-name-tr').value.trim();
+    const price = parseFloat(row.querySelector('.portion-price').value);
+    if (!nameTr || !Number.isFinite(price) || price < 0) return;
+    out.push({
+      name_tr: nameTr,
+      name_en: row.querySelector('.portion-name-en').value.trim() || nameTr,
+      price
+    });
+  });
+  return out;
+}
+
 async function saveAdminProduct() {
   const id = document.getElementById('formProductId').value;
   const name = document.getElementById('formProductName').value.trim();
@@ -5893,6 +5963,7 @@ async function saveAdminProduct() {
     name_en: nameEn || name,
     category: category,
     price: price,
+    portions: collectPortions(),          // Faz 89 — boş dizi = porsiyonsuz (tek fiyat)
     description_tr: desc,
     description_en: descEn || desc,
     image: image,

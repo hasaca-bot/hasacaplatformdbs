@@ -622,6 +622,14 @@ async function runPlatformMigrations() {
     await ensureColumn('products', `ingredients_${lang}`, 'TEXT');
     await ensureColumn('categories', `name_${lang}`, 'TEXT');
   }
+
+  // 8) Porsiyon/boyut fiyatlandırması (Faz 89). JSON dizi olarak saklanır:
+  //   [{"name_tr":"Küçük","name_en":"Small","price":120}, {"name_tr":"Büyük",...}]
+  // DİKKAT — bu, yukarıdaki `portion_XX` sütunlarıyla AYNI ŞEY DEĞİL: onlar serbest metin bir
+  // porsiyon notudur ("300 gr / 2 kişilik" gibi) ve tek fiyatı değiştirmez. Bu sütun ise
+  // FİYATLI boyut seçenekleridir. Boş/NULL bırakılırsa ürün eskisi gibi tek `price` ile çalışır,
+  // yani mevcut bütün ürünler ve siparişler hiç etkilenmez (geriye dönük tam uyumlu).
+  await ensureColumn('products', 'portions', 'TEXT');
 }
 
 // Seed the master-template menu (generic "My Restaurant" demo) into a tenant.

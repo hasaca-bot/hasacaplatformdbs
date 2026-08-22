@@ -689,6 +689,7 @@
         contact_hours_lbl: "Çalışma Saatleri",
         contact_heading: "İletişim & Konum",
         contact_email_lbl: "E-posta",
+        portion_pick: "Porsiyon Seçin",
         banner_text: "",
         contact_address_val: "123 Example Street, City",
         bottom_nav_book: "Rezerve",
@@ -747,6 +748,7 @@
         contact_hours_lbl: "Opening Hours",
         contact_heading: "Contact & Location",
         contact_email_lbl: "Email",
+        portion_pick: "Choose Portion",
         banner_text: "",
         contact_address_val: "123 Example Street, City",
         bottom_nav_book: "Book",
@@ -926,7 +928,12 @@
       container.innerHTML = items.map((item, idx) => {
         const name = localizedField(item, 'name', lang);
         const desc = localizedField(item, 'description', lang);
-        const price = dkFormatPrice(item.price);
+        // Porsiyonlu urunlerde kartta EN DUSUK porsiyon fiyati gosterilir (Faz 89) — musteri
+        // karta bakip "en az ne kadar" oldugunu gorsun; kesin fiyat detay ekraninda secilir.
+        const cardPortions = Array.isArray(item.portions) ? item.portions : [];
+        const price = cardPortions.length
+          ? dkFormatPrice(Math.min(...cardPortions.map(p => Number(p.price) || 0)))
+          : dkFormatPrice(item.price);
         const img = item.image || '/icons/placeholder-dish-1.svg';
 
         // Layout Pattern directly matching Stitch Menu Home & Listing Bento Grid
@@ -1005,7 +1012,27 @@
       const lang = window.currentLanguage || 'tr';
       const name = localizedField(item, 'name', lang);
       const desc = localizedField(item, 'description', lang);
-      const price = dkFormatPrice(item.price);
+
+      // Porsiyon/boyut (Faz 89): urunun porsiyonu varsa ilki secili baslar ve gosterilen fiyat
+      // secilen porsiyonun fiyatidir; yoksa her sey eskisi gibi tek `item.price` uzerinden gider.
+      const portions = Array.isArray(item.portions) ? item.portions : [];
+      window.detailPortionIndex = portions.length ? 0 : null;
+      const unitPrice = portions.length ? portions[0].price : item.price;
+      const price = dkFormatPrice(unitPrice);
+
+      const portionsHtml = portions.length ? `
+        <div>
+          <!-- Metin dogrudan dkT() ile basiliyor: bu blok modal ACILIRKEN uretildigi icin
+               applyLanguage() onu hic gormez, data-i18n tek basina calismaz. -->
+          <h3 class="font-label-md text-on-surface font-bold mb-2">${dkT('portion_pick')}</h3>
+          <div class="flex flex-wrap gap-2" id="detailPortionPicker">
+            ${portions.map((p, i) => `
+              <button type="button" onclick="selectDetailPortion(${i})" data-portion-btn="${i}"
+                class="px-4 py-2 rounded-full font-label-md text-label-md transition-colors ${i === 0 ? 'bg-primary text-on-primary font-bold' : 'bg-surface-container text-on-surface'}">
+                ${(lang === 'en' ? (p.name_en || p.name_tr) : p.name_tr)} · ${dkFormatPrice(p.price)}
+              </button>`).join('')}
+          </div>
+        </div>` : '';
       const img = item.image || '/icons/placeholder-dish-1.svg';
       const calories = item.calories || 380;
       const allergens = Array.isArray(item.allergens) ? item.allergens : (item.alerjenler || []);
@@ -1028,12 +1055,14 @@
             <p class="font-body-md text-on-surface-variant">${item.portion_tr || '1 Porsiyon'}</p>
           </div>
           <div class="text-right">
-            <span class="font-headline-md text-headline-md text-primary font-bold block">${price}</span>
+            <span class="font-headline-md text-headline-md text-primary font-bold block" id="detailUnitPrice">${price}</span>
           </div>
         </div>
 
         <!-- Description -->
         <p class="font-body-md text-on-surface-variant leading-relaxed">${desc}</p>
+
+        ${portionsHtml}
 
         <!-- Bento Grid for Details (Stitch Bento Stats) -->
         <div class="grid grid-cols-2 md:grid-cols-4 gap-sm">
@@ -1067,20 +1096,58 @@
       document.body.style.overflow = 'hidden';
     }
 
+    // Detay ekraninda gecerli birim fiyat: porsiyon secildiyse onunki, yoksa urunun tek fiyati.
+    function dkDetailUnitPrice() {
+      const item = window.currentDetailProduct;
+      if (!item) return 0;
+      const portions = Array.isArray(item.portions) ? item.portions : [];
+      const idx = window.detailPortionIndex;
+      if (portions.length && idx != null && portions[idx]) return Number(portions[idx].price) || 0;
+      return Number(item.price) || 0;
+    }
+
+    // Porsiyon secimi (Faz 89) — secili pili vurgular, ustteki birim fiyati ve butondaki
+    // toplam fiyati gunceller.
+    function selectDetailPortion(index) {
+      const item = window.currentDetailProduct;
+      const portions = (item && Array.isArray(item.portions)) ? item.portions : [];
+      if (!portions[index]) return;
+      window.detailPortionIndex = index;
+
+      document.querySelectorAll('[data-portion-btn]').forEach(btn => {
+        const active = Number(btn.getAttribute('data-portion-btn')) === index;
+        btn.classList.toggle('bg-primary', active);
+        btn.classList.toggle('text-on-primary', active);
+        btn.classList.toggle('font-bold', active);
+        btn.classList.toggle('bg-surface-container', !active);
+        btn.classList.toggle('text-on-surface', !active);
+      });
+
+      const unit = dkDetailUnitPrice();
+      const unitEl = document.getElementById('detailUnitPrice');
+      if (unitEl) unitEl.textContent = dkFormatPrice(unit);
+      document.getElementById('detailBtnPrice').textContent = dkFormatPrice(unit * (window.detailQty || 1));
+    }
+
     function changeDetailQty(delta) {
       window.detailQty = Math.max(1, Math.min(99, window.detailQty + delta));
       document.getElementById('detailQtyDisplay').textContent = window.detailQty;
       if (window.currentDetailProduct) {
-        document.getElementById('detailBtnPrice').textContent = dkFormatPrice(window.currentDetailProduct.price * window.detailQty);
+        document.getElementById('detailBtnPrice').textContent = dkFormatPrice(dkDetailUnitPrice() * window.detailQty);
       }
     }
 
     function submitDetailAddToCart() {
       if (!window.currentDetailProduct) return;
+      const pIdx = window.detailPortionIndex;
       for (let i = 0; i < window.detailQty; i++) {
-        addToCart(window.currentDetailProduct.id, false);
+        addToCart(window.currentDetailProduct.id, false, pIdx);
       }
-      dkToast(`${window.detailQty}x ${localizedField(window.currentDetailProduct, 'name', window.currentLanguage)} sepete eklendi`);
+      const portions = Array.isArray(window.currentDetailProduct.portions) ? window.currentDetailProduct.portions : [];
+      const chosen = (pIdx != null) ? portions[pIdx] : null;
+      const label = localizedField(window.currentDetailProduct, 'name', window.currentLanguage)
+        + (chosen ? ` (${window.currentLanguage === 'en' ? (chosen.name_en || chosen.name_tr) : chosen.name_tr})` : '');
+      dkToast(`${window.detailQty}x ${label} sepete eklendi`);
       closeFoodDetail();
     }
 
@@ -1110,31 +1177,58 @@
     }
     function dkSaveCart(){ try { safeSetItem(dkGetCartKey(), JSON.stringify(dkCart)); } catch(e){} }
 
-    function addToCart(productId, showToast = true) {
+    // ── Sepet kimligi (Faz 89) ──
+    // Porsiyonlu urunlerde ayni urunun iki farkli boyutu AYRI sepet satiri olmali; bu yuzden
+    // satirlar artik urun id'siyle degil, "id::porsiyonSirasi" anahtariyla ayirt ediliyor.
+    // Porsiyonsuz urunlerde anahtar sadece id — yani daha once kaydedilmis (anahtarsiz) sepetler
+    // de calismaya devam eder, `c.key || c.id` yedegi sayesinde.
+    function dkCartKeyOf(productId, portionIndex) {
+      return (portionIndex == null) ? String(productId) : `${productId}::${portionIndex}`;
+    }
+
+    function addToCart(productId, showToast = true, portionIndex = null) {
       const item = (window.menuData || []).find(x => x.id === productId);
       if (!item) return;
-      const ex = dkCart.find(c => c.id === productId);
+
+      const portions = Array.isArray(item.portions) ? item.portions : [];
+      // Porsiyonlu bir urun porsiyon secilmeden eklenirse (orn. kart uzerindeki hizli ekle
+      // butonu) ilk/en kucuk porsiyon varsayilir — sunucudaki kural ile birebir ayni.
+      let pIdx = portionIndex;
+      if (portions.length && (pIdx == null || !portions[pIdx])) pIdx = 0;
+      if (!portions.length) pIdx = null;
+
+      const chosen = (pIdx != null) ? portions[pIdx] : null;
+      const key = dkCartKeyOf(productId, pIdx);
+      const ex = dkCart.find(c => (c.key || c.id) === key);
       if (ex) ex.qty = Math.min(99, ex.qty + 1);
       else {
         dkCart.push({
+          key,
           id: item.id,
+          portion_index: pIdx,
+          portion_tr: chosen ? chosen.name_tr : '',
+          portion_en: chosen ? (chosen.name_en || chosen.name_tr) : '',
           name: item.name || item.name_tr,
           name_en: item.name_en || '',
-          price: Number(item.price) || 0,
+          price: chosen ? Number(chosen.price) || 0 : Number(item.price) || 0,
           image: item.image || '',
           qty: 1
         });
       }
       dkSaveCart();
       refreshCartUI();
-      if (showToast) dkToast(`${localizedField(item, 'name', window.currentLanguage)} sepete eklendi`);
+      if (showToast) {
+        const label = localizedField(item, 'name', window.currentLanguage)
+          + (chosen ? ` (${(window.currentLanguage === 'en' ? chosen.name_en : chosen.name_tr) || chosen.name_tr})` : '');
+        dkToast(`${label} sepete eklendi`);
+      }
     }
 
-    function changeCartQty(id, delta) {
-      const ex = dkCart.find(c => c.id === id);
+    function changeCartQty(key, delta) {
+      const ex = dkCart.find(c => (c.key || c.id) === key);
       if (!ex) return;
       ex.qty += delta;
-      if (ex.qty < 1) dkCart = dkCart.filter(c => c.id !== id);
+      if (ex.qty < 1) dkCart = dkCart.filter(c => (c.key || c.id) !== key);
       else if (ex.qty > 99) ex.qty = 99;
       dkSaveCart();
       refreshCartUI();
@@ -1179,12 +1273,13 @@
               </div>
               <div class="flex-1 min-w-0">
                 <h4 class="font-bold text-sm text-on-surface truncate">${localizedField(c, 'name', window.currentLanguage)}</h4>
+                ${(c.portion_tr || c.portion_en) ? `<span class="block text-xs text-on-surface-variant truncate">${(window.currentLanguage === 'en' ? (c.portion_en || c.portion_tr) : (c.portion_tr || c.portion_en))}</span>` : ''}
                 <span class="font-bold text-primary text-sm">${dkFormatPrice(c.price)}</span>
               </div>
               <div class="flex items-center bg-surface rounded-full h-9 p-1 shadow-sm">
-                <button onclick="changeCartQty('${c.id}', -1)" class="w-7 h-7 rounded-full flex items-center justify-center text-on-surface hover:bg-surface-container text-xs font-bold">−</button>
+                <button onclick="changeCartQty('${c.key || c.id}', -1)" class="w-7 h-7 rounded-full flex items-center justify-center text-on-surface hover:bg-surface-container text-xs font-bold">−</button>
                 <span class="font-bold text-xs w-6 text-center">${c.qty}</span>
-                <button onclick="changeCartQty('${c.id}', 1)" class="w-7 h-7 rounded-full flex items-center justify-center text-primary hover:bg-surface-container text-xs font-bold">+</button>
+                <button onclick="changeCartQty('${c.key || c.id}', 1)" class="w-7 h-7 rounded-full flex items-center justify-center text-primary hover:bg-surface-container text-xs font-bold">+</button>
               </div>
             </div>
           `).join('');
@@ -1227,7 +1322,7 @@
       const total = dkCart.reduce((s, c) => s + c.price * c.qty, 0);
       summary.innerHTML = dkCart.map(c => `
         <div class="flex justify-between text-xs text-on-surface-variant">
-          <span>${c.qty}x ${localizedField(c, 'name', window.currentLanguage)}</span>
+          <span>${c.qty}x ${localizedField(c, 'name', window.currentLanguage)}${(c.portion_tr || c.portion_en) ? ` (${window.currentLanguage === 'en' ? (c.portion_en || c.portion_tr) : (c.portion_tr || c.portion_en)})` : ''}</span>
           <span class="font-semibold">${dkFormatPrice(c.price * c.qty)}</span>
         </div>
       `).join('') + `
@@ -1273,7 +1368,9 @@
         address_detail: addressDetail,
         order_notes: orderNotes,
         payment_method: payment,
-        items: dkCart.map(c => ({ product_id: c.id, quantity: c.qty }))
+        // Fiyat GONDERILMEZ — sunucu her kalemin fiyatini kendi veritabanindan cozer.
+        // Porsiyonlu urunlerde sadece secilen porsiyonun SIRA NUMARASI gonderilir (Faz 89).
+        items: dkCart.map(c => ({ product_id: c.id, quantity: c.qty, portion_index: c.portion_index }))
       };
       if (isDinein) payload.table_token = window.dkDineinToken;
 

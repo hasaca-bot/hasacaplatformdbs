@@ -144,6 +144,44 @@ const PRODUCT_LANG_COLUMNS = CONTENT_LANGS.flatMap(lang => PRODUCT_LANG_FIELD_TY
 const CATEGORY_LANG_COLUMNS = CONTENT_LANGS.flatMap(lang => CATEGORY_LANG_FIELD_TYPES.map(f => `${f}_${lang}`));
 
 // Helper: Map DB Product Row to JSON format expected by UI
+// ── Porsiyon/boyut fiyatlandırması (Faz 89) ──
+// Saklama biçimi: products.portions TEXT sütununda JSON dizi.
+//   [{ name_tr, name_en, price }, ...]
+// Boş dizi / NULL = porsiyonsuz ürün → eskisi gibi tek `products.price` geçerli. Bu sayede
+// mevcut bütün ürünler ve geçmiş siparişler hiç etkilenmez.
+const MAX_PORTIONS = 8;
+
+function parsePortions(raw) {
+  if (!raw) return [];
+  let arr = raw;
+  if (typeof raw === 'string') {
+    try { arr = JSON.parse(raw); } catch (e) { return []; }
+  }
+  if (!Array.isArray(arr)) return [];
+  return arr
+    .map(p => {
+      if (!p || typeof p !== 'object') return null;
+      const name_tr = String(p.name_tr || p.name || '').trim().slice(0, 40);
+      if (!name_tr) return null;
+      const price = parseFloat(p.price);
+      if (!Number.isFinite(price) || price < 0) return null;
+      return {
+        name_tr,
+        name_en: String(p.name_en || name_tr).trim().slice(0, 40),
+        price: Math.round(price * 100) / 100
+      };
+    })
+    .filter(Boolean)
+    .slice(0, MAX_PORTIONS);
+}
+
+// Kaydetmeye hazır hâle getirir: geçerli porsiyon yoksa NULL yazar (sütunu boş bırakmak,
+// "[]" yazmaktan daha net — porsiyonsuz ürünle hiç dokunulmamış ürün aynı davranır).
+function serializePortions(raw) {
+  const list = parsePortions(raw);
+  return list.length ? JSON.stringify(list) : null;
+}
+
 function mapProductRow(row) {
   const totalMacros = (row.protein || 0) + (row.carbs || 0) + (row.fat || 0);
   const proteinPct = totalMacros > 0 ? Math.round(((row.protein || 0) / totalMacros) * 100) : 0;
@@ -157,12 +195,17 @@ function mapProductRow(row) {
     console.error(`[SERVER] Error parsing allergens for product ${row.id}:`, e);
   }
 
+  // Porsiyon/boyut seçenekleri (Faz 89). Kaydı bozuk/eski olan ürünlerde sessizce boş dizi döner,
+  // bu da "porsiyonsuz ürün" demektir — yani tek `price` ile eskisi gibi çalışır.
+  const portions = parsePortions(row.portions);
+
   const mapped = {
     id: row.id,
     name: row.name_tr,
     name_en: row.name_en,
     category: row.category,
     price: row.price,
+    portions,
     description: row.description_tr,
     description_en: row.description_en,
     image: row.image,
@@ -258,11 +301,11 @@ async function createProductRow(tenantId, body) {
 
   const baseColumns = ['id', 'tenant_id', 'name_tr', 'name_en', 'description_tr', 'description_en', 'category', 'price', 'image',
     'portion_tr', 'portion_en', 'ingredients_tr', 'ingredients_en', 'calories', 'protein', 'carbs', 'fat',
-    'saturated_fat', 'sugars', 'fiber', 'salt', 'allergens', 'katki_maddesi_icermez'];
+    'saturated_fat', 'sugars', 'fiber', 'salt', 'allergens', 'katki_maddesi_icermez', 'portions'];
   const allColumns = [...baseColumns, ...PRODUCT_LANG_COLUMNS];
   const paramValues = [id, tenantId, name_tr, name_en, description_tr, description_en, category, price, image,
     portion_tr, portion_en, ingredients_tr, ingredients_en, calories, protein, carbs, fat,
-    saturated_fat, sugars, fiber, salt, allergens, katki_maddesi_icermez, ...langValues];
+    saturated_fat, sugars, fiber, salt, allergens, katki_maddesi_icermez, serializePortions(body.portions), ...langValues];
 
   const placeholders = isPg ? allColumns.map((_, i) => `$${i + 1}`).join(',') : allColumns.map(() => '?').join(',');
   await db.run(`
@@ -335,11 +378,11 @@ app.put('/api/products/:id', adminAuth, async (req, res) => {
     const langValues = PRODUCT_LANG_COLUMNS.map(col => body[col] || '');
     const baseColumns = ['name_tr', 'name_en', 'description_tr', 'description_en', 'category', 'price', 'image',
       'portion_tr', 'portion_en', 'ingredients_tr', 'ingredients_en', 'calories', 'protein', 'carbs', 'fat',
-      'saturated_fat', 'sugars', 'fiber', 'salt', 'allergens', 'katki_maddesi_icermez'];
+      'saturated_fat', 'sugars', 'fiber', 'salt', 'allergens', 'katki_maddesi_icermez', 'portions'];
     const allColumns = [...baseColumns, ...PRODUCT_LANG_COLUMNS];
     const paramValues = [name_tr, name_en, description_tr, description_en, category, price, image,
       portion_tr, portion_en, ingredients_tr, ingredients_en, calories, protein, carbs, fat,
-      saturated_fat, sugars, fiber, salt, allergens, katki_maddesi_icermez, ...langValues, id, req.tenantId];
+      saturated_fat, sugars, fiber, salt, allergens, katki_maddesi_icermez, serializePortions(body.portions), ...langValues, id, req.tenantId];
 
     const setClause = isPg
       ? allColumns.map((col, i) => `${col}=$${i + 1}`).join(', ')
@@ -781,13 +824,30 @@ app.post('/api/orders', rateLimiter(30), async (req, res) => {
       if (!product) {
         return res.status(400).json({ error: `Unknown product: ${productId}` });
       }
-      const unitPrice = parseFloat(product.price) || 0;
+      // ── Porsiyon/boyut (Faz 89) ──
+      // Fiyat HER ZAMAN sunucudaki üründen çözülür; istemcinin gönderdiği fiyata asla güvenilmez.
+      // İstemci yalnızca SEÇİLEN PORSİYONUN SIRA NUMARASINI gönderir (isim değil — isim değişebilir
+      // ya da çakışabilir). Numara geçersizse porsiyonsuz gibi davranıp ürünün ana fiyatına düşeriz;
+      // böylece bozuk/eski bir istemci siparişi düşürmek yerine yine de geçerli bir fiyat üretir.
+      const portionList = parsePortions(product.portions);
+      let chosenPortion = null;
+      if (portionList.length) {
+        const idx = parseInt(raw && raw.portion_index, 10);
+        chosenPortion = (Number.isFinite(idx) && idx >= 0 && idx < portionList.length)
+          ? portionList[idx]
+          : portionList[0];   // seçim gelmediyse ilk (en küçük) porsiyon varsayılır
+      }
+
+      const baseName = product.name_tr || product.name_en || productId;
+      const unitPrice = chosenPortion ? chosenPortion.price : (parseFloat(product.price) || 0);
       const lineTotal = Math.round(unitPrice * quantity * 100) / 100;
       subtotal += lineTotal;
       resolvedItems.push({
         id: `oi-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
         product_id: productId,
-        product_name: product.name_tr || product.name_en || productId,
+        // Porsiyon adı ürün adının yanına yazılır ki mutfak fişinde ve sipariş listesinde
+        // hangi boyutun istendiği görünsün (ayrı sütun eklemeye gerek kalmadan).
+        product_name: chosenPortion ? `${baseName} (${chosenPortion.name_tr})` : baseName,
         unit_price: unitPrice,
         quantity,
         line_total: lineTotal
